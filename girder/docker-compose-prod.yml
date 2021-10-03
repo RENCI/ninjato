@@ -1,0 +1,44 @@
+version: '3.7'
+
+services:
+  mongodb:
+    image: mongo:4.4
+    ports:
+      - "27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  girder:
+    build:
+      context: . 
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    links:
+      - "mongodb:mongodb"
+    command: --host 0.0.0.0 --database mongodb://mongodb:27017/girder
+
+  nginx:
+    build: ./nginx
+    container_name: girder-nginx
+    volumes:
+      - .:/girder
+      - static_volume:/girder/static
+      - /opt/certs:/a
+    ports:
+      - 443:443
+      - 80:80
+    depends_on:
+      - girder
+
+volumes:
+  mongodb_data:
+  static_volume:
+
+networks:
+  default:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.0.0/28
