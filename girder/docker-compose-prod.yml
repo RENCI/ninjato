@@ -3,15 +3,15 @@ version: '3.7'
 services:
   mongodb:
     image: mongo:4.4
+    container_name: girder-mongodb
     ports:
       - "27017"
     volumes:
       - mongodb_data:/data/db
 
   girder:
-    build:
-      context: . 
-      dockerfile: Dockerfile
+    image: girder/girder:latest
+    container_name: girder-server
     ports:
       - "8080:8080"
     links:
