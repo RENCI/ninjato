@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -z "$1" ]; then
-    docker cp dump_data.gz girder-mongodb:dump_data.gz
+    docker cp test_data.gz girder-mongodb:dump_data.gz
 else
     docker cp $1 girder-mongodb:dump_data.gz	
 fi    
