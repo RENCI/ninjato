@@ -10,7 +10,9 @@ services:
       - mongodb_data:/data/db
 
   girder:
-    image: girder/girder:latest
+    build:
+      context: .
+      dockerfile: Dockerfile      
     container_name: girder-server
     ports:
       - "8080:8080"
