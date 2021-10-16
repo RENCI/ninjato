@@ -3,6 +3,8 @@ from girder.api import access
 from girder.models.user import User
 from girder.api.describe import Description, autoDescribeRoute
 from girder.constants import AccessType
+from girder.api.v1.collection import Collection
+from .utils import get_item_assignment
 
 
 @access.public
@@ -13,10 +15,7 @@ from girder.constants import AccessType
     .errorResponse('Read access was denied on the user.', 403)
 )
 def getUserAssignInfo(user):
-    return {
-        'user_id': user,
-        'item_id': '615cf3caaf9b61166c8e302a'
-    }
+    return get_item_assignment(user)
 
 
 class NinjatoPlugin(GirderPlugin):
