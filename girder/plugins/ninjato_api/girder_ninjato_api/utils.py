@@ -1,32 +1,49 @@
 from girder.models.item import Item
 from bson.objectid import ObjectId
 from girder.models.collection import Collection
+from girder.models.folder import Folder
+from .constants import COLLECTION_NAME
 
 
 def get_item_assignment(user):
-    items = Item().find({'folderId': ObjectId('615380934fc1dbc94c562c4e')})
-    item_list = []
-    for item in items:
-        if 'user' not in item['meta']:
-            item_list.append(item)
-        elif item['meta']['user'] == user['_id']:
-            # this item is already assigned to this user, just return it
-            return {
-                'user_id': user['_id'],
-                'item_id': item['_id']
-            }
+    coll = Collection().findOne({'name': COLLECTION_NAME})
+    vol_folders = Folder().find({
+        'parentId': coll['_id'],
+        'parentCollection': 'collection'
+    })
+    for vol_folder in vol_folders:
+        sub_vol_folders = Folder().find({
+            'parentId': vol_folder['_id'],
+            'parentCollection': 'folder'
+        })
+        for sub_vol_folder in sub_vol_folders:
+            items = Item().find({'folderId': ObjectId(sub_vol_folder['_id'])})
+            sel_item = None
+            for item in items:
+                if 'user' not in item['meta']:
+                    if 'done' not in item['meta']:
+                        sel_item = item
+                        break
+                    elif item['meta']['done'] == 'false':
+                        sel_item = item
+                        break
+                elif item['meta']['user'] == user['_id']:
+                    # this item is already assigned to this user, just return it
+                    return {
+                        'user_id': user['_id'],
+                        'item_id': item['_id']
+                    }
 
-    if item_list:
-        add_meta = {'user': user['_id']}
-        item = item_list[0]
-        Item().setMetadata(item, add_meta)
-        return {
-            'user_id': user['_id'],
-            'item_id': item['_id']
-        }
-    else:
-        # there is no item left to assign to this user
-        return {
-            'user_id': user['_id'],
-            'item_id': ''
-        }
+            if sel_item:
+                add_meta = {'user': user['_id']}
+                Item().setMetadata(sel_item, add_meta)
+                return {
+                    'user_id': user['_id'],
+                    'item_id': sel_item['_id']
+                }
+            else:
+                # there is no item left to assign to this user
+                return {
+                    'user_id': user['_id'],
+                    'item_id': ''
+                }
