@@ -29,7 +29,7 @@ setup(
     keywords='girder-plugin, ninjato_api',
     name='girder_ninjato_api',
     packages=find_packages(exclude=['test', 'test.*']),
-    url='https://github.com/renci/ninjato/girder/plugins/girder_ninjato_api',
+    url='https://github.com/RENCI/ninjato/tree/main/girder/plugins/ninjato_api',
     version='0.1.0',
     zip_safe=False,
     entry_points={
