@@ -4,6 +4,7 @@ services:
   mongodb:
     image: mongo:4.4
     container_name: girder-mongodb
+    restart: always
     ports:
       - "27017"
     volumes:
@@ -14,6 +15,7 @@ services:
       context: .
       dockerfile: Dockerfile      
     container_name: girder-server
+    restart: always
     ports:
       - "8080:8080"
     links:
@@ -23,6 +25,7 @@ services:
   nginx:
     build: ./nginx
     container_name: girder-nginx
+    restart: always
     volumes:
       - .:/girder
       - static_volume:/girder/static
