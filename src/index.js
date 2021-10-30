@@ -1,11 +1,24 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
-import { App } from './app';
+import { Provider } from 'react-redux';
+import { BrowserRouter as Router } from 'react-router-dom';
+import axios from 'axios';
+import 'semantic-ui-css/semantic.min.css';
+import store from './store';
+import App from './app';
+
+axios.defaults.baseURL = '/api/v1';
+
+const GirderApp = () => (
+  <Provider store={store}>
+    <Router>
+      <App />
+    </Router>
+  </Provider>
+);
 
 ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-  document.getElementById('root')
-);
+  <GirderApp />,
+  document.getElementById('root'));
+
+export default GirderApp;
