@@ -36,7 +36,7 @@
       "react-app"
     ]
   },
-  "proxy": "http://localhost:8080",
+  "proxy": "http://girder:8080",
   "browserslist": {
     "production": [
       ">0.2%",

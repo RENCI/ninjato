@@ -1,0 +1,38 @@
+version: '3.7'
+
+services:
+  mongodb:
+    image: mongo:4.4
+    container_name: girder-mongodb
+    ports:
+      - "27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  girder:
+    build:
+      context: ./girder/
+      dockerfile: Dockerfile
+    container_name: girder
+    ports:
+      - "8080:8080"
+    links:
+      - "mongodb:mongodb"
+    command: --host 0.0.0.0 --database mongodb://mongodb:27017/girder
+
+  client:
+    container_name: ninjato-frontend-dev
+    build:
+      context: ./client/
+      dockerfile: Dockerfile
+    volumes:
+      - ./client:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - 3000:3000
+    links:
+      - girder       
+    restart: always
+
+volumes:
+  mongodb_data:
