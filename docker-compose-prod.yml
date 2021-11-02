@@ -39,7 +39,7 @@ services:
     container_name: ninjato-frontend-dev
     build:
       context: ./client/
-      dockerfile: Dockerfilei-prod
+      dockerfile: Dockerfile-prod
     volumes:
       - ./client:/usr/src/app
       - /usr/src/app/node_modules
