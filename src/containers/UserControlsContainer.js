@@ -1,12 +1,24 @@
 import { connect } from 'react-redux';
 import UserControls from '../components/UserControls';
-import { checkLogin, login, logout, openLoginModal, closeLoginModal } from '../modules/user';
+import {
+  checkLogin,
+  login,
+  logout,
+  openLoginModal,
+  closeLoginModal,
+  register,
+  closeRegisterModal,
+  openRegisterModal
+} from '../modules/user';
 
 const mapStateToProps = state => {
   return {
     login: state.user.login,
     loginModalOpen: state.user.loginModalOpen,
     loginErrorMessage: state.user.loginErrorMessage,
+    register: state.user.register,
+    registerModalOpen: state.user.registerModalOpen,
+    registerErrorMessage: state.user.registerErrorMessage,
   };
 };
 
@@ -26,6 +38,15 @@ const mapDispatchToProps = (dispatch, ownProps) => {
     },
     onCloseLoginModal: () => {
       return dispatch(closeLoginModal());
+    },
+    onRegister: (username, email, firstname, lastname, password) => {
+      return dispatch(register(username, email, firstname, lastname, password));
+    },
+    onOpenRegisterModal: () => {
+      return dispatch(openRegisterModal());
+    },
+    onCloseRegisterModal: () => {
+      return dispatch(closeRegisterModal());
     },
   };
 };

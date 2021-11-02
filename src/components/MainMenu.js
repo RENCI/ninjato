@@ -6,7 +6,7 @@ import UserControlsContainer from '../containers/UserControlsContainer';
 const MainMenu = () => (
   <Menu stackable borderless inverted attached size='large'>
     <Container>
-      <Menu.Item as={Link} to='/' header content='Girder'></Menu.Item>
+      <Menu.Item as={Link} to='/' header content='NINJATO'></Menu.Item>
       <Menu borderless inverted floated='right'>
         <UserControlsContainer />
       </Menu>
