@@ -14,7 +14,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile      
-    container_name: girder-server
+    container_name: girder
     restart: always
     ports:
       - "8080:8080"
