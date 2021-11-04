@@ -31,7 +31,7 @@ services:
       - static_volume:/girder/static
       - /opt/certs:/a
     ports:
-      - 8080:8080
+      - 8088:8088
     depends_on:
       - girder
   
@@ -48,6 +48,8 @@ services:
     ports:
       - 443:443      
       - 80:80
+    depends_on:
+      - girder
     links:
       - girder       
     restart: always
