@@ -1,5 +1,5 @@
 import { connect } from 'react-redux';
-import UserControls from '../components/UserControls';
+import UserControls from './user-controls';
 import {
   checkLogin,
   login,
@@ -9,7 +9,7 @@ import {
   register,
   closeRegisterModal,
   openRegisterModal
-} from '../modules/user';
+} from '../../modules/user';
 
 const mapStateToProps = state => {
   return {
