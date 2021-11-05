@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import MainMenu from './components/MainMenu';
+import { MainMenu } from './components/main-menu';
 import RoutedContent from './components/RoutedContent';
 
 class App extends Component {
