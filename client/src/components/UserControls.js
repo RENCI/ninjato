@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
 import { Button, Form, Menu, Message, Modal } from 'semantic-ui-react';
-import AutoFocusForm from './AutoFocusForm';
+import { AutoFocusForm } from './auto-focus-form';
 
 class UserControls extends Component {
   componentDidMount = () => {
