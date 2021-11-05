@@ -10,8 +10,8 @@ services:
       - mongodb_data:/data/db
 
   girder:
-    build: 
-      context: .
+    build:
+      context: ./girder/
       dockerfile: Dockerfile
     container_name: girder
     ports:
@@ -19,6 +19,20 @@ services:
     links:
       - "mongodb:mongodb"
     command: --host 0.0.0.0 --database mongodb://mongodb:27017/girder
+
+  client:
+    container_name: ninjato-frontend-dev
+    build:
+      context: ./client/
+      dockerfile: Dockerfile
+    volumes:
+      - ./client:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - 3000:3000
+    links:
+      - girder       
+    restart: always
 
 volumes:
   mongodb_data:
