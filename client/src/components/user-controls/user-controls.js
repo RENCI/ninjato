@@ -2,26 +2,23 @@ import React, { useEffect, useState } from 'react';
 import { withRouter, useHistory } from 'react-router-dom';
 import { Button, Form, Menu, Message, Modal } from 'semantic-ui-react';
 import { AutoFocusForm } from '../auto-focus-form';
-import { RegisterForm } from './RegisterForm';
-import { LoginForm } from './LoginForm';
+import { RegisterForm } from './register-form';
+import { LoginForm } from './login-form';
 
 export const UserControls = props => {
   const history = useHistory();
 
   useEffect(() => {
+    /*
     props.fetchLoginStatus().then(() => {
       if (props.onInitialized) {
         props.onInitialized();
       }
     });
+    */
   }, []);
 
-  submitLogin = () => {
-    const { loginModalUsername, loginModalPassword } = this.state;
-    this.props.onLogin(loginModalUsername, loginModalPassword);
-  }
-
-  openLoginModal = () => {
+  const openLoginModal = () => {
     this.setState({
       loginModalUsername: null,
       loginModalPassword: null,
@@ -30,12 +27,12 @@ export const UserControls = props => {
     this.opening = true;
   }
 
-  submitRegister = () => {
+  const submitRegister = () => {
     const { regModalUsername, regModalEmail, regModalFirstname, regModalLastname, regModalPassword } = this.state;
     this.props.onRegister(regModalUsername, regModalEmail, regModalFirstname, regModalLastname, regModalPassword);
   }
 
-  openRegisterModal = () => {
+  const openRegisterModal = () => {
     this.setState({
       regModalUsername: null,
       regModalEmail: null,
@@ -47,29 +44,27 @@ export const UserControls = props => {
     this.opening = true;
   }
 
-  handleChange = (e, { name, value }) => this.setState({ [name]: value })
-
-  logout = () => {
+  const logout = () => {
     this.props.onLogout();
     history.push('/');
   }
 
-  render() {
-    const { login, loginErrorMessage, onCloseLoginModal, loginModalOpen,
-      registerErrorMessage, onCloseRegisterModal, registerModalOpen } = this.props;
-    if (login) {
-      return (
-        <Menu.Menu position='right'>
+  const { login, loginErrorMessage, onCloseLoginModal, loginModalOpen,
+    registerErrorMessage, onCloseRegisterModal, registerModalOpen } = props;
+  
+  return (
+    <Menu.Menu position='right'>
+      { login ? 
+        <>
           <Menu.Item content={ login } />
           <Menu.Item content='Log out' onClick={ this.logout } />
-        </Menu.Menu>
-      );
-    }
-    return (
-      <Menu.Menu position='right'>
-        <RegisterForm />
-        <LoginForm />              
-      </Menu.Menu>
-    );
-  };
+        </>
+      :
+        <>
+          <RegisterForm />
+          <LoginForm /> 
+        </>
+      }             
+    </Menu.Menu>
+  );
 };
