@@ -4,13 +4,23 @@ import { Button, Form, Menu, Message, Modal } from 'semantic-ui-react';
 import { useModal } from '../../hooks';
 import { AutoFocusForm } from '../auto-focus-form';
 
-export const RegisterForm = props => {
+export const RegisterForm = () => {
   const [open, onOpen, onClose] = useModal();
+  const [values, setValues] = useState({
+    username: null,
+    email: null,
+    firstname: null,
+    lastname: null,
+    password: null
+  });
 
   // XXX: Need registerErrorMessage from user.js
   const registerErrorMessage = null;
 
   const onSubmit = () => {
+    const { username, email, firstname, lastname, password } = values;
+
+    // XXX: Do dispatch
     /*
     const submitRegister = () => {
       const { regModalUsername, regModalEmail, regModalFirstname, regModalLastname, regModalPassword } = this.state;
@@ -19,9 +29,14 @@ export const RegisterForm = props => {
     */
   };
 
-  const onChange = () => {
-    //const handleChange = (e, { name, value }) => this.setState({ [name]: value })
+  const onChange = (evt, { name, value }) => {
+    setValues({
+      ...values,
+      [name]: value
+    });
   };
+
+  console.log(values);
 
   return (
     <Modal
@@ -34,11 +49,11 @@ export const RegisterForm = props => {
       <Modal.Header>Register new user</Modal.Header>
       <Modal.Content>
         <AutoFocusForm error onSubmit={ onSubmit }>
-          <Form.Input label='Enter a login name' name='regModalUsername' onChange={ onChange } />
-          <Form.Input label='Enter email address' name='regModalEmail' onChange={ onChange } />
-          <Form.Input label='Enter first name' name='regModalFirstname' onChange={ onChange } />
-          <Form.Input label='Enter last name' name='regModalLastname' onChange={ onChange } />
-          <Form.Input label='Enter a password' type='password' name='regModalPassword'  onChange={ onChange } />
+          <Form.Input label='Enter a login name' name='username' onChange={ onChange } />
+          <Form.Input label='Enter email address' name='email' onChange={ onChange } />
+          <Form.Input label='Enter first name' name='firstname' onChange={ onChange } />
+          <Form.Input label='Enter last name' name='lastname' onChange={ onChange } />
+          <Form.Input label='Enter a password' type='password' name='password'  onChange={ onChange } />
           <Message
             error
             content={ registerErrorMessage }

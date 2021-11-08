@@ -6,11 +6,19 @@ import { AutoFocusForm } from '../auto-focus-form';
 
 export const LoginForm = props => {
   const [open, onOpen, onClose] = useModal();
+  const [values, setValues] = useState({
+    username: null,
+    password: null
+  });
 
   // XXX: Need loginErrorMessage from user.js
   const loginErrorMessage = null;
 
   const onSubmit = () => {
+    const { username, password } = values;
+
+    // XXX: Do dispatch
+
     /*
     const submitLogin = () => {
       const { loginModalUsername, loginModalPassword } = this.state;
@@ -19,8 +27,11 @@ export const LoginForm = props => {
     */
   };
 
-  const onChange = () => {
-    //const handleChange = (e, { name, value }) => this.setState({ [name]: value })
+  const onChange = (evt, { name, value }) => {
+    setValues({
+      ...values,
+      [name]: value
+    });
   };
 
   return (
