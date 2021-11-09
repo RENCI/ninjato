@@ -1,5 +1,4 @@
-import React, { useEffect, useContext, useState } from 'react';
-import { withRouter, useHistory } from 'react-router-dom';
+import React, { useContext, useState } from 'react';
 import { Button, Form, Menu, Message, Modal } from 'semantic-ui-react';
 import { LOGIN, UserContext } from '../../contexts';
 import { AutoFocusForm } from '../auto-focus-form';
@@ -7,7 +6,7 @@ import { api } from '../../api';
 import { useModal } from '../../hooks';
 
 export const LoginForm = () => {
-  const [{ login }, userDispatch] = useContext(UserContext);
+  const [, userDispatch] = useContext(UserContext);
   const [open, openModal, closeModal] = useModal();
   const [values, setValues] = useState({
     username: null,
@@ -40,13 +39,6 @@ export const LoginForm = () => {
 
       setErrorMessage(error.response.data.message);
     }
-
-    /*
-    const submitLogin = () => {
-      const { loginModalUsername, loginModalPassword } = this.state;
-      this.props.onLogin(loginModalUsername, loginModalPassword);
-    }
-    */
   };
 
   const onChange = (evt, { name, value }) => {
@@ -67,8 +59,8 @@ export const LoginForm = () => {
       <Modal.Header>Log in</Modal.Header>
       <Modal.Content>
         <AutoFocusForm error onSubmit={ onSubmit }>
-          <Form.Input label='Login or email' name='loginModalUsername' onChange={ onChange } />
-          <Form.Input label='Password' type='password' name='loginModalPassword' onChange={ onChange } />
+          <Form.Input label='Login or email' name='username' onChange={ onChange } />
+          <Form.Input label='Password' type='password' name='password' onChange={ onChange } />
           <Message
             error
             content={ errorMessage }

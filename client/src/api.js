@@ -3,8 +3,8 @@ import axios from 'axios';
 const getCookie = name => {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
-  return undefined;
+
+  return parts.length === 2 ? parts.pop().split(';').shift() : undefined;
 }
 
 export const api = {
@@ -28,7 +28,7 @@ export const api = {
 
     axios.defaults.headers.common['Girder-Token'] = authToken.token;
 
-    return response.data;
+    return response.data.user;
   },
   logout: async () => {
     await axios.delete('/user/authentication');

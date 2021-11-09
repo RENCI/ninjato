@@ -1,5 +1,4 @@
-import React, { useEffect, useContext, useState } from 'react';
-import { withRouter, useHistory } from 'react-router-dom';
+import React, { useContext, useState } from 'react';
 import { Button, Form, Menu, Message, Modal } from 'semantic-ui-react';
 import { LOGIN, UserContext } from '../../contexts';
 import { AutoFocusForm } from '../auto-focus-form';
@@ -43,13 +42,6 @@ export const RegisterForm = () => {
 
       setErrorMessage(error.response.data.message);
     }
-    
-    /*
-    const submitRegister = () => {
-      const { regModalUsername, regModalEmail, regModalFirstname, regModalLastname, regModalPassword } = this.state;
-      this.props.onRegister(regModalUsername, regModalEmail, regModalFirstname, regModalLastname, regModalPassword);
-    }
-    */
   };
 
   const onChange = (evt, { name, value }) => {

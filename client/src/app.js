@@ -1,13 +1,14 @@
 import React from 'react';
+import { Route } from 'react-router-dom';
 import { UserProvider } from "./contexts"; 
 import { MainMenu } from './components/main-menu';
-import RoutedContent from './components/RoutedContent';
+import { Home } from './pages';
 
 export const App = () => { 
   return (
     <UserProvider>
       <MainMenu />
-      <RoutedContent />
+      <Route exact path={'/'}><Home /></Route>;
     </UserProvider>
   );
 };
