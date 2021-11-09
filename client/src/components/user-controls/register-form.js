@@ -1,11 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useContext, useState } from 'react';
 import { withRouter, useHistory } from 'react-router-dom';
 import { Button, Form, Menu, Message, Modal } from 'semantic-ui-react';
-import { useModal } from '../../hooks';
+import { LOGIN, UserContext } from '../../contexts';
 import { AutoFocusForm } from '../auto-focus-form';
+import { api } from '../../api';
+import { useModal } from '../../hooks';
 
 export const RegisterForm = () => {
-  const [open, onOpen, onClose] = useModal();
+  const [, userDispatch] = useContext(UserContext);
+  const [open, openModal, closeModal] = useModal();
   const [values, setValues] = useState({
     username: null,
     email: null,
@@ -13,14 +16,33 @@ export const RegisterForm = () => {
     lastname: null,
     password: null
   });
+  const [errorMessage, setErrorMessage] = useState(null);
 
-  // XXX: Need registerErrorMessage from user.js
-  const registerErrorMessage = null;
+  const onOpenModal = () => {
+    setErrorMessage();
+    openModal();
+  };
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     const { username, email, firstname, lastname, password } = values;
 
-    // XXX: Do dispatch
+    try {
+      const user = await api.register(username, email, firstname, lastname, password);
+
+      userDispatch({
+        type: LOGIN,
+        id: user._id,
+        login: user.login,
+        admin: false
+      });
+
+      closeModal();
+    }
+    catch (error) {
+      console.log(error);      
+
+      setErrorMessage(error.response.data.message);
+    }
     
     /*
     const submitRegister = () => {
@@ -37,15 +59,13 @@ export const RegisterForm = () => {
     });
   };
 
-  console.log(values);
-
   return (
     <Modal
       size='tiny'
       trigger={ <Menu.Item content='Register'/> }
       open={ open }
-      onOpen={ onOpen }
-      onClose={ onClose }
+      onOpen={ onOpenModal }
+      onClose={ closeModal }
     >
       <Modal.Header>Register new user</Modal.Header>
       <Modal.Content>
@@ -57,7 +77,7 @@ export const RegisterForm = () => {
           <Form.Input label='Enter a password' type='password' name='password'  onChange={ onChange } />
           <Message
             error
-            content={ registerErrorMessage }
+            content={ errorMessage }
           />
           <div style={{ display: 'none' }}>
             <Form.Button content='Submit' />
@@ -65,7 +85,7 @@ export const RegisterForm = () => {
         </AutoFocusForm>
       </Modal.Content>
       <Modal.Actions>
-        <Button onClick={ onClose }>
+        <Button onClick={ closeModal }>
           Cancel
         </Button>
         <Button color='green' onClick={ onSubmit }>

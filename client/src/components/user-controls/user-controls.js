@@ -1,21 +1,28 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useContext } from 'react';
 import { withRouter, useHistory } from 'react-router-dom';
 import { Button, Form, Menu, Message, Modal } from 'semantic-ui-react';
-import { checkLogin } from '../../api';
+import { LOGIN, LOGOUT, UserContext } from '../../contexts';
 import { AutoFocusForm } from '../auto-focus-form';
 import { RegisterForm } from './register-form';
 import { LoginForm } from './login-form';
+import { api } from '../../api';
 
 export const UserControls = props => {
+  const [{ login }, userDispatch] = useContext(UserContext);
   const history = useHistory();
 
   useEffect(() => {
     const checkUserLogin = async () => {
       try {
-        const user = await checkLogin();
+        const user = await api.checkLogin();
 
         if (user) {
-          console.log(user);
+          userDispatch({
+            type: LOGIN,
+            id: user._id,
+            login: user.login,
+            admin: user.admin
+          });
         }
       }
       catch (error) {
@@ -59,20 +66,24 @@ export const UserControls = props => {
     this.opening = true;
   }
 
-  const logout = () => {
+  const onLogout = async () => {
+    await api.logout();
+
+    userDispatch({
+      type: LOGOUT
+    });
+    /*
     this.props.onLogout();
     history.push('/');
+    */
   }
-
-  const { login, loginErrorMessage, onCloseLoginModal, loginModalOpen,
-    registerErrorMessage, onCloseRegisterModal, registerModalOpen } = props;
   
   return (
     <Menu.Menu position='right'>
       { login ? 
         <>
           <Menu.Item content={ login } />
-          <Menu.Item content='Log out' onClick={ this.logout } />
+          <Menu.Item content='Log out' onClick={ onLogout } />
         </>
       :
         <>

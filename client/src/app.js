@@ -1,16 +1,13 @@
-import React, { Component } from 'react';
+import React from 'react';
+import { UserProvider } from "./contexts"; 
 import { MainMenu } from './components/main-menu';
 import RoutedContent from './components/RoutedContent';
 
-class App extends Component {
-  render() {
-    return (
-      <div>
-        <MainMenu />
-        <RoutedContent />
-      </div>
-    );
-  }
-}
-
-export default App;
+export const App = () => { 
+  return (
+    <UserProvider>
+      <MainMenu />
+      <RoutedContent />
+    </UserProvider>
+  );
+};

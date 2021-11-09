@@ -5,7 +5,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import axios from 'axios';
 import 'semantic-ui-css/semantic.min.css';
 import store from './store';
-import App from './app';
+import { App } from './app';
 
 axios.defaults.baseURL = '/api/v1';
 
