@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { withRouter, useHistory } from 'react-router-dom';
 import { Button, Form, Menu, Message, Modal } from 'semantic-ui-react';
+import { checkLogin } from '../../api';
 import { AutoFocusForm } from '../auto-focus-form';
 import { RegisterForm } from './register-form';
 import { LoginForm } from './login-form';
@@ -9,13 +10,27 @@ export const UserControls = props => {
   const history = useHistory();
 
   useEffect(() => {
-    /*
+    const checkUserLogin = async () => {
+      try {
+        const user = await checkLogin();
+
+        if (user) {
+          console.log(user);
+        }
+      }
+      catch (error) {
+        console.log(error);
+      }
+    };
+
+    checkUserLogin();
+/*    
     props.fetchLoginStatus().then(() => {
       if (props.onInitialized) {
         props.onInitialized();
       }
     });
-    */
+*/    
   }, []);
 
   const openLoginModal = () => {
