@@ -21,6 +21,7 @@ export const RegisterForm = () => {
     const { username, email, firstname, lastname, password } = values;
 
     // XXX: Do dispatch
+    
     /*
     const submitRegister = () => {
       const { regModalUsername, regModalEmail, regModalFirstname, regModalLastname, regModalPassword } = this.state;
