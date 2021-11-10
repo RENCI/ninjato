@@ -8,7 +8,7 @@ import '@kitware/vtk.js/IO/Core/DataAccessHelper/HttpDataAccessHelper';
 import '@kitware/vtk.js/IO/Core/DataAccessHelper/JSZipDataAccessHelper';
 
 import vtkFullScreenRenderWindow from '@kitware/vtk.js/Rendering/Misc/FullScreenRenderWindow';
-import vtkHttpDataSetReader from '@kitware/vtk.js/IO/Core/HttpDataSetReader';
+import vtkXMLImageDataReader from '@kitware/vtk.js/IO/XML/XMLImageDataReader';
 import vtkImageMapper from '@kitware/vtk.js/Rendering/Core/ImageMapper';
 import vtkImageSlice from '@kitware/vtk.js/Rendering/Core/ImageSlice';
 import vtkInteractorStyleManipulator from '@kitware/vtk.js/Interaction/Style/InteractorStyleManipulator';
@@ -23,12 +23,12 @@ export const SliceView = () => {
 
   useEffect(() => {
     if (!context.current) {
-      const reader = vtkHttpDataSetReader.newInstance({
+      const reader = vtkXMLImageDataReader.newInstance({
         fetchGzip: true,
       });
 
       reader
-        .setUrl(`https://kitware.github.io/vtk-js/data/volume/headsq.vti`, { loadData: true })
+        .setUrl(`test-data.vti`)
         .then(() => {      
           const data = reader.getOutputData();
           const range = data.getPointData().getScalars().getRange();
@@ -66,7 +66,7 @@ export const SliceView = () => {
 
           const fullScreenRenderWindow = vtkFullScreenRenderWindow.newInstance({
             rootContainer: vtkContainerRef.current,
-            background: [0, 0, 0],
+            background: [0.9, 0.9, 0.9]
           });
     
           const renderWindow = fullScreenRenderWindow.getRenderWindow();
