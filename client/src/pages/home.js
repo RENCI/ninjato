@@ -1,17 +1,23 @@
 import React, { useContext } from 'react';
-import { Container, Segment } from 'semantic-ui-react';
+import { Container, Segment, Grid } from 'semantic-ui-react';
 import { UserContext } from '../contexts';
-import { SliceView } from '../vtk';
+import { VolumeView, SliceView } from '../vtk';
+
+const { Row, Column } = Grid;
 
 export const Home = () => {
   const [{ login }] = useContext(UserContext);
 
   return (
-    <Container>
-      <Segment basic>
-        <h1>Welcome { login }!</h1>
-        <SliceView />
-      </Segment>
-    </Container>
+    <Grid container columns={ 2 }>
+      <Row>
+        <Column>
+          <VolumeView />
+        </Column>
+        <Column>
+          <SliceView />
+        </Column>
+      </Row>
+    </Grid>
   );
 };
