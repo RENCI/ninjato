@@ -1,16 +1,16 @@
-import React, { Component } from 'react';
-import MainMenu from './components/MainMenu';
-import RoutedContent from './components/RoutedContent';
+import React from 'react';
+import { BrowserRouter as Router, Route } from 'react-router-dom';
+import { UserProvider } from "./contexts"; 
+import { MainMenu } from './components/main-menu';
+import { Home } from './pages';
 
-class App extends Component {
-  render() {
-    return (
-      <div>
+export const App = () => { 
+  return (
+    <UserProvider>
+      <Router>
         <MainMenu />
-        <RoutedContent />
-      </div>
-    );
-  }
-}
-
-export default App;
+        <Route exact path={'/'}><Home /></Route>
+      </Router>
+    </UserProvider>
+  );
+};
