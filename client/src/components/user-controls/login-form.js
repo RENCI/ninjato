@@ -1,9 +1,11 @@
 import React, { useContext, useState } from 'react';
 import { Button, Form, Menu, Message, Modal } from 'semantic-ui-react';
-import { LOGIN, UserContext } from '../../contexts';
+import { LOGIN, SET_ASSIGNMENT, UserContext } from '../../contexts';
 import { AutoFocusForm } from '../auto-focus-form';
 import { api } from '../../api';
 import { useModal } from '../../hooks';
+
+import { loadData } from '../../vtk';
 
 export const LoginForm = () => {
   const [, userDispatch] = useContext(UserContext);
@@ -25,12 +27,25 @@ export const LoginForm = () => {
     try {
       const user = await api.login(username, password);
 
+      const id = user._id;
+
       userDispatch({
         type: LOGIN,
-        id: user._id,
+        id: id,
         login: user.login,
         admin: user.admin
       });
+
+      const assignment = await api.getAssignment(id);
+
+      console.log(assignment);
+
+      userDispatch({
+        type: SET_ASSIGNMENT,
+        ...assignment
+      });
+
+      loadData(assignment.imageId, assignment.maskId);
 
       closeModal();
     }

@@ -49,5 +49,19 @@ export const api = {
     axios.defaults.headers.common['Girder-Token'] = authToken.token;
 
     return response.data;
-  }
+  },
+  getAssignment: async id => {
+    const assignmentResponse = await axios.get(`/user/${ id }/assignment`);
+
+    const itemId = assignmentResponse.data.item_id;
+
+    const filesResponse = await axios.get(`/item/${ itemId }/files`);
+
+    return {
+      itemId: itemId,
+      imageId: filesResponse.data[0]._id,
+      maskId: filesResponse.data[1]._id
+    };
+  },
+  fileUrl: id => `/file/${ id }/download`
 };

@@ -1,5 +1,5 @@
 import React, { useEffect, useContext } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Menu } from 'semantic-ui-react';
 import { LOGIN, LOGOUT, UserContext } from '../../contexts';
 import { RegisterForm } from './register-form';
@@ -8,7 +8,7 @@ import { api } from '../../api';
 
 export const UserControls = () => {
   const [{ login }, userDispatch] = useContext(UserContext);
-  const history = useHistory();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const checkUserLogin = async () => {
@@ -39,7 +39,7 @@ export const UserControls = () => {
       type: LOGOUT
     });
 
-    history.push('/');
+    navigate('/');
   }
   
   return (
