@@ -5,7 +5,10 @@ import '@kitware/vtk.js/Rendering/Profiles/Volume';
 import vtkFullScreenRenderWindow from '@kitware/vtk.js/Rendering/Misc/FullScreenRenderWindow';
 import vtkImageMapper from '@kitware/vtk.js/Rendering/Core/ImageMapper';
 import vtkImageSlice from '@kitware/vtk.js/Rendering/Core/ImageSlice';
+import vtkImageOutlineFilter from '@kitware/vtk.js/Filters/General/ImageOutlineFilter';
 import vtkInteractorStyleManipulator from '@kitware/vtk.js/Interaction/Style/InteractorStyleManipulator';
+import vtkPiecewiseFunction  from '@kitware/vtk.js/Common/DataModel/PiecewiseFunction';
+import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
 
 import Manipulators from '@kitware/vtk.js/Interaction/Manipulators';
 
@@ -15,7 +18,7 @@ import { useResize } from '../hooks';
 const { SlicingMode } = vtkImageMapper;
 
 export const SliceView = () => {
-  const [{ imageData }] = useContext(DataContext);
+  const [{ imageData, maskData }] = useContext(DataContext);
   const outerDiv = useRef(null);
   const vtkDiv = useRef(null);
   const context = useRef(null);
@@ -24,8 +27,35 @@ export const SliceView = () => {
   // Set up pipeline
   useEffect(() => {   
     if (!context.current) {   
+      const outline = vtkImageOutlineFilter.newInstance();
+      outline.setSlicingMode(SlicingMode.K);
+
+      const outlineMapper = vtkImageMapper.newInstance();
+      outlineMapper.setSlicingMode(SlicingMode.K);
+      outlineMapper.setInputConnection(outline.getOutputPort());
+
+      const outlineActor = vtkImageSlice.newInstance();
+      outlineActor.getProperty().setInterpolationTypeToNearest();
+      outlineActor.setMapper(outlineMapper);
+
+      const maxValue = 255;
+      const opacity = 0.2;
+      const opFun = vtkPiecewiseFunction.newInstance();
+      opFun.addPoint(0, 0);
+      opFun.addPoint(1, opacity);
+      opFun.addPoint(maxValue, opacity);
+
+      const cFun = vtkColorTransferFunction.newInstance();
+      cFun.addRGBPoint(1, 1, 0, 0);
+
+      outlineActor.getProperty().setPiecewiseFunction(opFun);
+      outlineActor.getProperty().setRGBTransferFunction(cFun);
+
       const imageMapper = vtkImageMapper.newInstance();
       imageMapper.setSlicingMode(SlicingMode.K);
+      imageMapper.onModified(() => {
+        outlineMapper.setSlice(imageMapper.getSlice());
+      });
                           
       const imageActor = vtkImageSlice.newInstance();
       imageActor.getProperty().setInterpolationTypeToNearest();
@@ -57,16 +87,26 @@ export const SliceView = () => {
         interactorStyle,
         manipulator,
         imageMapper,
-        imageActor
+        imageActor,
+        outline,
+        outlineMapper,
+        outlineActor
       };
     }  
 
     return () => {
       if (context.current) {
-        const { imageMapper, imageActor, fullScreenRenderWindow, manipulator, interactorStyle } = context.current;
+        const { 
+          imageMapper, imageActor, 
+          outline, outlineMapper, outlineActor,
+          fullScreenRenderWindow, manipulator, interactorStyle 
+        } = context.current;
 
         imageMapper.delete();
         imageActor.delete();
+        outline.delete();
+        outlineMapper.delete();
+        outlineActor.delete();
         fullScreenRenderWindow.delete();
         manipulator.delete();
         interactorStyle.delete();
@@ -74,7 +114,7 @@ export const SliceView = () => {
         context.current = null;
       }
     };
-  }, [vtkDiv, imageData]);
+  }, [vtkDiv]);
 
   // Update data
   useEffect(() => {
@@ -126,6 +166,30 @@ export const SliceView = () => {
     }
 
   }, [imageData]);  
+
+  // Update mask
+  useEffect(() => {
+    if (!context.current) return;
+
+    const { renderer, renderWindow, outline, outlineActor } = context.current;
+
+    if (maskData) {
+      const range = imageData.getPointData().getScalars().getRange();
+      const extent = imageData.getExtent();          
+      
+      outline.setInputData(maskData);
+
+      renderer.addActor(outlineActor);
+
+      renderer.resetCamera();
+      renderer.resetCameraClippingRange();
+      renderWindow.render();
+    }
+    else {
+      renderer.removeActor(outlineActor);
+    }
+
+  }, [maskData]);  
 
   return (
     <div ref={ outerDiv } style={{ height: width }}>

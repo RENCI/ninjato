@@ -63,7 +63,7 @@ export const VolumeView = () => {
         context.current = null;
       }
     };
-  }, [vtkDiv, maskData]);
+  }, [vtkDiv]);
 
   // Update data
   useEffect(() => {
