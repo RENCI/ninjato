@@ -1,4 +1,4 @@
-import React, { createContext, useReducer } from "react";
+import { createContext, useReducer } from "react";
 
 export const LOGIN = 'user/LOGIN';
 export const LOGOUT = 'user/LOGOUT';

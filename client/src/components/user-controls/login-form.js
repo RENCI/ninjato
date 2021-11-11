@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import { useContext, useState } from 'react';
 import { Button, Form, Menu, Message, Modal } from 'semantic-ui-react';
 import { 
   LOGIN, SET_ASSIGNMENT, UserContext,

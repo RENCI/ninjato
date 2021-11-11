@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import { useContext } from 'react';
 import { Grid } from 'semantic-ui-react';
 import { UserContext } from '../contexts';
 import { VolumeView, SliceView } from '../vtk';

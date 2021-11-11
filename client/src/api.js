@@ -81,8 +81,15 @@ export const api = {
 
     const imageData = imageReader.getOutputData();
 
+    await imageReader.setUrl('test-masks.vti');
+
+    const maskData = imageReader.getOutputData();
+
+    imageReader.delete();
+
     return {
-      imageData: imageData
+      imageData: imageData,
+      maskData: maskData
     };
   }
 };

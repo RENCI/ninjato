@@ -1,4 +1,4 @@
-import React, { createContext, useReducer } from "react";
+import { createContext, useReducer } from "react";
 
 export const SET_DATA = 'data/LOGIN';
 export const CLEAR_DATA = 'data/LOGOUT';

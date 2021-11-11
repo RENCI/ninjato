@@ -8,42 +8,38 @@ import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 
 import { DataContext } from '../contexts';
+import { useResize } from '../hooks';
 
 export const VolumeView = () => {
-  const [{ imageData }] = useContext(DataContext);
-  const vtkContainerRef = useRef(null);
+  const [{ maskData }] = useContext(DataContext);
+  const outerDiv = useRef(null);
+  const vtkDiv = useRef(null);
   const context = useRef(null);
+  const { width } = useResize(outerDiv);
 
+  // Set up pipeline
   useEffect(() => {
-    if (!context.current && imageData) {
-      const range = imageData.getPointData().getScalars().getRange();
-
+    if (!context.current) {
       const marchingCubes = vtkImageMarchingCubes.newInstance({
-        contourValue: (range[1] - range[0]) / 2,
+        contourValue: 1,
         computeNormals: true,
-        mergePoints: true,
+        mergePoints: true
       });
-      marchingCubes.setInputData(imageData);
 
       const mapper = vtkMapper.newInstance();
       mapper.setInputConnection(marchingCubes.getOutputPort());
 
       const actor = vtkActor.newInstance();
+      actor.getProperty().setColor(1, 0, 0);
       actor.setMapper(mapper);
 
       const fullScreenRenderWindow = vtkFullScreenRenderWindow.newInstance({
-        rootContainer: vtkContainerRef.current,
+        rootContainer: vtkDiv.current,
         background: [0.9, 0.9, 0.9]
       });
 
       const renderWindow = fullScreenRenderWindow.getRenderWindow();
       const renderer = fullScreenRenderWindow.getRenderer();  
-
-      renderer.addActor(actor);
-
-      renderer.resetCamera();
-      renderer.resetCameraClippingRange();
-      renderWindow.render();
 
       context.current = {
         marchingCubes,
@@ -57,8 +53,9 @@ export const VolumeView = () => {
 
     return () => {
       if (context.current) {
-        const { reader, fullScreenRenderWindow, mapper, actor } = context.current;
+        const { marchingCubes, mapper, actor, fullScreenRenderWindow } = context.current;
 
+        marchingCubes.delete();
         actor.delete();
         mapper.delete();
         fullScreenRenderWindow.delete();
@@ -66,29 +63,31 @@ export const VolumeView = () => {
         context.current = null;
       }
     };
-  }, [vtkContainerRef, imageData]);
+  }, [vtkDiv, maskData]);
 
-/*  
-    useEffect(() => {
-        if (context.current) {
-            const { coneSource, renderWindow } = context.current;
-            coneSource.setResolution(coneResolution);
-            renderWindow.render();
-        }
-    }, [coneResolution]);
+  // Update data
+  useEffect(() => {
+    if (!context.current) return;
 
-    useEffect(() => {
-        if (context.current) {
-            const { actor, renderWindow } = context.current;
-            actor.getProperty().setRepresentation(representation);
-            renderWindow.render();
-        }
-    }, [representation]);
-*/    
+    const { marchingCubes, renderer, actor, renderWindow } = context.current;
+
+    if (maskData) {
+      marchingCubes.setInputData(maskData);
+
+      renderer.addActor(actor);
+
+      renderer.resetCamera();
+      renderer.resetCameraClippingRange();
+      renderWindow.render();
+    } 
+    else {
+      renderer.removeActor()
+    }
+  }, [maskData]);
 
   return (
-    <div style={{ height: 500 }}>
-      <div ref={ vtkContainerRef } />
+    <div ref={ outerDiv } style={{ height: width }}>
+      <div ref={ vtkDiv } />
     </div>
   );
 };

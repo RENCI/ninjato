@@ -10,29 +10,87 @@ import vtkInteractorStyleManipulator from '@kitware/vtk.js/Interaction/Style/Int
 import Manipulators from '@kitware/vtk.js/Interaction/Manipulators';
 
 import { DataContext } from '../contexts';
+import { useResize } from '../hooks';
 
 const { SlicingMode } = vtkImageMapper;
 
 export const SliceView = () => {
   const [{ imageData }] = useContext(DataContext);
-  const vtkContainerRef = useRef(null);
+  const outerDiv = useRef(null);
+  const vtkDiv = useRef(null);
   const context = useRef(null);
-
-  useEffect(() => {
-    if (!context.current && imageData) {
-      const range = imageData.getPointData().getScalars().getRange();
-      const extent = imageData.getExtent();          
-      
+  const { width } = useResize(outerDiv);
+     
+  // Set up pipeline
+  useEffect(() => {   
+    if (!context.current) {   
       const imageMapper = vtkImageMapper.newInstance();
-      imageMapper.setInputData(imageData);
       imageMapper.setSlicingMode(SlicingMode.K);
-      imageMapper.setSlice((extent[5] - extent[4]) / 2);
                           
       const imageActor = vtkImageSlice.newInstance();
       imageActor.getProperty().setInterpolationTypeToNearest();
+      imageActor.setMapper(imageMapper);
+      
+      const fullScreenRenderWindow = vtkFullScreenRenderWindow.newInstance({
+        rootContainer: vtkDiv.current,
+        background: [0.9, 0.9, 0.9]
+      });
+
+      const renderWindow = fullScreenRenderWindow.getRenderWindow();
+      const renderer = fullScreenRenderWindow.getRenderer();  
+      renderer.getActiveCamera().setParallelProjection(true);
+
+      const manipulator = Manipulators.vtkMouseRangeManipulator.newInstance({
+        button: 1,
+        scrollEnabled: true,
+      });
+
+      const interactorStyle = vtkInteractorStyleManipulator.newInstance();
+      interactorStyle.addMouseManipulator(manipulator);
+
+      fullScreenRenderWindow.getInteractor().setInteractorStyle(interactorStyle);
+
+      context.current = {
+        fullScreenRenderWindow,
+        renderWindow,
+        renderer,
+        interactorStyle,
+        manipulator,
+        imageMapper,
+        imageActor
+      };
+    }  
+
+    return () => {
+      if (context.current) {
+        const { imageMapper, imageActor, fullScreenRenderWindow, manipulator, interactorStyle } = context.current;
+
+        imageMapper.delete();
+        imageActor.delete();
+        fullScreenRenderWindow.delete();
+        manipulator.delete();
+        interactorStyle.delete();
+
+        context.current = null;
+      }
+    };
+  }, [vtkDiv, imageData]);
+
+  // Update data
+  useEffect(() => {
+    if (!context.current) return;
+
+    const { renderWindow, renderer, manipulator, imageMapper, imageActor } = context.current;
+
+    if (imageData) {
+      const range = imageData.getPointData().getScalars().getRange();
+      const extent = imageData.getExtent();          
+      
+      imageMapper.setInputData(imageData);
+      imageMapper.setSlice((extent[5] - extent[4]) / 2);
+                          
       imageActor.getProperty().setColorLevel((range[1] - range[0]) / 2);
       imageActor.getProperty().setColorWindow(range[1] - range[0]);
-      imageActor.setMapper(imageMapper);
       
       const wMin = 1;
       const wMax = range[1] - range[0];
@@ -53,81 +111,25 @@ export const SliceView = () => {
         imageMapper.setSlice(k);
       };
 
-      const fullScreenRenderWindow = vtkFullScreenRenderWindow.newInstance({
-        rootContainer: vtkContainerRef.current,
-        background: [0.9, 0.9, 0.9]
-      });
-
-      const renderWindow = fullScreenRenderWindow.getRenderWindow();
-      const renderer = fullScreenRenderWindow.getRenderer();  
-      renderer.getActiveCamera().setParallelProjection(true);
-
-      const manipulator = Manipulators.vtkMouseRangeManipulator.newInstance({
-        button: 1,
-        scrollEnabled: true,
-      });
       manipulator.setVerticalListener(wMin, wMax, 1, wGet, wSet, 1);
       manipulator.setHorizontalListener(lMin, lMax, 1, lGet, lSet, 1);
       manipulator.setScrollListener(kMin, kMax, 1, kGet, kSet, 1);
-
-      const interactorStyle = vtkInteractorStyleManipulator.newInstance();
-      interactorStyle.addMouseManipulator(manipulator);
-
-      fullScreenRenderWindow.getInteractor().setInteractorStyle(interactorStyle);
 
       renderer.addActor(imageActor);
 
       renderer.resetCamera();
       renderer.resetCameraClippingRange();
       renderWindow.render();
+    }
+    else {
+      renderer.removeActor(imageActor);
+    }
 
-      context.current = {
-        fullScreenRenderWindow,
-        renderWindow,
-        renderer,
-        interactorStyle,
-        manipulator,
-        imageMapper,
-        imageActor
-      };
-    }  
-
-    return () => {
-      if (context.current) {
-        const { reader, fullScreenRenderWindow, interactorStyle, manipulator, imageMapper, imageActor } = context.current;
-
-        imageActor.delete();
-        imageMapper.delete();
-        manipulator.delete();
-        interactorStyle.delete();
-        fullScreenRenderWindow.delete();
-
-        context.current = null;
-      }
-    };
-  }, [vtkContainerRef, imageData]);
-
-/*  
-    useEffect(() => {
-        if (context.current) {
-            const { coneSource, renderWindow } = context.current;
-            coneSource.setResolution(coneResolution);
-            renderWindow.render();
-        }
-    }, [coneResolution]);
-
-    useEffect(() => {
-        if (context.current) {
-            const { actor, renderWindow } = context.current;
-            actor.getProperty().setRepresentation(representation);
-            renderWindow.render();
-        }
-    }, [representation]);
-*/    
+  }, [imageData]);  
 
   return (
-    <div style={{ height: 500 }}>
-      <div ref={ vtkContainerRef } />
+    <div ref={ outerDiv } style={{ height: width }}>
+      <div ref={ vtkDiv } />
     </div>
   );
 };
