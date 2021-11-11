@@ -1,71 +1,58 @@
-import { useState, useRef, useEffect } from 'react';
+import { useContext, useRef, useEffect } from 'react';
 
 import '@kitware/vtk.js/Rendering/Profiles/Geometry';
 
-// Force DataAccessHelper to have access to various data source
-import '@kitware/vtk.js/IO/Core/DataAccessHelper/HtmlDataAccessHelper';
-import '@kitware/vtk.js/IO/Core/DataAccessHelper/HttpDataAccessHelper';
-import '@kitware/vtk.js/IO/Core/DataAccessHelper/JSZipDataAccessHelper';
-
 import vtkFullScreenRenderWindow from '@kitware/vtk.js/Rendering/Misc/FullScreenRenderWindow';
-import vtkXMLImageDataReader from '@kitware/vtk.js/IO/XML/XMLImageDataReader';
 import vtkImageMarchingCubes from '@kitware/vtk.js/Filters/General/ImageMarchingCubes';
 import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 
+import { DataContext } from '../contexts';
+
 export const VolumeView = () => {
+  const [{ imageData }] = useContext(DataContext);
   const vtkContainerRef = useRef(null);
   const context = useRef(null);
 
   useEffect(() => {
-    if (!context.current) {
-      const reader = vtkXMLImageDataReader.newInstance({
-        fetchGzip: true,
+    if (!context.current && imageData) {
+      const range = imageData.getPointData().getScalars().getRange();
+
+      const marchingCubes = vtkImageMarchingCubes.newInstance({
+        contourValue: (range[1] - range[0]) / 2,
+        computeNormals: true,
+        mergePoints: true,
+      });
+      marchingCubes.setInputData(imageData);
+
+      const mapper = vtkMapper.newInstance();
+      mapper.setInputConnection(marchingCubes.getOutputPort());
+
+      const actor = vtkActor.newInstance();
+      actor.setMapper(mapper);
+
+      const fullScreenRenderWindow = vtkFullScreenRenderWindow.newInstance({
+        rootContainer: vtkContainerRef.current,
+        background: [0.9, 0.9, 0.9]
       });
 
-      reader
-        .setUrl(`test-data.vti`)
-        .then(() => {      
-          const data = reader.getOutputData();
-          const range = data.getPointData().getScalars().getRange();
+      const renderWindow = fullScreenRenderWindow.getRenderWindow();
+      const renderer = fullScreenRenderWindow.getRenderer();  
 
-          const marchingCubes = vtkImageMarchingCubes.newInstance({
-            contourValue: (range[1] - range[0]) / 2,
-            computeNormals: true,
-            mergePoints: true,
-          });
-          marchingCubes.setInputConnection(reader.getOutputPort());
+      renderer.addActor(actor);
 
-          const mapper = vtkMapper.newInstance();
-          mapper.setInputConnection(marchingCubes.getOutputPort());
+      renderer.resetCamera();
+      renderer.resetCameraClippingRange();
+      renderWindow.render();
 
-          const actor = vtkActor.newInstance();
-          actor.setMapper(mapper);
-
-          const fullScreenRenderWindow = vtkFullScreenRenderWindow.newInstance({
-            rootContainer: vtkContainerRef.current,
-            background: [0.9, 0.9, 0.9]
-          });
-    
-          const renderWindow = fullScreenRenderWindow.getRenderWindow();
-          const renderer = fullScreenRenderWindow.getRenderer();  
-
-          renderer.addActor(actor);
-
-          renderer.resetCamera();
-          renderer.resetCameraClippingRange();
-          renderWindow.render();
-    
-          context.current = {
-            reader,
-            marchingCubes,
-            fullScreenRenderWindow,
-            renderWindow,
-            renderer,
-            mapper,
-            actor
-          };
-        });
+      context.current = {
+        marchingCubes,
+        fullScreenRenderWindow,
+        renderWindow,
+        renderer,
+        mapper,
+        actor
+      };
     }  
 
     return () => {
@@ -75,12 +62,11 @@ export const VolumeView = () => {
         actor.delete();
         mapper.delete();
         fullScreenRenderWindow.delete();
-        reader.delete();
 
         context.current = null;
       }
     };
-  }, [vtkContainerRef]);
+  }, [vtkContainerRef, imageData]);
 
 /*  
     useEffect(() => {

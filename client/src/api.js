@@ -1,11 +1,20 @@
 import axios from 'axios';
 
+// Force DataAccessHelper to have access to various data source
+import '@kitware/vtk.js/IO/Core/DataAccessHelper/HtmlDataAccessHelper';
+import '@kitware/vtk.js/IO/Core/DataAccessHelper/HttpDataAccessHelper';
+import '@kitware/vtk.js/IO/Core/DataAccessHelper/JSZipDataAccessHelper';
+
+import vtkXMLImageDataReader from '@kitware/vtk.js/IO/XML/XMLImageDataReader';
+
 const getCookie = name => {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
 
   return parts.length === 2 ? parts.pop().split(';').shift() : undefined;
 }
+
+const fileUrl = id => `/file/${ id }/download`;
 
 export const api = {
   checkLogin: async () => {
@@ -63,5 +72,17 @@ export const api = {
       maskId: filesResponse.data[1]._id
     };
   },
-  fileUrl: id => `/file/${ id }/download`
+  getData: async (imageId, maskId) => {
+    const imageReader = vtkXMLImageDataReader.newInstance({
+      fetchGzip: true,
+    });
+
+    await imageReader.setUrl('test-data.vti');
+
+    const imageData = imageReader.getOutputData();
+
+    return {
+      imageData: imageData
+    };
+  }
 };

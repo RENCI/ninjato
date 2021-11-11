@@ -1,13 +1,17 @@
 import React, { useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu } from 'semantic-ui-react';
-import { LOGIN, LOGOUT, UserContext } from '../../contexts';
+import { 
+  LOGIN, LOGOUT, UserContext,
+  CLEAR_DATA, DataContext 
+} from '../../contexts';
 import { RegisterForm } from './register-form';
 import { LoginForm } from './login-form';
 import { api } from '../../api';
 
 export const UserControls = () => {
   const [{ login }, userDispatch] = useContext(UserContext);
+  const [, dataDispatch] = useContext(DataContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -37,6 +41,10 @@ export const UserControls = () => {
 
     userDispatch({
       type: LOGOUT
+    });
+
+    dataDispatch({
+      type: CLEAR_DATA
     });
 
     navigate('/');
