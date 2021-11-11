@@ -9,8 +9,8 @@ export const Home = () => {
   const [{ login }] = useContext(UserContext);
 
   return (
-    <Grid container columns={ 2 }>
-      <Row>
+    <Grid >
+      <Row columns={ 'equal' }>
         <Column>
           <VolumeView />
         </Column>

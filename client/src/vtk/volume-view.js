@@ -51,6 +51,8 @@ export const VolumeView = () => {
       };
     }  
 
+    // XXX: Put clean up in separate effect with empty array argument, check for width above
+
     return () => {
       if (context.current) {
         const { marchingCubes, mapper, actor, fullScreenRenderWindow } = context.current;
