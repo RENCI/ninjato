@@ -1,4 +1,5 @@
 import axios from 'axios';
+import UTIF from 'utif';
 
 // Force DataAccessHelper to have access to various data source
 import '@kitware/vtk.js/IO/Core/DataAccessHelper/HtmlDataAccessHelper';
@@ -73,23 +74,19 @@ export const api = {
     };
   },
   getData: async (imageId, maskId) => {
-    const imageReader = vtkXMLImageDataReader.newInstance({
-      fetchGzip: true,
-    });
+    const results = await Promise.all([
+      //axios.get(fileUrl(imageId), { responseType: 'arraybuffer' }), 
+      //axios.get(fileUrl(maskId), { responseType: 'arraybuffer' })
+      //axios.get('test-data.tiff', { baseURL: '/', responseType: 'arraybuffer' }), 
+      axios.get('Felix_01x00_C00_Z0800_skullsub4_1.tif', { baseURL: '/', responseType: 'arraybuffer' }), 
+      axios.get('test-masks.tiff', { baseURL: '/', responseType: 'arraybuffer' })
+    ]);
 
-    await imageReader.setUrl('test-data.vti');
-
-    const imageData = imageReader.getOutputData();
-
-    await imageReader.setUrl('test-masks.vti');
-
-    const maskData = imageReader.getOutputData();
-
-    imageReader.delete();
+    console.log(results);
 
     return {
-      imageData: imageData,
-      maskData: maskData
-    };
+      imageBuffer: results[0].data,
+      maskBuffer: results[1].data
+    };     
   }
 };

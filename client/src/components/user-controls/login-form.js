@@ -6,6 +6,7 @@ import {
  } from '../../contexts';
 import { AutoFocusForm } from '../auto-focus-form';
 import { api } from '../../api';
+import { readTIFF } from '../../vtk/data-reader';
 import { useModal } from '../../hooks';
 
 export const LoginForm = () => {
@@ -47,9 +48,13 @@ export const LoginForm = () => {
 
       const data = await api.getData(assignment.imageId, assignment.maskId);
 
+      const imageData = readTIFF(data.imageBuffer);
+      const maskData = readTIFF(data.maskBuffer);
+
       dataDispatch({
         type: SET_DATA,
-        ...data
+        imageData: imageData,
+        maskData: maskData
       });
 
       closeModal();
