@@ -61,6 +61,7 @@ export const VolumeView = () => {
         marchingCubes.delete();
         actor.delete();
         mapper.delete();
+        fullScreenRenderWindow.getInteractor().delete();
         fullScreenRenderWindow.delete();
       }
     };

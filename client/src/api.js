@@ -72,9 +72,6 @@ export const api = {
       axios.get('test-data.tiff', { baseURL: '/', responseType: 'arraybuffer' }),  
       axios.get('test-masks.tiff', { baseURL: '/', responseType: 'arraybuffer' })
     ]);
-
-    console.log(results);
-
     return {
       imageBuffer: results[0].data,
       maskBuffer: results[1].data

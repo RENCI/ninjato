@@ -110,9 +110,10 @@ export const SliceView = () => {
         outline.delete();
         outlineMapper.delete();
         outlineActor.delete();
-        fullScreenRenderWindow.delete();
         manipulator.delete();
-        interactorStyle.delete();
+        interactorStyle.delete();        
+        fullScreenRenderWindow.getInteractor().delete();
+        fullScreenRenderWindow.delete();
       }
     };
   }, [context]);
