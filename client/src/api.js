@@ -77,8 +77,7 @@ export const api = {
     const results = await Promise.all([
       //axios.get(fileUrl(imageId), { responseType: 'arraybuffer' }), 
       //axios.get(fileUrl(maskId), { responseType: 'arraybuffer' })
-      //axios.get('test-data.tiff', { baseURL: '/', responseType: 'arraybuffer' }), 
-      axios.get('Felix_01x00_C00_Z0800_skullsub4_1.tif', { baseURL: '/', responseType: 'arraybuffer' }), 
+      axios.get('test-data.tiff', { baseURL: '/', responseType: 'arraybuffer' }),  
       axios.get('test-masks.tiff', { baseURL: '/', responseType: 'arraybuffer' })
     ]);
 
