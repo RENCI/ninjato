@@ -67,14 +67,24 @@ export const api = {
   },
   getData: async (imageId, maskId) => {
     const results = await Promise.all([
-      //axios.get(fileUrl(imageId), { responseType: 'arraybuffer' }), 
-      //axios.get(fileUrl(maskId), { responseType: 'arraybuffer' })
-      axios.get('test-data.tiff', { baseURL: '/', responseType: 'arraybuffer' }),  
-      axios.get('test-masks.tiff', { baseURL: '/', responseType: 'arraybuffer' })
+      axios.get(fileUrl(imageId), { responseType: 'arraybuffer' }), 
+      axios.get(fileUrl(maskId), { responseType: 'arraybuffer' })      
     ]);
+
     return {
       imageBuffer: results[0].data,
       maskBuffer: results[1].data
     };     
+  },
+  getPracticeData: async () => {
+    const results = await Promise.all([
+      axios.get('test-data.tiff', { baseURL: '/', responseType: 'arraybuffer' }),  
+      axios.get('test-masks.tiff', { baseURL: '/', responseType: 'arraybuffer' })
+    ]);
+
+    return {
+      imageBuffer: results[0].data,
+      maskBuffer: results[1].data
+    };   
   }
 };

@@ -2,7 +2,7 @@ import { useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu } from 'semantic-ui-react';
 import { 
-  LOGIN, LOGOUT, UserContext,
+  LOGIN, LOGOUT, SET_ASSIGNMENT, UserContext,
   CLEAR_DATA, DataContext 
 } from '../../contexts';
 import { RegisterForm } from './register-form';
@@ -20,11 +20,20 @@ export const UserControls = () => {
         const user = await api.checkLogin();
 
         if (user) {
+          const id = user._id;
+
           userDispatch({
             type: LOGIN,
-            id: user._id,
+            id: id,
             login: user.login,
             admin: user.admin
+          });
+
+          const assignment = await api.getAssignment(id);
+
+          userDispatch({
+            type: SET_ASSIGNMENT,
+            assignment: assignment
           });
         }
       }

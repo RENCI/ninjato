@@ -7,7 +7,8 @@ export const SET_ASSIGNMENT = 'user/SET_ASSIGNMENT';
 const initialState = {
   id: null,
   admin: false,
-  login: null
+  login: null,
+  assigment: null
 };
 
 const reducer = (state, action) => {
@@ -31,7 +32,7 @@ const reducer = (state, action) => {
     case SET_ASSIGNMENT:
       return {
         ...state,
-        // XXX: DO STUFF
+        assignment: action.assignment
       };
 
     default: 
