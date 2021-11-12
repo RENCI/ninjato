@@ -10,12 +10,16 @@ export const Home = () => {
 
   return (
     <Grid >
-      <Row columns={ 'equal' }>
-        <Column>
+      <Row>
+        <Column width={ 2 } >
+        </Column>
+        <Column width={ 6 }>
           <VolumeView />
         </Column>
-        <Column>
+        <Column width={ 6 }>
           <SliceView />
+        </Column>
+        <Column width={ 2 } >
         </Column>
       </Row>
     </Grid>
