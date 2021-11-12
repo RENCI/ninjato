@@ -19,7 +19,7 @@ export const VolumeView = () => {
 
   // Set up pipeline
   useEffect(() => {
-    if (!context.current) {
+    if (!context.current && width) {
       const marchingCubes = vtkImageMarchingCubes.newInstance({
         contourValue: 1,
         computeNormals: true,
@@ -50,9 +50,10 @@ export const VolumeView = () => {
         actor
       };
     }  
+  }, [vtkDiv, width]);
 
-    // XXX: Put clean up in separate effect with empty array argument, check for width above
-
+  // Clean up
+  useEffect(() => {
     return () => {
       if (context.current) {
         const { marchingCubes, mapper, actor, fullScreenRenderWindow } = context.current;
@@ -65,7 +66,7 @@ export const VolumeView = () => {
         context.current = null;
       }
     };
-  }, [vtkDiv]);
+  }, []);
 
   // Update data
   useEffect(() => {

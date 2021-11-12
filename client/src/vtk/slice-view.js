@@ -26,7 +26,7 @@ export const SliceView = () => {
      
   // Set up pipeline
   useEffect(() => {   
-    if (!context.current) {   
+    if (!context.current && width) {   
       const outline = vtkImageOutlineFilter.newInstance();
       outline.setSlicingMode(SlicingMode.K);
 
@@ -93,7 +93,10 @@ export const SliceView = () => {
         outlineActor
       };
     }  
+  }, [vtkDiv, width]);
 
+  // Clean up
+  useEffect(() => {
     return () => {
       if (context.current) {
         const { 
@@ -114,7 +117,7 @@ export const SliceView = () => {
         context.current = null;
       }
     };
-  }, [vtkDiv]);
+  }, []);
 
   // Update data
   useEffect(() => {
