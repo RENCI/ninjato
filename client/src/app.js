@@ -1,16 +1,19 @@
-import React from 'react';
-import { BrowserRouter as Router, Route } from 'react-router-dom';
-import { UserProvider } from "./contexts"; 
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { UserProvider, DataProvider } from "./contexts"; 
 import { MainMenu } from './components/main-menu';
 import { Home } from './pages';
 
 export const App = () => { 
   return (
     <UserProvider>
-      <Router>
+    <DataProvider>
+      <Router>        
         <MainMenu />
-        <Route exact path={'/'}><Home /></Route>
+        <Routes>
+          <Route exact path={'/'} element={ <Home /> } />
+        </Routes>
       </Router>
+    </DataProvider>
     </UserProvider>
   );
 };

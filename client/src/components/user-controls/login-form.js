@@ -1,6 +1,6 @@
-import React, { useContext, useState } from 'react';
+import { useContext, useState } from 'react';
 import { Button, Form, Menu, Message, Modal } from 'semantic-ui-react';
-import { LOGIN, UserContext } from '../../contexts';
+import { LOGIN, SET_ASSIGNMENT, UserContext } from '../../contexts';
 import { AutoFocusForm } from '../auto-focus-form';
 import { api } from '../../api';
 import { useModal } from '../../hooks';
@@ -25,11 +25,20 @@ export const LoginForm = () => {
     try {
       const user = await api.login(username, password);
 
+      const id = user._id;
+
       userDispatch({
         type: LOGIN,
-        id: user._id,
+        id: id,
         login: user.login,
         admin: user.admin
+      });
+
+      const assignment = await api.getAssignment(id);
+
+      userDispatch({
+        type: SET_ASSIGNMENT,
+        assignment: assignment
       });
 
       closeModal();

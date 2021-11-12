@@ -7,6 +7,8 @@ const getCookie = name => {
   return parts.length === 2 ? parts.pop().split(';').shift() : undefined;
 }
 
+const fileUrl = id => `/file/${ id }/download`;
+
 export const api = {
   checkLogin: async () => {
     axios.defaults.headers.common['Girder-Token'] = getCookie('girderToken');
@@ -49,5 +51,40 @@ export const api = {
     axios.defaults.headers.common['Girder-Token'] = authToken.token;
 
     return response.data;
+  },
+  getAssignment: async id => {
+    const assignmentResponse = await axios.get(`/user/${ id }/assignment`);
+
+    const itemId = assignmentResponse.data.item_id;
+
+    const filesResponse = await axios.get(`/item/${ itemId }/files`);
+
+    return {
+      itemId: itemId,
+      imageId: filesResponse.data[0]._id,
+      maskId: filesResponse.data[1]._id
+    };
+  },
+  getData: async (imageId, maskId) => {
+    const results = await Promise.all([
+      axios.get(fileUrl(imageId), { responseType: 'arraybuffer' }), 
+      axios.get(fileUrl(maskId), { responseType: 'arraybuffer' })      
+    ]);
+
+    return {
+      imageBuffer: results[0].data,
+      maskBuffer: results[1].data
+    };     
+  },
+  getPracticeData: async () => {
+    const results = await Promise.all([
+      axios.get('test-data.tiff', { baseURL: '/', responseType: 'arraybuffer' }),  
+      axios.get('test-masks.tiff', { baseURL: '/', responseType: 'arraybuffer' })
+    ]);
+
+    return {
+      imageBuffer: results[0].data,
+      maskBuffer: results[1].data
+    };   
   }
 };

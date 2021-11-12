@@ -1,12 +1,14 @@
-import React, { createContext, useReducer } from "react";
+import { createContext, useReducer } from "react";
 
 export const LOGIN = 'user/LOGIN';
 export const LOGOUT = 'user/LOGOUT';
+export const SET_ASSIGNMENT = 'user/SET_ASSIGNMENT';
 
 const initialState = {
   id: null,
   admin: false,
-  login: null
+  login: null,
+  assigment: null
 };
 
 const reducer = (state, action) => {
@@ -25,6 +27,12 @@ const reducer = (state, action) => {
         id: null,
         login: null,
         admin: false,
+      };
+
+    case SET_ASSIGNMENT:
+      return {
+        ...state,
+        assignment: action.assignment
       };
 
     default: 
