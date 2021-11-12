@@ -1,4 +1,4 @@
-import { useContext, useRef, useEffect } from 'react';
+import { useContext, useRef, useState, useEffect } from 'react';
 
 import '@kitware/vtk.js/Rendering/Profiles/Volume';
 
@@ -21,12 +21,12 @@ export const SliceView = () => {
   const [{ imageData, maskData }] = useContext(DataContext);
   const outerDiv = useRef(null);
   const vtkDiv = useRef(null);
-  const context = useRef(null);
+  const [context, setContext] = useState(null);
   const { width } = useResize(outerDiv);
      
   // Set up pipeline
   useEffect(() => {   
-    if (!context.current && width) {   
+    if (!context && width) {   
       const outline = vtkImageOutlineFilter.newInstance();
       outline.setSlicingMode(SlicingMode.K);
 
@@ -80,7 +80,7 @@ export const SliceView = () => {
 
       fullScreenRenderWindow.getInteractor().setInteractorStyle(interactorStyle);
 
-      context.current = {
+      setContext({
         fullScreenRenderWindow,
         renderWindow,
         renderer,
@@ -91,19 +91,19 @@ export const SliceView = () => {
         outline,
         outlineMapper,
         outlineActor
-      };
+      });
     }  
-  }, [vtkDiv, width]);
+  }, [context, width, vtkDiv]);
 
   // Clean up
   useEffect(() => {
     return () => {
-      if (context.current) {
+      if (context) {
         const { 
           imageMapper, imageActor, 
           outline, outlineMapper, outlineActor,
           fullScreenRenderWindow, manipulator, interactorStyle 
-        } = context.current;
+        } = context;
 
         imageMapper.delete();
         imageActor.delete();
@@ -113,17 +113,15 @@ export const SliceView = () => {
         fullScreenRenderWindow.delete();
         manipulator.delete();
         interactorStyle.delete();
-
-        context.current = null;
       }
     };
-  }, []);
+  }, [context]);
 
-  // Update data
+  // Update image
   useEffect(() => {
-    if (!context.current) return;
+    if (!context) return;
 
-    const { renderWindow, renderer, manipulator, imageMapper, imageActor } = context.current;
+    const { renderWindow, renderer, manipulator, imageMapper, imageActor } = context;
 
     if (imageData) {
       const range = imageData.getPointData().getScalars().getRange();
@@ -168,18 +166,15 @@ export const SliceView = () => {
       renderer.removeActor(imageActor);
     }
 
-  }, [imageData]);  
+  }, [context, imageData]);  
 
   // Update mask
   useEffect(() => {
-    if (!context.current) return;
+    if (!context) return;
 
-    const { renderer, renderWindow, outline, outlineActor } = context.current;
+    const { renderer, renderWindow, outline, outlineActor } = context;
 
-    if (maskData) {
-      const range = imageData.getPointData().getScalars().getRange();
-      const extent = imageData.getExtent();          
-      
+    if (maskData) {      
       outline.setInputData(maskData);
 
       renderer.addActor(outlineActor);
@@ -192,7 +187,7 @@ export const SliceView = () => {
       renderer.removeActor(outlineActor);
     }
 
-  }, [maskData]);  
+  }, [context, maskData]);  
 
   return (
     <div ref={ outerDiv } style={{ height: width }}>

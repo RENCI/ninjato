@@ -1,27 +1,39 @@
 import { useContext } from 'react';
 import { Grid } from 'semantic-ui-react';
-import { UserContext } from '../contexts';
+import { UserContext, DataContext } from '../contexts';
 import { VolumeView, SliceView } from '../vtk';
 
 const { Row, Column } = Grid;
 
 export const Home = () => {
   const [{ login }] = useContext(UserContext);
+  const [{ imageData }] = useContext(DataContext);
 
   return (
     <Grid >
-      <Row>
-        <Column width={ 2 } >
-        </Column>
-        <Column width={ 6 }>
-          <VolumeView />
-        </Column>
-        <Column width={ 6 }>
-          <SliceView />
-        </Column>
-        <Column width={ 2 } >
-        </Column>
-      </Row>
+      { imageData ?
+        <Row>
+          <Column width={ 2 } >
+          </Column>
+          <Column width={ 6 }>
+            <VolumeView />
+          </Column>
+          <Column width={ 6 }>
+            <SliceView />
+          </Column>
+          <Column width={ 2 } >
+          </Column>
+        </Row>
+      : login ?
+        <Row>
+          <Column width={ 2 } >            
+          </Column>
+          <Column width={ 14 }>
+            Welcome { login }!
+          </Column>
+        </Row>
+      : null
+      }
     </Grid>
   );
 };

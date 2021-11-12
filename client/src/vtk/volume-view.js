@@ -1,4 +1,4 @@
-import { useContext, useRef, useEffect } from 'react';
+import { useContext, useRef, useState, useEffect } from 'react';
 
 import '@kitware/vtk.js/Rendering/Profiles/Geometry';
 
@@ -14,12 +14,12 @@ export const VolumeView = () => {
   const [{ maskData }] = useContext(DataContext);
   const outerDiv = useRef(null);
   const vtkDiv = useRef(null);
-  const context = useRef(null);
+  const [context, setContext] = useState(null);;
   const { width } = useResize(outerDiv);
 
   // Set up pipeline
   useEffect(() => {
-    if (!context.current && width) {
+    if (!context && width) {
       const marchingCubes = vtkImageMarchingCubes.newInstance({
         contourValue: 1,
         computeNormals: true,
@@ -41,38 +41,36 @@ export const VolumeView = () => {
       const renderWindow = fullScreenRenderWindow.getRenderWindow();
       const renderer = fullScreenRenderWindow.getRenderer();  
 
-      context.current = {
+      setContext({
         marchingCubes,
         fullScreenRenderWindow,
         renderWindow,
         renderer,
         mapper,
         actor
-      };
+      });
     }  
-  }, [vtkDiv, width]);
+  }, [context, width, vtkDiv]);
 
   // Clean up
   useEffect(() => {
     return () => {
-      if (context.current) {
-        const { marchingCubes, mapper, actor, fullScreenRenderWindow } = context.current;
+      if (context) {
+        const { marchingCubes, mapper, actor, fullScreenRenderWindow } = context;
 
         marchingCubes.delete();
         actor.delete();
         mapper.delete();
         fullScreenRenderWindow.delete();
-
-        context.current = null;
       }
     };
-  }, []);
+  }, [context]);
 
-  // Update data
+  // Update mask
   useEffect(() => {
-    if (!context.current) return;
+    if (!context) return;
 
-    const { marchingCubes, renderer, actor, renderWindow } = context.current;
+    const { marchingCubes, renderer, actor, renderWindow } = context;
 
     if (maskData) {
       marchingCubes.setInputData(maskData);
@@ -86,7 +84,7 @@ export const VolumeView = () => {
     else {
       renderer.removeActor()
     }
-  }, [maskData]);
+  }, [context, maskData]);
 
   return (
     <div ref={ outerDiv } style={{ height: width }}>
