@@ -57,6 +57,8 @@ export const api = {
 
     const itemId = assignmentResponse.data.item_id;
 
+    if (!itemId) return null;
+
     const filesResponse = await axios.get(`/item/${ itemId }/files`);
 
     return {
