@@ -4,7 +4,7 @@
   "private": true,
   "main": "src/index.js",
   "dependencies": {
-    "@kitware/vtk.js": "^20.4.1",
+    "@kitware/vtk.js": "^21.0.0",
     "@testing-library/jest-dom": "^5.15.0",
     "@testing-library/react": "^11.2.5",
     "@testing-library/user-event": "^12.8.3",
