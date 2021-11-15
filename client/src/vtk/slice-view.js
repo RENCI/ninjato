@@ -41,11 +41,11 @@ export const SliceView = () => {
 
       const outline = vtkImageOutlineFilter.newInstance();
       outline.setSlicingMode(SlicingMode.K);
-      outline.setInputConnection(painter.getOutputPort());
+      //outline.setInputConnection(painter.getOutputPort());
 
       const outlineMapper = vtkImageMapper.newInstance();
       outlineMapper.setSlicingMode(SlicingMode.K);
-      outlineMapper.setInputConnection(painter.getOutputPort());
+      outlineMapper.setInputConnection(outline.getOutputPort());
 
       const outlineActor = vtkImageSlice.newInstance();
       outlineActor.getProperty().setInterpolationTypeToNearest();
@@ -217,9 +217,10 @@ export const SliceView = () => {
   useEffect(() => {
     if (!context) return;
 
-    const { renderer, renderWindow, painter, splineWidget, splineHandle, imageMapper, outlineMapper, outlineActor } = context;
+    const { renderer, renderWindow, painter, splineWidget, splineHandle, imageMapper, outline, outlineMapper, outlineActor } = context;
 
     if (maskData) {
+      outline.setInputData(maskData);
       painter.setBackgroundImage(maskData);  
 
       splineHandle.setHandleSizeInPixels(
