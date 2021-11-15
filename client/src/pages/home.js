@@ -72,15 +72,26 @@ export const Home = () => {
           <Column width={ 12 }>
             <Segment>
               <h3>Welcome { login }!</h3>
-              { assignment && 
+              { assignment ? 
                 <Message>
-                  <Message.Header>You have an assignment waiting for you.</Message.Header>
-                  <p style={{ marginTop: 10 }}>
+                  <Message.Header>
+                    You have an assignment waiting for you.
+                  </Message.Header>
+                  <div style={{ marginTop: 10 }}>
                     <Button primary onClick={ onLoadClick }>Load assignment</Button>
                     <Divider horizontal>Or</Divider>
                     <Button secondary onClick={ onLoadPracticeClick }>Load practice data</Button>
-                  </p>
+                  </div>
                 </Message>
+              :
+                <Message>
+                  <Message.Header>
+                    No assignment found!
+                  </Message.Header>
+                  <div style={{ marginTop: 10 }}>
+                    <Button secondary onClick={ onLoadPracticeClick }>Load practice data</Button>
+                  </div>
+                </Message>              
               }
             </Segment>
           </Column>
