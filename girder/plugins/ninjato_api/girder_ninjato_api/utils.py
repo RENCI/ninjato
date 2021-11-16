@@ -11,6 +11,7 @@ def get_item_assignment(user):
         'parentId': coll['_id'],
         'parentCollection': 'collection'
     })
+    sel_item = None
     for vol_folder in vol_folders:
         sub_vol_folders = Folder().find({
             'parentId': vol_folder['_id'],
@@ -18,7 +19,6 @@ def get_item_assignment(user):
         })
         for sub_vol_folder in sub_vol_folders:
             items = Item().find({'folderId': ObjectId(sub_vol_folder['_id'])})
-            sel_item = None
             for item in items:
                 if 'user' not in item['meta']:
                     if 'done' not in item['meta']:
@@ -41,9 +41,11 @@ def get_item_assignment(user):
                     'user_id': user['_id'],
                     'item_id': sel_item['_id']
                 }
-            else:
-                # there is no item left to assign to this user
-                return {
-                    'user_id': user['_id'],
-                    'item_id': ''
-                }
+
+
+    if not sel_item:
+        # there is no item left to assign to this user
+        return {
+            'user_id': user['_id'],
+            'item_id': ''
+        }
