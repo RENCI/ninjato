@@ -49,3 +49,10 @@ def get_item_assignment(user):
             'user_id': user['_id'],
             'item_id': ''
         }
+
+
+def save_user_annotation(user, item_id):
+    return {
+        'user_id': user['_id'],
+        'item_id': item_id
+    }
