@@ -64,7 +64,6 @@ def save_user_annotation(user, item_id, done, content_data):
     :param item_id: item the annotation is saved to
     :param done: whether annotation is done or only an intermediate save
     :param content_data: FormData object with annotation content blob included in data key
-    and file size included in size key
     :return: success or failure
     """
     uid = user['_id']
@@ -81,29 +80,33 @@ def save_user_annotation(user, item_id, done, content_data):
             mask_file_name = file['name']
             annot_file_name = f'{os.path.splitext(mask_file_name)[0]}_{uname}.tif'
             break
-    print(annot_file_name, flush=True)
     if not annot_file_name:
         raise RestException('failure: cannot find the mask file for the annotated item', 500)
-    if 'data' not in content_data or 'size' not in content_data:
+    if 'data' not in content_data:
         raise RestException('failure: content data input parameter must be in FormData '
                             'format with data key', 400)
-    print(content_data, flush=True)
-    print(type(content_data), flush=True)
-    content_data = json.loads(content_data)
-    print(type(content_data), flush=True)
+    try:
+        content_data = json.loads(content_data)
+    except Exception as e:
+        raise RestException(f'failure: content data input parameter must be in FormData '
+                            'that can be loaded into JSON - {e}', 400)
+
     content = content_data['data']
-    print(content, flush=True)
-    size = content_data['size']
-    print(size, flush=True)
-    print(content, size, flush=True)
-    asset_store_id = AssetstoreModel().list()[0]['_id']
-    asset_store = AssetstoreModel.load(asset_store_id)
-    file = File().createFile(item=item, name=annot_file_name, size=size, creator=user,
-                             assetstore=asset_store, mimeType='image/tiff', saveFile=False)
-    adapter = assetstore_utilities.getAssetstoreAdapter(asset_store)
-    file = adapter.finalizeUpload(content, file)
-    File().save(file)
-    File().propagateSizeChange(item, size)
+    try:
+        # save file to local file system before adding it to asset store
+        path = f'/tmp/{annot_file_name}'
+        with open(path, "w") as f:
+            f.write(content)
+
+        for asset in AssetstoreModel().list():
+            asset_store_id = asset['_id']
+            break
+        asset_store = AssetstoreModel().load(asset_store_id)
+        adapter = assetstore_utilities.getAssetstoreAdapter(asset_store)
+        file = adapter.importFile(item, path, user, name=annot_file_name, mimeType='image/tiff')
+        os.remove(path)
+    except Exception as e:
+        raise RestException(f'failure: {e}', 500)
     return {
         'user_id': uid,
         'item_id': item_id,

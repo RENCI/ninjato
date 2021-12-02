@@ -25,8 +25,8 @@ def getUserAssignInfo(user):
     .param('item_id', 'The item ID to save user annotation for', required=True)
     .param('done', 'A boolean True or False to indicate whether the annotation is done',
            dataType='boolean', default=False, required=False)
-    .param('content_data', 'annotation content blob data in FormData format with data and size '
-                           'keys to be saved on server ',
+    .param('content_data', 'annotation content blob data in FormData format with data '
+                           'key to be saved on server ',
            required=True, paramType='formData')
     .errorResponse()
     .errorResponse('Save action was denied on the user.', 403)
