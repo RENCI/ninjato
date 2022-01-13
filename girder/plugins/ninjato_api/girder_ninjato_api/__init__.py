@@ -25,6 +25,7 @@ def getUserAssignInfo(user):
     .param('item_id', 'The item ID to save user annotation for', required=True)
     .param('done', 'A boolean True or False to indicate whether the annotation is done',
            dataType='boolean', default=False, required=False)
+    .param('comment', 'annotation comment added by the user', default='', required=False)
     .param('content_data', 'annotation content blob data in FormData format with data '
                            'key to be saved on server ',
            required=True, paramType='formData')
@@ -32,8 +33,8 @@ def getUserAssignInfo(user):
     .errorResponse('Save action was denied on the user.', 403)
     .errorResponse('Failed to save user annotations', 500)
 )
-def saveUserAnnotation(user, item_id, done, content_data):
-    return save_user_annotation(user, item_id, done, content_data)
+def saveUserAnnotation(user, item_id, done, comment, content_data):
+    return save_user_annotation(user, item_id, done, comment, content_data)
 
 
 class NinjatoPlugin(GirderPlugin):

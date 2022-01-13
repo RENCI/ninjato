@@ -57,12 +57,13 @@ def get_item_assignment(user):
         }
 
 
-def save_user_annotation(user, item_id, done, content_data):
+def save_user_annotation(user, item_id, done, comment, content_data):
     """
     Save user annotation to item with item_id
     :param user: user object who saves annotation
     :param item_id: item the annotation is saved to
     :param done: whether annotation is done or only an intermediate save
+    :param comment: annotation comment from the user
     :param content_data: FormData object with annotation content blob included in data key
     :return: success or failure
     """
@@ -70,9 +71,16 @@ def save_user_annotation(user, item_id, done, content_data):
     uname = user['login']
     item = Item().findOne({'_id': ObjectId(item_id)})
     if done:
-        item['meta']['done'] = 'true'
+        add_meta = {'done': 'true'}
+        Item().setMetadata(item, add_meta)
     else:
-        item['meta']['done'] = 'false'
+        add_meta = {'done': 'false'}
+        Item().setMetadata(item, add_meta)
+
+    if comment:
+        add_meta = {'comment': comment}
+        Item().setMetadata(item, add_meta)
+
     files = File().find({'itemId': ObjectId(item_id)})
     annot_file_name = ''
     for file in files:
@@ -104,7 +112,6 @@ def save_user_annotation(user, item_id, done, content_data):
         asset_store = AssetstoreModel().load(asset_store_id)
         adapter = assetstore_utilities.getAssetstoreAdapter(asset_store)
         file = adapter.importFile(item, path, user, name=annot_file_name, mimeType='image/tiff')
-        os.remove(path)
     except Exception as e:
         raise RestException(f'failure: {e}', 500)
     return {
