@@ -45,7 +45,8 @@ export const SliceView = () => {
 
       const outlineMapper = vtkImageMapper.newInstance();
       outlineMapper.setSlicingMode(SlicingMode.K);
-      outlineMapper.setInputConnection(outline.getOutputPort());
+      //outlineMapper.setInputConnection(outline.getOutputPort());
+      outlineMapper.setInputConnection(painter.getOutputPort());
 
       const outlineActor = vtkImageSlice.newInstance();
       outlineActor.getProperty().setInterpolationTypeToNearest();
@@ -107,6 +108,8 @@ export const SliceView = () => {
       splineHandle.onEndInteractionEvent(() => {
         const points = splineHandle.getPoints();
 
+        console.log(points);
+
         painter.paintPolygon(points);
       
         splineHandle.updateRepresentationForRender();
@@ -165,7 +168,7 @@ export const SliceView = () => {
   useEffect(() => {
     if (!context) return;
 
-    const { renderWindow, renderer, manipulator, imageMapper, imageActor } = context;
+    const { renderWindow, renderer, manipulator, imageMapper, imageActor, painter } = context;
 
     if (imageData) {
       const range = imageData.getPointData().getScalars().getRange();
@@ -220,8 +223,9 @@ export const SliceView = () => {
     const { renderer, renderWindow, painter, splineWidget, splineHandle, imageMapper, outline, outlineMapper, outlineActor } = context;
 
     if (maskData) {
-      outline.setInputData(maskData);
-      painter.setBackgroundImage(maskData);  
+      painter.setBackgroundImage(maskData);
+
+      //outline.setInputConnection(painter.getOutputPort());  
 
       splineHandle.setHandleSizeInPixels(
         2 * Math.max(...maskData.getSpacing())

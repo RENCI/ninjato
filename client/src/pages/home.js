@@ -4,7 +4,7 @@ import {
   UserContext, 
   SET_DATA, DataContext 
 } from '../contexts';
-import { VolumeView, SliceView } from '../vtk';
+import { VolumeView, SliceView, TestPaintView } from '../vtk';
 import { api } from '../api';
 import { readTIFF } from '../vtk/data-reader';
 
@@ -60,7 +60,7 @@ export const Home = () => {
             <VolumeView />
           </Column>
           <Column width={ 6 }>
-            <SliceView />
+            <TestPaintView />
           </Column>
           <Column width={ 2 } >
           </Column>
