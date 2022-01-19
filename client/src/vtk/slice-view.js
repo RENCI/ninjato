@@ -3,14 +3,20 @@ import { useContext, useRef, useState, useEffect } from 'react';
 import '@kitware/vtk.js/Rendering/Profiles/Volume';
 
 import vtkFullScreenRenderWindow from '@kitware/vtk.js/Rendering/Misc/FullScreenRenderWindow';
+import vtkWidgetManager from '@kitware/vtk.js/Widgets/Core/WidgetManager';
+//import vtkPaintWidget from '@kitware/vtk.js/Widgets/Widgets3D/PaintWidget';
+import vtkSplineWidget from '@kitware/vtk.js/Widgets/Widgets3D/SplineWidget';
 import vtkImageMapper from '@kitware/vtk.js/Rendering/Core/ImageMapper';
 import vtkImageSlice from '@kitware/vtk.js/Rendering/Core/ImageSlice';
+import vtkPaintFilter from '@kitware/vtk.js/Filters/General/PaintFilter';
 import vtkImageOutlineFilter from '@kitware/vtk.js/Filters/General/ImageOutlineFilter';
 import vtkInteractorStyleManipulator from '@kitware/vtk.js/Interaction/Style/InteractorStyleManipulator';
 import vtkPiecewiseFunction  from '@kitware/vtk.js/Common/DataModel/PiecewiseFunction';
 import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
 
 import Manipulators from '@kitware/vtk.js/Interaction/Manipulators';
+
+import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
 import { DataContext } from '../contexts';
 import { useResize } from '../hooks';
@@ -27,8 +33,15 @@ export const SliceView = () => {
   // Set up pipeline
   useEffect(() => {   
     if (!context && width) {   
+      // Outline
+      const painter = vtkPaintFilter.newInstance();
+      painter.setLabel(1);
+      painter.setSlicingMode(SlicingMode.K);
+      painter.setRadius(10);
+
       const outline = vtkImageOutlineFilter.newInstance();
       outline.setSlicingMode(SlicingMode.K);
+      //outline.setInputConnection(painter.getOutputPort());
 
       const outlineMapper = vtkImageMapper.newInstance();
       outlineMapper.setSlicingMode(SlicingMode.K);
@@ -51,16 +64,15 @@ export const SliceView = () => {
       outlineActor.getProperty().setPiecewiseFunction(opFun);
       outlineActor.getProperty().setRGBTransferFunction(cFun);
 
+      // Image
       const imageMapper = vtkImageMapper.newInstance();
       imageMapper.setSlicingMode(SlicingMode.K);
-      imageMapper.onModified(() => {
-        outlineMapper.setSlice(imageMapper.getSlice());
-      });
                           
       const imageActor = vtkImageSlice.newInstance();
       imageActor.getProperty().setInterpolationTypeToNearest();
       imageActor.setMapper(imageMapper);
       
+      // Rendering and interaction
       const fullScreenRenderWindow = vtkFullScreenRenderWindow.newInstance({
         rootContainer: vtkDiv.current,
         background: [0.9, 0.9, 0.9]
@@ -80,6 +92,34 @@ export const SliceView = () => {
 
       fullScreenRenderWindow.getInteractor().setInteractorStyle(interactorStyle);
 
+      // Widget
+      const widgetManager = vtkWidgetManager.newInstance();
+      widgetManager.setRenderer(renderer);
+
+      const splineWidget = vtkSplineWidget.newInstance({
+        resetAfterPointPlacement: true
+      });
+
+      const splineHandle = widgetManager.addWidget(splineWidget, ViewTypes.SLICE);      
+      splineHandle.setOutputBorder(true);
+      splineHandle.setVisibility(true);
+
+      splineHandle.onEndInteractionEvent(() => {
+        const points = splineHandle.getPoints();
+
+        painter.paintPolygon(points);
+      
+        splineHandle.updateRepresentationForRender();
+      });
+
+      splineHandle.onStartInteractionEvent(() => {
+        painter.startStroke();
+      });
+
+      widgetManager.grabFocus(splineWidget);
+
+      renderer.resetCamera();
+
       setContext({
         fullScreenRenderWindow,
         renderWindow,
@@ -88,9 +128,12 @@ export const SliceView = () => {
         manipulator,
         imageMapper,
         imageActor,
+        painter,
         outline,
         outlineMapper,
-        outlineActor
+        outlineActor,
+        splineHandle,
+        splineWidget
       });
     }  
   }, [context, width, vtkDiv]);
@@ -129,7 +172,8 @@ export const SliceView = () => {
       const extent = imageData.getExtent();          
       
       imageMapper.setInputData(imageData);
-      imageMapper.setSlice((extent[5] - extent[4]) / 2);
+      //imageMapper.setSlice((extent[5] - extent[4]) / 2);
+      imageMapper.setSlice(0);
                           
       imageActor.getProperty().setColorLevel((range[1] - range[0]) / 2);
       imageActor.getProperty().setColorWindow(range[1] - range[0]);
@@ -173,10 +217,34 @@ export const SliceView = () => {
   useEffect(() => {
     if (!context) return;
 
-    const { renderer, renderWindow, outline, outlineActor } = context;
+    const { renderer, renderWindow, painter, splineWidget, splineHandle, imageMapper, outline, outlineMapper, outlineActor } = context;
 
-    if (maskData) {      
+    if (maskData) {
       outline.setInputData(maskData);
+      painter.setBackgroundImage(maskData);  
+
+      splineHandle.setHandleSizeInPixels(
+        2 * Math.max(...maskData.getSpacing())
+      );
+
+      splineHandle.setFreehandMinDistance(
+        4 * Math.max(...maskData.getSpacing())
+      );
+
+      imageMapper.onModified(() => {
+        const slice = imageMapper.getSlice();
+
+        outlineMapper.setSlice(imageMapper.getSlice());
+
+        const ijk = [0, 0, slice];
+        const position = [0, 0, 0];
+
+        maskData.indexToWorld(ijk, position);
+
+        splineWidget.getManipulator().setOrigin(position);
+
+        splineHandle.updateRepresentationForRender();
+      });
 
       renderer.addActor(outlineActor);
 
