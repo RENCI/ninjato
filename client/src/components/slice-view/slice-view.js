@@ -1,270 +1,264 @@
-import { useContext, useRef, useState, useEffect } from 'react';
-
-import '@kitware/vtk.js/Rendering/Profiles/Volume';
+import '@kitware/vtk.js/Rendering/Profiles/All';
 
 import vtkFullScreenRenderWindow from '@kitware/vtk.js/Rendering/Misc/FullScreenRenderWindow';
 import vtkWidgetManager from '@kitware/vtk.js/Widgets/Core/WidgetManager';
-//import vtkPaintWidget from '@kitware/vtk.js/Widgets/Widgets3D/PaintWidget';
+import vtkPaintWidget from '@kitware/vtk.js/Widgets/Widgets3D/PaintWidget';
 import vtkSplineWidget from '@kitware/vtk.js/Widgets/Widgets3D/SplineWidget';
+import vtkInteractorStyleImage  from '@kitware/vtk.js/Interaction/Style/InteractorStyleImage';
 import vtkImageMapper from '@kitware/vtk.js/Rendering/Core/ImageMapper';
 import vtkImageSlice from '@kitware/vtk.js/Rendering/Core/ImageSlice';
 import vtkPaintFilter from '@kitware/vtk.js/Filters/General/PaintFilter';
-import vtkImageOutlineFilter from '@kitware/vtk.js/Filters/General/ImageOutlineFilter';
-import vtkInteractorStyleManipulator from '@kitware/vtk.js/Interaction/Style/InteractorStyleManipulator';
-import vtkPiecewiseFunction  from '@kitware/vtk.js/Common/DataModel/PiecewiseFunction';
 import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
-
-import Manipulators from '@kitware/vtk.js/Interaction/Manipulators';
+import vtkPiecewiseFunction  from '@kitware/vtk.js/Common/DataModel/PiecewiseFunction';
 
 import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
-import { DataContext } from 'contexts';
-import { useResize } from 'hooks';
+let initialized = false;
 
-const { SlicingMode } = vtkImageMapper;
+export const sliceView = {
+  initialize: (rootNode, imageData, maskData) => {       
+    if (initialized) return;
 
-export const SliceView = () => {
-  const [{ imageData, maskData }] = useContext(DataContext);
-  const outerDiv = useRef(null);
-  const vtkDiv = useRef(null);
-  const [context, setContext] = useState(null);
-  const { width } = useResize(outerDiv);
-     
-  // Set up pipeline
-  useEffect(() => {   
-    if (!context && width) {   
-      // Outline
-      const painter = vtkPaintFilter.newInstance();
-      painter.setLabel(1);
-      painter.setSlicingMode(SlicingMode.K);
-      painter.setRadius(10);
+    initialized = true;
 
-      const outline = vtkImageOutlineFilter.newInstance();
-      outline.setSlicingMode(SlicingMode.K);
-      //outline.setInputConnection(painter.getOutputPort());
+    // ----------------------------------------------------------------------------
+    // Standard rendering code setup
+    // ----------------------------------------------------------------------------
 
-      const outlineMapper = vtkImageMapper.newInstance();
-      outlineMapper.setSlicingMode(SlicingMode.K);
-      //outlineMapper.setInputConnection(outline.getOutputPort());
-      outlineMapper.setInputConnection(painter.getOutputPort());
+    // scene
+    const scene = {};
 
-      const outlineActor = vtkImageSlice.newInstance();
-      outlineActor.getProperty().setInterpolationTypeToNearest();
-      outlineActor.setMapper(outlineMapper);
+    scene.fullScreenRenderer = vtkFullScreenRenderWindow.newInstance({
+      rootContainer: rootNode,
+      background: [0.9, 0.9, 0.9]
+    });
 
-      const maxValue = 255;
-      const opacity = 0.2;
-      const opFun = vtkPiecewiseFunction.newInstance();
-      opFun.addPoint(0, 0);
-      opFun.addPoint(1, opacity);
-      opFun.addPoint(maxValue, opacity);
+    scene.renderer = scene.fullScreenRenderer.getRenderer();
+    scene.renderWindow = scene.fullScreenRenderer.getRenderWindow();
+    scene.apiSpecificRenderWindow = scene.fullScreenRenderer
+      .getInteractor()
+      .getView();
+    scene.camera = scene.renderer.getActiveCamera();
 
-      const cFun = vtkColorTransferFunction.newInstance();
-      cFun.addRGBPoint(1, 1, 0, 0);
+    // setup 2D view
+    scene.camera.setParallelProjection(true);
+    scene.iStyle = vtkInteractorStyleImage.newInstance();
+    scene.iStyle.setInteractionMode('IMAGE_SLICING');
+    scene.renderWindow.getInteractor().setInteractorStyle(scene.iStyle);
 
-      outlineActor.getProperty().setPiecewiseFunction(opFun);
-      outlineActor.getProperty().setRGBTransferFunction(cFun);
-
-      // Image
-      const imageMapper = vtkImageMapper.newInstance();
-      imageMapper.setSlicingMode(SlicingMode.K);
-                          
-      const imageActor = vtkImageSlice.newInstance();
-      imageActor.getProperty().setInterpolationTypeToNearest();
-      imageActor.setMapper(imageMapper);
-      
-      // Rendering and interaction
-      const fullScreenRenderWindow = vtkFullScreenRenderWindow.newInstance({
-        rootContainer: vtkDiv.current,
-        background: [0.9, 0.9, 0.9]
-      });
-
-      const renderWindow = fullScreenRenderWindow.getRenderWindow();
-      const renderer = fullScreenRenderWindow.getRenderer();  
-      renderer.getActiveCamera().setParallelProjection(true);
-
-      const manipulator = Manipulators.vtkMouseRangeManipulator.newInstance({
-        button: 1,
-        scrollEnabled: true,
-      });
-
-      const interactorStyle = vtkInteractorStyleManipulator.newInstance();
-      interactorStyle.addMouseManipulator(manipulator);
-
-      fullScreenRenderWindow.getInteractor().setInteractorStyle(interactorStyle);
-
-      // Widget
-      const widgetManager = vtkWidgetManager.newInstance();
-      widgetManager.setRenderer(renderer);
-
-      const splineWidget = vtkSplineWidget.newInstance({
-        resetAfterPointPlacement: true
-      });
-
-      const splineHandle = widgetManager.addWidget(splineWidget, ViewTypes.SLICE);      
-      splineHandle.setOutputBorder(true);
-      splineHandle.setVisibility(true);
-
-      splineHandle.onEndInteractionEvent(() => {
-        const points = splineHandle.getPoints();
-
-        console.log(points);
-
-        painter.paintPolygon(points);
-      
-        splineHandle.updateRepresentationForRender();
-      });
-
-      splineHandle.onStartInteractionEvent(() => {
-        painter.startStroke();
-      });
-
-      widgetManager.grabFocus(splineWidget);
-
+    function setCamera(sliceMode, renderer, data) {
+      const ijk = [0, 0, 0];
+      const position = [0, 0, 0];
+      const focalPoint = [0, 0, 0];
+      data.indexToWorld(ijk, focalPoint);
+      ijk[sliceMode] = 1;
+      data.indexToWorld(ijk, position);
+      renderer.getActiveCamera().set({ focalPoint, position });
       renderer.resetCamera();
+    }
 
-      setContext({
-        fullScreenRenderWindow,
-        renderWindow,
-        renderer,
-        interactorStyle,
-        manipulator,
-        imageMapper,
-        imageActor,
-        painter,
-        outline,
-        outlineMapper,
-        outlineActor,
-        splineHandle,
-        splineWidget
-      });
-    }  
-  }, [context, width, vtkDiv]);
+    // ----------------------------------------------------------------------------
+    // Widget manager and vtkPaintFilter
+    // ----------------------------------------------------------------------------
 
-  // Clean up
-  useEffect(() => {
-    return () => {
-      if (context) {
-        const { 
-          imageMapper, imageActor, 
-          outline, outlineMapper, outlineActor,
-          fullScreenRenderWindow, manipulator, interactorStyle 
-        } = context;
+    scene.widgetManager = vtkWidgetManager.newInstance();
+    scene.widgetManager.setRenderer(scene.renderer);
 
-        imageMapper.delete();
-        imageActor.delete();
-        outline.delete();
-        outlineMapper.delete();
-        outlineActor.delete();
-        manipulator.delete();
-        interactorStyle.delete();        
-        fullScreenRenderWindow.getInteractor().delete();
-        fullScreenRenderWindow.delete();
+    // Widgets
+    const widgets = {};
+    widgets.paintWidget = vtkPaintWidget.newInstance();
+    widgets.splineWidget = vtkSplineWidget.newInstance({
+      resetAfterPointPlacement: true,
+    });
+    widgets.polygonWidget = vtkSplineWidget.newInstance({
+      resetAfterPointPlacement: true,
+      resolution: 1,
+    });
+
+    scene.paintHandle = scene.widgetManager.addWidget(
+      widgets.paintWidget,
+      ViewTypes.SLICE
+    );
+    scene.splineHandle = scene.widgetManager.addWidget(
+      widgets.splineWidget,
+      ViewTypes.SLICE
+    );
+    scene.polygonHandle = scene.widgetManager.addWidget(
+      widgets.polygonWidget,
+      ViewTypes.SLICE
+    );
+
+    scene.splineHandle.setOutputBorder(true);
+    scene.polygonHandle.setOutputBorder(true);
+
+    scene.widgetManager.grabFocus(widgets.paintWidget);
+
+    // Paint filter
+    const painter = vtkPaintFilter.newInstance();
+
+    // ----------------------------------------------------------------------------
+    // Ready logic
+    // ----------------------------------------------------------------------------
+
+    function ready(scope, picking = false) {
+      scope.renderer.resetCamera();
+      scope.fullScreenRenderer.resize();
+      if (picking) {
+        scope.widgetManager.enablePicking();
+      } else {
+        scope.widgetManager.disablePicking();
       }
+    }
+
+    function readyAll() {
+      ready(scene, true);
+    }
+
+    // ----------------------------------------------------------------------------
+    // Load image
+    // ----------------------------------------------------------------------------
+
+    const image = {
+      imageMapper: vtkImageMapper.newInstance(),
+      actor: vtkImageSlice.newInstance(),
     };
-  }, [context]);
 
-  // Update image
-  useEffect(() => {
-    if (!context) return;
+    const labelMap = {
+      imageMapper: vtkImageMapper.newInstance(),
+      actor: vtkImageSlice.newInstance(),
+      cfun: vtkColorTransferFunction.newInstance(),
+      ofun: vtkPiecewiseFunction.newInstance(),
+    };
 
-    const { renderWindow, renderer, manipulator, imageMapper, imageActor, painter } = context;
+    // background image pipeline
+    image.actor.setMapper(image.imageMapper);
 
-    if (imageData) {
-      const range = imageData.getPointData().getScalars().getRange();
-      const extent = imageData.getExtent();          
-      
-      imageMapper.setInputData(imageData);
-      //imageMapper.setSlice((extent[5] - extent[4]) / 2);
-      imageMapper.setSlice(0);
-                          
-      imageActor.getProperty().setColorLevel((range[1] - range[0]) / 2);
-      imageActor.getProperty().setColorWindow(range[1] - range[0]);
-      
-      const wMin = 1;
-      const wMax = range[1] - range[0];
-      const wGet = imageActor.getProperty().getColorWindow;
-      const wSet = w => {
-        imageActor.getProperty().setColorWindow(w);
-      };
-      const lMin = range[0];
-      const lMax = range[1];
-      const lGet = imageActor.getProperty().getColorLevel;
-      const lSet = l => {
-        imageActor.getProperty().setColorLevel(l);
-      };
-      const kMin = extent[4];
-      const kMax = extent[5];
-      const kGet = imageMapper.getSlice;
-      const kSet = k => {
-        imageMapper.setSlice(k);
-      };
+    // labelmap pipeline
+    labelMap.actor.setMapper(labelMap.imageMapper);
+    labelMap.imageMapper.setInputConnection(painter.getOutputPort());
 
-      manipulator.setVerticalListener(wMin, wMax, 1, wGet, wSet, 1);
-      manipulator.setHorizontalListener(lMin, lMax, 1, lGet, lSet, 1);
-      manipulator.setScrollListener(kMin, kMax, 1, kGet, kSet, 1);
+    // set up labelMap color and opacity mapping
+    labelMap.cfun.addRGBPoint(1, 0, 0, 1); // label "1" will be blue
+    labelMap.ofun.addPoint(0, 0); // our background value, 0, will be invisible
+    labelMap.ofun.addPoint(1, 1); // all values above 1 will be fully opaque
 
-      renderer.addActor(imageActor);
+    labelMap.actor.getProperty().setRGBTransferFunction(labelMap.cfun);
+    labelMap.actor.getProperty().setPiecewiseFunction(labelMap.ofun);
+    // opacity is applied to entire labelmap
+    labelMap.actor.getProperty().setOpacity(0.5);
 
-      renderer.resetCamera();
-      renderer.resetCameraClippingRange();
-      renderWindow.render();
-    }
-    else {
-      renderer.removeActor(imageActor);
-    }
+    const data = imageData;
+    image.data = data;
 
-  }, [context, imageData]);  
+    // set input data
+    image.imageMapper.setInputData(data);
 
-  // Update mask
-  useEffect(() => {
-    if (!context) return;
+    // add actors to renderers
+    scene.renderer.addViewProp(image.actor);
+    scene.renderer.addViewProp(labelMap.actor);
 
-    const { renderer, renderWindow, painter, splineWidget, splineHandle, imageMapper, outline, outlineMapper, outlineActor } = context;
+    // update paint filter
+    painter.setBackgroundImage(imageData);
+    painter.setLabelMap(maskData);
+    // don't set to 0, since that's our empty label color from our pwf
+    painter.setLabel(1);
+    // set custom threshold
+    // painter.setVoxelFunc((bgValue, idx) => bgValue < 145);
 
-    if (maskData) {
-      painter.setBackgroundImage(maskData);
+    // default slice orientation/mode and camera view
+    const extent = imageData.getExtent();          
+    const sliceMode = vtkImageMapper.SlicingMode.K;
+    image.imageMapper.setSlicingMode(sliceMode);
+    image.imageMapper.setSlice((extent[5] - extent[4]) / 2);
+    painter.setSlicingMode(sliceMode);
 
-      //outline.setInputConnection(painter.getOutputPort());  
+    // set 2D camera position
+    setCamera(sliceMode, scene.renderer, image.data);
 
-      splineHandle.setHandleSizeInPixels(
-        2 * Math.max(...maskData.getSpacing())
-      );
+    scene.splineHandle.setHandleSizeInPixels(
+      2 * Math.max(...image.data.getSpacing())
+    );
+    scene.splineHandle.setFreehandMinDistance(
+      4 * Math.max(...image.data.getSpacing())
+    );
 
-      splineHandle.setFreehandMinDistance(
-        4 * Math.max(...maskData.getSpacing())
-      );
+    scene.polygonHandle.setHandleSizeInPixels(
+      2 * Math.max(...image.data.getSpacing())
+    );
+    scene.polygonHandle.setFreehandMinDistance(
+      4 * Math.max(...image.data.getSpacing())
+    );
 
-      imageMapper.onModified(() => {
-        const slice = imageMapper.getSlice();
+    const update = () => {
+      const slicingMode = image.imageMapper.getSlicingMode() % 3;
 
-        outlineMapper.setSlice(imageMapper.getSlice());
-
-        const ijk = [0, 0, slice];
+      if (slicingMode > -1) {
+        const ijk = [0, 0, 0];
         const position = [0, 0, 0];
 
-        maskData.indexToWorld(ijk, position);
+        // position
+        ijk[slicingMode] = image.imageMapper.getSlice();
+        data.indexToWorld(ijk, position);
 
-        splineWidget.getManipulator().setOrigin(position);
+        widgets.paintWidget.getManipulator().setOrigin(position);
+        widgets.splineWidget.getManipulator().setOrigin(position);
+        widgets.polygonWidget.getManipulator().setOrigin(position);
 
-        splineHandle.updateRepresentationForRender();
+        painter.setSlicingMode(slicingMode);
+
+        scene.paintHandle.updateRepresentationForRender();
+        scene.splineHandle.updateRepresentationForRender();
+        scene.polygonHandle.updateRepresentationForRender();
+
+        // update labelMap layer
+        labelMap.imageMapper.set(image.imageMapper.get('slice', 'slicingMode'));
+      }
+    };
+    image.imageMapper.onModified(update);
+    // trigger initial update
+    update();
+
+    // register readyAll to resize event
+    window.addEventListener('resize', readyAll);
+    readyAll();
+
+    // ----------------------------------------------------------------------------
+    // Painting
+    // ----------------------------------------------------------------------------
+
+    function initializeHandle(handle) {
+      handle.onStartInteractionEvent(() => {
+        painter.startStroke();
       });
-
-      renderer.addActor(outlineActor);
-
-      renderer.resetCamera();
-      renderer.resetCameraClippingRange();
-      renderWindow.render();
-    }
-    else {
-      renderer.removeActor(outlineActor);
+      handle.onEndInteractionEvent(() => {
+        painter.endStroke();
+      });
     }
 
-  }, [context, maskData]);  
+    scene.paintHandle.onStartInteractionEvent(() => {
+      painter.startStroke();
+      painter.addPoint(widgets.paintWidget.getWidgetState().getTrueOrigin());
+    });
 
-  return (
-    <div ref={ outerDiv } style={{ height: width }}>
-      <div ref={ vtkDiv } />
-    </div>
-  );
+    scene.paintHandle.onInteractionEvent(() => {
+      painter.addPoint(widgets.paintWidget.getWidgetState().getTrueOrigin());
+    });
+    initializeHandle(scene.paintHandle);
+
+    scene.splineHandle.onEndInteractionEvent(() => {
+      const points = scene.splineHandle.getPoints();
+      painter.paintPolygon(points);
+
+      scene.splineHandle.updateRepresentationForRender();
+    });
+    initializeHandle(scene.splineHandle);
+
+    scene.polygonHandle.onEndInteractionEvent(() => {
+      const points = scene.polygonHandle.getPoints();
+      painter.paintPolygon(points);
+
+      scene.polygonHandle.updateRepresentationForRender();
+    });
+    initializeHandle(scene.polygonHandle);
+  }  
 };
