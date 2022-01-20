@@ -27,7 +27,7 @@ export const TestPaintView = () => {
      
   // Set up pipeline
   useEffect(() => {   
-    if (!context && width && imageData && maskData) {         
+    if (!context && vtkDiv.current && width && imageData && maskData) {         
       // ----------------------------------------------------------------------------
       // Standard rendering code setup
       // ----------------------------------------------------------------------------
@@ -36,8 +36,8 @@ export const TestPaintView = () => {
       const scene = {};
 
       scene.fullScreenRenderer = vtkFullScreenRenderWindow.newInstance({
-        rootContainer: document.body,
-        background: [0.1, 0.1, 0.1],
+        rootContainer: vtkDiv.current,
+        background: [0.9, 0.9, 0.9]
       });
 
       scene.renderer = scene.fullScreenRenderer.getRenderer();
@@ -98,7 +98,7 @@ export const TestPaintView = () => {
       scene.splineHandle.setOutputBorder(true);
       scene.polygonHandle.setOutputBorder(true);
 
-      scene.widgetManager.grabFocus(widgets.polygonWidget);
+      scene.widgetManager.grabFocus(widgets.paintWidget);
 
       // Paint filter
       const painter = vtkPaintFilter.newInstance();
@@ -173,9 +173,10 @@ export const TestPaintView = () => {
       // painter.setVoxelFunc((bgValue, idx) => bgValue < 145);
 
       // default slice orientation/mode and camera view
+      const extent = imageData.getExtent();          
       const sliceMode = vtkImageMapper.SlicingMode.K;
       image.imageMapper.setSlicingMode(sliceMode);
-      image.imageMapper.setSlice(0);
+      image.imageMapper.setSlice((extent[5] - extent[4]) / 2);
       painter.setSlicingMode(sliceMode);
 
       // set 2D camera position
