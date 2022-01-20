@@ -7,8 +7,8 @@ import vtkImageMarchingCubes from '@kitware/vtk.js/Filters/General/ImageMarching
 import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 
-import { DataContext } from '../../contexts';
-import { useResize } from '../../hooks';
+import { DataContext } from 'contexts';
+import { useResize } from 'hooks';
 
 export const VolumeView = () => {
   const [{ maskData }] = useContext(DataContext);

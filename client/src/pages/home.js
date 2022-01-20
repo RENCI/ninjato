@@ -3,11 +3,11 @@ import { Grid, Segment, Message, Button, Divider } from 'semantic-ui-react';
 import { 
   UserContext, 
   SET_DATA, DataContext 
-} from '../contexts';
-import { VolumeView } from '../components/volume-view';
-import { TestPaintView } from '../components/slice-view';
-import { api } from '../api';
-import { readTIFF } from '../utils/data-reader';
+} from 'contexts';
+import { VolumeView } from 'components/volume-view';
+import { TestPaintView } from 'components/slice-view';
+import { api } from 'utils/api';
+import { readTIFF } from 'utils/data-reader';
 
 const { Row, Column } = Grid;
 
