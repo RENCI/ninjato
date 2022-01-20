@@ -18,8 +18,8 @@ import Manipulators from '@kitware/vtk.js/Interaction/Manipulators';
 
 import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
-import { DataContext } from '../contexts';
-import { useResize } from '../hooks';
+import { DataContext } from '../../contexts';
+import { useResize } from '../../hooks';
 
 const { SlicingMode } = vtkImageMapper;
 

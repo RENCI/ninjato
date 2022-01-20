@@ -4,9 +4,10 @@ import {
   UserContext, 
   SET_DATA, DataContext 
 } from '../contexts';
-import { VolumeView, SliceView, TestPaintView } from '../vtk';
+import { VolumeView } from '../components/volume-view';
+import { TestPaintView } from '../components/slice-view';
 import { api } from '../api';
-import { readTIFF } from '../vtk/data-reader';
+import { readTIFF } from '../utils/data-reader';
 
 const { Row, Column } = Grid;
 

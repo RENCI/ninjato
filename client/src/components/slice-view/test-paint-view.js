@@ -15,8 +15,8 @@ import vtkPiecewiseFunction  from '@kitware/vtk.js/Common/DataModel/PiecewiseFun
 
 import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
-import { DataContext } from '../contexts';
-import { useResize } from '../hooks';
+import { DataContext } from '../../contexts';
+import { useResize } from '../../hooks';
 
 export const TestPaintView = () => {
   const [{ imageData, maskData }] = useContext(DataContext);
@@ -24,7 +24,7 @@ export const TestPaintView = () => {
   const vtkDiv = useRef(null);
   const [context, setContext] = useState(null);
   const { width } = useResize(outerDiv);
-     
+
   // Set up pipeline
   useEffect(() => {   
     if (!context && vtkDiv.current && width && imageData && maskData) {         
