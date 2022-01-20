@@ -145,80 +145,6 @@ const initializeMask = () => {
   labelMap.actor.getProperty().setOpacity(0.5);
 };
 
-const setData = (imageData, maskData) => {
-  const data = imageData;
-  image.data = data;
-
-  // set input data
-  image.imageMapper.setInputData(data);
-
-  // add actors to renderers
-  scene.renderer.addViewProp(image.actor);
-  scene.renderer.addViewProp(labelMap.actor);
-
-  // update paint filter
-  painter.setBackgroundImage(imageData);
-  painter.setLabelMap(maskData);
-  // don't set to 0, since that's our empty label color from our pwf
-  painter.setLabel(1);
-  // set custom threshold
-  // painter.setVoxelFunc((bgValue, idx) => bgValue < 145);
-
-  // default slice orientation/mode and camera view
-  const extent = imageData.getExtent();          
-  const sliceMode = vtkImageMapper.SlicingMode.K;
-  image.imageMapper.setSlicingMode(sliceMode);
-  image.imageMapper.setSlice((extent[5] - extent[4]) / 2);
-  painter.setSlicingMode(sliceMode);
-
-  // set 2D camera position
-  setCamera(sliceMode, scene.renderer, image.data);
-
-  scene.splineHandle.setHandleSizeInPixels(
-    2 * Math.max(...image.data.getSpacing())
-  );
-  scene.splineHandle.setFreehandMinDistance(
-    4 * Math.max(...image.data.getSpacing())
-  );
-
-  scene.polygonHandle.setHandleSizeInPixels(
-    2 * Math.max(...image.data.getSpacing())
-  );
-  scene.polygonHandle.setFreehandMinDistance(
-    4 * Math.max(...image.data.getSpacing())
-  );
-
-  const update = () => {
-    const slicingMode = image.imageMapper.getSlicingMode() % 3;
-
-    if (slicingMode > -1) {
-      const ijk = [0, 0, 0];
-      const position = [0, 0, 0];
-
-      // position
-      ijk[slicingMode] = image.imageMapper.getSlice();
-      data.indexToWorld(ijk, position);
-
-      widgets.paintWidget.getManipulator().setOrigin(position);
-      widgets.splineWidget.getManipulator().setOrigin(position);
-      widgets.polygonWidget.getManipulator().setOrigin(position);
-
-      painter.setSlicingMode(slicingMode);
-
-      scene.paintHandle.updateRepresentationForRender();
-      scene.splineHandle.updateRepresentationForRender();
-      scene.polygonHandle.updateRepresentationForRender();
-
-      // update labelMap layer
-      labelMap.imageMapper.set(image.imageMapper.get('slice', 'slicingMode'));
-    }
-  };
-  image.imageMapper.onModified(update);
-  // trigger initial update
-  update();
-
-};
-
 const setCamera = (sliceMode, renderer, data) => {
   const ijk = [0, 0, 0];
   const position = [0, 0, 0];
@@ -235,7 +161,8 @@ const ready = (scope, picking = false) => {
   scope.fullScreenRenderer.resize();
   if (picking) {
     scope.widgetManager.enablePicking();
-  } else {
+  } 
+  else {
     scope.widgetManager.disablePicking();
   }
 };
@@ -256,6 +183,74 @@ export const sliceView = {
     initialized = true;
   },
   setData: (imageData, maskData) => {
-    setData(imageData, maskData);
+    image.data = imageData;
+  
+    // set input data
+    image.imageMapper.setInputData(imageData);
+  
+    // add actors to renderers
+    scene.renderer.addViewProp(image.actor);
+    scene.renderer.addViewProp(labelMap.actor);
+  
+    // update paint filter
+    painter.setBackgroundImage(imageData);
+    painter.setLabelMap(maskData);
+    // don't set to 0, since that's our empty label color from our pwf
+    painter.setLabel(1);
+    // set custom threshold
+    // painter.setVoxelFunc((bgValue, idx) => bgValue < 145);
+  
+    // default slice orientation/mode and camera view
+    const extent = imageData.getExtent();          
+    const sliceMode = vtkImageMapper.SlicingMode.K;
+    image.imageMapper.setSlicingMode(sliceMode);
+    image.imageMapper.setSlice((extent[5] - extent[4]) / 2);
+    painter.setSlicingMode(sliceMode);
+  
+    // set 2D camera position
+    setCamera(sliceMode, scene.renderer, image.data);
+  
+    scene.splineHandle.setHandleSizeInPixels(
+      2 * Math.max(...image.data.getSpacing())
+    );
+    scene.splineHandle.setFreehandMinDistance(
+      4 * Math.max(...image.data.getSpacing())
+    );
+  
+    scene.polygonHandle.setHandleSizeInPixels(
+      2 * Math.max(...image.data.getSpacing())
+    );
+    scene.polygonHandle.setFreehandMinDistance(
+      4 * Math.max(...image.data.getSpacing())
+    );
+  
+    const update = () => {
+      const slicingMode = image.imageMapper.getSlicingMode() % 3;
+  
+      if (slicingMode > -1) {
+        const ijk = [0, 0, 0];
+        const position = [0, 0, 0];
+  
+        // position
+        ijk[slicingMode] = image.imageMapper.getSlice();
+        imageData.indexToWorld(ijk, position);
+  
+        widgets.paintWidget.getManipulator().setOrigin(position);
+        widgets.splineWidget.getManipulator().setOrigin(position);
+        widgets.polygonWidget.getManipulator().setOrigin(position);
+  
+        painter.setSlicingMode(slicingMode);
+  
+        scene.paintHandle.updateRepresentationForRender();
+        scene.splineHandle.updateRepresentationForRender();
+        scene.polygonHandle.updateRepresentationForRender();
+  
+        // update labelMap layer
+        labelMap.imageMapper.set(image.imageMapper.get('slice', 'slicingMode'));
+      }
+    };
+    image.imageMapper.onModified(update);
+    // trigger initial update
+    update();  
   }
 };
