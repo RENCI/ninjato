@@ -9,30 +9,27 @@ export const SliceViewWrapper = () => {
   const vtkDiv = useRef(null);
   const { width } = useResize(outerDiv);
 
+  /*
   useEffect(() => {
     if (vtkDiv.current && width && imageData && maskData) { 
       sliceView.initialize(vtkDiv.current, imageData, maskData);
     }
   }, [vtkDiv, width, imageData, maskData]);
-
-/*
+  */
+  
   // Initialize
   useEffect(() => {
-    if (vtkDiv.current) {      
-      console.log("initialize");
+    if (vtkDiv.current && width) { 
       sliceView.initialize(vtkDiv.current);
     }
-  }, [vtkDiv]);
+  }, [vtkDiv, width]);
 
   // Update data
   useEffect(() => {
-    if (vtkDiv.current && imageData && maskData) {
-
-      console.log("setData");
+    if (vtkDiv.current && width && imageData && maskData) {
       sliceView.setData(imageData, maskData);
     }
-  }, [vtkDiv, imageData, maskData]);   
-*/     
+  }, [vtkDiv, width, imageData, maskData]);   
 
   // Clean up
   useEffect(() => {
