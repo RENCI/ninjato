@@ -6,7 +6,7 @@ export function VolumeView() {
   let fullScreenRenderWindow = null;
   let renderWindow = null;
   let renderer = null;
-  let surface = Surface(render);
+  let surface = Surface();
 
   function render() {
     renderWindow.render();

@@ -1,9 +1,8 @@
 import { useContext, useRef, useEffect } from 'react';
 import { DataContext } from 'contexts';
 import { useResize } from 'hooks';
-import { sliceView } from './slice-view';
 
-export const SliceViewWrapper = ({ onEdit }) => {
+export const SliceViewWrapper = ({ sliceView, onEdit }) => {
   const [{ imageData, maskData }] = useContext(DataContext);
   const outerDiv = useRef(null);
   const vtkDiv = useRef(null);
@@ -14,19 +13,19 @@ export const SliceViewWrapper = ({ onEdit }) => {
     if (vtkDiv.current && width) { 
       sliceView.initialize(vtkDiv.current, onEdit);
     }
-  }, [vtkDiv, width, onEdit]);
+  }, [vtkDiv, width, sliceView, onEdit]);
 
   // Update data
   useEffect(() => {
     if (vtkDiv.current && width && imageData && maskData) {
       sliceView.setData(imageData, maskData);
     }
-  }, [vtkDiv, width, imageData, maskData]);   
+  }, [vtkDiv, width, sliceView, imageData, maskData]);   
 
   // Clean up
   useEffect(() => {
     return () => sliceView.cleanUp();
-  }, []);
+  }, [sliceView]);
 
   return (
     <div ref={ outerDiv } style={{ height: width }}>
