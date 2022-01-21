@@ -13,8 +13,8 @@ export function Image() {
   actor.setMapper(mapper);
 
   return {
-    actor: actor,
-    mapper: mapper,
+    getActor: () => actor,
+    getMapper: () => mapper,
     setInputData: data => {
       mapper.setInputData(data);
 

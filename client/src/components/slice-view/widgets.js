@@ -5,44 +5,38 @@ import vtkPaintWidget from '@kitware/vtk.js/Widgets/Widgets3D/PaintWidget';
 
 import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
-export function Widgets(renderer, painter, onEdit) {
-  const widgetManager = vtkWidgetManager.newInstance();
-  widgetManager.setRenderer(renderer);
-
-  // Widgets
+export function Widgets(painter, onEdit) {
+  const manager = vtkWidgetManager.newInstance();
   const paintWidget = vtkPaintWidget.newInstance();
-
-  const paintHandle = widgetManager.addWidget(
-    paintWidget,
-    ViewTypes.SLICE
-  );
-
-  widgetManager.grabFocus(paintWidget);
-
-  const initializeHandle = handle => {
-    handle.onStartInteractionEvent(() => {
-      painter.startStroke();
-    });
-    handle.onEndInteractionEvent(async () => {
-      await painter.endStroke();
-
-      onEdit();
-    });
-  };
-
-  paintHandle.onStartInteractionEvent(() => {
-    painter.startStroke();
-    painter.addPoint(paintWidget.getWidgetState().getTrueOrigin());
-  });
-
-  paintHandle.onInteractionEvent(() => {
-    painter.addPoint(paintWidget.getWidgetState().getTrueOrigin());
-  });
-
-  initializeHandle(paintHandle);
+  let paintHandle = null;
 
   return {
-    paintWidget: paintWidget,
-    paintHandle: paintHandle
+    getPaintWidget: () => paintWidget,
+    getPaintHandle: () => paintHandle,
+    setRenderer: renderer => {
+      manager.setRenderer(renderer);
+
+      paintHandle = manager.addWidget(
+        paintWidget,
+        ViewTypes.SLICE
+      );
+    
+      manager.grabFocus(paintWidget);
+    
+      paintHandle.onStartInteractionEvent(() => {
+        painter.startStroke();
+        painter.addPoint(paintWidget.getWidgetState().getTrueOrigin());
+      });
+    
+      paintHandle.onInteractionEvent(() => {
+        painter.addPoint(paintWidget.getWidgetState().getTrueOrigin());
+      });
+
+      paintHandle.onEndInteractionEvent(async () => {
+        await painter.endStroke();
+  
+        onEdit();
+      });
+    }
   }
 }

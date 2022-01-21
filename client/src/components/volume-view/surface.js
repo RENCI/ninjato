@@ -17,7 +17,7 @@ export function Surface() {
   actor.setMapper(mapper); 
 
   return {
-    actor: actor,
+    getActor: () => actor,
     setInputData: data => marchingCubes.setInputData(data),
     cleanUp: () => {
       actor.delete();

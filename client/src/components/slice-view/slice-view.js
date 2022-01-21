@@ -21,22 +21,22 @@ const setCamera = (sliceMode, renderer, data) => {
   renderer.resetCamera();
 };
 
-export function SliceView() {
+export function SliceView(onEdit) {
   let fullScreenRenderWindow = null;
   let renderWindow = null;
   let renderer = null;
   let camera = null;
-  let widgets = null;
 
   const painter = vtkPaintFilter.newInstance();
   painter.setSlicingMode(sliceMode);
   painter.setLabel(1);
 
+  const widgets = Widgets(painter, onEdit);
   const image = Image();
   const labelMap = Mask(painter);
 
   return {
-    initialize: (rootNode, onEdit) => {
+    initialize: rootNode => {
       if (fullScreenRenderWindow) return;
 
       fullScreenRenderWindow = vtkFullScreenRenderWindow.newInstance({
@@ -46,22 +46,21 @@ export function SliceView() {
 
       renderWindow = fullScreenRenderWindow.getRenderWindow();
       renderer = fullScreenRenderWindow.getRenderer();
+      
       camera = renderer.getActiveCamera();
-
-      // Setup 2D view
       camera.setParallelProjection(true);
 
-      const iStyle = vtkInteractorStyleImage.newInstance();
-      iStyle.setInteractionMode('IMAGE_SLICING');
-      renderWindow.getInteractor().setInteractorStyle(iStyle);
+      const style = vtkInteractorStyleImage.newInstance();
+      style.setInteractionMode('IMAGE_SLICING');
+      renderWindow.getInteractor().setInteractorStyle(style);
 
-      widgets = Widgets(renderer, painter, onEdit);
+      widgets.setRenderer(renderer);
     },
     setData: (imageData, maskData) => {
       image.setInputData(imageData);
 
-      renderer.addViewProp(image.actor);
-      renderer.addViewProp(labelMap.actor);
+      renderer.addViewProp(image.getActor());
+      renderer.addViewProp(labelMap.getActor());
     
       // update paint filter
       painter.setBackgroundImage(imageData);
@@ -71,28 +70,28 @@ export function SliceView() {
       setCamera(sliceMode, renderer, imageData);
     
       const update = () => {  
-        const slicingMode = image.mapper.getSlicingMode() % 3;
+        const slicingMode = image.getMapper().getSlicingMode() % 3;
 
         if (slicingMode > -1) {
           const ijk = [0, 0, 0];
           const position = [0, 0, 0];
     
           // position
-          ijk[slicingMode] = image.mapper.getSlice();
+          ijk[slicingMode] = image.getMapper().getSlice();
           imageData.indexToWorld(ijk, position);
     
-          widgets.paintWidget.getManipulator().setOrigin(position);
+          widgets.getPaintWidget().getManipulator().setOrigin(position);
 
           painter.setSlicingMode(slicingMode);
     
-          widgets.paintHandle.updateRepresentationForRender();
+          widgets.getPaintHandle().updateRepresentationForRender();
     
           // update labelMap layer
-          labelMap.mapper.set(image.mapper.get('slice', 'slicingMode'));
+          labelMap.getMapper().set(image.getMapper().get('slice', 'slicingMode'));
         }
       };
 
-      image.mapper.onModified(update);
+      image.getMapper().onModified(update);
       // trigger initial update
       update();   
     },

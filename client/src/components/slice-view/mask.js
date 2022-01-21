@@ -23,7 +23,7 @@ export function Mask(painter) {
   actor.getProperty().setOpacity(0.5);
 
   return {
-    actor: actor,
-    mapper: mapper
+    getActor: () => actor,
+    getMapper: () => mapper
   };
 }

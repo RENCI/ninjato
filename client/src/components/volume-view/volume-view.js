@@ -28,7 +28,7 @@ export function VolumeView() {
       if (maskData) {
         surface.setInputData(maskData);
 
-        renderer.addActor(surface.actor);
+        renderer.addActor(surface.getActor());
 
         renderer.resetCamera();
         renderer.resetCameraClippingRange();
@@ -36,7 +36,7 @@ export function VolumeView() {
         render();
       } 
       else {
-        renderer.removeActor(surface.actor);
+        renderer.removeActor(surface.getActor());
       }
     },
     render: () => {
