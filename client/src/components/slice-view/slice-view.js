@@ -41,7 +41,7 @@ const initializeScene = rootNode => {
     scene.renderWindow.getInteractor().setInteractorStyle(scene.iStyle);
 };
 
-const initializeWidgets = () => {
+const initializeWidgets = onEdit => {
   // ----------------------------------------------------------------------------
   // Widget manager and vtkPaintFilter
   // ----------------------------------------------------------------------------
@@ -81,8 +81,10 @@ const initializeWidgets = () => {
     handle.onStartInteractionEvent(() => {
       painter.startStroke();
     });
-    handle.onEndInteractionEvent(() => {
-      painter.endStroke();
+    handle.onEndInteractionEvent(async () => {
+      await painter.endStroke();
+
+      onEdit();
     });
   };
 
@@ -152,27 +154,12 @@ const setCamera = (sliceMode, renderer, data) => {
   renderer.resetCamera();
 };
 
-const ready = (scope, picking = false) => {
-  scope.renderer.resetCamera();
-  scope.fullScreenRenderer.resize();
-  if (picking) {
-    scope.widgetManager.enablePicking();
-  } 
-  else {
-    scope.widgetManager.disablePicking();
-  }
-};
-
-const readyAll = () => {
-  ready(scene, true);
-};
-
 export const sliceView = {
-  initialize: rootNode => {    
+  initialize: (rootNode, onEdit) => {    
     if (initialized) return;
 
     initializeScene(rootNode);
-    initializeWidgets();
+    initializeWidgets(onEdit);
     initializeImage();
     initializeMask();
 

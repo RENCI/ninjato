@@ -6,7 +6,11 @@ export function VolumeView() {
   let fullScreenRenderWindow = null;
   let renderWindow = null;
   let renderer = null;
-  let surface = Surface();
+  let surface = Surface(render);
+
+  function render() {
+    renderWindow.render();
+  };
 
   return {
     initialize: rootNode => {
@@ -28,11 +32,15 @@ export function VolumeView() {
 
         renderer.resetCamera();
         renderer.resetCameraClippingRange();
-        renderWindow.render();
+
+        render();
       } 
       else {
         renderer.removeActor(surface.actor);
       }
+    },
+    render: () => {
+      render();
     },
     cleanUp: () => {
       surface.cleanUp();

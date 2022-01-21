@@ -4,8 +4,7 @@ import {
   UserContext, 
   SET_DATA, DataContext 
 } from 'contexts';
-import { VolumeViewWrapper } from 'components/volume-view';
-import { SliceViewWrapper } from 'components/slice-view';
+import { VisualizationContainer } from 'components/visualization-container';
 import { api } from 'utils/api';
 import { readTIFF } from 'utils/data-reader';
 
@@ -52,53 +51,44 @@ export const Home = () => {
   };
 
   return (
-    <Grid >
+    <>
       { imageData ?
-        <Row>
-          <Column width={ 2 } >
-          </Column>
-          <Column width={ 6 }>
-            <VolumeViewWrapper />
-          </Column>
-          <Column width={ 6 }>
-            <SliceViewWrapper />
-          </Column>
-          <Column width={ 2 } >
-          </Column>
-        </Row>
+        <VisualizationContainer />
       : login ?
-        <Row>
-          <Column width={ 2 } >            
-          </Column>
-          <Column width={ 12 }>
-            <Segment>
-              <h3>Welcome { login }!</h3>
-              { assignment ? 
-                <Message>
-                  <Message.Header>
-                    You have an assignment waiting for you.
-                  </Message.Header>
-                  <div style={{ marginTop: 10 }}>
-                    <Button primary onClick={ onLoadClick }>Load assignment</Button>
-                    <Divider horizontal>Or</Divider>
-                    <Button secondary onClick={ onLoadPracticeClick }>Load practice data</Button>
-                  </div>
-                </Message>
-              :
-                <Message>
-                  <Message.Header>
-                    No assignment found!
-                  </Message.Header>
-                  <div style={{ marginTop: 10 }}>
-                    <Button secondary onClick={ onLoadPracticeClick }>Load practice data</Button>
-                  </div>
-                </Message>              
-              }
-            </Segment>
-          </Column>
-        </Row>
+        <Grid >
+          <Row>
+            <Column width={ 2 } >            
+            </Column>
+            <Column width={ 12 }>
+              <Segment>
+                <h3>Welcome { login }!</h3>
+                { assignment ? 
+                  <Message>
+                    <Message.Header>
+                      You have an assignment waiting for you.
+                    </Message.Header>
+                    <div style={{ marginTop: 10 }}>
+                      <Button primary onClick={ onLoadClick }>Load assignment</Button>
+                      <Divider horizontal>Or</Divider>
+                      <Button secondary onClick={ onLoadPracticeClick }>Load practice data</Button>
+                    </div>
+                  </Message>
+                :
+                  <Message>
+                    <Message.Header>
+                      No assignment found!
+                    </Message.Header>
+                    <div style={{ marginTop: 10 }}>
+                      <Button secondary onClick={ onLoadPracticeClick }>Load practice data</Button>
+                    </div>
+                  </Message>              
+                }
+              </Segment>
+            </Column>
+          </Row>
+        </Grid>
       : null
       }
-    </Grid>
+    </>
   );
 };

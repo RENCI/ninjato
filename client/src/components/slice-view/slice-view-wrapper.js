@@ -3,7 +3,7 @@ import { DataContext } from 'contexts';
 import { useResize } from 'hooks';
 import { sliceView } from './slice-view';
 
-export const SliceViewWrapper = () => {
+export const SliceViewWrapper = ({ onEdit }) => {
   const [{ imageData, maskData }] = useContext(DataContext);
   const outerDiv = useRef(null);
   const vtkDiv = useRef(null);
@@ -12,9 +12,9 @@ export const SliceViewWrapper = () => {
   // Initialize
   useEffect(() => {
     if (vtkDiv.current && width) { 
-      sliceView.initialize(vtkDiv.current);
+      sliceView.initialize(vtkDiv.current, onEdit);
     }
-  }, [vtkDiv, width]);
+  }, [vtkDiv, width, onEdit]);
 
   // Update data
   useEffect(() => {
