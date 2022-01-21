@@ -2,43 +2,41 @@ import '@kitware/vtk.js/Rendering/Profiles/Geometry';
 import vtkFullScreenRenderWindow from '@kitware/vtk.js/Rendering/Misc/FullScreenRenderWindow';
 import { Surface } from './surface';
 
-let fullScreenRenderWindow = null;
-let renderWindow = null;
-let renderer = null;
-let surface = Surface();
+export function VolumeView() {
+  let fullScreenRenderWindow = null;
+  let renderWindow = null;
+  let renderer = null;
+  let surface = Surface();
 
-const initializeRenderer = rootNode => {
-  fullScreenRenderWindow = vtkFullScreenRenderWindow.newInstance({
-    rootContainer: rootNode,
-    background: [0.9, 0.9, 0.9]
-  });
+  return {
+    initialize: rootNode => {
+      if (fullScreenRenderWindow) return;
 
-  renderWindow = fullScreenRenderWindow.getRenderWindow();
-  renderer = fullScreenRenderWindow.getRenderer();
-}; 
+      fullScreenRenderWindow = vtkFullScreenRenderWindow.newInstance({
+        rootContainer: rootNode,
+        background: [0.9, 0.9, 0.9]
+      });
+  
+      renderWindow = fullScreenRenderWindow.getRenderWindow();
+      renderer = fullScreenRenderWindow.getRenderer();
+    },
+    setData: maskData => {
+      if (maskData) {
+        surface.setInputData(maskData);
 
-export const volumeView = {
-  initialize: rootNode => {
-    if (fullScreenRenderWindow) return;
+        renderer.addActor(surface.actor);
 
-    initializeRenderer(rootNode);
-  },
-  setData: maskData => {
-    if (maskData) {
-      surface.setInputData(maskData);
-
-      renderer.addActor(surface.actor);
-
-      renderer.resetCamera();
-      renderer.resetCameraClippingRange();
-      renderWindow.render();
-    } 
-    else {
-      renderer.removeActor(surface.actor);
+        renderer.resetCamera();
+        renderer.resetCameraClippingRange();
+        renderWindow.render();
+      } 
+      else {
+        renderer.removeActor(surface.actor);
+      }
+    },
+    cleanUp: () => {
+      surface.cleanUp();
+      fullScreenRenderWindow.delete();
     }
-  },
-  cleanUp: () => {
-    surface.cleanUp();
-    fullScreenRenderWindow.delete();
-  }
-};
+  };
+}
