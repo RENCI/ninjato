@@ -1,1 +1,1 @@
-export * from './volume-view';
+export * from './volume-view-wrapper';

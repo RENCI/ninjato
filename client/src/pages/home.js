@@ -4,7 +4,7 @@ import {
   UserContext, 
   SET_DATA, DataContext 
 } from 'contexts';
-import { VolumeView } from 'components/volume-view';
+import { VolumeViewWrapper } from 'components/volume-view';
 import { SliceViewWrapper } from 'components/slice-view';
 import { api } from 'utils/api';
 import { readTIFF } from 'utils/data-reader';
@@ -58,7 +58,7 @@ export const Home = () => {
           <Column width={ 2 } >
           </Column>
           <Column width={ 6 }>
-            <VolumeView />
+            <VolumeViewWrapper />
           </Column>
           <Column width={ 6 }>
             <SliceViewWrapper />

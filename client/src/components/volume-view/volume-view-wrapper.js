@@ -1,31 +1,31 @@
 import { useContext, useRef, useEffect } from 'react';
 import { DataContext } from 'contexts';
 import { useResize } from 'hooks';
-import { sliceView } from './slice-view';
+import { volumeView } from './volume-view';
 
-export const SliceViewWrapper = () => {
+export const VolumeViewWrapper = () => {
   const [{ imageData, maskData }] = useContext(DataContext);
   const outerDiv = useRef(null);
   const vtkDiv = useRef(null);
   const { width } = useResize(outerDiv);
-  
+
   // Initialize
   useEffect(() => {
     if (vtkDiv.current && width) { 
-      sliceView.initialize(vtkDiv.current);
+      volumeView.initialize(vtkDiv.current);
     }
   }, [vtkDiv, width]);
 
   // Update data
   useEffect(() => {
     if (vtkDiv.current && width && imageData && maskData) {
-      sliceView.setData(imageData, maskData);
+      volumeView.setData(imageData, maskData);
     }
   }, [vtkDiv, width, imageData, maskData]);   
 
   // Clean up
   useEffect(() => {
-    return () => sliceView.cleanUp();
+    return () => volumeView.cleanUp();
   }, []);
 
   return (

@@ -22,10 +22,6 @@ const image = {};
 const labelMap = {};
 
 const initializeScene = rootNode => {
-    // ----------------------------------------------------------------------------
-    // Standard rendering code setup
-    // ----------------------------------------------------------------------------
-
     scene.fullScreenRenderer = vtkFullScreenRenderWindow.newInstance({
       rootContainer: rootNode,
       background: [0.9, 0.9, 0.9]
@@ -172,7 +168,7 @@ const readyAll = () => {
 };
 
 export const sliceView = {
-  initialize: (rootNode) => {    
+  initialize: rootNode => {    
     if (initialized) return;
 
     initializeScene(rootNode);
@@ -252,5 +248,8 @@ export const sliceView = {
     image.imageMapper.onModified(update);
     // trigger initial update
     update();  
+  },
+  cleanUp: () => {
+    console.log("Clean up");
   }
 };
