@@ -1,67 +1,44 @@
 import '@kitware/vtk.js/Rendering/Profiles/Geometry';
-
 import vtkFullScreenRenderWindow from '@kitware/vtk.js/Rendering/Misc/FullScreenRenderWindow';
-import vtkImageMarchingCubes from '@kitware/vtk.js/Filters/General/ImageMarchingCubes';
-import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
-import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
+import { Surface } from './surface';
 
-let initialized = false;
-const scene = {};
-const surface = {};
+let fullScreenRenderWindow = null;
+let renderWindow = null;
+let renderer = null;
+let surface = Surface();
 
-const initializeScene = rootNode => {
-  scene.fullScreenRenderWindow = vtkFullScreenRenderWindow.newInstance({
+const initializeRenderer = rootNode => {
+  fullScreenRenderWindow = vtkFullScreenRenderWindow.newInstance({
     rootContainer: rootNode,
     background: [0.9, 0.9, 0.9]
   });
 
-  scene.renderWindow = scene.fullScreenRenderWindow.getRenderWindow();
-  scene.renderer = scene.fullScreenRenderWindow.getRenderer();
-};
-
-const initializeSurface = () => {
-  surface.marchingCubes = vtkImageMarchingCubes.newInstance({
-    contourValue: 1,
-    computeNormals: true,
-    mergePoints: true
-  });
-
-  surface.mapper = vtkMapper.newInstance();
-  surface.mapper.setInputConnection(surface.marchingCubes.getOutputPort());
-
-  surface.actor = vtkActor.newInstance();
-  surface.actor.getProperty().setColor(1, 0, 0);
-  surface.actor.setMapper(surface.mapper); 
-};
+  renderWindow = fullScreenRenderWindow.getRenderWindow();
+  renderer = fullScreenRenderWindow.getRenderer();
+}; 
 
 export const volumeView = {
   initialize: rootNode => {
-    if (initialized) return;
+    if (fullScreenRenderWindow) return;
 
-    initializeScene(rootNode);
-    initializeSurface();
-
-    initialized = true;
+    initializeRenderer(rootNode);
   },
-  setData: (imageData, maskData) => {
+  setData: maskData => {
     if (maskData) {
-      surface.marchingCubes.setInputData(maskData);
+      surface.setInputData(maskData);
 
-      scene.renderer.addActor(surface.actor);
+      renderer.addActor(surface.actor);
 
-      scene.renderer.resetCamera();
-      scene.renderer.resetCameraClippingRange();
-      scene.renderWindow.render();
+      renderer.resetCamera();
+      renderer.resetCameraClippingRange();
+      renderWindow.render();
     } 
     else {
-      scene.renderer.removeActor()
+      renderer.removeActor(surface.actor);
     }
   },
   cleanUp: () => {
-    surface.marchingCubes.delete();
-    surface.actor.delete();
-    surface.mapper.delete();
-    scene.fullScreenRenderWindow.getInteractor().delete();
-    scene.fullScreenRenderWindow.delete();
+    surface.cleanUp();
+    fullScreenRenderWindow.delete();
   }
 };

@@ -4,7 +4,7 @@ import { useResize } from 'hooks';
 import { volumeView } from './volume-view';
 
 export const VolumeViewWrapper = () => {
-  const [{ imageData, maskData }] = useContext(DataContext);
+  const [{ maskData }] = useContext(DataContext);
   const outerDiv = useRef(null);
   const vtkDiv = useRef(null);
   const { width } = useResize(outerDiv);
@@ -18,10 +18,10 @@ export const VolumeViewWrapper = () => {
 
   // Update data
   useEffect(() => {
-    if (vtkDiv.current && width && imageData && maskData) {
-      volumeView.setData(imageData, maskData);
+    if (vtkDiv.current && width && maskData) {
+      volumeView.setData(maskData);
     }
-  }, [vtkDiv, width, imageData, maskData]);   
+  }, [vtkDiv, width, maskData]);   
 
   // Clean up
   useEffect(() => {
