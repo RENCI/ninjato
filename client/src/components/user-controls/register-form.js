@@ -1,9 +1,9 @@
 import { useContext, useState } from 'react';
 import { Button, Form, Menu, Message, Modal } from 'semantic-ui-react';
-import { LOGIN, SET_ASSIGNMENT, UserContext } from '../../contexts';
-import { AutoFocusForm } from '../auto-focus-form';
-import { api } from '../../api';
-import { useModal } from '../../hooks';
+import { LOGIN, SET_ASSIGNMENT, UserContext } from 'contexts';
+import { AutoFocusForm } from 'components/auto-focus-form';
+import { api } from 'utils/api';
+import { useModal } from 'hooks';
 
 export const RegisterForm = () => {
   const [, userDispatch] = useContext(UserContext);

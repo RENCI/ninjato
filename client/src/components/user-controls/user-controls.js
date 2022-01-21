@@ -4,10 +4,10 @@ import { Menu } from 'semantic-ui-react';
 import { 
   LOGIN, LOGOUT, SET_ASSIGNMENT, UserContext,
   CLEAR_DATA, DataContext 
-} from '../../contexts';
+} from 'contexts';
 import { RegisterForm } from './register-form';
 import { LoginForm } from './login-form';
-import { api } from '../../api';
+import { api } from 'utils/api';
 
 export const UserControls = () => {
   const [{ login }, userDispatch] = useContext(UserContext);
