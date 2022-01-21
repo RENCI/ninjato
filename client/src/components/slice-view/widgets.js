@@ -11,8 +11,6 @@ export function Widgets(painter, onEdit) {
   let paintHandle = null;
 
   return {
-    getPaintWidget: () => paintWidget,
-    getPaintHandle: () => paintHandle,
     setRenderer: renderer => {
       manager.setRenderer(renderer);
 
