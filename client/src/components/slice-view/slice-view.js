@@ -70,7 +70,7 @@ export function SliceView(onEdit) {
         ijk[slicingMode] = image.getMapper().getSlice();
         imageData.indexToWorld(ijk, position);
   
-        widgets.update(position);
+        widgets.update(position, imageData.getSpacing());
   
         mask.getMapper().set(image.getMapper().get('slice', 'slicingMode'));
       };

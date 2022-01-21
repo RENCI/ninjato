@@ -33,8 +33,10 @@ export function Widgets(painter, onEdit) {
         onEdit();
       });
     },
-    update: position => {
+    update: (position, spacing) => {
       paintWidget.getManipulator().setOrigin(position);
+      paintWidget.setRadius(0.75 * Math.max(...spacing));
+      
       paintHandle.updateRepresentationForRender();
     }
   }
