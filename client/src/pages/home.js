@@ -5,6 +5,7 @@ import {
   SET_DATA, DataContext 
 } from 'contexts';
 import { VisualizationContainer } from 'components/visualization-container';
+import { SaveButton } from 'components/save-button';
 import { api } from 'utils/api';
 import { readTIFF } from 'utils/data-reader';
 
@@ -53,7 +54,16 @@ export const Home = () => {
   return (
     <>
       { imageData ?
-        <VisualizationContainer />
+        <>
+          <VisualizationContainer />
+          <Grid>
+            <Row>
+              <Column width={ 14 } className='right aligned'>
+                <SaveButton />
+              </Column>
+            </Row>
+          </Grid>
+        </>
       : login ?
         <Grid >
           <Row>

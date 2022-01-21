@@ -88,5 +88,8 @@ export const api = {
       imageBuffer: results[0].data,
       maskBuffer: results[1].data
     };   
+  },
+  saveAnnotations: async (data, item_id, done = false) => {
+    console.log(data);
   }
 };
