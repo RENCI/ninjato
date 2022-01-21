@@ -16,10 +16,7 @@ export function Widgets(painter, onEdit) {
     setRenderer: renderer => {
       manager.setRenderer(renderer);
 
-      paintHandle = manager.addWidget(
-        paintWidget,
-        ViewTypes.SLICE
-      );
+      paintHandle = manager.addWidget(paintWidget, ViewTypes.SLICE);
     
       manager.grabFocus(paintWidget);
     
@@ -37,6 +34,10 @@ export function Widgets(painter, onEdit) {
   
         onEdit();
       });
+    },
+    update: position => {
+      paintWidget.getManipulator().setOrigin(position);
+      paintHandle.updateRepresentationForRender();
     }
   }
 }

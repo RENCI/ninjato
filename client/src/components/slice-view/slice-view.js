@@ -7,15 +7,17 @@ import { Widgets } from './widgets';
 import { Image } from './image';
 import { Mask } from './mask';
 
-const sliceMode = vtkImageMapper.SlicingMode.K;
+const slicingMode = vtkImageMapper.SlicingMode.K;
 
-const setCamera = (sliceMode, renderer, data) => {
+const setCamera = (slicingMode, renderer, data) => {
   const ijk = [0, 0, 0];
   const position = [0, 0, 0];
   const focalPoint = [0, 0, 0];
+
   data.indexToWorld(ijk, focalPoint);
-  ijk[sliceMode] = 1;
+  ijk[slicingMode] = 1;
   data.indexToWorld(ijk, position);
+
   renderer.getActiveCamera().set({ focalPoint, position });
   renderer.resetCamera();
 };
@@ -59,32 +61,21 @@ export function SliceView(onEdit) {
     
       mask.setInputData(imageData, maskData);
     
-      // set 2D camera position
-      setCamera(sliceMode, renderer, imageData);
+      setCamera(slicingMode, renderer, imageData);
     
       const update = () => {  
-        const slicingMode = image.getMapper().getSlicingMode() % 3;
-
-        if (slicingMode > -1) {
-          const ijk = [0, 0, 0];
-          const position = [0, 0, 0];
-    
-          // position
-          ijk[slicingMode] = image.getMapper().getSlice();
-          imageData.indexToWorld(ijk, position);
-    
-          widgets.getPaintWidget().getManipulator().setOrigin(position);
-
-          mask.getPainter().setSlicingMode(slicingMode);
-    
-          widgets.getPaintHandle().updateRepresentationForRender();
-    
-          mask.getMapper().set(image.getMapper().get('slice', 'slicingMode'));
-        }
+        const ijk = [0, 0, 0];
+        const position = [0, 0, 0];
+  
+        ijk[slicingMode] = image.getMapper().getSlice();
+        imageData.indexToWorld(ijk, position);
+  
+        widgets.update(position);
+  
+        mask.getMapper().set(image.getMapper().get('slice', 'slicingMode'));
       };
 
       image.getMapper().onModified(update);
-      // trigger initial update
       update();   
     },
     cleanUp: () => {
