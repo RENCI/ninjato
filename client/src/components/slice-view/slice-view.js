@@ -3,7 +3,6 @@ import '@kitware/vtk.js/Rendering/Profiles/All';
 import vtkFullScreenRenderWindow from '@kitware/vtk.js/Rendering/Misc/FullScreenRenderWindow';
 import vtkInteractorStyleImage  from '@kitware/vtk.js/Interaction/Style/InteractorStyleImage';
 import vtkImageMapper from '@kitware/vtk.js/Rendering/Core/ImageMapper';
-import vtkPaintFilter from '@kitware/vtk.js/Filters/General/PaintFilter';
 import { Widgets } from './widgets';
 import { Image } from './image';
 import { Mask } from './mask';
@@ -27,13 +26,9 @@ export function SliceView(onEdit) {
   let renderer = null;
   let camera = null;
 
-  const painter = vtkPaintFilter.newInstance();
-  painter.setSlicingMode(sliceMode);
-  painter.setLabel(1);
-
-  const widgets = Widgets(painter, onEdit);
   const image = Image();
-  const labelMap = Mask(painter);
+  const mask = Mask();  
+  const widgets = Widgets(mask.getPainter(), onEdit);
 
   return {
     initialize: rootNode => {
@@ -60,11 +55,9 @@ export function SliceView(onEdit) {
       image.setInputData(imageData);
 
       renderer.addViewProp(image.getActor());
-      renderer.addViewProp(labelMap.getActor());
+      renderer.addViewProp(mask.getActor());
     
-      // update paint filter
-      painter.setBackgroundImage(imageData);
-      painter.setLabelMap(maskData);
+      mask.setInputData(imageData, maskData);
     
       // set 2D camera position
       setCamera(sliceMode, renderer, imageData);
@@ -82,12 +75,11 @@ export function SliceView(onEdit) {
     
           widgets.getPaintWidget().getManipulator().setOrigin(position);
 
-          painter.setSlicingMode(slicingMode);
+          mask.getPainter().setSlicingMode(slicingMode);
     
           widgets.getPaintHandle().updateRepresentationForRender();
     
-          // update labelMap layer
-          labelMap.getMapper().set(image.getMapper().get('slice', 'slicingMode'));
+          mask.getMapper().set(image.getMapper().get('slice', 'slicingMode'));
         }
       };
 
