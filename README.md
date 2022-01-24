@@ -5,7 +5,7 @@ Web-based segmentation tool for 3D tissue cleared microscopy images of nuclei.
 
 ## Development Setup
 
-This section provides guidance for setting up docker-based girder server and React-based client development and deployment environments for the ninjato tool.
+This section provides guidance for setting up docker-based girder server and React-based client development and deployment environments for the ninjatō tool.
 
 ### Prerequisite
 
