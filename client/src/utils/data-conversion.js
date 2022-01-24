@@ -1,4 +1,5 @@
 import * as tiff from 'tiff';
+import utif from 'utif';
 import vtkImageData from '@kitware/vtk.js/Common/DataModel/ImageData';
 import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
 
@@ -37,3 +38,7 @@ export const readTIFF = buffer => {
 
   return image;
 }; 
+
+export const writeTIFF = data => {
+  console.log(data);
+};
