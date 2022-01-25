@@ -14,7 +14,10 @@ export function Surface() {
 
   const actor = vtkActor.newInstance();
   actor.getProperty().setColor(1, 0, 0);
+  //actor.getProperty().setInterpolationToFlat();
   actor.setMapper(mapper); 
+
+  console.log(actor.getProperty());
 
   return {
     getActor: () => actor,

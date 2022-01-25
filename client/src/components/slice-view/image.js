@@ -10,6 +10,7 @@ export function Image() {
   mapper.setSlicingMode(sliceMode);
 
   let actor = vtkImageSlice.newInstance();
+  actor.getProperty().setInterpolationTypeToNearest();
   actor.setMapper(mapper);
 
   return {
