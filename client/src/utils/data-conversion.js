@@ -3,14 +3,15 @@ import utif from 'utif';
 import vtkImageData from '@kitware/vtk.js/Common/DataModel/ImageData';
 import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
 
+
+// Augment utif tag types with some we need
+utif.ttypes[254] = 4;
+utif.ttypes[297] = 5;
+
 // Based on encodeImage from utif, but adjusted for multipage single component images with different bits
 const encodeImage = (image, w, h, n, bpp = 16) => {
   const stripByteCounts = w * h * bpp / 8;
   const arrayType = bpp === 32 ? Uint32Array : bpp === 16 ? Uint16Array : Uint8Array;
-
-  // Augment utif tag types with some we need
-  utif.ttypes[254] = 4;
-  utif.ttypes[297] = 5;
  
   const idf = { 
     t254: [2],                // subfile type
