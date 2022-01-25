@@ -3,10 +3,8 @@ import utif from 'utif';
 import vtkImageData from '@kitware/vtk.js/Common/DataModel/ImageData';
 import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
 
+// Based on encodeImage from utif, but adjusted for multipage single component images
 const encodeImage = (image, w, h, n, bpp = 16) => {
-
-  console.log(image);
-
   const stripByteCounts = w * h * bpp / 8;
   const arrayType = bpp === 32 ? Uint32Array : bpp === 16 ? Uint16Array : Uint8Array;
 
@@ -15,7 +13,7 @@ const encodeImage = (image, w, h, n, bpp = 16) => {
   utif.ttypes[297] = 5;
  
   const idf = { 
-    //t254: [2],                // subfile type
+    t254: [2],                // subfile type
     t256: [w],                // image width
     t257: [h],                // image height
     t258: [bpp],              // bits per sample
@@ -31,17 +29,16 @@ const encodeImage = (image, w, h, n, bpp = 16) => {
     t296: [3]                 // resolution unit
   };
 
-  const headerOffset = stripByteCounts;
+  // XXX: Magic number, should be able to calculate from idf size?
+  const headerOffset = 120 * n;
+  
   const idfs = [];
   for (let i = 0; i < n; i++) {
-    idf.t273 = [headerOffset * 2 + i * stripByteCounts];
-    //idf.t273 = [offset];      // strip offsets
-    //idf.t297 = [i, n];        // page number
+    idf.t273 = [headerOffset * bpp / 8 + i * stripByteCounts];
+    idf.t297 = [i, n];        // page number
 
     idfs.push({...idf});
   }
-
-  console.log(idfs);
 	
 	const prfx = new arrayType(utif.encode(idfs));
 	const img = new arrayType(image);
@@ -52,31 +49,6 @@ const encodeImage = (image, w, h, n, bpp = 16) => {
   
 	return data.buffer;
 }
-
-/*
-
-// Based on encodeImage from utif, but adjusted for 16-bit single component images
-const encodeImage = function(image, w, h, z, n, bpp = 16)
-{
-  const offset = 8;
-
-	const idf = { 
-    't254': [2], 't256': [w], 't257': [h], 't258': [bpp], 't259': [1], 't262': [1], 't273': [offset],
-		't274': [1], 't277': [1], 't278': [h], 't279': [w * h * bpp / 8],
-		't282': [10], 't283': [10], 't284': [1], 't296': [3], 't297': [z, n]
-	};
-	
-	const prfx = new Uint8Array(utif.encode([idf]));
-	const img = new Uint8Array(image);
-  const data = new Uint8Array(offset + w * h * 4);
-  
-	for (let i = 0; i < prfx.length; i++ ) data[i] = prfx[i];
-  for (let i = 0; i < img.length; i++ ) data[offset + i] = img[i];
-  
-	return data.buffer;
-}
-
-*/
 
 export const readTIFF = buffer => {
 
@@ -128,18 +100,7 @@ export const writeTIFF = image => {
   const [width, height, depth] = image.getDimensions();
   const data = image.getPointData().getScalars().getData();
 
-  const max = image.getPointData().getScalars().getRange()[1];
-
-  console.log(width, height);
-
-  console.log(data);
-
-  const arr = [];
-  data.forEach(d => arr.push(d / max * 255));
-
-  const buffer = encodeImage(arr, width, height, depth);
-
-  console.log(buffer);
+  const buffer = encodeImage(data, width, height, depth);
 
   const blob = new Blob([buffer], { type: 'image/tiff' });
 
