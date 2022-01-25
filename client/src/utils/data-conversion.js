@@ -71,6 +71,10 @@ export const readTIFF = buffer => {
 }; 
 
 export const writeTIFF = image => {
+  console.log(image);
+
+  //image.modified();
+
   const [width, height] = image.getDimensions();
   const [min, max] = image.getPointData().getScalars().getRange();
 
@@ -87,7 +91,6 @@ export const writeTIFF = image => {
   for (let x = 0; x < width; x++) {
     for (let y = 0; y < height; y++) {
       const v = data[x * height + y] / max * 255;
-      console.log(v);
       rgba.push(v, v, v, 255);
     }
   }

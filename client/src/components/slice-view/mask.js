@@ -12,7 +12,7 @@ const sliceMode = vtkImageMapper.SlicingMode.K;
 export function Mask() {      
   const painter = vtkPaintFilter.newInstance();
   painter.setSlicingMode(sliceMode);
-  painter.setLabel(1);
+  painter.setLabel(255);
 
   const outline = vtkImageOutlineFilter.newInstance();
   outline.setSlicingMode(sliceMode);
