@@ -64,7 +64,7 @@ def save_user_annotation(user, item_id, done, comment, content_data):
     :param item_id: item the annotation is saved to
     :param done: whether annotation is done or only an intermediate save
     :param comment: annotation comment from the user
-    :param content_data: FormData object with annotation content blob included in data key
+    :param content_data: annotation content blob to be saved on server
     :return: success or failure
     """
     uid = user['_id']
@@ -90,20 +90,11 @@ def save_user_annotation(user, item_id, done, comment, content_data):
             break
     if not annot_file_name:
         raise RestException('failure: cannot find the mask file for the annotated item', 500)
-    if 'data' not in content_data:
-        raise RestException('failure: content data input parameter must be in FormData '
-                            'format with data key', 400)
-    try:
-        content_data = json.loads(content_data)
-    except Exception as e:
-        raise RestException(f'failure: content data input parameter must be in FormData '
-                            'that can be loaded into JSON - {e}', 400)
-
-    content = content_data['data']
+    content = content_data.file.read()
     try:
         # save file to local file system before adding it to asset store
         path = f'/tmp/{annot_file_name}'
-        with open(path, "w") as f:
+        with open(path, "wb") as f:
             f.write(content)
 
         for asset in AssetstoreModel().list():
