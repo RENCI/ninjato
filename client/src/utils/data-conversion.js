@@ -36,7 +36,7 @@ const encodeImage = (image, w, h, n, bpp = 16) => {
   const idfs = [];
   for (let i = 0; i < n; i++) {
     const offset = headerOffset * bpp / 8 + i * stripByteCounts;
-    
+
     idf.t273 = [offset];      // strip offsets
     idf.t297 = [i, n];        // page number
 
@@ -53,20 +53,10 @@ const encodeImage = (image, w, h, n, bpp = 16) => {
 	return data.buffer;
 }
 
-export const readTIFF = buffer => {
-
-  const pages = utif.decode(buffer);
-
-
+export const decodeTIFF = buffer => {
   const ifds = tiff.decode(buffer);
 
   if (ifds.length === 0) return null;
-
-  console.log(pages);
-  console.log(ifds);
-
-  console.log(pages[0].data);
-  console.log(ifds[0]);
 
   const { width, height } = ifds[0];
   const depth = ifds.length;
@@ -82,7 +72,7 @@ export const readTIFF = buffer => {
     }
   });
 
-  const image = vtkImageData.newInstance({
+  const imageData = vtkImageData.newInstance({
     origin: [0, 0, 0],
     spacing: [1, 1, 1],
     extent: [0, width - 1, 0, height - 1, 0, depth - 1]
@@ -94,27 +84,16 @@ export const readTIFF = buffer => {
     numberOfComponents: 1
   });
 
-  image.getPointData().setScalars(pointData);
+  imageData.getPointData().setScalars(pointData);
 
-  return image;
+  return imageData;
 }; 
 
-export const writeTIFF = image => {
-  const [width, height, depth] = image.getDimensions();
-  const data = image.getPointData().getScalars().getData();
+export const encodeTIFF = imageData => {
+  const [width, height, depth] = imageData.getDimensions();
+  const data = imageData.getPointData().getScalars().getData();
 
   const buffer = encodeImage(data, width, height, depth);
 
-  const blob = new Blob([buffer], { type: 'image/tiff' });
-
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement('a');
-  a.style.display = 'none';
-  a.href = url;
-  a.download = 'testTIFF.tif';
-  document.body.appendChild(a);
-  a.click();
-  window.URL.revokeObjectURL(url); 
-  a.remove();
+  return buffer;
 };
