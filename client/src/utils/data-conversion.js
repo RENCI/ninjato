@@ -35,8 +35,10 @@ const encodeImage = (image, w, h, n, bpp = 16) => {
   
   const idfs = [];
   for (let i = 0; i < n; i++) {
-    idf.t273 = [headerOffset * bpp / 8 + i * stripByteCounts];  // strip offsets
-    idf.t297 = [i, n];                                          // page number
+    const offset = headerOffset * bpp / 8 + i * stripByteCounts;
+    
+    idf.t273 = [offset];      // strip offsets
+    idf.t297 = [i, n];        // page number
 
     idfs.push({...idf});
   }

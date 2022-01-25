@@ -2,6 +2,15 @@ import '@kitware/vtk.js/Rendering/Profiles/Geometry';
 import vtkFullScreenRenderWindow from '@kitware/vtk.js/Rendering/Misc/FullScreenRenderWindow';
 import { Surface } from './surface';
 
+const resetCamera = renderer => {
+  const position = [0, 0, -1];
+  const focalPoint = [0, 0, 0];
+  const viewUp = [0, -1, 0];
+
+  renderer.getActiveCamera().set({ position, focalPoint, viewUp });
+  renderer.resetCamera();
+};
+
 export function VolumeView() {
   let fullScreenRenderWindow = null;
   let renderWindow = null;
@@ -30,9 +39,8 @@ export function VolumeView() {
 
         renderer.addActor(surface.getActor());
 
-        renderer.resetCamera();
+        resetCamera(renderer);
         renderer.resetCameraClippingRange();
-
         render();
       } 
       else {
