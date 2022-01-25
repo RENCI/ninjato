@@ -7,7 +7,7 @@ import {
 import { VisualizationContainer } from 'components/visualization-container';
 import { SaveButton } from 'components/save-button';
 import { api } from 'utils/api';
-import { readTIFF } from 'utils/data-reader';
+import { readTIFF } from 'utils/data-conversion';
 
 const { Row, Column } = Grid;
 
