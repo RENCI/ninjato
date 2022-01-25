@@ -3,7 +3,7 @@ import utif from 'utif';
 import vtkImageData from '@kitware/vtk.js/Common/DataModel/ImageData';
 import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
 
-// Based on encodeImage from utif, but adjusted for multipage single component images
+// Based on encodeImage from utif, but adjusted for multipage single component images with different bits
 const encodeImage = (image, w, h, n, bpp = 16) => {
   const stripByteCounts = w * h * bpp / 8;
   const arrayType = bpp === 32 ? Uint32Array : bpp === 16 ? Uint16Array : Uint8Array;
@@ -34,8 +34,8 @@ const encodeImage = (image, w, h, n, bpp = 16) => {
   
   const idfs = [];
   for (let i = 0; i < n; i++) {
-    idf.t273 = [headerOffset * bpp / 8 + i * stripByteCounts];
-    idf.t297 = [i, n];        // page number
+    idf.t273 = [headerOffset * bpp / 8 + i * stripByteCounts];  // strip offsets
+    idf.t297 = [i, n];                                          // page number
 
     idfs.push({...idf});
   }
