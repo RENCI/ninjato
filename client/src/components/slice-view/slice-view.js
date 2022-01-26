@@ -110,6 +110,9 @@ export function SliceView(onEdit) {
       image.getMapper().onModified(update);
       update();   
     },
+    setEditMode: editMode => {
+      mask.setEditMode(editMode);
+    },
     cleanUp: () => {
       console.log("Clean up");
     }

@@ -1,9 +1,10 @@
 import { useContext, useRef, useEffect } from 'react';
-import { DataContext } from 'contexts';
+import { DataContext, ControlsContext } from 'contexts';
 import { useResize } from 'hooks';
 
 export const SliceViewWrapper = ({ sliceView }) => {
   const [{ imageData, maskData }] = useContext(DataContext);
+  const [{ editMode }] = useContext(ControlsContext);
   const div = useRef(null);
   const { width } = useResize(div);
   
@@ -20,6 +21,11 @@ export const SliceViewWrapper = ({ sliceView }) => {
       sliceView.setData(imageData, maskData);
     }
   }, [div, width, sliceView, imageData, maskData]);   
+
+  // Edit mode
+  useEffect(() => {
+    sliceView.setEditMode(editMode);
+  }, [editMode]);
 
   // Clean up
   useEffect(() => {

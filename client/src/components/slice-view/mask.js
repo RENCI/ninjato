@@ -45,6 +45,9 @@ export function Mask() {
     setInputData: (imageData, maskData) => {
       painter.setBackgroundImage(imageData);
       painter.setLabelMap(maskData);
+    },
+    setEditMode: editMode => {
+      painter.setLabel(editMode === 'paint' ? 255 : 0);
     }
   };
 }
