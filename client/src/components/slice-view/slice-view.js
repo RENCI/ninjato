@@ -11,13 +11,18 @@ import Manipulators from '@kitware/vtk.js/Interaction/Manipulators';
 
 const slicingMode = vtkImageMapper.SlicingMode.K;
 
-const setCamera = renderer => {
-  const position = [0, 0, -1];
-  const focalPoint = [0, 0, 0];
-  const viewUp = [0, -1, 0];
+const resetCamera = (renderer, imageData) => {
+  const [xMin, xMax, yMin, yMax] = imageData.getBounds();
 
-  renderer.getActiveCamera().set({ position, focalPoint, viewUp });
-  renderer.resetCamera();
+  const x = (xMax - xMin) / 2;
+  const y = (yMax - yMin) / 2;
+  
+  const position = [x, y, -1];
+  const focalPoint = [x, y, 0];
+  const viewUp = [0, -1, 0];
+  const parallelScale = Math.max(x, y);
+
+  renderer.getActiveCamera().set({ position, focalPoint, viewUp, parallelScale });
 };
 
 export function SliceView(onEdit) {
@@ -41,7 +46,7 @@ export function SliceView(onEdit) {
 
       fullScreenRenderWindow = vtkFullScreenRenderWindow.newInstance({
         rootContainer: rootNode,
-        background: [0.9, 0.9, 0.9]
+        background: [0, 0, 0, 0]
       });
 
       renderWindow = fullScreenRenderWindow.getRenderWindow();
@@ -64,7 +69,7 @@ export function SliceView(onEdit) {
       renderer.addViewProp(image.getActor());
       renderer.addViewProp(mask.getActor());
     
-      setCamera(renderer);
+      resetCamera(renderer, imageData);
 
       const range = imageData.getPointData().getScalars().getRange();
       const extent = imageData.getExtent(); 
