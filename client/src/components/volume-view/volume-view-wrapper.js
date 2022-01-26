@@ -4,23 +4,22 @@ import { useResize } from 'hooks';
 
 export const VolumeViewWrapper = ({ volumeView }) => {
   const [{ maskData }] = useContext(DataContext);
-  const outerDiv = useRef(null);
-  const vtkDiv = useRef(null);
-  const { width } = useResize(outerDiv);
+  const div = useRef(null);
+  const { width } = useResize(div);
 
   // Initialize
   useEffect(() => {
-    if (vtkDiv.current && width) { 
-      volumeView.initialize(vtkDiv.current);
+    if (div.current && width) { 
+      volumeView.initialize(div.current);
     }
-  }, [vtkDiv, width, volumeView]);
+  }, [div, width, volumeView]);
 
   // Update data
   useEffect(() => {
-    if (vtkDiv.current && width && maskData) {
+    if (div.current && width && maskData) {
       volumeView.setData(maskData);
     }
-  }, [vtkDiv, width, volumeView, maskData]);   
+  }, [div, width, volumeView, maskData]);   
 
   // Clean up
   useEffect(() => {
@@ -28,8 +27,6 @@ export const VolumeViewWrapper = ({ volumeView }) => {
   }, [volumeView]);
 
   return (
-    <div ref={ outerDiv } style={{ height: width }}>
-      <div ref={ vtkDiv } />
-    </div>
+    <div ref={ div } style={{ height: width }}></div>
   );
 };

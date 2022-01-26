@@ -4,7 +4,10 @@ import { UserContext, DataContext } from 'contexts';
 import { api } from 'utils/api';
 import { encodeTIFF } from 'utils/data-conversion';
 
-export const SaveButton = () => {
+// Download for testing
+const download = false;
+
+export const SaveButton = ({ text, color, done = false }) => {
   const [{ id, assignment }] = useContext(UserContext);
   const [{ maskData }] = useContext(DataContext);
 
@@ -13,11 +16,6 @@ export const SaveButton = () => {
 
     const blob = new Blob([buffer], { type: 'image/tiff' });
 
-    const done = false;
-
-    // Download for testing
-    const download = false;
-
     if (download) {  
       const url = URL.createObjectURL(blob);
   
@@ -25,8 +23,10 @@ export const SaveButton = () => {
       a.style.display = 'none';
       a.href = url;
       a.download = 'testTIFF.tif';
+
       document.body.appendChild(a);
       a.click();
+      
       window.URL.revokeObjectURL(url); 
       a.remove();
     }
@@ -42,10 +42,10 @@ export const SaveButton = () => {
 
   return (
     <Button 
-      color='green' 
+      color={ color }
       onClick={ onSave }
     >
-      Save annotations
+      { text }
     </Button>
   );
 };

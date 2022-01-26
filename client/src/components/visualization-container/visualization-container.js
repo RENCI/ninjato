@@ -1,7 +1,8 @@
 import { useRef, useCallback } from 'react';
-import { Grid } from 'semantic-ui-react';
+import { Segment, Grid } from 'semantic-ui-react';
 import { VolumeViewWrapper, VolumeView } from 'components/volume-view';
 import { SliceViewWrapper, SliceView } from 'components/slice-view';
+import { SaveButton } from 'components/save-button';
 
 const { Row, Column } = Grid;
 
@@ -15,17 +16,29 @@ export const VisualizationContainer = () => {
   const sliceView = useRef(SliceView(onEdit));
 
   return (
-    <Grid >
-      <Row>
-        <Column width={ 2 } ></Column>
-        <Column width={ 6 }>
-          <VolumeViewWrapper volumeView={ volumeView.current } />
-        </Column>
-        <Column width={ 6 }>
-          <SliceViewWrapper sliceView={ sliceView.current } />
-        </Column>
-        <Column width={ 2 } ></Column>
-      </Row>
-    </Grid>
+    <>
+      <Segment raised style={{ margin: '1rem' }}>
+        <Grid columns='equal'>
+          <Row>
+            <Column>
+              <VolumeViewWrapper volumeView={ volumeView.current } />
+            </Column>
+            <Column>
+              <SliceViewWrapper sliceView={ sliceView.current } />
+            </Column>
+          </Row>
+        </Grid>
+      </Segment>
+      <Segment basic textAlign='right'>
+        <SaveButton  
+          text='Save' 
+        />
+        <SaveButton  
+          text='Submit'
+          color='green'
+          done={ true } 
+        />
+      </Segment>
+    </>
   );
 };
