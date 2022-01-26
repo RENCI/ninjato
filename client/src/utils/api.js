@@ -9,6 +9,16 @@ const getCookie = name => {
 
 const fileUrl = id => `/file/${ id }/download`;
 
+const blobToBase64 = (blob) => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+    reader.onloadend = function () {
+      resolve(reader.result);
+    };
+  });
+};
+
 export const api = {
   checkLogin: async () => {
     axios.defaults.headers.common['Girder-Token'] = getCookie('girderToken');
@@ -68,25 +78,43 @@ export const api = {
     };
   },
   getData: async (imageId, maskId) => {
-    const results = await Promise.all([
+    const responses = await Promise.all([
       axios.get(fileUrl(imageId), { responseType: 'arraybuffer' }), 
       axios.get(fileUrl(maskId), { responseType: 'arraybuffer' })      
     ]);
 
     return {
-      imageBuffer: results[0].data,
-      maskBuffer: results[1].data
+      imageBuffer: responses[0].data,
+      maskBuffer: responses[1].data
     };     
   },
   getPracticeData: async () => {
-    const results = await Promise.all([
+    const responses = await Promise.all([
       axios.get('test-data.tiff', { baseURL: '/', responseType: 'arraybuffer' }),  
       axios.get('test-masks.tiff', { baseURL: '/', responseType: 'arraybuffer' })
     ]);
 
     return {
-      imageBuffer: results[0].data,
-      maskBuffer: results[1].data
+      imageBuffer: responses[0].data,
+      maskBuffer: responses[1].data
     };   
+  },
+  saveAnnotations: async (userId, itemId, data, done = false) => {
+    // Set data and parameters as form data
+    const formData = new FormData();
+    formData.append('id', userId);
+    formData.append('item_id', itemId);
+    formData.append('done', done);
+    formData.append('comment', '');
+    formData.append('content_data', data);
+
+    const response = await axios.post(`/user/${ userId }/annotation`, 
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      }
+    );
+
+    console.log(response);
   }
 };

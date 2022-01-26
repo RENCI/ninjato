@@ -35,7 +35,7 @@ export function Widgets(painter, onEdit) {
     },
     update: (position, spacing) => {
       paintWidget.getManipulator().setOrigin(position);
-      paintWidget.setRadius(0.75 * Math.max(...spacing));
+      paintWidget.setRadius(1 * Math.max(...spacing));
       
       paintHandle.updateRepresentationForRender();
     }

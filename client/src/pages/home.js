@@ -5,8 +5,9 @@ import {
   SET_DATA, DataContext 
 } from 'contexts';
 import { VisualizationContainer } from 'components/visualization-container';
+import { SaveButton } from 'components/save-button';
 import { api } from 'utils/api';
-import { readTIFF } from 'utils/data-reader';
+import { decodeTIFF } from 'utils/data-conversion';
 
 const { Row, Column } = Grid;
 
@@ -18,8 +19,8 @@ export const Home = () => {
     try {
       const data = await api.getData(assignment.imageId, assignment.maskId);
 
-      const imageData = readTIFF(data.imageBuffer);
-      const maskData = readTIFF(data.maskBuffer);
+      const imageData = decodeTIFF(data.imageBuffer);
+      const maskData = decodeTIFF(data.maskBuffer);
 
       dataDispatch({
         type: SET_DATA,
@@ -36,8 +37,8 @@ export const Home = () => {
     try {
       const data = await api.getPracticeData();
 
-      const imageData = readTIFF(data.imageBuffer);
-      const maskData = readTIFF(data.maskBuffer);
+      const imageData = decodeTIFF(data.imageBuffer);
+      const maskData = decodeTIFF(data.maskBuffer);
 
       dataDispatch({
         type: SET_DATA,
@@ -53,7 +54,16 @@ export const Home = () => {
   return (
     <>
       { imageData ?
-        <VisualizationContainer />
+        <>
+          <VisualizationContainer />
+          <Grid>
+            <Row>
+              <Column width={ 14 } className='right aligned'>
+                <SaveButton />
+              </Column>
+            </Row>
+          </Grid>
+        </>
       : login ?
         <Grid >
           <Row>
