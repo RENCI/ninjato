@@ -2,7 +2,7 @@ import { useContext, useRef, useEffect } from 'react';
 import { DataContext } from 'contexts';
 import { useResize } from 'hooks';
 
-export const VolumeViewWrapper = ({ volumeView }) => {
+export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
   const [{ maskData }] = useContext(DataContext);
   const div = useRef(null);
   const { width } = useResize(div);
@@ -17,7 +17,7 @@ export const VolumeViewWrapper = ({ volumeView }) => {
   // Update data
   useEffect(() => {
     if (div.current && width && maskData) {
-      volumeView.setData(maskData);
+      volumeView.setData(maskData, onLoaded)
     }
   }, [div, width, volumeView, maskData]);   
 

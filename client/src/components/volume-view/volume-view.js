@@ -33,7 +33,7 @@ export function VolumeView() {
       renderWindow = fullScreenRenderWindow.getRenderWindow();
       renderer = fullScreenRenderWindow.getRenderer();
     },
-    setData: maskData => {
+    setData: (maskData, onRendered) => {
       if (maskData) {
         surface.setInputData(maskData);
 
@@ -42,6 +42,8 @@ export function VolumeView() {
         resetCamera(renderer);
         renderer.resetCameraClippingRange();
         render();
+
+        onRendered();
       } 
       else {
         renderer.removeActor(surface.getActor());
