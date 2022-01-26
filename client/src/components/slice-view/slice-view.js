@@ -25,11 +25,43 @@ const resetCamera = (renderer, imageData) => {
   renderer.getActiveCamera().set({ position, focalPoint, viewUp, parallelScale });
 };
 
+const getSliceRanges = imageData => {
+  const [w, h, d] = imageData.getDimensions();
+  const data = imageData.getPointData().getScalars().getData();
+
+  const ranges = [];
+  for (let z = 0; z < d; z++) {
+    let max = -Infinity;
+    let min = Infinity;
+
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const value = data[z * w * h + x * h + y];
+
+        if (value > max) max = value;
+        if (value < min) min = value;
+      }
+    }
+
+    ranges.push([min, max]);
+  }
+
+  return ranges;
+};
+
+const setWindowLevel = (actor, range) => {
+  const colorLevel = (range[1] + range[0]) / 2;
+  const colorWindow = range[1] - range[0];
+
+  actor.getProperty().set({ colorLevel, colorWindow });
+};
+
 export function SliceView(onEdit) {
   let fullScreenRenderWindow = null;
   let renderWindow = null;
   let renderer = null;
   let camera = null;
+  let ranges = null;
 
   const manipulator = Manipulators.vtkMouseRangeManipulator.newInstance({
     button: 1,
@@ -68,6 +100,8 @@ export function SliceView(onEdit) {
       image.setInputData(imageData);    
       mask.setInputData(imageData, maskData);
 
+      ranges = getSliceRanges(imageData);
+
       renderer.addViewProp(image.getActor());
       renderer.addViewProp(mask.getActor());
     
@@ -96,14 +130,21 @@ export function SliceView(onEdit) {
       manipulator.setScrollListener(kMin, kMax, 1, kGet, kSet, 1);
     
       const update = () => {  
+        // Get slice position
         const ijk = [0, 0, 0];
         const position = [0, 0, 0];
   
         ijk[slicingMode] = image.getMapper().getSlice();
         imageData.indexToWorld(ijk, position);
+
+        // Update window/level
+        const z = Math.floor(ijk[slicingMode]);
+        setWindowLevel(image.getActor(), ranges[z]);
   
+        // Update widget position
         widgets.update(position, imageData.getSpacing());
   
+        // Update mask slice
         mask.getMapper().set(image.getMapper().get('slice', 'slicingMode'));
       };
 
