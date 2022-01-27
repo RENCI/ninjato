@@ -1,16 +1,19 @@
 import '@kitware/vtk.js/Rendering/Profiles/All';
 
-import vtkPaintFilter from '@kitware/vtk.js/Filters/General/PaintFilter';
 //import vtkImageOutlineFilter from '@kitware/vtk.js/Filters/General/ImageOutlineFilter';
 import vtkImageMapper from '@kitware/vtk.js/Rendering/Core/ImageMapper';
 import vtkImageSlice from '@kitware/vtk.js/Rendering/Core/ImageSlice';
 import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
 import vtkPiecewiseFunction  from '@kitware/vtk.js/Common/DataModel/PiecewiseFunction';
 
+import vtkNinjatoPainter from 'vtk/ninjato-painter';
+//import vtkNinjatoPainter from '@kitware/vtk.js/Filters/General/PaintFilter';
+//import PaintFilterWorker from '@kitware/vtk.js/Filters/General/PaintFilter/PaintFilter.worker';
+
 const sliceMode = vtkImageMapper.SlicingMode.K;
 
 export function Mask() {      
-  const painter = vtkPaintFilter.newInstance();
+  const painter = vtkNinjatoPainter.newInstance();
   painter.setSlicingMode(sliceMode);
   painter.setLabel(255);
   painter.setRadius(1);

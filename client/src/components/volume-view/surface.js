@@ -17,8 +17,6 @@ export function Surface() {
   //actor.getProperty().setInterpolationToFlat();
   actor.setMapper(mapper); 
 
-  console.log(actor.getProperty());
-
   return {
     getActor: () => actor,
     setInputData: data => marchingCubes.setInputData(data),
