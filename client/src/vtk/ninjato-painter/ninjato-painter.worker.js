@@ -201,6 +201,11 @@ function handlePaintTriangles({ triangleList }) {
   }
 }
 
+function handlePaintFloodFill({ pointList }) {
+  console.log(pointList);
+
+}
+
 // --------------------------------------------------------------------------
 
 registerWebworker()
@@ -218,6 +223,7 @@ registerWebworker()
   .operation('paintRectangle', handlePaintRectangle)
   .operation('paintEllipse', handlePaintEllipse)
   .operation('paintTriangles', handlePaintTriangles)
+  .operation('paintFloodFill', handlePaintFloodFill)
   .operation('end', () => {
     const response = new registerWebworker.TransferableResponse(
       globals.buffer.buffer,
