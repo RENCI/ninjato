@@ -6,17 +6,16 @@ import WebworkerPromise from 'webworker-promise';
 import macro from '@kitware/vtk.js/macros';
 import vtkImageData from '@kitware/vtk.js/Common/DataModel/ImageData';
 import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
-import vtkPolygon from '@kitware/vtk.js/Common/DataModel/Polygon';
 
 const { vtkErrorMacro } = macro;
 
 // ----------------------------------------------------------------------------
-// vtkPaintFilter methods
+// vtkNinjatoPainter methods
 // ----------------------------------------------------------------------------
 
-function vtkPaintFilter(publicAPI, model) {
+function vtkNinjatoPainter(publicAPI, model) {
   // Set our className
-  model.classHierarchy.push('vtkPaintFilter');
+  model.classHierarchy.push('vtkNinjatoPainter');
 
   let worker = null;
   let workerPromise = null;
@@ -130,132 +129,41 @@ function vtkPaintFilter(publicAPI, model) {
 
   // --------------------------------------------------------------------------
 
-  publicAPI.addPoint = (point) => {
-    if (workerPromise) {
-      const worldPt = [point[0], point[1], point[2]];
-      const indexPt = [0, 0, 0];
-      vec3.transformMat4(indexPt, worldPt, model.maskWorldToIndex);
-      indexPt[0] = Math.round(indexPt[0]);
-      indexPt[1] = Math.round(indexPt[1]);
-      indexPt[2] = Math.round(indexPt[2]);
-
-      const spacing = model.labelMap.getSpacing();
-      const radius = spacing.map((s) => model.radius / s);
-
-      workerPromise.exec('paint', { point: indexPt, radius });
-    }
-  };
-
-  // --------------------------------------------------------------------------
-
-  publicAPI.paintRectangle = (point1, point2) => {
-    if (workerPromise) {
-      const index1 = [0, 0, 0];
-      const index2 = [0, 0, 0];
-      vec3.transformMat4(index1, point1, model.maskWorldToIndex);
-      vec3.transformMat4(index2, point2, model.maskWorldToIndex);
-      index1[0] = Math.round(index1[0]);
-      index1[1] = Math.round(index1[1]);
-      index1[2] = Math.round(index1[2]);
-      index2[0] = Math.round(index2[0]);
-      index2[1] = Math.round(index2[1]);
-      index2[2] = Math.round(index2[2]);
-      workerPromise.exec('paintRectangle', {
-        point1: index1,
-        point2: index2,
-      });
-    }
-  };
-
-  // --------------------------------------------------------------------------
-
-  publicAPI.paintEllipse = (center, scale3) => {
-    if (workerPromise) {
-      const realCenter = [0, 0, 0];
-      const origin = [0, 0, 0];
-      let realScale3 = [0, 0, 0];
-      vec3.transformMat4(realCenter, center, model.maskWorldToIndex);
-      vec3.transformMat4(origin, origin, model.maskWorldToIndex);
-      vec3.transformMat4(realScale3, scale3, model.maskWorldToIndex);
-      vec3.subtract(realScale3, realScale3, origin);
-      realScale3 = realScale3.map((s) => (s === 0 ? 0.25 : Math.abs(s)));
-      workerPromise.exec('paintEllipse', {
-        center: realCenter,
-        scale3: realScale3,
-      });
-    }
-  };
-
-  // --------------------------------------------------------------------------
-
   publicAPI.canUndo = () => history.index > -1;
 
   // --------------------------------------------------------------------------
 
-  publicAPI.paintPolygon = (pointList) => {
+  publicAPI.paintFloodFill = (pointList) => {
     if (workerPromise && pointList.length > 0) {
-      const polygon = vtkPolygon.newInstance();
-      const poly = [];
+      const points = [];
       for (let i = 0; i < pointList.length / 3; i++) {
-        poly.push([
+        const worldPt = [
           pointList[3 * i + 0],
           pointList[3 * i + 1],
-          pointList[3 * i + 2],
-        ]);
-      }
-      polygon.setPoints(poly);
+          pointList[3 * i + 2]
+        ];
+        const indexPt = [0, 0, 0];
+        vec3.transformMat4(indexPt, worldPt, model.maskWorldToIndex);
+        indexPt[0] = Math.round(indexPt[0]);
+        indexPt[1] = Math.round(indexPt[1]);
+        indexPt[2] = Math.round(indexPt[2]);
 
-      if (!polygon.triangulate()) {
-        console.log('triangulation failed!');
+        points.push(indexPt);
       }
+      
+      const spacing = model.labelMap.getSpacing();
+      const radius = spacing.map((s) => model.radius / s);
 
-      const points = polygon.getPointArray();
-      const triangleList = new Float32Array(points.length);
-      const numPoints = Math.floor(triangleList.length / 3);
-      for (let i = 0; i < numPoints; i++) {
-        const point = points.slice(3 * i, 3 * i + 3);
-        const voxel = triangleList.subarray(3 * i, 3 * i + 3);
-        vec3.transformMat4(voxel, point, model.maskWorldToIndex);
-      }
-
-      workerPromise.exec('paintTriangles', {
-        triangleList,
+      workerPromise.exec('paintFloodFill', { 
+        labels: model.labelMap.getPointData().getScalars().getData(),
+        label: model.label,
+        erase: model.erase,
+        pointList: points, 
+        radius: radius 
       });
     }
   };
-
-    // --------------------------------------------------------------------------
-
-    publicAPI.paintFloodFill = (pointList) => {
-      if (workerPromise && pointList.length > 0) {
-        const points = [];
-        for (let i = 0; i < pointList.length / 3; i++) {
-          const worldPt = [
-            pointList[3 * i + 0],
-            pointList[3 * i + 1],
-            pointList[3 * i + 2]
-          ];
-          const indexPt = [0, 0, 0];
-          vec3.transformMat4(indexPt, worldPt, model.maskWorldToIndex);
-          indexPt[0] = Math.round(indexPt[0]);
-          indexPt[1] = Math.round(indexPt[1]);
-          indexPt[2] = Math.round(indexPt[2]);
-
-          points.push(indexPt);
-        }
-        
-        const spacing = model.labelMap.getSpacing();
-        const radius = spacing.map((s) => model.radius / s);
   
-        workerPromise.exec('paintFloodFill', { 
-          labels: model.labelMap.getPointData().getScalars().getData(),
-          pointList: points, 
-          radius: radius 
-        });
-      }
-    };
-  
-
   // --------------------------------------------------------------------------
 
   publicAPI.applyLabelMap = (labelMap) => {
@@ -412,6 +320,7 @@ const DEFAULT_VALUES = {
   voxelFunc: null,
   radius: 1,
   label: 0,
+  erase: false,
   slicingMode: null,
 };
 
@@ -432,17 +341,18 @@ export function extend(publicAPI, model, initialValues = {}) {
     'maskWorldToIndex',
     'voxelFunc',
     'label',
+    'erase',
     'radius',
     'slicingMode',
   ]);
 
   // Object specific methods
-  vtkPaintFilter(publicAPI, model);
+  vtkNinjatoPainter(publicAPI, model);
 }
 
 // ----------------------------------------------------------------------------
 
-export const newInstance = macro.newInstance(extend, 'vtkPaintFilter');
+export const newInstance = macro.newInstance(extend, 'vtkNinjatoPainter');
 
 // ----------------------------------------------------------------------------
 

@@ -1,7 +1,6 @@
 import registerWebworker from 'webworker-promise/lib/register';
 
 import { SlicingMode } from '@kitware/vtk.js/Rendering/Core/ImageMapper/Constants';
-import { vec3 } from 'gl-matrix';
 
 const globals = {
   // single-component labelmap
@@ -13,34 +12,8 @@ const globals = {
 };
 
 // --------------------------------------------------------------------------
-
-function handlePaintRectangle({ point1, point2 }) {
-  const [x1, y1, z1] = point1;
-  const [x2, y2, z2] = point2;
-
-  const xstart = Math.max(Math.min(x1, x2), 0);
-  const xend = Math.min(Math.max(x1, x2), globals.dimensions[0] - 1);
-  if (xstart <= xend) {
-    const ystart = Math.max(Math.min(y1, y2), 0);
-    const yend = Math.min(Math.max(y1, y2), globals.dimensions[1] - 1);
-    const zstart = Math.max(Math.min(z1, z2), 0);
-    const zend = Math.min(Math.max(z1, z2), globals.dimensions[2] - 1);
-
-    const jStride = globals.dimensions[0];
-    const kStride = globals.dimensions[0] * globals.dimensions[1];
-
-    for (let k = zstart; k <= zend; k++) {
-      for (let j = ystart; j <= yend; j++) {
-        const index = j * jStride + k * kStride;
-        globals.buffer.fill(1, index + xstart, index + xend + 1);
-      }
-    }
-  }
-}
-
-// --------------------------------------------------------------------------
 // center and scale3 are in IJK coordinates
-function handlePaintEllipse({ center, scale3 }) {
+function handlePaintEllipse({ center, scale3, label }) {
   const radius3 = [...scale3];
   const indexCenter = center.map((val) => Math.round(val));
 
@@ -95,7 +68,7 @@ function handlePaintEllipse({ center, scale3 }) {
           }
           if (xmin <= xmax) {
             const index = y * yStride + z * zStride;
-            globals.buffer.fill(1, index + xmin, index + xmax + 1);
+            globals.buffer.fill(label, index + xmin, index + xmax + 1);
           }
         }
       }
@@ -105,7 +78,7 @@ function handlePaintEllipse({ center, scale3 }) {
 
 // --------------------------------------------------------------------------
 
-function handlePaint({ point, radius }) {
+function handlePaint({ point, radius, label }) {
   if (!globals.prevPoint) {
     globals.prevPoint = point;
   }
@@ -129,7 +102,7 @@ function handlePaint({ point, radius }) {
   const thresh = [step, step, step];
   const pt = [...globals.prevPoint];
   for (let s = 0; s <= step; s++) {
-    handlePaintEllipse({ center: pt, scale3: radius });
+    handlePaintEllipse({ center: pt, scale3: radius, label });
 
     for (let ii = 0; ii < 3; ii++) {
       thresh[ii] -= delta[ii];
@@ -143,80 +116,19 @@ function handlePaint({ point, radius }) {
   globals.prevPoint = point;
 }
 
-// --------------------------------------------------------------------------
-
-function handlePaintTriangles({ triangleList }) {
-  // debugger;
-
-  const triangleCount = Math.floor(triangleList.length / 9);
-
-  for (let i = 0; i < triangleCount; i++) {
-    const point0 = triangleList.subarray(9 * i + 0, 9 * i + 3);
-    const point1 = triangleList.subarray(9 * i + 3, 9 * i + 6);
-    const point2 = triangleList.subarray(9 * i + 6, 9 * i + 9);
-
-    const v1 = [0, 0, 0];
-    const v2 = [0, 0, 0];
-
-    vec3.subtract(v1, point1, point0);
-    vec3.subtract(v2, point2, point0);
-
-    const step1 = [0, 0, 0];
-    const numStep1 =
-      2 * Math.max(Math.abs(v1[0]), Math.abs(v1[1]), Math.abs(v1[2]));
-    vec3.scale(step1, v1, 1 / numStep1);
-
-    const step2 = [0, 0, 0];
-    const numStep2 =
-      2 * Math.max(Math.abs(v2[0]), Math.abs(v2[1]), Math.abs(v2[2]));
-    vec3.scale(step2, v2, 1 / numStep2);
-
-    const jStride = globals.dimensions[0];
-    const kStride = globals.dimensions[0] * globals.dimensions[1];
-
-    for (let u = 0; u <= numStep1 + 1; u++) {
-      const maxV = numStep2 - u * (numStep2 / numStep1);
-      for (let v = 0; v <= maxV + 1; v++) {
-        const point = [...point0];
-        vec3.scaleAndAdd(point, point, step1, u);
-        vec3.scaleAndAdd(point, point, step2, v);
-
-        point[0] = Math.round(point[0]);
-        point[1] = Math.round(point[1]);
-        point[2] = Math.round(point[2]);
-
-        if (
-          point[0] >= 0 &&
-          point[0] < globals.dimensions[0] &&
-          point[1] >= 0 &&
-          point[1] < globals.dimensions[1] &&
-          point[2] >= 0 &&
-          point[2] < globals.dimensions[2]
-        ) {
-          globals.buffer[
-            point[0] + jStride * point[1] + kStride * point[2]
-          ] = 1;
-        }
-      }
-    }
-  }
-}
-
 // Based on algorithm here: https://lodev.org/cgtutor/floodfill.html
 // XXX: Currently assuming z slice
-function handlePaintFloodFill({ labels, pointList, radius }) {
+function handlePaintFloodFill({ labels, label, erase, pointList, radius }) {
   if (pointList.length === 0) return;
 
-  globals.buffer.set(labels);
+  globals.buffer.set(labels.map(d => d === label ? 1 : 0));
 
   // Paint points
   pointList.forEach((point, i) => {
-    handlePaint({ point, radius });
+    handlePaint({ point, radius, label: erase ? 0 : 1 });
 
     if (i === 0) globals.prevPoint = null;
   });
-
-  const label = 255;
 
   // Slice info
   const w = globals.dimensions[0];
@@ -227,15 +139,12 @@ function handlePaintFloodFill({ labels, pointList, radius }) {
   const kStride = w * h;
 
   // Temporary slice buffer
-  const type = globals.buffer.name;
-  const buffer = type === 'Float32Array' ? new Float32Array(w * h ) :
-    type === 'Uint16Array' ? new Uint16Array(w * h) :
-    new Uint8Array(w * h);
+  const buffer = new Uint8Array(w * h);
 
   for (let x = 0; x < w; x++) {
     for (let y = 0; y < h; y++) {
       const v = globals.buffer[x + jStride * y + kStride * z];
-      buffer[x + jStride * y] = v > 0 ? 1 : 0;
+      buffer[x + jStride * y] = v;
     }
   }
 
@@ -283,7 +192,12 @@ function handlePaintFloodFill({ labels, pointList, radius }) {
 
   for (let x = 0; x < w; x++) {
     for (let y = 0; y < h; y++) {
-      if (buffer[x + jStride * y] === 0) globals.buffer[x + jStride * y + kStride * z] = label;
+      if (erase) {
+        globals.buffer[x + jStride * y + kStride * z] = 2;
+      }
+      else {
+        if (buffer[x + jStride * y] === 0) globals.buffer[x + jStride * y + kStride * z] = 1;
+      }
     }
   }
 }
@@ -301,10 +215,6 @@ registerWebworker()
       globals.slicingMode = slicingMode;
     }
   })
-  .operation('paint', handlePaint)
-  .operation('paintRectangle', handlePaintRectangle)
-  .operation('paintEllipse', handlePaintEllipse)
-  .operation('paintTriangles', handlePaintTriangles)
   .operation('paintFloodFill', handlePaintFloodFill)
   .operation('end', () => {
     const response = new registerWebworker.TransferableResponse(

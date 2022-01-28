@@ -50,7 +50,7 @@ export function Mask() {
       painter.setLabelMap(maskData);
     },
     setEditMode: editMode => {
-      painter.setLabel(editMode === 'paint' ? 255 : 0);
+      painter.setErase(editMode === 'erase');
     }
   };
 }
