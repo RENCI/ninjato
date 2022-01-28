@@ -203,9 +203,10 @@ function handlePaintTriangles({ triangleList }) {
 
 // Based on algorithm here: https://lodev.org/cgtutor/floodfill.html
 function handlePaintFloodFill({ pointList, radius }) {
-  pointList.forEach(point => {
+  pointList.forEach((point, i) => {
     handlePaint({ point, radius });
-    globals.prevPoint = null;
+
+    if (i === 0) globals.prevPoint = null;
   });
 
   const dx = [0, 1, 0, -1];

@@ -16,7 +16,7 @@ export function Mask() {
   const painter = vtkNinjatoPainter.newInstance();
   painter.setSlicingMode(sliceMode);
   painter.setLabel(255);
-  painter.setRadius(1);
+  painter.setRadius(0.1);
 
 /*
   const outline = vtkImageOutlineFilter.newInstance();
