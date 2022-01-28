@@ -201,9 +201,49 @@ function handlePaintTriangles({ triangleList }) {
   }
 }
 
-function handlePaintFloodFill({ pointList }) {
-  console.log(pointList);
+// Based on algorithm here: https://lodev.org/cgtutor/floodfill.html
+function handlePaintFloodFill({ pointList, radius }) {
+  pointList.forEach(point => {
+    handlePaint({ point, radius });
+    globals.prevPoint = null;
+  });
 
+  const dx = [0, 1, 0, -1];
+  const dy = [-1, 0, 1, 0];
+
+  const w = globals.dimensions[0];
+  const h = globals.dimensions[1];
+
+  const jStride = w;
+  const kStride = w * h;
+
+  const n = pointList.length;
+  const start = pointList.reduce((p, c) => (
+    [p[0] + c[0], p[1] + c[1], p[2] + c[2]]
+  ), [0, 0, 0]);
+  start[0] = Math.round(start[0] / n);
+  start[1] = Math.round(start[1] / n);
+  start[2] = Math.round(start[2] / n);
+
+  const stack = [];
+  stack.push(start);
+
+  while (stack.length > 0) {
+    const [x, y, z] = stack.pop();
+
+    globals.buffer[
+      x + jStride * y + kStride * z
+    ] = 1;
+
+    for (let i = 0; i < 4; i++) {
+      let nx = x + dx[i];
+      let ny = y + dy[i];
+
+      if (nx >= 0 && nx < w && ny >= 0 && ny < h && globals.buffer[nx + jStride * ny + kStride * z] === 0) {
+        stack.push([nx, ny, z]);
+      }
+    }
+  }
 }
 
 // --------------------------------------------------------------------------

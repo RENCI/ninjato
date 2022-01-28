@@ -228,16 +228,26 @@ function vtkPaintFilter(publicAPI, model) {
 
     publicAPI.paintFloodFill = (pointList) => {
       if (workerPromise && pointList.length > 0) {
-        const points = pointList.map(point => {
-          const worldPt = [point[0], point[1], point[2]];
+        const points = [];
+        for (let i = 0; i < pointList.length / 3; i++) {
+          const worldPt = [
+            pointList[3 * i + 0],
+            pointList[3 * i + 1],
+            pointList[3 * i + 2]
+          ];
           const indexPt = [0, 0, 0];
           vec3.transformMat4(indexPt, worldPt, model.maskWorldToIndex);
           indexPt[0] = Math.round(indexPt[0]);
           indexPt[1] = Math.round(indexPt[1]);
           indexPt[2] = Math.round(indexPt[2]);
-        });
+
+          points.push(indexPt);
+        }
+        
+        const spacing = model.labelMap.getSpacing();
+        const radius = spacing.map((s) => model.radius / s);
   
-        workerPromise.exec('paintFloodFill', { pointList: points });
+        workerPromise.exec('paintFloodFill', { pointList: points, radius: radius });
       }
     };
   
@@ -432,5 +442,5 @@ export const newInstance = macro.newInstance(extend, 'vtkPaintFilter');
 
 // ----------------------------------------------------------------------------
 
-const vtkNinjatoPainter = { newInstance, extend };
-export default vtkNinjatoPainter;
+// eslint-disable-next-line import/no-anonymous-default-export
+export default { newInstance, extend };

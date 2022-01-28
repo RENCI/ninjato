@@ -25,7 +25,7 @@ export const SliceViewWrapper = ({ sliceView }) => {
   // Edit mode
   useEffect(() => {
     sliceView.setEditMode(editMode);
-  }, [editMode]);
+  }, [sliceView, editMode]);
 
   // Clean up
   useEffect(() => {

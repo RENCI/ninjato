@@ -81,4 +81,5 @@ export const newInstance = macro.newInstance(extend, 'vtkFloodWidget');
 
 // ----------------------------------------------------------------------------
 
+// eslint-disable-next-line import/no-anonymous-default-export
 export default { newInstance, extend };
