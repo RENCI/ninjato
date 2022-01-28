@@ -249,7 +249,7 @@ function handlePaintFloodFill({ labels, pointList, radius }) {
   }, [Infinity, -Infinity, Infinity, -Infinity]);
     
   let seed = null;
-  for (let x = 0; x < w, seed === null; x++) {
+  for (let x = 0; x < w && seed === null; x++) {
     for (let y = 0; y < h; y++) {
       if (x < bb[0] || x > bb[1] || y < bb[2] || y > bb[3]) {
         if (buffer[x + jStride * y] === 0) {
