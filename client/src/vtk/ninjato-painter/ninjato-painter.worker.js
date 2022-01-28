@@ -125,10 +125,12 @@ function handlePaintFloodFill({ labels, label, erase, pointList, radius }) {
 
   // Paint points
   pointList.forEach((point, i) => {
-    handlePaint({ point, radius, label: erase ? 0 : 1 });
+    handlePaint({ point, radius, label: 1 });
 
     if (i === 0) globals.prevPoint = null;
   });
+
+  if (erase) return;
 
   // Slice info
   const w = globals.dimensions[0];
@@ -192,12 +194,7 @@ function handlePaintFloodFill({ labels, label, erase, pointList, radius }) {
 
   for (let x = 0; x < w; x++) {
     for (let y = 0; y < h; y++) {
-      if (erase) {
-        globals.buffer[x + jStride * y + kStride * z] = 2;
-      }
-      else {
-        if (buffer[x + jStride * y] === 0) globals.buffer[x + jStride * y + kStride * z] = 1;
-      }
+      if (buffer[x + jStride * y] === 0) globals.buffer[x + jStride * y + kStride * z] = 1;
     }
   }
 }
