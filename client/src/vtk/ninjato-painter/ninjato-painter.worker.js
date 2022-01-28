@@ -6,6 +6,7 @@ import { vec3 } from 'gl-matrix';
 const globals = {
   // single-component labelmap
   buffer: null,
+  sliceBuffer: null,
   dimensions: [0, 0, 0],
   prevPoint: null,
   slicingMode: null, // 2D or 3D painting
@@ -202,47 +203,87 @@ function handlePaintTriangles({ triangleList }) {
 }
 
 // Based on algorithm here: https://lodev.org/cgtutor/floodfill.html
-function handlePaintFloodFill({ pointList, radius }) {
+// XXX: Currently assuming z slice
+function handlePaintFloodFill({ labels, pointList, radius }) {
+  if (pointList.length === 0) return;
+
+  globals.buffer.set(labels);
+
+  // Paint points
   pointList.forEach((point, i) => {
     handlePaint({ point, radius });
 
     if (i === 0) globals.prevPoint = null;
   });
 
-  const dx = [0, 1, 0, -1];
-  const dy = [-1, 0, 1, 0];
+  const label = 255;
 
+  // Slice info
   const w = globals.dimensions[0];
   const h = globals.dimensions[1];
+  const z = pointList[0][2];
 
   const jStride = w;
   const kStride = w * h;
 
-  const n = pointList.length;
-  const start = pointList.reduce((p, c) => (
-    [p[0] + c[0], p[1] + c[1], p[2] + c[2]]
-  ), [0, 0, 0]);
-  start[0] = Math.round(start[0] / n);
-  start[1] = Math.round(start[1] / n);
-  start[2] = Math.round(start[2] / n);
+  // Temporary slice buffer
+  const type = globals.buffer.name;
+  const buffer = type === 'Float32Array' ? new Float32Array(w * h ) :
+    type === 'Uint16Array' ? new Uint16Array(w * h) :
+    new Uint8Array(w * h);
 
-  const stack = [];
-  stack.push(start);
+  for (let x = 0; x < w; x++) {
+    for (let y = 0; y < h; y++) {
+      const v = globals.buffer[x + jStride * y + kStride * z];
+      buffer[x + jStride * y] = v > 0 ? 1 : 0;
+    }
+  }
 
+  // Find good seed point
+  const bb = pointList.reduce((bb, [x, y]) => {
+    if (x < bb[0]) bb[0] = x;
+    if (x > bb[1]) bb[1] = x;
+    if (y < bb[2]) bb[2] = y;
+    if (y > bb[3]) bb[3] = y;
+    return bb;
+  }, [Infinity, -Infinity, Infinity, -Infinity]);
+    
+  let seed = null;
+  for (let x = 0; x < w, seed === null; x++) {
+    for (let y = 0; y < h; y++) {
+      if (x < bb[0] || x > bb[1] || y < bb[2] || y > bb[3]) {
+        if (buffer[x + jStride * y] === 0) {
+          seed = [x, y];
+          break;
+        }
+      }
+    }
+  }
+
+  if (seed === null) return;
+
+  const dx = [0, 1, 0, -1];
+  const dy = [-1, 0, 1, 0];
+
+  const stack = [seed];
   while (stack.length > 0) {
-    const [x, y, z] = stack.pop();
+    const [x, y] = stack.pop();
 
-    globals.buffer[
-      x + jStride * y + kStride * z
-    ] = 1;
+    buffer[x + jStride * y] = 1;
 
     for (let i = 0; i < 4; i++) {
       let nx = x + dx[i];
       let ny = y + dy[i];
 
-      if (nx >= 0 && nx < w && ny >= 0 && ny < h && globals.buffer[nx + jStride * ny + kStride * z] === 0) {
-        stack.push([nx, ny, z]);
+      if (nx >= 0 && nx < w && ny >= 0 && ny < h && buffer[nx + jStride * ny] === 0) {
+        stack.push([nx, ny]);
       }
+    }
+  }
+
+  for (let x = 0; x < w; x++) {
+    for (let y = 0; y < h; y++) {
+      if (buffer[x + jStride * y] === 0) globals.buffer[x + jStride * y + kStride * z] = label;
     }
   }
 }

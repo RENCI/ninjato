@@ -20,11 +20,6 @@ export function Widgets(painter, onEdit) {
     
       floodHandle.onStartInteractionEvent(() => {
         painter.startStroke();
-        //painter.addPoint(floodWidget.getWidgetState().getTrueOrigin());
-      });
-    
-      floodHandle.onInteractionEvent(() => {
-        //painter.addPoint(floodWidget.getWidgetState().getTrueOrigin());
       });
 
       floodHandle.onEndInteractionEvent(async () => {
@@ -37,7 +32,7 @@ export function Widgets(painter, onEdit) {
     },
     update: (position, spacing) => {
       floodWidget.getManipulator().setOrigin(position);
-      floodWidget.setRadius(1 * Math.max(...spacing));
+      floodWidget.setRadius(0.5 * Math.max(...spacing));
       
       floodHandle.updateRepresentationForRender();
     }

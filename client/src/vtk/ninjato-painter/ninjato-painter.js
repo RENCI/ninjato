@@ -247,7 +247,11 @@ function vtkPaintFilter(publicAPI, model) {
         const spacing = model.labelMap.getSpacing();
         const radius = spacing.map((s) => model.radius / s);
   
-        workerPromise.exec('paintFloodFill', { pointList: points, radius: radius });
+        workerPromise.exec('paintFloodFill', { 
+          labels: model.labelMap.getPointData().getScalars().getData(),
+          pointList: points, 
+          radius: radius 
+        });
       }
     };
   
