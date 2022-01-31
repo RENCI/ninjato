@@ -56,12 +56,12 @@ const setWindowLevel = (actor, range) => {
   actor.getProperty().set({ colorLevel, colorWindow });
 };
 
-export function SliceView(onEdit) {
+export function SliceView(onEdit, onSliceChange) {
   let fullScreenRenderWindow = null;
   let renderWindow = null;
   let renderer = null;
   let camera = null;
-  let ranges = null;
+  let sliceRanges = null;
 
   const manipulator = Manipulators.vtkMouseRangeManipulator.newInstance({
     button: 1,
@@ -100,7 +100,7 @@ export function SliceView(onEdit) {
       image.setInputData(imageData);    
       mask.setInputData(imageData, maskData);
 
-      ranges = getSliceRanges(imageData);
+      sliceRanges = getSliceRanges(imageData);
 
       renderer.addViewProp(image.getActor());
       renderer.addViewProp(mask.getActor());
@@ -139,13 +139,15 @@ export function SliceView(onEdit) {
 
         // Update window/level
         const z = Math.floor(ijk[slicingMode]);
-        setWindowLevel(image.getActor(), ranges[z]);
+        setWindowLevel(image.getActor(), sliceRanges[z]);
   
         // Update widget position
         widgets.update(position, imageData.getSpacing());
   
         // Update mask slice
         mask.getMapper().set(image.getMapper().get('slice', 'slicingMode'));
+
+        onSliceChange(z);
       };
 
       image.getMapper().onModified(update);
@@ -153,6 +155,9 @@ export function SliceView(onEdit) {
     },
     setEditMode: editMode => {
       mask.setEditMode(editMode);
+    },
+    setSlice: slice => {
+      image.getMapper().setSlice(slice);
     },
     cleanUp: () => {
       console.log("Clean up");
