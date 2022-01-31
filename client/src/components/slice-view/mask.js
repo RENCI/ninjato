@@ -40,7 +40,7 @@ export function Mask() {
   actor.getProperty().setInterpolationTypeToNearest();
   actor.getProperty().setRGBTransferFunction(color);
   actor.getProperty().setPiecewiseFunction(opacity);
-  actor.getProperty().setOpacity(0.25);
+  actor.getProperty().setOpacity(0.5);
   actor.setMapper(mapper);
 
   return {

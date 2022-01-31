@@ -26,17 +26,17 @@ export const VisualizationContainer = () => {
       <Dimmer active={ loading } page>
         <Loader>Loading</Loader>
       </Dimmer>
-      <Grid columns='equal' padded>
+      <Grid columns='equal' padded stackable reversed='mobile'>
         <Column>
           <Segment raised>
             <Grid columns='equal'>              
               <Row>
-              <Column>
-                <VolumeViewWrapper volumeView={ volumeView.current } onLoaded={ onLoaded } />
-              </Column>
-              <Column>
-                <SliceViewWrapper sliceView={ sliceView.current } />
-              </Column>
+                <Column>
+                  <VolumeViewWrapper volumeView={ volumeView.current } onLoaded={ onLoaded } />
+                </Column>
+                <Column>
+                  <SliceViewWrapper sliceView={ sliceView.current } />
+                </Column>
               </Row>
             </Grid>            
           </Segment>
