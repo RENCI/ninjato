@@ -24,21 +24,26 @@ def get_item_assignment(user):
             'parentCollection': 'folder'
         })
         for sub_vol_folder in sub_vol_folders:
-            items = Item().find({'folderId': ObjectId(sub_vol_folder['_id'])})
-            for item in items:
-                if 'user' not in item['meta']:
-                    if 'done' not in item['meta']:
-                        sel_item = item
-                        break
-                    elif item['meta']['done'] == 'false':
-                        sel_item = item
-                        break
-                elif item['meta']['user'] == user['_id']:
-                    # this item is already assigned to this user, just return it
-                    return {
-                        'user_id': user['_id'],
-                        'item_id': item['_id']
-                    }
+            folders = Folder().find({
+                'parentId': sub_vol_folder['_id'],
+                'parentCollection': 'folder'
+            })
+            for folder in folders:
+                items = Item().find({'folderId': ObjectId(folder['_id'])})
+                for item in items:
+                    if 'user' not in item['meta']:
+                        if 'done' not in item['meta']:
+                            sel_item = item
+                            break
+                        elif item['meta']['done'] == 'false':
+                            sel_item = item
+                            break
+                    elif item['meta']['user'] == user['_id']:
+                        # this item is already assigned to this user, just return it
+                        return {
+                            'user_id': user['_id'],
+                            'item_id': item['_id']
+                        }
 
             if sel_item:
                 add_meta = {'user': user['_id']}
@@ -47,7 +52,6 @@ def get_item_assignment(user):
                     'user_id': user['_id'],
                     'item_id': sel_item['_id']
                 }
-
 
     if not sel_item:
         # there is no item left to assign to this user
