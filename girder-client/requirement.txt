@@ -1,0 +1,2 @@
+girder-client==3.1.8
+libtiff==0.4.2
