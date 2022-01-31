@@ -7,8 +7,7 @@ import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransf
 import vtkPiecewiseFunction  from '@kitware/vtk.js/Common/DataModel/PiecewiseFunction';
 
 import vtkNinjatoPainter from 'vtk/ninjato-painter';
-//import vtkNinjatoPainter from '@kitware/vtk.js/Filters/General/PaintFilter';
-//import PaintFilterWorker from '@kitware/vtk.js/Filters/General/PaintFilter/PaintFilter.worker';
+import { Reds, Blues } from 'utils/colors';
 
 const sliceMode = vtkImageMapper.SlicingMode.K;
 
@@ -29,9 +28,9 @@ export function Mask() {
 
   const color = vtkColorTransferFunction.newInstance();
   color.addRGBPoint(0, 0, 0, 0);
-  color.addRGBPoint(1, 0, 0, 1);
-  color.addRGBPoint(254, 0, 0, 1);
-  color.addRGBPoint(255, 1, 0, 0)
+  color.addRGBPoint(1, ...Blues[5]);
+  color.addRGBPoint(254, ...Blues[5]);
+  color.addRGBPoint(255, ...Reds[5])
 
   const opacity = vtkPiecewiseFunction.newInstance();
   opacity.addPoint(0, 0);

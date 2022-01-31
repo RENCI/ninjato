@@ -5,15 +5,8 @@ import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 import { FieldDataTypes } from '@kitware/vtk.js/Common/DataModel/DataSet/Constants';
 
-export function Surface(formula, color) {
+export function Surface() {
   const calculator = vtkCalculator.newInstance();
-  
-  calculator.setFormulaSimple(
-    FieldDataTypes.POINT,
-    ['scalars'],
-    'mask',
-    value => formula(value)
-  );
 
   const marchingCubes = vtkImageMarchingCubes.newInstance({
     contourValue: 1,
@@ -26,7 +19,6 @@ export function Surface(formula, color) {
   mapper.setInputConnection(marchingCubes.getOutputPort());
 
   const actor = vtkActor.newInstance();
-  actor.getProperty().setColor(color);
   //actor.getProperty().setInterpolationToFlat();
   actor.setMapper(mapper); 
 

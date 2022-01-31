@@ -1,6 +1,7 @@
 import '@kitware/vtk.js/Rendering/Profiles/Geometry';
 import vtkFullScreenRenderWindow from '@kitware/vtk.js/Rendering/Misc/FullScreenRenderWindow';
 import { Surface } from './surface';
+import { Reds, Blues } from 'utils/colors';
 
 const resetCamera = renderer => {
   const position = [0, 0, -1];
@@ -18,9 +19,12 @@ export function VolumeView() {
   let fullScreenRenderWindow = null;
   let renderWindow = null;
   let renderer = null;
-  let label = -1;
-  let region = Surface(regionFormula(label), [1, 0, 0]);
-  let background = Surface(backgroundFormula(label), [0.8, 0.9, 1]);
+
+  let region = Surface();
+  region.getActor().getProperty().setColor(Reds[5]);
+
+  let background = Surface();
+  background.getActor().getProperty().setColor(Blues[2]);
 
   function render() {
     renderWindow.render();
