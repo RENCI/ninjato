@@ -28,7 +28,10 @@ export function Mask() {
   mapper.setInputConnection(painter.getOutputPort());
 
   const color = vtkColorTransferFunction.newInstance();
+  color.addRGBPoint(0, 0, 0, 0);
   color.addRGBPoint(1, 0, 0, 1);
+  color.addRGBPoint(254, 0, 0, 1);
+  color.addRGBPoint(255, 1, 0, 0)
 
   const opacity = vtkPiecewiseFunction.newInstance();
   opacity.addPoint(0, 0);

@@ -3,7 +3,6 @@ import utif from 'utif';
 import vtkImageData from '@kitware/vtk.js/Common/DataModel/ImageData';
 import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
 
-
 // Augment utif tag types with some we need
 utif.ttypes[254] = 4;
 utif.ttypes[297] = 5;

@@ -15,7 +15,9 @@ export function VolumeView() {
   let fullScreenRenderWindow = null;
   let renderWindow = null;
   let renderer = null;
-  let surface = Surface();
+  let label = 255;
+  let region = Surface(v => v === label ? 1 : 0, [1, 0, 0]);
+  let background = Surface(v => v !== label && v !== 0 ? 1 : 0, [0, 0, 1]);
 
   function render() {
     renderWindow.render();
@@ -35,9 +37,11 @@ export function VolumeView() {
     },
     setData: (maskData, onRendered) => {
       if (maskData) {
-        surface.setInputData(maskData);
+        region.setInputData(maskData);
+        background.setInputData(maskData);
 
-        renderer.addActor(surface.getActor());
+        renderer.addActor(region.getActor());
+        renderer.addActor(background.getActor());
 
         resetCamera(renderer);
         renderer.resetCameraClippingRange();
@@ -46,14 +50,16 @@ export function VolumeView() {
         onRendered();
       } 
       else {
-        renderer.removeActor(surface.getActor());
+        renderer.removeActor(region.getActor());
+        renderer.removeActor(background.getActor());
       }
     },
     render: () => {
       render();
     },
     cleanUp: () => {
-      surface.cleanUp();
+      region.cleanUp();
+      background.cleanUp();
       fullScreenRenderWindow.delete();
     }
   };
