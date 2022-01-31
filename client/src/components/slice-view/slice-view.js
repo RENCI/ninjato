@@ -127,7 +127,7 @@ export function SliceView(onEdit) {
 
       manipulator.setVerticalListener(wMin, wMax, 1, wGet, wSet, 1);
       manipulator.setHorizontalListener(lMin, lMax, 1, lGet, lSet, 1);
-      manipulator.setScrollListener(kMin, kMax, 1, kGet, kSet, 1);
+      manipulator.setScrollListener(kMin, kMax, -1, kGet, kSet, 1);
     
       const update = () => {  
         // Get slice position

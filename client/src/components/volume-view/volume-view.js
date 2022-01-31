@@ -11,13 +11,16 @@ const resetCamera = renderer => {
   renderer.resetCamera();
 };
 
+const regionFormula = label => (v => v === label ? 1 : 0);
+const backgroundFormula = label => (v => v !== label && v !== 0 ? 1 : 0);
+
 export function VolumeView() {
   let fullScreenRenderWindow = null;
   let renderWindow = null;
   let renderer = null;
-  let label = 255;
-  let region = Surface(v => v === label ? 1 : 0, [1, 0, 0]);
-  let background = Surface(v => v !== label && v !== 0 ? 1 : 0, [0, 0, 1]);
+  let label = -1;
+  let region = Surface(regionFormula(label), [1, 0, 0]);
+  let background = Surface(backgroundFormula(label), [0.8, 0.9, 1]);
 
   function render() {
     renderWindow.render();
@@ -53,6 +56,10 @@ export function VolumeView() {
         renderer.removeActor(region.getActor());
         renderer.removeActor(background.getActor());
       }
+    },
+    setLabel: label => {
+      region.setFormula(regionFormula(label));
+      background.setFormula(backgroundFormula(label));
     },
     render: () => {
       render();

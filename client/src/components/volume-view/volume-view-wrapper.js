@@ -17,7 +17,8 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
   // Update data
   useEffect(() => {
     if (div.current && width && maskData) {
-      volumeView.setData(maskData, onLoaded)
+      volumeView.setLabel(255);
+      volumeView.setData(maskData, onLoaded);
     }
   }, [div, width, volumeView, maskData, onLoaded]);   
 

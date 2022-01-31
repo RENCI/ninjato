@@ -33,6 +33,12 @@ export function Surface(formula, color) {
   return {
     getActor: () => actor,
     setInputData: data => calculator.setInputData(data),
+    setFormula: formula => calculator.setFormulaSimple(
+      FieldDataTypes.POINT,
+      ['scalars'],
+      'mask',
+      value => formula(value)
+    ),
     cleanUp: () => {
       actor.delete();
       mapper.delete();
