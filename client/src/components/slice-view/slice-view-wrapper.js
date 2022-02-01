@@ -2,7 +2,7 @@ import { useContext, useRef, useEffect } from 'react';
 import { DataContext, ControlsContext } from 'contexts';
 import { useResize } from 'hooks';
 
-export const SliceViewWrapper = ({ sliceView, slice }) => {
+export const SliceViewWrapper = ({ sliceView }) => {
   const [{ imageData, maskData }] = useContext(DataContext);
   const [{ editMode }] = useContext(ControlsContext);
   const div = useRef(null);

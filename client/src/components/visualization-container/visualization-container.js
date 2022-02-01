@@ -1,13 +1,16 @@
-import { useRef, useCallback, useState } from 'react';
+import { useContext, useRef, useCallback, useState } from 'react';
 import { Segment, Grid, Dimmer, Loader } from 'semantic-ui-react';
+import { DataContext } from 'contexts/data-context';
 import { VolumeViewWrapper, VolumeView } from 'components/volume-view';
 import { SliceViewWrapper, SliceView } from 'components/slice-view';
-import { EditingControls, VerticalSlider } from 'components/editing-controls';
+import { EditingControls } from 'components/editing-controls';
+import { VerticalSlider } from 'components/vertical-slider';
 import { SaveButton } from 'components/save-button';
 
 const { Row, Column } = Grid;
 
 export const VisualizationContainer = () => {
+  const [{ imageData }] = useContext(DataContext);
   const volumeView = useRef(VolumeView());
   const [loading, setLoading] = useState(true);
   const [slice, setSlice] = useState(0);
@@ -31,6 +34,8 @@ export const VisualizationContainer = () => {
     setSlice(value);
   }, [sliceView]);
 
+  const numSlices = imageData ? imageData.getDimensions()[2] : 0;  
+
   return (
     <div> 
       <Dimmer active={ loading } page>
@@ -45,16 +50,18 @@ export const VisualizationContainer = () => {
                   <VolumeViewWrapper volumeView={ volumeView.current } onLoaded={ onLoaded } />
                 </Column>
                 <Column>
-                  <SliceViewWrapper sliceView={ sliceView.current } slice={ slice } />
+                  <SliceViewWrapper sliceView={ sliceView.current } />
                 </Column>                  
-                <div style={{ flex: '0 0 auto', width: 30 }}>
-                  <VerticalSlider 
-                    value={ slice } 
-                    min={ 0 }
-                    max={ 29 }  // XXX: FIX HARD-CODED VALUE
-                    onChange={ onSliderChange } 
-                  />
-                </div>
+                  { !loading &&
+                    <div style={{ flex: '0 0 auto', width: 30 }}>
+                      <VerticalSlider 
+                        value={ slice } 
+                        min={ 0 }
+                        max={ numSlices - 1 }
+                        onChange={ onSliderChange } 
+                      />
+                    </div>
+                  }
               </Row>
             </Grid>            
           </Segment>
