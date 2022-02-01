@@ -24,7 +24,8 @@ export const Home = () => {
       dataDispatch({
         type: SET_DATA,
         imageData: imageData,
-        maskData: maskData
+        maskData: maskData,
+        label: 14
       });
     }
     catch (error) {
@@ -42,7 +43,8 @@ export const Home = () => {
       dataDispatch({
         type: SET_DATA,
         imageData: imageData,
-        maskData: maskData
+        maskData: maskData,
+        label: 14
       });
     }
     catch (error) {

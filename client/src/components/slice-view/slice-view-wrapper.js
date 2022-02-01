@@ -3,7 +3,7 @@ import { DataContext, ControlsContext } from 'contexts';
 import { useResize } from 'hooks';
 
 export const SliceViewWrapper = ({ sliceView }) => {
-  const [{ imageData, maskData }] = useContext(DataContext);
+  const [{ imageData, maskData, label }] = useContext(DataContext);
   const [{ editMode }] = useContext(ControlsContext);
   const div = useRef(null);
   const { width } = useResize(div);
@@ -18,9 +18,10 @@ export const SliceViewWrapper = ({ sliceView }) => {
   // Update data
   useEffect(() => {
     if (div.current && width && imageData && maskData) {
+      sliceView.setLabel(label);
       sliceView.setData(imageData, maskData);
     }
-  }, [div, width, sliceView, imageData, maskData]);   
+  }, [div, width, sliceView, imageData, maskData, label]);   
 
   // Edit mode
   useEffect(() => {

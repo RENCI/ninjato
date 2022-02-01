@@ -3,7 +3,7 @@ import { DataContext } from 'contexts';
 import { useResize } from 'hooks';
 
 export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
-  const [{ maskData }] = useContext(DataContext);
+  const [{ maskData, label }] = useContext(DataContext);
   const div = useRef(null);
   const { width } = useResize(div);
 
@@ -17,10 +17,10 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
   // Update data
   useEffect(() => {
     if (div.current && width && maskData) {
-      volumeView.setLabel(255);
+      volumeView.setLabel(label);
       volumeView.setData(maskData, onLoaded);
     }
-  }, [div, width, volumeView, maskData, onLoaded]);   
+  }, [div, width, volumeView, maskData, label, onLoaded]);   
 
   // Clean up
   useEffect(() => {
