@@ -6,6 +6,7 @@ import vtkImageMapper from '@kitware/vtk.js/Rendering/Core/ImageMapper';
 import { Widgets } from './widgets';
 import { Image } from './image';
 import { Mask } from './mask';
+//import { Outline } from './outline';
 
 import Manipulators from '@kitware/vtk.js/Interaction/Manipulators';
 
@@ -85,6 +86,10 @@ export function SliceView(onEdit, onSliceChange) {
 
   const image = Image();
   const mask = Mask();  
+  
+  //const outline = Outline();
+  //outline.setInput(mask.getPainter());
+
   const widgets = Widgets(mask.getPainter(), onEdit);
 
   return {
@@ -119,6 +124,7 @@ export function SliceView(onEdit, onSliceChange) {
 
       renderer.addViewProp(image.getActor());
       renderer.addViewProp(mask.getActor());
+      //renderer.addViewProp(outline.getActor());
     
       resetCamera(renderer, imageData);
 

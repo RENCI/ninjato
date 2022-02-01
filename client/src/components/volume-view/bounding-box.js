@@ -1,12 +1,12 @@
-import vtkCubeSource from '@kitware/vtk.js/Filters/Sources/CubeSource';
+import vtkOutlineFilter from '@kitware/vtk.js/Filters/General/OutlineFilter';
 import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 
 export function BoundingBox() {
-  const cubeSource = vtkCubeSource.newInstance();
+  const outline = vtkOutlineFilter.newInstance();
 
   const mapper = vtkMapper.newInstance();
-  mapper.setInputConnection(cubeSource.getOutputPort());
+  mapper.setInputConnection(outline.getOutputPort());
 
   const actor = vtkActor.newInstance();
   actor.getProperty().setRepresentationToWireframe();
@@ -17,19 +17,11 @@ export function BoundingBox() {
 
   return {
     getActor: () => actor,
-    setData: (data, aspectRatio = 1) => {
-      const bb = data.getBounds();
-
-      const size = [bb[1] - bb[0], bb[3] - bb[2], bb[5] - bb[4]];
-      size[2] *= aspectRatio;        
-
-      actor.setScale(size);
-      actor.setPosition([size[0] / 2, size[1] / 2, size[2] / 2]);
-    },
+    setData: data => outline.setInputData(data),
     cleanUp: () => {
       actor.delete();
       mapper.delete();
-      cubeSource.delete();
+      outline.delete();
     }
   };
 }

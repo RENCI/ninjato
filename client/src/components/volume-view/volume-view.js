@@ -23,14 +23,12 @@ export function VolumeView() {
   let fullScreenRenderWindow = null;
   let renderWindow = null;
   let renderer = null;
-  let aspectRatio = 1.5;  // XXX: Should be stored with volume somehow
 
   const regionColor = Reds[5];
   const region = Surface();
   region.getActor().getProperty().setDiffuseColor(regionColor);
   region.getActor().getProperty().setAmbientColor(regionColor);
   region.getActor().getProperty().setAmbient(0.2);
-  region.getActor().setScale([1, 1, aspectRatio]);
 
   const backgroundColor = Blues[2];
   const background = Surface();
@@ -38,7 +36,6 @@ export function VolumeView() {
   background.getActor().getProperty().setAmbientColor(backgroundColor);
   background.getActor().getProperty().setAmbient(0.5);
   background.getActor().getProperty().setOpacity(0.2);
-  background.getActor().setScale([1, 1, aspectRatio]);
 
   const boundingBox = BoundingBox();
 
@@ -62,7 +59,7 @@ export function VolumeView() {
       if (maskData) {
         region.setInputData(maskData);
         background.setInputData(maskData);
-        boundingBox.setData(maskData, aspectRatio);
+        boundingBox.setData(maskData);
 
         renderer.addActor(region.getActor());
         renderer.addActor(background.getActor());
