@@ -19,12 +19,16 @@ export function VolumeView() {
   let fullScreenRenderWindow = null;
   let renderWindow = null;
   let renderer = null;
+  let aspectRatio = 1.5;  // XXX: Should be stored with volume somehow
 
   let region = Surface();
   region.getActor().getProperty().setColor(Reds[5]);
+  region.getActor().setScale([1, 1, aspectRatio]);
 
   let background = Surface();
   background.getActor().getProperty().setColor(Blues[2]);
+  background.getActor().getProperty().setOpacity(0.2);
+  background.getActor().setScale([1, 1, aspectRatio]);
 
   function render() {
     renderWindow.render();

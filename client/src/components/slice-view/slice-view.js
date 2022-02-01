@@ -107,26 +107,13 @@ export function SliceView(onEdit, onSliceChange) {
     
       resetCamera(renderer, imageData);
 
-      const range = imageData.getPointData().getScalars().getRange();
       const extent = imageData.getExtent(); 
-
-      const wMin = 1;
-      const wMax = range[1] - range[0];
-      const wGet = image.getActor().getProperty().getColorWindow;
-      const wSet = w => image.getActor().getProperty().setColorWindow(w);
-
-      const lMin = range[0];
-      const lMax = range[1];
-      const lGet = image.getActor().getProperty().getColorLevel;
-      const lSet = l => image.getActor().getProperty().setColorLevel(l);
 
       const kMin = extent[4];
       const kMax = extent[5];
       const kGet = image.getMapper().getSlice;
       const kSet = k => image.getMapper().setSlice(k);
 
-      manipulator.setVerticalListener(wMin, wMax, 1, wGet, wSet, 1);
-      manipulator.setHorizontalListener(lMin, lMax, 1, lGet, lSet, 1);
       manipulator.setScrollListener(kMin, kMax, -1, kGet, kSet, 1);
     
       const update = () => {  
