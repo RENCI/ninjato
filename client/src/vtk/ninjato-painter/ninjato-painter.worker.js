@@ -117,6 +117,46 @@ function handlePaint({ point, radius, label }) {
 }
 
 // Based on algorithm here: https://lodev.org/cgtutor/floodfill.html
+function floodFillScanlineStack({ buffer, w, h, seed }) {
+  let x1;
+  let spanAbove, spanBelow;
+
+  const stack = [seed];
+  while (stack.length > 0) {
+    const [x, y] = stack.pop();
+
+    x1 = x;
+    while (x1 >= 0 && buffer[y * w + x1] === 0) x1--;
+    x1++;
+
+    spanAbove = spanBelow = 0;
+    while(x1 < w && buffer[y * w + x1] === 0)
+    {
+      buffer[y * w + x1] = 1;
+
+      if(!spanAbove && y > 0 && buffer[(y - 1) * w + x1] === 0)
+      {
+        stack.push([x1, y - 1]);
+        spanAbove = 1;
+      }
+      else if(spanAbove && y > 0 && buffer[(y - 1) * w + x1] !== 0)
+      {
+        spanAbove = 0;
+      }
+      if(!spanBelow && y < h - 1 && buffer[(y + 1) * w + x1] === 0)
+      {
+        stack.push([x1, y + 1]);
+        spanBelow = 1;
+      }
+      else if(spanBelow && y < h - 1 && buffer[(y + 1) * w + x1] !== 0)
+      {
+        spanBelow = 0;
+      }
+      x1++;
+    }
+  }
+} 
+
 // XXX: Currently assuming z slice
 function handlePaintFloodFill({ labels, label, erase, pointList, radius }) {
   if (pointList.length === 0) return;
@@ -173,24 +213,7 @@ function handlePaintFloodFill({ labels, label, erase, pointList, radius }) {
 
   if (seed === null) return;
 
-  const dx = [0, 1, 0, -1];
-  const dy = [-1, 0, 1, 0];
-
-  const stack = [seed];
-  while (stack.length > 0) {
-    const [x, y] = stack.pop();
-
-    buffer[x + jStride * y] = 1;
-
-    for (let i = 0; i < 4; i++) {
-      let nx = x + dx[i];
-      let ny = y + dy[i];
-
-      if (nx >= 0 && nx < w && ny >= 0 && ny < h && buffer[nx + jStride * ny] === 0) {
-        stack.push([nx, ny]);
-      }
-    }
-  }
+  floodFillScanlineStack({ buffer, w, h, seed });
 
   for (let x = 0; x < w; x++) {
     for (let y = 0; y < h; y++) {
