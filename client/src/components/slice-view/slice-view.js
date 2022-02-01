@@ -137,8 +137,8 @@ export function SliceView(onEdit, onSliceChange) {
         onSliceChange(z);
       };
 
-      image.getMapper().onModified(update);
-      update();   
+      image.getMapper().onModified(update); 
+      image.getMapper().setSlice(0);
     },
     setEditMode: editMode => {
       mask.setEditMode(editMode);

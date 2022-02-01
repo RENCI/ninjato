@@ -1,6 +1,7 @@
 import '@kitware/vtk.js/Rendering/Profiles/Geometry';
 import vtkFullScreenRenderWindow from '@kitware/vtk.js/Rendering/Misc/FullScreenRenderWindow';
 import { Surface } from './surface';
+import { BoundingBox } from './bounding-box';
 import { Reds, Blues } from 'utils/colors';
 
 const resetCamera = renderer => {
@@ -10,6 +11,10 @@ const resetCamera = renderer => {
 
   renderer.getActiveCamera().set({ position, focalPoint, viewUp });
   renderer.resetCamera();
+
+  console.log(renderer.getActiveCamera());
+  renderer.getActiveCamera().azimuth(-15);
+  renderer.getActiveCamera().elevation(20);
 };
 
 const regionFormula = label => (v => v === label ? 1 : 0);
@@ -21,14 +26,16 @@ export function VolumeView() {
   let renderer = null;
   let aspectRatio = 1.5;  // XXX: Should be stored with volume somehow
 
-  let region = Surface();
+  const region = Surface();
   region.getActor().getProperty().setColor(Reds[5]);
   region.getActor().setScale([1, 1, aspectRatio]);
 
-  let background = Surface();
+  const background = Surface();
   background.getActor().getProperty().setColor(Blues[2]);
   background.getActor().getProperty().setOpacity(0.2);
   background.getActor().setScale([1, 1, aspectRatio]);
+
+  const boundingBox = BoundingBox();
 
   function render() {
     renderWindow.render();
@@ -50,9 +57,11 @@ export function VolumeView() {
       if (maskData) {
         region.setInputData(maskData);
         background.setInputData(maskData);
+        boundingBox.setData(maskData, aspectRatio);
 
         renderer.addActor(region.getActor());
         renderer.addActor(background.getActor());
+        renderer.addActor(boundingBox.getActor());
 
         resetCamera(renderer);
         renderer.resetCameraClippingRange();
@@ -75,6 +84,7 @@ export function VolumeView() {
     cleanUp: () => {
       region.cleanUp();
       background.cleanUp();
+      boundingBox.cleanUp();
       fullScreenRenderWindow.delete();
     }
   };
