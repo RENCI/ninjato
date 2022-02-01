@@ -1,6 +1,5 @@
 import '@kitware/vtk.js/Rendering/Profiles/All';
 
-//import vtkImageOutlineFilter from '@kitware/vtk.js/Filters/General/ImageOutlineFilter';
 import vtkImageMapper from '@kitware/vtk.js/Rendering/Core/ImageMapper';
 import vtkImageSlice from '@kitware/vtk.js/Rendering/Core/ImageSlice';
 import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
@@ -20,12 +19,6 @@ export function Mask() {
   const painter = vtkNinjatoPainter.newInstance();
   painter.setSlicingMode(sliceMode);
   painter.setRadius(0.1);
-
-/*
-  const outline = vtkImageOutlineFilter.newInstance();
-  outline.setSlicingMode(sliceMode);
-  outline.setInputConnection(painter.getOutputPort());
-*/
 
   const mapper = vtkImageMapper.newInstance();
   mapper.setInputConnection(painter.getOutputPort());  
