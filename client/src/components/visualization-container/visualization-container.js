@@ -46,13 +46,15 @@ export const VisualizationContainer = () => {
                 </Column>
                 <Column>
                   <SliceViewWrapper sliceView={ sliceView.current } slice={ slice } />
+                </Column>                  
+                <div style={{ flex: '0 0 auto', width: 30 }}>
                   <VerticalSlider 
                     value={ slice } 
                     min={ 0 }
                     max={ 29 }  // XXX: FIX HARD-CODED VALUE
                     onChange={ onSliderChange } 
                   />
-                </Column>
+                </div>
               </Row>
             </Grid>            
           </Segment>
