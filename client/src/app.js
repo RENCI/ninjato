@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { UserProvider, DataProvider } from "contexts"; 
+import { UserProvider, DataProvider, ControlsProvider } from "contexts"; 
 import { MainMenu } from 'components/main-menu';
 import { Home } from 'pages';
 
@@ -7,12 +7,14 @@ export const App = () => {
   return (
     <UserProvider>
     <DataProvider>
+    <ControlsProvider>
       <Router>        
         <MainMenu />
         <Routes>
           <Route exact path={'/'} element={ <Home /> } />
         </Routes>
       </Router>
+    </ControlsProvider>
     </DataProvider>
     </UserProvider>
   );

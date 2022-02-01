@@ -1,26 +1,31 @@
 import { useContext, useRef, useEffect } from 'react';
-import { DataContext } from 'contexts';
+import { DataContext, ControlsContext } from 'contexts';
 import { useResize } from 'hooks';
 
 export const SliceViewWrapper = ({ sliceView }) => {
   const [{ imageData, maskData }] = useContext(DataContext);
-  const outerDiv = useRef(null);
-  const vtkDiv = useRef(null);
-  const { width } = useResize(outerDiv);
+  const [{ editMode }] = useContext(ControlsContext);
+  const div = useRef(null);
+  const { width } = useResize(div);
   
   // Initialize
   useEffect(() => {
-    if (vtkDiv.current && width) { 
-      sliceView.initialize(vtkDiv.current);
+    if (div.current && width) { 
+      sliceView.initialize(div.current);
     }
-  }, [vtkDiv, width, sliceView]);
+  }, [div, width, sliceView]);
 
   // Update data
   useEffect(() => {
-    if (vtkDiv.current && width && imageData && maskData) {
+    if (div.current && width && imageData && maskData) {
       sliceView.setData(imageData, maskData);
     }
-  }, [vtkDiv, width, sliceView, imageData, maskData]);   
+  }, [div, width, sliceView, imageData, maskData]);   
+
+  // Edit mode
+  useEffect(() => {
+    sliceView.setEditMode(editMode);
+  }, [sliceView, editMode]);
 
   // Clean up
   useEffect(() => {
@@ -28,8 +33,6 @@ export const SliceViewWrapper = ({ sliceView }) => {
   }, [sliceView]);
 
   return (
-    <div ref={ outerDiv } style={{ height: width }}>
-      <div ref={ vtkDiv } />
-    </div>
+    <div ref={ div } style={{ height: width }} />
   );
 };
