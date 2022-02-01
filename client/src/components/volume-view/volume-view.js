@@ -12,7 +12,6 @@ const resetCamera = renderer => {
   renderer.getActiveCamera().set({ position, focalPoint, viewUp });
   renderer.resetCamera();
 
-  console.log(renderer.getActiveCamera());
   renderer.getActiveCamera().azimuth(-15);
   renderer.getActiveCamera().elevation(20);
 };
@@ -26,12 +25,18 @@ export function VolumeView() {
   let renderer = null;
   let aspectRatio = 1.5;  // XXX: Should be stored with volume somehow
 
+  const regionColor = Reds[5];
   const region = Surface();
-  region.getActor().getProperty().setColor(Reds[5]);
+  region.getActor().getProperty().setDiffuseColor(regionColor);
+  region.getActor().getProperty().setAmbientColor(regionColor);
+  region.getActor().getProperty().setAmbient(0.2);
   region.getActor().setScale([1, 1, aspectRatio]);
 
+  const backgroundColor = Blues[2];
   const background = Surface();
-  background.getActor().getProperty().setColor(Blues[2]);
+  background.getActor().getProperty().setDiffuseColor(backgroundColor);
+  background.getActor().getProperty().setAmbientColor(backgroundColor);
+  background.getActor().getProperty().setAmbient(0.5);
   background.getActor().getProperty().setOpacity(0.2);
   background.getActor().setScale([1, 1, aspectRatio]);
 

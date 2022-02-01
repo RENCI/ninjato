@@ -19,7 +19,6 @@ export function Surface() {
   mapper.setInputConnection(marchingCubes.getOutputPort());
 
   const actor = vtkActor.newInstance();
-  //actor.getProperty().setInterpolationToFlat();
   actor.setMapper(mapper); 
 
   return {
