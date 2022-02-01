@@ -41,7 +41,7 @@ export const VisualizationContainer = () => {
       <Dimmer active={ loading } page>
         <Loader>Loading</Loader>
       </Dimmer>
-      <Grid columns='equal' padded stackable reversed='mobile'>
+      <Grid columns='equal' verticalAlign='middle' padded stackable reversed='mobile'>
         <Column>
           <Segment raised>
             <Grid columns='equal'>              
@@ -73,7 +73,7 @@ export const VisualizationContainer = () => {
         }
       </Grid>
       { !loading &&
-        <Segment basic textAlign='right'>
+        <Segment basic textAlign='center'>
           <SaveButton  
             text='Save' 
           />
