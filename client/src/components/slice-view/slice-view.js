@@ -49,6 +49,21 @@ const getSliceRanges = imageData => {
   return ranges;
 };
 
+const findFirstSlice = (maskData, label) => {
+  const [w, h, d] = maskData.getDimensions();
+  const data = maskData.getPointData().getScalars().getData();
+
+  for (let z = 0; z < d; z++) {
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        if (data[z * w * h + x * h + y] === label) return z;
+      }
+    }
+  }
+
+  return 0;
+};
+
 const setWindowLevel = (actor, range) => {
   const colorLevel = (range[1] + range[0]) / 2;
   const colorWindow = range[1] - range[0];
@@ -138,7 +153,10 @@ export function SliceView(onEdit, onSliceChange) {
       };
 
       image.getMapper().onModified(update); 
-      image.getMapper().setSlice(0);
+      image.getMapper().setSlice(findFirstSlice(maskData, mask.getLabel()));
+    },
+    setLabel: label => {
+      mask.setLabel(label);
     },
     setEditMode: editMode => {
       mask.setEditMode(editMode);
