@@ -7,6 +7,7 @@ import vtkGlyph3DMapper from '@kitware/vtk.js/Rendering/Core/Glyph3DMapper';
 import vtkMatrixBuilder from '@kitware/vtk.js/Common/Core/MatrixBuilder';
 import vtkPolyData from '@kitware/vtk.js/Common/DataModel/PolyData';
 import vtkWidgetRepresentation from '@kitware/vtk.js/Widgets/Representations/WidgetRepresentation';
+import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
 
 import { ScalarMode } from '@kitware/vtk.js/Rendering/Core/Mapper/Constants';
 
@@ -51,6 +52,10 @@ function vtkBrushRepresentation(publicAPI, model) {
   // Generic rendering pipeline
   // --------------------------------------------------------------------------
 
+  const color = vtkColorTransferFunction.newInstance();
+  color.addRGBPoint(0, 1, 0, 0);
+  color.addRGBPoint(1, 1, 1, 1);
+
   model.pipelines = {
     brush: {
       source: publicAPI,
@@ -67,11 +72,14 @@ function vtkBrushRepresentation(publicAPI, model) {
         scaleMode: vtkGlyph3DMapper.ScaleModes.SCALE_BY_COMPONENTS,
         colorByArrayName: 'color',
         scalarMode: ScalarMode.USE_POINT_FIELD_DATA,
+        lookupTable: color
       }),
       actor: vtkActor.newInstance({ pickable: false, parentProp: publicAPI }),
     },
   };
 
+  model.pipelines.brush.actor.getProperty().setRepresentationToWireframe();
+  model.pipelines.brush.actor.getProperty().setLighting(false);
   model.pipelines.brush.mapper.setOrientationModeToMatrix();
   model.pipelines.brush.mapper.setResolveCoincidentTopology(true);
   model.pipelines.brush.mapper.setResolveCoincidentTopologyPolygonOffsetParameters(
