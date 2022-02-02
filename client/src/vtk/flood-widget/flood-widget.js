@@ -4,12 +4,9 @@ import vtkPlaneManipulator from '@kitware/vtk.js/Widgets/Manipulators/PlaneManip
 import vtkSphereHandleRepresentation from '@kitware/vtk.js/Widgets/Representations/SphereHandleRepresentation';
 import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
-//import vtkBrushRepresentation from 'vtk/brush-representation';
+import vtkBrushRepresentation from 'vtk/brush-representation';
 import widgetBehavior from './behavior';
 import stateGenerator from './state';
-
-
-import vtkBrushRepresentation from '@kitware/vtk.js/Widgets/Representations/CircleContextRepresentation';
 
 // ----------------------------------------------------------------------------
 // Factory

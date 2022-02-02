@@ -57,22 +57,12 @@ export default function widgetBehavior(publicAPI, model) {
 
         if (imageData) {
           const ijk = imageData.worldToIndex([...worldCoords]);
+          const dims = imageData.getDimensions();
 
-          console.log(imageData);
-          console.log(imageData.getBounds());
-          console.log(ijk);
+          const toPixelCenter = (v, max) => (Math.floor(v * max / (max - 1)) + 0.5) * (max - 1) / max;
 
-          const index = imageData.computeOffsetIndex(ijk);
-
-          console.log(index);
-
-          console.log(imageData.getPoint(index));
-
-          ijk[0] *= 50 / 49;
-          ijk[1] = 25;
-
-          worldCoords[0] = Math.floor(ijk[0]);
-          worldCoords[1] = Math.floor(ijk[1]);
+          worldCoords[0] = toPixelCenter(ijk[0], dims[0]);
+          worldCoords[1] = toPixelCenter(ijk[1], dims[1]);
         }
 
         model.widgetState.setTrueOrigin(...worldCoords);

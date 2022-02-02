@@ -56,7 +56,10 @@ function vtkBrushRepresentation(publicAPI, model) {
       source: publicAPI,
       glyph: vtkPlaneSource.newInstance({
         xResolution: 1,
-        yResolution: 1
+        yResolution: 1,
+        origin: [-0.5, -0.5, 0],
+        point1: [0.5, -0.5, 0],
+        point2: [-0.5, 0.5, 0]
       }),
       mapper: vtkGlyph3DMapper.newInstance({
         orientationArray: 'direction',

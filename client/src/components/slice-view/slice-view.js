@@ -114,7 +114,7 @@ export function SliceView(onEdit, onSliceChange) {
 
       widgets.setRenderer(renderer);
 
-//      renderWindow.getInteractor().getView().setCursor('crosshair');
+      renderWindow.getInteractor().getView().setCursor('crosshair');
     },
     setData: (imageData, maskData) => {
       image.setInputData(imageData);    
