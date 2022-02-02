@@ -30,12 +30,13 @@ export function VolumeView() {
   region.getActor().getProperty().setAmbientColor(regionColor);
   region.getActor().getProperty().setAmbient(0.2);
 
-  const backgroundColor = Blues[2];
   const background = Surface();
-  background.getActor().getProperty().setDiffuseColor(backgroundColor);
-  background.getActor().getProperty().setAmbientColor(backgroundColor);
-  background.getActor().getProperty().setAmbient(0.5);
-  background.getActor().getProperty().setOpacity(0.2);
+  background.getActor().getProperty().setDiffuseColor([1, 1, 1]);
+  background.getActor().getProperty().setAmbientColor(Blues[8]);
+  background.getActor().getProperty().setAmbient(0.8);
+  background.getActor().getProperty().setOpacity(0.4);
+  background.getActor().getProperty().setBackfaceCulling(true);
+
 
   const boundingBox = BoundingBox();
 

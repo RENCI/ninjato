@@ -10,6 +10,8 @@ export function Widgets(painter, onEdit) {
   const floodWidget = vtkFloodWidget.newInstance();
   let floodHandle = null;
 
+  console.log(floodWidget);
+
   return {
     setRenderer: renderer => {
       manager.setRenderer(renderer);
@@ -35,6 +37,9 @@ export function Widgets(painter, onEdit) {
       floodWidget.setRadius(0.5 * Math.max(...spacing));
       
       floodHandle.updateRepresentationForRender();
+    },
+    setImageData: imageData => {
+      floodWidget.setImageData(imageData);
     }
   }
 }
