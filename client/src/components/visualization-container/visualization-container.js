@@ -6,6 +6,7 @@ import { SliceViewWrapper, SliceView } from 'components/slice-view';
 import { EditingControls } from 'components/editing-controls';
 import { VerticalSlider } from 'components/vertical-slider';
 import { SaveButton } from 'components/save-button';
+import styles from './styles.module.css';
 
 const { Row, Column } = Grid;
 
@@ -57,7 +58,7 @@ export const VisualizationContainer = () => {
                   <SliceViewWrapper sliceView={ sliceView.current } />
                 </Column>                  
                   { !loading &&
-                    <div style={{ flex: '0 0 auto', width: 30 }}>
+                    <div className={ styles.autoSize } style={{ width: 30 }}>
                       <VerticalSlider 
                         value={ slice } 
                         min={ 0 }
@@ -71,12 +72,12 @@ export const VisualizationContainer = () => {
           </Segment>
         </Column>
         { !loading && 
-          <Column style={{ flex: '0 0 auto' }}>
+          <Column className={ styles.autoSize }>
             <EditingControls 
               sliceView={ sliceView.current }
               canUndo={ canUndo }
               canRedo={ canRedo }
-             />
+            />
           </Column>
         }
       </Grid>

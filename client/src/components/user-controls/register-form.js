@@ -4,6 +4,7 @@ import { LOGIN, SET_ASSIGNMENT, UserContext } from 'contexts';
 import { AutoFocusForm } from 'components/auto-focus-form';
 import { api } from 'utils/api';
 import { useModal } from 'hooks';
+import styles from './styles.module.css';
 
 export const RegisterForm = () => {
   const [, userDispatch] = useContext(UserContext);
@@ -80,7 +81,7 @@ export const RegisterForm = () => {
             error
             content={ errorMessage }
           />
-          <div style={{ display: 'none' }}>
+          <div className={ styles.hide }>
             <Form.Button content='Submit' />
           </div>
         </AutoFocusForm>
