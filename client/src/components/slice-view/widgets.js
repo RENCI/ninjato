@@ -10,6 +10,8 @@ export function Widgets(painter, onEdit) {
   const floodWidget = vtkFloodWidget.newInstance();
   let floodHandle = null;
 
+  console.log(floodWidget);
+
   return {
     setRenderer: renderer => {
       manager.setRenderer(renderer);
