@@ -12,22 +12,26 @@ const { Row, Column } = Grid;
 export const VisualizationContainer = () => {
   const [{ imageData }] = useContext(DataContext);
   const volumeView = useRef(VolumeView());
+  const sliceView = useRef(SliceView(onEdit, onSliceChange));
   const [loading, setLoading] = useState(true);
   const [slice, setSlice] = useState(0);
+  const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
+  
+  function onEdit() {
+    volumeView.current.render();
+
+    setCanUndo(sliceView.current.canUndo());
+    setCanRedo(sliceView.current.canRedo());
+  }
+
+  function onSliceChange(slice) {
+    setSlice(slice);
+  }
 
   const onLoaded = useCallback(() => {
     setLoading(false);
   }, []);
-  
-  const onEdit = useCallback(() => {
-    volumeView.current.render();
-  }, [volumeView]);
-
-  const onSliceChange = useCallback(slice => {
-    setSlice(slice);
-  }, []);
-
-  const sliceView = useRef(SliceView(onEdit, onSliceChange));
 
   const onSliderChange = useCallback(value => {
     sliceView.current.setSlice(value);
@@ -68,7 +72,11 @@ export const VisualizationContainer = () => {
         </Column>
         { !loading && 
           <Column style={{ flex: '0 0 auto' }}>
-            <EditingControls />
+            <EditingControls 
+              sliceView={ sliceView.current }
+              canUndo={ canUndo }
+              canRedo={ canRedo }
+             />
           </Column>
         }
       </Grid>

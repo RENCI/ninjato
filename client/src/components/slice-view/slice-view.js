@@ -172,6 +172,16 @@ export function SliceView(onEdit, onSliceChange) {
     setSlice: slice => {
       image.getMapper().setSlice(slice);
     },
+    undo: () => {
+      mask.getPainter().undo();
+      onEdit()
+    },
+    redo: () => {
+      mask.getPainter().redo();
+      onEdit();
+    },
+    canUndo: () => mask.getPainter().canUndo(),
+    canRedo: () => mask.getPainter().canRedo(),
     cleanUp: () => {
       console.log("Clean up");
     }
