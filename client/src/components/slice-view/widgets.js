@@ -15,6 +15,8 @@ export function Widgets(painter, onEdit) {
       manager.setRenderer(renderer);
 
       floodHandle = manager.addWidget(floodWidget, ViewTypes.SLICE);
+
+      console.log(floodHandle);
     
       manager.grabFocus(floodWidget);
     
