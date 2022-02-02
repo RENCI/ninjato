@@ -104,7 +104,5 @@ export const api = {
         headers: { 'Content-Type': 'multipart/form-data' }
       }
     );
-
-    console.log(response);
   }
 };
