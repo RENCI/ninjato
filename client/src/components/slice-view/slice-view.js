@@ -136,6 +136,8 @@ export function SliceView(onEdit, onSliceChange) {
       const kSet = k => image.getMapper().setSlice(k);
 
       manipulator.setScrollListener(kMin, kMax, -1, kGet, kSet, 1);
+
+      widgets.setImageData(maskData);
     
       const update = () => {  
         // Get slice position

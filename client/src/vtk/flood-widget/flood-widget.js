@@ -1,13 +1,15 @@
 import macro from '@kitware/vtk.js/macros';
 import vtkAbstractWidgetFactory from '@kitware/vtk.js/Widgets/Core/AbstractWidgetFactory';
-import vtkCircleContextRepresentation from '@kitware/vtk.js/Widgets/Representations/CircleContextRepresentation';
 import vtkPlaneManipulator from '@kitware/vtk.js/Widgets/Manipulators/PlaneManipulator';
 import vtkSphereHandleRepresentation from '@kitware/vtk.js/Widgets/Representations/SphereHandleRepresentation';
+import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
+//import vtkBrushRepresentation from 'vtk/brush-representation';
 import widgetBehavior from './behavior';
 import stateGenerator from './state';
 
-import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
+
+import vtkBrushRepresentation from '@kitware/vtk.js/Widgets/Representations/CircleContextRepresentation';
 
 // ----------------------------------------------------------------------------
 // Factory
@@ -27,7 +29,7 @@ function vtkFloodWidget(publicAPI, model) {
       case ViewTypes.SLICE:
         return [
           {
-            builder: vtkCircleContextRepresentation,
+            builder: vtkBrushRepresentation,
             labels: ['handle', 'trail'],
           },
         ];
@@ -60,6 +62,7 @@ const DEFAULT_VALUES = {
   radius: 1,
   painting: false,
   color: [1],
+  imageData: null
 };
 
 // ----------------------------------------------------------------------------
@@ -70,7 +73,7 @@ export function extend(publicAPI, model, initialValues = {}) {
   vtkAbstractWidgetFactory.extend(publicAPI, model, initialValues);
 
   macro.get(publicAPI, model, ['painting']);
-  macro.setGet(publicAPI, model, ['manipulator', 'radius', 'color']);
+  macro.setGet(publicAPI, model, ['manipulator', 'radius', 'color', 'imageData']);
 
   vtkFloodWidget(publicAPI, model);
 }

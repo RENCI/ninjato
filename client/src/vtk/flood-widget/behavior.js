@@ -53,6 +53,28 @@ export default function widgetBehavior(publicAPI, model) {
       );
 
       if (worldCoords.length) {
+        const imageData = model.factory.getImageData();
+
+        if (imageData) {
+          const ijk = imageData.worldToIndex([...worldCoords]);
+
+          console.log(imageData);
+          console.log(imageData.getBounds());
+          console.log(ijk);
+
+          const index = imageData.computeOffsetIndex(ijk);
+
+          console.log(index);
+
+          console.log(imageData.getPoint(index));
+
+          ijk[0] *= 50 / 49;
+          ijk[1] = 25;
+
+          worldCoords[0] = Math.floor(ijk[0]);
+          worldCoords[1] = Math.floor(ijk[1]);
+        }
+
         model.widgetState.setTrueOrigin(...worldCoords);
         model.activeState.setOrigin(...worldCoords);
 
