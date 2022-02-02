@@ -2,13 +2,12 @@ import '@kitware/vtk.js/Rendering/Profiles/All';
 
 import vtkFullScreenRenderWindow from '@kitware/vtk.js/Rendering/Misc/FullScreenRenderWindow';
 import vtkInteractorStyleManipulator from '@kitware/vtk.js/Interaction/Style/InteractorStyleManipulator';
+import vtkMouseRangeManipulator from '@kitware/vtk.js/Interaction/Manipulators/MouseRangeManipulator';
 import vtkImageMapper from '@kitware/vtk.js/Rendering/Core/ImageMapper';
 import { Widgets } from './widgets';
 import { Image } from './image';
 import { Mask } from './mask';
 //import { Outline } from './outline';
-
-import Manipulators from '@kitware/vtk.js/Interaction/Manipulators';
 
 const slicingMode = vtkImageMapper.SlicingMode.K;
 
@@ -72,15 +71,14 @@ const setWindowLevel = (actor, range) => {
   actor.getProperty().set({ colorLevel, colorWindow });
 };
 
-export function SliceView(onEdit, onSliceChange) {
+export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
   let fullScreenRenderWindow = null;
   let renderWindow = null;
   let renderer = null;
   let camera = null;
   let sliceRanges = null;
 
-  const manipulator = Manipulators.vtkMouseRangeManipulator.newInstance({
-    button: 1,
+  const manipulator = vtkMouseRangeManipulator.newInstance({
     scrollEnabled: true,
   });
 
@@ -93,7 +91,7 @@ export function SliceView(onEdit, onSliceChange) {
   const widgets = Widgets(mask.getPainter(), onEdit);
 
   return {
-    initialize: rootNode => {
+    initialize: (rootNode, onKeyDown, onKeyUp) => {
       if (fullScreenRenderWindow) return;
 
       fullScreenRenderWindow = vtkFullScreenRenderWindow.newInstance({
@@ -110,7 +108,12 @@ export function SliceView(onEdit, onSliceChange) {
       const interactorStyle = vtkInteractorStyleManipulator.newInstance();
       interactorStyle.addMouseManipulator(manipulator);
 
-      renderWindow.getInteractor().setInteractorStyle(interactorStyle);
+      const interactor = renderWindow.getInteractor();
+
+      interactor.setInteractorStyle(interactorStyle);
+
+      interactor.onKeyDown(onKeyDown);
+      interactor.onKeyUp(onKeyUp);
 
       widgets.setRenderer(renderer);
 
