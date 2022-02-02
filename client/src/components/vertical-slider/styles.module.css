@@ -1,0 +1,6 @@
+.verticalSlider {
+    writing-mode: bt-lr; /* IE */
+    -webkit-appearance: slider-vertical; /* WebKit */
+    width: 100%;
+    height: 100%;
+}

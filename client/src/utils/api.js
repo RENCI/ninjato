@@ -9,16 +9,6 @@ const getCookie = name => {
 
 const fileUrl = id => `/file/${ id }/download`;
 
-const blobToBase64 = (blob) => {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(blob);
-    reader.onloadend = function () {
-      resolve(reader.result);
-    };
-  });
-};
-
 export const api = {
   checkLogin: async () => {
     axios.defaults.headers.common['Girder-Token'] = getCookie('girderToken');

@@ -2,25 +2,25 @@ import { useContext, useRef, useEffect } from 'react';
 import { DataContext } from 'contexts';
 import { useResize } from 'hooks';
 
-export const VolumeViewWrapper = ({ volumeView }) => {
-  const [{ maskData }] = useContext(DataContext);
-  const outerDiv = useRef(null);
-  const vtkDiv = useRef(null);
-  const { width } = useResize(outerDiv);
+export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
+  const [{ maskData, label }] = useContext(DataContext);
+  const div = useRef(null);
+  const { width } = useResize(div);
 
   // Initialize
   useEffect(() => {
-    if (vtkDiv.current && width) { 
-      volumeView.initialize(vtkDiv.current);
+    if (div.current && width) { 
+      volumeView.initialize(div.current);
     }
-  }, [vtkDiv, width, volumeView]);
+  }, [div, width, volumeView]);
 
   // Update data
   useEffect(() => {
-    if (vtkDiv.current && width && maskData) {
-      volumeView.setData(maskData);
+    if (div.current && width && maskData) {
+      volumeView.setLabel(label);
+      volumeView.setData(maskData, onLoaded);
     }
-  }, [vtkDiv, width, volumeView, maskData]);   
+  }, [div, width, volumeView, maskData, label, onLoaded]);   
 
   // Clean up
   useEffect(() => {
@@ -28,8 +28,6 @@ export const VolumeViewWrapper = ({ volumeView }) => {
   }, [volumeView]);
 
   return (
-    <div ref={ outerDiv } style={{ height: width }}>
-      <div ref={ vtkDiv } />
-    </div>
+    <div ref={ div } style={{ height: width }}></div>
   );
 };

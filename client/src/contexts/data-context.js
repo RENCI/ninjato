@@ -5,7 +5,8 @@ export const CLEAR_DATA = 'data/LOGOUT';
 
 const initialState = {
   imageData: null,
-  maskData: null
+  maskData: null,
+  label: null
 };
 
 const reducer = (state, action) => {
@@ -14,7 +15,8 @@ const reducer = (state, action) => {
       return {
         ...state,
         imageData: action.imageData,
-        maskData: action.maskData
+        maskData: action.maskData,
+        label: action.label
       };
 
     case CLEAR_DATA:

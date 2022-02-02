@@ -5,7 +5,6 @@ import {
   SET_DATA, DataContext 
 } from 'contexts';
 import { VisualizationContainer } from 'components/visualization-container';
-import { SaveButton } from 'components/save-button';
 import { api } from 'utils/api';
 import { decodeTIFF } from 'utils/data-conversion';
 
@@ -25,7 +24,8 @@ export const Home = () => {
       dataDispatch({
         type: SET_DATA,
         imageData: imageData,
-        maskData: maskData
+        maskData: maskData,
+        label: 14
       });
     }
     catch (error) {
@@ -43,7 +43,8 @@ export const Home = () => {
       dataDispatch({
         type: SET_DATA,
         imageData: imageData,
-        maskData: maskData
+        maskData: maskData,
+        label: 14
       });
     }
     catch (error) {
@@ -56,13 +57,6 @@ export const Home = () => {
       { imageData ?
         <>
           <VisualizationContainer />
-          <Grid>
-            <Row>
-              <Column width={ 14 } className='right aligned'>
-                <SaveButton />
-              </Column>
-            </Row>
-          </Grid>
         </>
       : login ?
         <Grid >

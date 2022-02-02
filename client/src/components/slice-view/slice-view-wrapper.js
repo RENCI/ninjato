@@ -1,26 +1,44 @@
-import { useContext, useRef, useEffect } from 'react';
-import { DataContext } from 'contexts';
+import { useContext, useRef, useEffect, useCallback } from 'react';
+import { DataContext, ControlsContext, SET_EDIT_MODE } from 'contexts';
 import { useResize } from 'hooks';
 
 export const SliceViewWrapper = ({ sliceView }) => {
-  const [{ imageData, maskData }] = useContext(DataContext);
-  const outerDiv = useRef(null);
-  const vtkDiv = useRef(null);
-  const { width } = useResize(outerDiv);
+  const [{ imageData, maskData, label }] = useContext(DataContext);
+  const [{ editMode }, controlsDispatch] = useContext(ControlsContext);
+  const div = useRef(null);
+  const { width } = useResize(div);
+
+  const onKeyDown = useCallback(evt => {
+    if (evt.key === 'Shift') {
+      controlsDispatch({ type: SET_EDIT_MODE, mode: 'erase' });
+    }
+  });
+
+  const onKeyUp = useCallback(evt => {
+    if (evt.key === 'Shift') {
+      controlsDispatch({ type: SET_EDIT_MODE, mode: 'paint' });
+    }
+  });
   
   // Initialize
   useEffect(() => {
-    if (vtkDiv.current && width) { 
-      sliceView.initialize(vtkDiv.current);
+    if (div.current && width) { 
+      sliceView.initialize(div.current, onKeyDown, onKeyUp);
     }
-  }, [vtkDiv, width, sliceView]);
+  }, [div, width, sliceView]);
 
   // Update data
   useEffect(() => {
-    if (vtkDiv.current && width && imageData && maskData) {
+    if (div.current && width && imageData && maskData) {
+      sliceView.setLabel(label);
       sliceView.setData(imageData, maskData);
     }
-  }, [vtkDiv, width, sliceView, imageData, maskData]);   
+  }, [div, width, sliceView, imageData, maskData, label]);   
+
+  // Edit mode
+  useEffect(() => {
+    sliceView.setEditMode(editMode);
+  }, [sliceView, editMode]);
 
   // Clean up
   useEffect(() => {
@@ -28,8 +46,6 @@ export const SliceViewWrapper = ({ sliceView }) => {
   }, [sliceView]);
 
   return (
-    <div ref={ outerDiv } style={{ height: width }}>
-      <div ref={ vtkDiv } />
-    </div>
+    <div ref={ div } style={{ height: width }} />
   );
 };

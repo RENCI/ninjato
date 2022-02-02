@@ -1,43 +1,43 @@
 import '@kitware/vtk.js/Rendering/Profiles/All';
 
 import vtkWidgetManager from '@kitware/vtk.js/Widgets/Core/WidgetManager';
-import vtkPaintWidget from '@kitware/vtk.js/Widgets/Widgets3D/PaintWidget';
-
 import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
+
+import vtkFloodWidget from 'vtk/flood-widget';
 
 export function Widgets(painter, onEdit) {
   const manager = vtkWidgetManager.newInstance();
-  const paintWidget = vtkPaintWidget.newInstance();
-  let paintHandle = null;
+  const floodWidget = vtkFloodWidget.newInstance();
+  let floodHandle = null;
 
   return {
     setRenderer: renderer => {
       manager.setRenderer(renderer);
 
-      paintHandle = manager.addWidget(paintWidget, ViewTypes.SLICE);
+      floodHandle = manager.addWidget(floodWidget, ViewTypes.SLICE);
     
-      manager.grabFocus(paintWidget);
+      manager.grabFocus(floodWidget);
     
-      paintHandle.onStartInteractionEvent(() => {
+      floodHandle.onStartInteractionEvent(() => {
         painter.startStroke();
-        painter.addPoint(paintWidget.getWidgetState().getTrueOrigin());
-      });
-    
-      paintHandle.onInteractionEvent(() => {
-        painter.addPoint(paintWidget.getWidgetState().getTrueOrigin());
       });
 
-      paintHandle.onEndInteractionEvent(async () => {
+      floodHandle.onEndInteractionEvent(async () => {
+        painter.paintFloodFill(floodHandle.getPoints());
+
         await painter.endStroke();
   
         onEdit();
       });
     },
     update: (position, spacing) => {
-      paintWidget.getManipulator().setOrigin(position);
-      paintWidget.setRadius(1 * Math.max(...spacing));
+      floodWidget.getManipulator().setOrigin(position);
+      floodWidget.setRadius(0.5 * Math.max(...spacing));
       
-      paintHandle.updateRepresentationForRender();
+      floodHandle.updateRepresentationForRender();
+    },
+    setImageData: imageData => {
+      floodWidget.setImageData(imageData);
     }
   }
 }
