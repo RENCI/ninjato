@@ -5,7 +5,7 @@ import { VolumeViewWrapper, VolumeView } from 'components/volume-view';
 import { SliceViewWrapper, SliceView } from 'components/slice-view';
 import { EditingControls } from 'components/editing-controls';
 import { VerticalSlider } from 'components/vertical-slider';
-import { SaveButton } from 'components/save-button';
+import { SaveButtons } from 'components/save-buttons';
 import styles from './styles.module.css';
 
 const { Row, Column } = Grid;
@@ -81,18 +81,7 @@ export const VisualizationContainer = () => {
           </Column>
         }
       </Grid>
-      { !loading &&
-        <Segment basic textAlign='center'>
-          <SaveButton  
-            text='Save' 
-          />
-          <SaveButton  
-            text='Submit'
-            color='green'
-            done={ true } 
-          />
-        </Segment>
-      }
+      { !loading && <SaveButtons /> }
     </div>
   );
 };
