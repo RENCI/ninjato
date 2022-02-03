@@ -1,4 +1,4 @@
-import { useContext, useState, useEffect } from 'react';
+import { useContext } from 'react';
 import { Button, Icon } from 'semantic-ui-react';
 import { SET_EDIT_MODE, ControlsContext } from 'contexts';
 import styles from './styles.module.css';

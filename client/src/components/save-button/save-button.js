@@ -1,5 +1,5 @@
-import { useContext } from 'react';
-import { Button } from 'semantic-ui-react';
+import { useContext, useState, useRef } from 'react';
+import { Popup, Button, Icon } from 'semantic-ui-react';
 import { UserContext, DataContext } from 'contexts';
 import { api } from 'utils/api';
 import { encodeTIFF } from 'utils/data-conversion';
@@ -10,8 +10,11 @@ const download = false;
 export const SaveButton = ({ text, color, done = false }) => {
   const [{ id, assignment }] = useContext(UserContext);
   const [{ maskData }] = useContext(DataContext);
+  const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const ref = useRef();
 
-  const onSave = () => {
+  const onSave = async () => {
     const buffer = encodeTIFF(maskData);
 
     const blob = new Blob([buffer], { type: 'image/tiff' });
@@ -31,21 +34,42 @@ export const SaveButton = ({ text, color, done = false }) => {
       a.remove();
     }
     else {
+      setSaving(true);
+
       try {
-        api.saveAnnotations(id, assignment.itemId, blob, done);
+        await api.saveAnnotations(id, assignment.itemId, blob, done);
+
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 2000);
       }
       catch (error) {
-        console.log(error);
+        console.log(error);        
       }
+
+      setSaving(false);
     }
   };
 
   return (
-    <Button 
-      color={ color }
-      onClick={ onSave }
-    >
-      { text }
-    </Button>
+    <Popup
+      position='top center'
+      open={ success }
+      trigger={ 
+        <Button 
+          ref={ ref }
+          color={ color }
+          loading={ saving }
+          onClick={ onSave }
+        >
+          { text }
+        </Button>
+        }
+      content={ 
+        <>
+          <Icon name='check circle outline' color='green' />
+          { done ? <>Submitted successfully</> : <>Saved successfully</> }          
+        </>
+      }
+    />
   );
 };

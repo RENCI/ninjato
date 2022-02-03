@@ -98,13 +98,11 @@ export const api = {
     formData.append('comment', '');
     formData.append('content_data', data);
 
-    const response = await axios.post(`/user/${ userId }/annotation`, 
+    await axios.post(`/user/${ userId }/annotation`, 
       formData,
       {
         headers: { 'Content-Type': 'multipart/form-data' }
       }
     );
-
-    console.log(response);
   }
 };
