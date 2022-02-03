@@ -69,7 +69,7 @@ export const Home = () => {
                 { assignment ? 
                   <Message>
                     <Message.Header>
-                      You have an assignment waiting for you.
+                      You have an assignment waiting for you
                     </Message.Header>
                     <div style={{ marginTop: 10 }}>
                       <Button primary onClick={ onLoadClick }>Load assignment</Button>
