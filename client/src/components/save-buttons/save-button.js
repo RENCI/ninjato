@@ -47,6 +47,8 @@ export const SaveButton = ({ disabled, onSaving }) => {
       trigger={ 
         <Button 
           ref={ ref }
+          basic
+          color='green'
           disabled={ disabled}
           loading={ saving }
           onClick={ onSave }
