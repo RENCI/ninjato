@@ -122,9 +122,6 @@ function vtkImageContour(publicAPI, model) {
       }
     });
 
-    console.log(points);
-    console.log(lines);
-
     // Update output
     const polydata = vtkPolyData.newInstance();
     polydata.getPoints().setData(new Float32Array(points), 3);

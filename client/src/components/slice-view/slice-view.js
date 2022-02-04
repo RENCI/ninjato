@@ -160,6 +160,9 @@ export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
         // Update mask slice
         //mask.getMapper().set(image.getMapper().get('slice', 'slicingMode'));
 
+        //console.log(renderer.getActiveCamera().getClippingRange());
+        //renderer.getActiveCamera().setClippingRange([z - 0.1, z + 0.1]);
+
         onSliceChange(z);
       };
 
