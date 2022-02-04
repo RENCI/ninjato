@@ -158,7 +158,7 @@ export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
         widgets.update(position, imageData.getSpacing());
   
         // Update mask slice
-        mask.getMapper().set(image.getMapper().get('slice', 'slicingMode'));
+        //mask.getMapper().set(image.getMapper().get('slice', 'slicingMode'));
 
         onSliceChange(z);
       };
