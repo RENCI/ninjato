@@ -4,6 +4,7 @@ import vtkFullScreenRenderWindow from '@kitware/vtk.js/Rendering/Misc/FullScreen
 import vtkInteractorStyleManipulator from '@kitware/vtk.js/Interaction/Style/InteractorStyleManipulator';
 import vtkMouseRangeManipulator from '@kitware/vtk.js/Interaction/Manipulators/MouseRangeManipulator';
 import vtkImageMapper from '@kitware/vtk.js/Rendering/Core/ImageMapper';
+import vtkPlane from '@kitware/vtk.js/Common/DataModel/Plane';
 import { Widgets } from './widgets';
 import { Image } from './image';
 import { Mask } from './mask';
@@ -158,10 +159,8 @@ export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
         widgets.update(position, imageData.getSpacing());
   
         // Update mask slice
+        // TODO: Probably need a new clipping filter for outlines
         //mask.getMapper().set(image.getMapper().get('slice', 'slicingMode'));
-
-        //console.log(renderer.getActiveCamera().getClippingRange());
-        //renderer.getActiveCamera().setClippingRange([z - 0.1, z + 0.1]);
 
         onSliceChange(z);
       };

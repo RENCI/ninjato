@@ -64,6 +64,12 @@ function vtkImageContour(publicAPI, model) {
       if (el !== model.background) {
         const ijk = getIJK(index, dims);
 
+        // XXX: TODO
+        // 1. Create array of x/y offsets, loop over that
+        // 2. Make work for arbitrary slice
+        // 3. Compute world coordinates properly
+
+
         for (let x = -1; x <= 1; x++) {
           for (let y = -1; y <= 1; y++) {
             if ((x === 0 && y === 0) || (x !== 0 && y !== 0)) continue;
