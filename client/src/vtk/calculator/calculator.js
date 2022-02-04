@@ -122,6 +122,7 @@ function vtkCalculator(publicAPI, model) {
     const arraysOut = [];
     arraySpec.input.forEach((spec) => {
       if (spec.location === FieldDataTypes.COORDINATE) {
+        // Check for point data before accessing
         if (inData.getPoints) arraysIn.push(inData.getPoints());
       } else {
         const fetchArrayContainer = [
@@ -191,6 +192,7 @@ function vtkCalculator(publicAPI, model) {
           [
             FieldDataTypes.POINT,
             (x) => x.getPointData(),
+            // Check for point data before accessing
             (x) => x.getPoints ? x.getPoints().getNumberOfPoints() : x.getNumberOfPoints()
           ],
           [
