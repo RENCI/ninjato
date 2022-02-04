@@ -1,6 +1,7 @@
 import { useContext, useState, useRef } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
-import { UserContext, DataContext, CLEAR_DATA } from 'contexts';
+import { /*UserContext,*/ DataContext, CLEAR_DATA } from 'contexts';
+import { useModal } from 'hooks';
 //import { api } from 'utils/api';
 
 const { Header, Content, Actions } = Modal;
@@ -8,14 +9,10 @@ const { Header, Content, Actions } = Modal;
 export const DeclineButton = ({ disabled }) => {
   // const [{ id, assignment }] = useContext(UserContext);
   const [, dataDispatch] = useContext(DataContext);
-  const [showModal, setShowModal] = useState(false);
+  const [open, openModal, closeModal] = useModal();
   const [declining, setDeclining] = useState(false);
   const [success, setSuccess] = useState(false);
   const ref = useRef();
-
-  const onDecline = () => {
-    setShowModal(true);
-  };
 
   const onConfirm = async () => {
     setDeclining(true);
@@ -27,7 +24,7 @@ export const DeclineButton = ({ disabled }) => {
       setSuccess(true);
       setTimeout(() => {        
         setSuccess(false);
-        setShowModal(false);
+        openModal(false);
 
         dataDispatch({ type: CLEAR_DATA });
       }, 2000);
@@ -45,13 +42,13 @@ export const DeclineButton = ({ disabled }) => {
         ref={ ref }
         negative
         disabled={ disabled }
-        onClick={ onDecline }
+        onClick={ openModal }
       >
         Decline
       </Button>
       <Modal
         dimmer='blurring'
-        open={ showModal }        
+        open={ open }        
       >
         <Header>Decline Region</Header>
         <Content>
@@ -73,7 +70,7 @@ export const DeclineButton = ({ disabled }) => {
           <Button 
             negative 
             disabled={ declining || success }
-            onClick={ () => setShowModal(false) }
+            onClick={ closeModal }
           >
             Cancel
           </Button>
