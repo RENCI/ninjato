@@ -12,6 +12,5 @@ pytest-cov>=2.6
 python-dateutil
 libtiff==0.4.2
 tifffile==2021.11.2
-numpy==1.18.5
 tox
 virtualenv
