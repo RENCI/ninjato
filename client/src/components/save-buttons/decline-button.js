@@ -1,6 +1,6 @@
 import { useContext, useState, useRef } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
-import { /*UserContext,*/ DataContext, CLEAR_DATA } from 'contexts';
+import { DataContext, CLEAR_DATA } from 'contexts';
 import { useModal } from 'hooks';
 //import { api } from 'utils/api';
 

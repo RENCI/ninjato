@@ -4,6 +4,7 @@ import {
   UserContext, 
   SET_DATA, DataContext 
 } from 'contexts';
+import { useGetData } from 'hooks';
 import { VisualizationContainer } from 'components/visualization-container';
 import { api } from 'utils/api';
 import { decodeTIFF } from 'utils/data-conversion';
@@ -13,24 +14,10 @@ const { Row, Column } = Grid;
 export const Home = () => {
   const [{ login, assignment }] = useContext(UserContext);
   const [{ imageData }, dataDispatch] = useContext(DataContext);
+  const getData = useGetData();
 
-  const onLoadClick = async () => { 
-    try {
-      const data = await api.getData(assignment.imageId, assignment.maskId);
-
-      const imageData = decodeTIFF(data.imageBuffer);
-      const maskData = decodeTIFF(data.maskBuffer);
-
-      dataDispatch({
-        type: SET_DATA,
-        imageData: imageData,
-        maskData: maskData,
-        label: 14
-      });
-    }
-    catch (error) {
-      console.log(error);
-    }      
+  const onLoadClick = () => {
+    getData(assignment);
   };
 
   const onLoadPracticeClick = async () => { 
