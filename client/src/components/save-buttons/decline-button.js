@@ -63,7 +63,10 @@ export const DeclineButton = ({ disabled }) => {
               Declined successfully
             </>
           :
-            <>Decline current region? All edits will be lost.</>
+            <>
+              <p>Decline current region?</p>
+              <p>All edits will be lost.</p>
+            </>
           }
         </Content>
         <Actions>
