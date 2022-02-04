@@ -17,7 +17,7 @@ export const AssignmentSelection = () => {
   return (
     <>
       { login ?
-        <Grid >
+        <Grid padded>
           <Row>
             <Column width={ 2 } >            
             </Column>
