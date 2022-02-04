@@ -1,9 +1,7 @@
 from girder.plugin import getPlugin, GirderPlugin
 from girder.api import access
-from girder.models.user import User
 from girder.api.describe import Description, autoDescribeRoute
 from girder.constants import AccessType
-from girder.api.v1.collection import Collection
 from .utils import get_item_assignment, save_user_annotation
 
 
