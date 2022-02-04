@@ -3,7 +3,7 @@ import { DataContext, SET_DATA } from 'contexts';
 import { api } from 'utils/api';
 import { decodeTIFF } from 'utils/data-conversion';
 
-export const useGetData = ()  => {
+export const useLoadData = ()  => {
   const [, dataDispatch] = useContext(DataContext);
 
   return async ({ imageId, maskId }) => {

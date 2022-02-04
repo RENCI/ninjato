@@ -1,42 +1,19 @@
 import { useContext } from 'react';
 import { Grid, Segment, Message, Button, Divider } from 'semantic-ui-react';
-import { 
-  UserContext, 
-  SET_DATA, DataContext 
-} from 'contexts';
-import { useGetData } from 'hooks';
+import { UserContext, DataContext } from 'contexts';
+import { useLoadData, useLoadPracticeData } from 'hooks';
 import { VisualizationContainer } from 'components/visualization-container';
-import { api } from 'utils/api';
-import { decodeTIFF } from 'utils/data-conversion';
 
 const { Row, Column } = Grid;
 
 export const Home = () => {
   const [{ login, assignment }] = useContext(UserContext);
-  const [{ imageData }, dataDispatch] = useContext(DataContext);
-  const getData = useGetData();
+  const [{ imageData }] = useContext(DataContext);
+  const loadData = useLoadData();
+  const loadPracticeData = useLoadPracticeData();
 
   const onLoadClick = () => {
-    getData(assignment);
-  };
-
-  const onLoadPracticeClick = async () => { 
-    try {
-      const data = await api.getPracticeData();
-
-      const imageData = decodeTIFF(data.imageBuffer);
-      const maskData = decodeTIFF(data.maskBuffer);
-
-      dataDispatch({
-        type: SET_DATA,
-        imageData: imageData,
-        maskData: maskData,
-        label: 14
-      });
-    }
-    catch (error) {
-      console.log(error);
-    }      
+    loadData(assignment);
   };
 
   return (
@@ -61,7 +38,7 @@ export const Home = () => {
                     <div style={{ marginTop: 10 }}>
                       <Button primary onClick={ onLoadClick }>Load assignment</Button>
                       <Divider horizontal>Or</Divider>
-                      <Button secondary onClick={ onLoadPracticeClick }>Load practice data</Button>
+                      <Button secondary onClick={ loadPracticeData }>Load practice data</Button>
                     </div>
                   </Message>
                 :
@@ -70,7 +47,7 @@ export const Home = () => {
                       No assignment found!
                     </Message.Header>
                     <div style={{ marginTop: 10 }}>
-                      <Button secondary onClick={ onLoadPracticeClick }>Load practice data</Button>
+                      <Button secondary onClick={ loadPracticeData }>Load practice data</Button>
                     </div>
                   </Message>              
                 }
