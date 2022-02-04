@@ -1,10 +1,14 @@
 import { useContext } from 'react';
-import { DataContext, SET_DATA } from 'contexts';
+import { 
+  DataContext, SET_DATA,
+  ErrorContext, SET_ERROR 
+} from 'contexts';
 import { api } from 'utils/api';
 import { decodeTIFF } from 'utils/data-conversion';
 
 export const useLoadPracticeData = ()  => {
   const [, dataDispatch] = useContext(DataContext);
+  const [, errorDispatch] = useContext(ErrorContext);
 
   return async () => {
     try {
@@ -22,6 +26,8 @@ export const useLoadPracticeData = ()  => {
     }
     catch (error) {
       console.log(error);
+
+      errorDispatch({ type: SET_ERROR, error: error });
     }      
   };
 };
