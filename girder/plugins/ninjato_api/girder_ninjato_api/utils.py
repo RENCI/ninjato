@@ -1,4 +1,5 @@
 import os
+import json
 from libtiff import TIFF
 import numpy as np
 from girder.models.item import Item
@@ -14,11 +15,8 @@ from girder.utility import path as path_util
 from .constants import COLLECTION_NAME, BUFFER_X_Y_FACTOR, BUFFER_Z_ADDITION
 
 
-def save_file(item, path, user, file_name):
-    for asset in AssetstoreModel().list():
-        asset_store_id = asset['_id']
-        break
-    asset_store = AssetstoreModel().load(asset_store_id)
+def save_file(as_id, item, path, user, file_name):
+    asset_store = AssetstoreModel().load(as_id)
     adapter = assetstore_utilities.getAssetstoreAdapter(asset_store)
     file = adapter.importFile(item, path, user, name=file_name, mimeType='image/tiff')
     return file
@@ -52,7 +50,10 @@ def get_item_assignment(user):
         'parentId': coll['_id'],
         'parentCollection': 'collection'
     })
-    sel_item = None
+
+    # when a region is selected, the user id is added to whole item meta specific region values
+    # with a user key, and the user id is added to whole item meta as a key with a value of item id
+    # for easy check whether a region is checked out by the user
     for vol_folder in vol_folders:
         sub_vol_folders = Folder().find({
             'parentId': vol_folder['_id'],
@@ -64,99 +65,90 @@ def get_item_assignment(user):
                 'parentCollection': 'folder'
             })
             for folder in folders:
-                items = Item().find({'folderId': ObjectId(folder['_id'])})
-                for item in items:
-                    if item['name'] != 'whole':
-                        # a region item
-                        if 'user' not in item['meta']:
-                            if 'done' not in item['meta'] or item['meta']['done'] == 'false':
-                                sel_item = item
-                                break
-                            else:
-                                # the region is done, skip this region
-                                continue
-                        elif item['meta']['user'] == user['_id'] and \
-                            ('done' not in item['meta'] or item['meta']['done'] == 'false'):
-                            # this item is already assigned to this user, just return it
-                            return {
-                                'user_id': user['_id'],
-                                'item_id': item['_id']
-                            }
-                        else:
-                            # if the region is already assigned to other user, skip this region
-                            continue
-                    # a whole partition item, look into regions for assignment
-                    coords = item['meta']['coordinates']
-                    x_range = coords["max_x"] - coords["min_x"]
-                    y_range = coords["max_y"] - coords["min_y"]
-                    z_range = coords["max_z"] - coords["min_z"]
-                    if 'done' not in item['meta'] or item['meta']['done'] == 'false':
-                        # look into regions of this whole item for assignment
-                        for key, val in item['meta']['regions'].items():
-                            if 'user' not in val:
-                                # this region can be assigned to a user
-                                val['user'] = user['_id']
-                                # create an item for this selected region
-                                min_x, max_x, min_y, max_y, min_z, max_z = get_buffered_extent(
-                                    val['x_min'], val['x_max'], val['y_min'], val['y_max'],
-                                    val['z_min'], val['z_max'], x_range, y_range, z_range
-                                )
-                                admin_user = User().getAdmins()[0]
-                                region_item = Item().createItem(
-                                    f'region{key}',
-                                    creator=admin_user,
-                                    folder=folder,
-                                    description=f'region{key} of the partition')
-                                item_files = File().find({'itemId': item['_id']})
-                                for item_file in item_files:
-                                    file_path = path_util.getResourcePath('file',
-                                                                          item_file,
-                                                                          force=True)
-                                    tif = TIFF.open(file_path, mode="r")
-                                    file_name = os.path.basename(file_path)
-                                    file_base_name, file_ext = os.path.splitext(file_name)
-                                    out_path = f'/tmp/{file_base_name}_region_{key}{file_ext}'
-                                    output_tif = TIFF.open(out_path, mode="w")
-                                    counter = 0
-                                    for image in tif.iter_images():
-                                        if counter >= min_z and counter <= max_z:
-                                            img = image[min_y:max_y+1, min_x:max_x+1]
-                                            output_tif.write_image(img)
-                                        if counter > max_z:
-                                            break
-                                        counter += 1
-                                    save_file(region_item, out_path, admin_user,
-                                              f'{file_base_name}_region_{key}{file_ext}')
-                                    os.remove(out_path)
-                                    add_meta = {'done': 'false'}
-                                    Item().setMetadata(item, add_meta)
-                                    add_meta = {'coordinates': {
-                                        "x_max": max_x,
-                                        "x_min": min_x,
-                                        "y_max": max_y,
-                                        "y_min": min_y,
-                                        "z_max": max_z,
-                                        "z_min": min_z
-                                    }}
-                                    Item().setMetadata(region_item, add_meta)
-                                sel_item = region_item
-                                print(sel_item, flush=True)
-                                break
+                whole_items = Item().find({'folderId': ObjectId(folder['_id']),
+                                              'name': 'whole'})
 
-                if sel_item:
-                    add_meta = {'user': user['_id']}
-                    Item().setMetadata(sel_item, add_meta)
+                whole_item = whole_items[0]
+                if 'done' in whole_item['meta'] and whole_item['meta']['done'] == 'true':
+                    # if an item is done, continue to check another folder
+                    continue
+                if str(user['_id']) in whole_item['meta']:
+                    # there is already a region checked out by this user, return it
                     return {
                         'user_id': user['_id'],
-                        'item_id': sel_item['_id']
+                        'item_id': whole_item['meta'][str(user['_id'])]
                     }
+                # no region has been assigned to the user yet, look into the whole partition
+                # item to find a region for assignment
+                coords = whole_item['meta']['coordinates']
+                x_range = coords["max_x"] - coords["min_x"]
+                y_range = coords["max_y"] - coords["min_y"]
+                z_range = coords["max_z"] - coords["min_z"]
+                # look into regions of this whole item for assignment
+                for key, val in whole_item['meta']['regions'].items():
+                    if 'user' not in val:
+                        # this region can be assigned to a user
+                        val['user'] = user['_id']
+                        # create an item for this selected region
+                        min_x, max_x, min_y, max_y, min_z, max_z = get_buffered_extent(
+                            val['x_min'], val['x_max'], val['y_min'], val['y_max'],
+                            val['z_min'], val['z_max'], x_range, y_range, z_range
+                        )
+                        admin_user = User().getAdmins()[0]
+                        region_item = Item().createItem(
+                            f'region{key}',
+                            creator=admin_user,
+                            folder=folder,
+                            description=f'region{key} of the partition')
+                        val['item_id'] = region_item['_id']
+                        item_files = File().find({'itemId': whole_item['_id']})
+                        for item_file in item_files:
+                            file_res_path = path_util.getResourcePath('file',
+                                                                      item_file,
+                                                                      force=True)
+                            file = File().load(item_file['_id'], force=True)
+                            file_path = File().getLocalFilePath(file)
+                            assetstore_id = item_file['assetstoreId']
+                            tif = TIFF.open(file_path, mode="r")
+                            file_name = os.path.basename(file_res_path)
+                            file_base_name, file_ext = os.path.splitext(file_name)
+                            out_path = f'/tmp/{file_base_name}_region_{key}{file_ext}'
+                            output_tif = TIFF.open(out_path, mode="w")
+                            counter = 0
+                            for image in tif.iter_images():
+                                if counter >= min_z and counter <= max_z:
+                                    img = image[min_y:max_y + 1, min_x:max_x + 1]
+                                    output_tif.write_image(img)
+                                if counter > max_z:
+                                    break
+                                counter += 1
+                            save_file(assetstore_id, region_item, out_path, admin_user,
+                                      f'{file_base_name}_region_{key}{file_ext}')
 
-    if not sel_item:
-        # there is no item left to assign to this user
-        return {
-            'user_id': user['_id'],
-            'item_id': ''
-        }
+                        add_meta = {str(user['_id']): str(region_item['_id'])}
+                        Item().setMetadata(whole_item, add_meta)
+                        add_meta = {
+                            'coordinates': {
+                                "x_max": max_x,
+                                "x_min": min_x,
+                                "y_max": max_y,
+                                "y_min": min_y,
+                                "z_max": max_z,
+                                "z_min": min_z
+                            },
+                            'user': user['_id']
+                        }
+                        Item().setMetadata(region_item, add_meta)
+                        return {
+                            'user_id': user['_id'],
+                            'item_id': region_item['_id']
+                        }
+
+    # there is no item left to assign to this user
+    return {
+        'user_id': user['_id'],
+        'item_id': ''
+    }
 
 
 def save_user_annotation(user, item_id, done, comment, content_data):
@@ -185,12 +177,14 @@ def save_user_annotation(user, item_id, done, comment, content_data):
 
     files = File().find({'itemId': ObjectId(item_id)})
     annot_file_name = ''
+    assetstore_id = ''
     for file in files:
-        if 'masks.tif' in file['name']:
+        if '_masks' in file['name']:
             mask_file_name = file['name']
             annot_file_name = f'{os.path.splitext(mask_file_name)[0]}_{uname}.tif'
+            assetstore_id = file['assetstoreId']
             break
-    if not annot_file_name:
+    if not annot_file_name or not assetstore_id:
         raise RestException('failure: cannot find the mask file for the annotated item', 500)
     content = content_data.file.read()
     try:
@@ -198,26 +192,29 @@ def save_user_annotation(user, item_id, done, comment, content_data):
         path = f'/tmp/{annot_file_name}'
         with open(path, "wb") as f:
             f.write(content)
-
-        file = save_file(item, path, user, annot_file_name)
-        os.remove(path)
+        file = save_file(assetstore_id, item, path, user, annot_file_name)
     except Exception as e:
         raise RestException(f'failure: {e}', 500)
 
     # check if all regions for the partition is done, and if so add done metadata to whole item
-    items = Item().find({'folderId': ObjectId(item['folderId'])})
+    whole_items = Item().find({'folderId': ObjectId(item['folderId']),
+                               'name': 'whole'})
     partition_done = True
-    partition_item = None
-    for it in items:
-        if it['name'] == 'whole':
-            partition_item = it
-        elif 'done' not in it['meta'] or it['meta']['done'] == 'false':
+    whole_item = whole_items[0]
+    for key, val in whole_item['meta']['regions'].items():
+        if 'user' not in val:
+            # this region is not assigned to any user yet
             partition_done = False
-        if partition_done and partition_item:
             break
-    if partition_done and partition_item:
+        if 'item_id' in val and val['item_id'] == item_id:
+            val['done'] = 'true'
+            continue
+        if 'done' not in val or val['done'] != 'true':
+            partition_done = False
+            break
+    if partition_done:
         add_meta = {'done': 'true'}
-        Item().setMetadata(partition_item, add_meta)
+        Item().setMetadata(whole_item, add_meta)
 
     return {
         'user_id': uid,
