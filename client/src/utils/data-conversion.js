@@ -99,3 +99,20 @@ export const encodeTIFF = imageData => {
 
   return buffer;
 };
+
+export const saveTIFF = (buffer, fileName) => {
+  const blob = new Blob([buffer], { type: 'image/tiff' });
+
+  const url = URL.createObjectURL(blob);
+  
+  const a = document.createElement('a');
+  a.style.display = 'none';
+  a.href = url;
+  a.download = fileName;
+
+  document.body.appendChild(a);
+  a.click();
+  
+  window.URL.revokeObjectURL(url); 
+  a.remove();
+};

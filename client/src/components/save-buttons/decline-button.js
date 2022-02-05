@@ -1,0 +1,89 @@
+import { useContext, useState, useRef } from 'react';
+import { Button, Modal, Icon } from 'semantic-ui-react';
+import { DataContext, CLEAR_DATA } from 'contexts';
+import { useModal } from 'hooks';
+//import { api } from 'utils/api';
+
+const { Header, Content, Actions } = Modal;
+
+export const DeclineButton = ({ disabled }) => {
+  // const [{ id, assignment }] = useContext(UserContext);
+  const [, dataDispatch] = useContext(DataContext);
+  const [open, openModal, closeModal] = useModal();
+  const [declining, setDeclining] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const ref = useRef();
+
+  const onConfirm = async () => {
+    setDeclining(true);
+
+    try {
+      // XXX: Need an decline endpoint
+      // await api.saveAnnotations(id, assignment.itemId, blob, true);
+
+      setSuccess(true);
+      setTimeout(() => {        
+        setSuccess(false);
+        openModal(false);
+
+        dataDispatch({ type: CLEAR_DATA });
+      }, 2000);
+    }
+    catch (error) {
+      console.log(error);        
+    }
+
+    setDeclining(false); 
+  };
+
+  return (
+    <>
+      <Button 
+        ref={ ref }
+        negative
+        disabled={ disabled }
+        onClick={ openModal }
+      >
+        Decline
+      </Button>
+      <Modal
+        dimmer='blurring'
+        open={ open }        
+      >
+        <Header>Decline Region</Header>
+        <Content>
+          { declining ?             
+            <>Processing</>
+          :  success ?
+            <>
+              <Icon name='check circle outline' color='green' />
+              Declined successfully
+            </>
+          :
+            <>
+              <p>Decline current region?</p>
+              <p>All edits will be lost.</p>
+            </>
+          }
+        </Content>
+        <Actions>
+          <Button 
+            negative 
+            disabled={ declining || success }
+            onClick={ closeModal }
+          >
+            Cancel
+          </Button>
+          <Button 
+            positive 
+            disabled={ declining || success }
+            loading={ declining }
+            onClick={ onConfirm } 
+          >
+            Confirm
+          </Button>
+        </Actions>
+      </Modal>
+    </>
+  );
+};

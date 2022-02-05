@@ -12,20 +12,20 @@ export const SliceViewWrapper = ({ sliceView }) => {
     if (evt.key === 'Shift') {
       controlsDispatch({ type: SET_EDIT_MODE, mode: 'erase' });
     }
-  });
+  }, [controlsDispatch]);
 
   const onKeyUp = useCallback(evt => {
     if (evt.key === 'Shift') {
       controlsDispatch({ type: SET_EDIT_MODE, mode: 'paint' });
     }
-  });
+  }, [controlsDispatch]);
   
   // Initialize
   useEffect(() => {
     if (div.current && width) { 
       sliceView.initialize(div.current, onKeyDown, onKeyUp);
     }
-  }, [div, width, sliceView]);
+  }, [div, width, sliceView, onKeyDown, onKeyUp]);
 
   // Update data
   useEffect(() => {
