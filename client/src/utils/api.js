@@ -96,14 +96,16 @@ export const api = {
       maskBuffer: responses[1].data
     };   
   },
-  saveAnnotations: async (userId, itemId, data, done = false) => {
+  saveAnnotations: async (userId, itemId, buffer, done = false) => {
+    const blob = new Blob([buffer], { type: 'image/tiff' });
+
     // Set data and parameters as form data
     const formData = new FormData();
     formData.append('id', userId);
     formData.append('item_id', itemId);
     formData.append('done', done);
     formData.append('comment', '');
-    formData.append('content_data', data);
+    formData.append('content_data', blob);
 
     await axios.post(`/user/${ userId }/annotation`, 
       formData,

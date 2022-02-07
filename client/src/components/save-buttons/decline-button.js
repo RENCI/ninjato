@@ -18,7 +18,7 @@ export const DeclineButton = ({ disabled }) => {
     setDeclining(true);
 
     try {
-      // XXX: Need an decline endpoint
+      // XXX: Need a decline endpoint
       // await api.saveAnnotations(id, assignment.itemId, blob, true);
 
       setSuccess(true);
