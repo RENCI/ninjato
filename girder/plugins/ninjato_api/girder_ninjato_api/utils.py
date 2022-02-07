@@ -23,10 +23,17 @@ def save_file(as_id, item, path, user, file_name):
 
 
 def get_buffered_extent(minx, maxx, miny, maxy, minz, maxz, xrange, yrange, zrange):
-    width = (maxx - minx) * BUFFER_X_Y_FACTOR
-    half_width = int(width / 2)
-    height = (maxy - miny) * BUFFER_X_Y_FACTOR
-    half_height = int(height / 2)
+    width = maxx - minx
+    height = maxy - miny
+
+    if height > width:
+        end_size = height * BUFFER_X_Y_FACTOR
+        half_height = int((end_size-height)/2)
+        half_width = int((end_size-width)/2)
+    else:
+        end_size = width * BUFFER_X_Y_FACTOR
+        half_width = int((end_size - width) / 2)
+        half_height = int((end_size - height) / 2)
 
     minx = minx - half_width
     maxx = maxx + half_width
@@ -35,12 +42,24 @@ def get_buffered_extent(minx, maxx, miny, maxy, minz, maxz, xrange, yrange, zran
     minz = minz - BUFFER_Z_ADDITION
     maxz = maxz + BUFFER_Z_ADDITION
 
-    minx = minx if minx >= 0 else 0
-    miny = miny if miny >= 0 else 0
-    minz = minz if minz >= 0 else 0
-    maxx = maxx if maxx <= xrange else xrange
-    maxy = maxy if maxy <= yrange else yrange
-    maxz = maxz if maxz <= zrange else zrange
+    if minx < 0:
+        maxx = maxx - minx
+        minx = 0
+    if miny < 0:
+        maxy = maxy - miny
+        miny = 0
+    if minz < 0:
+        maxz = maxz - minz
+        minz = 0
+    if maxx > xrange:
+        minx = minx - (maxx - xrange)
+        maxx = xrange
+    if maxy > yrange:
+        miny = miny - (maxy - yrange)
+        maxy = yrange
+    if maxz > zrange:
+        minz = minz - (maxz - zrange)
+        maxz = zrange
     return minx, maxx, miny, maxy, minz, maxz
 
 
@@ -65,18 +84,21 @@ def get_item_assignment(user):
                 'parentCollection': 'folder'
             })
             for folder in folders:
-                whole_items = Item().find({'folderId': ObjectId(folder['_id']),
-                                              'name': 'whole'})
+                whole_item = Item().findOne({'folderId': ObjectId(folder['_id']),
+                                             'name': 'whole'})
 
-                whole_item = whole_items[0]
                 if 'done' in whole_item['meta'] and whole_item['meta']['done'] == 'true':
                     # if an item is done, continue to check another folder
                     continue
                 if str(user['_id']) in whole_item['meta']:
                     # there is already a region checked out by this user, return it
+                    it_id = whole_item['meta'][str(user['_id'])]
+                    it = Item().find({'folderId': ObjectId(folder['_id']),
+                                      '_id': it_id})
                     return {
                         'user_id': user['_id'],
-                        'item_id': whole_item['meta'][str(user['_id'])]
+                        'item_id': it_id,
+                        'region_label': it['meta']['region_label']
                     }
                 # no region has been assigned to the user yet, look into the whole partition
                 # item to find a region for assignment
@@ -117,7 +139,7 @@ def get_item_assignment(user):
                             counter = 0
                             for image in tif.iter_images():
                                 if counter >= min_z and counter <= max_z:
-                                    img = image[min_y:max_y + 1, min_x:max_x + 1]
+                                    img = np.copy(image[min_y:max_y + 1, min_x:max_x + 1])
                                     output_tif.write_image(img)
                                 if counter > max_z:
                                     break
@@ -136,12 +158,14 @@ def get_item_assignment(user):
                                 "z_max": max_z,
                                 "z_min": min_z
                             },
-                            'user': user['_id']
+                            'user': user['_id'],
+                            'region_label': key
                         }
                         Item().setMetadata(region_item, add_meta)
                         return {
                             'user_id': user['_id'],
-                            'item_id': region_item['_id']
+                            'item_id': region_item['_id'],
+                            'region_label': key
                         }
 
     # there is no item left to assign to this user
