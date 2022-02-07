@@ -1,3 +1,3 @@
 COLLECTION_NAME = 'nuclei_image_collection'
 BUFFER_X_Y_FACTOR = 2
-BUFFER_Z_ADDITION = 3
+BUFFER_Z_ADDITION = 2

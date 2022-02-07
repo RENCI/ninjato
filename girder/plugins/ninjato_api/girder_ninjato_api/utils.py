@@ -48,18 +48,14 @@ def get_buffered_extent(minx, maxx, miny, maxy, minz, maxz, xrange, yrange, zran
     if miny < 0:
         maxy = maxy - miny
         miny = 0
-    if minz < 0:
-        maxz = maxz - minz
-        minz = 0
     if maxx > xrange:
         minx = minx - (maxx - xrange)
         maxx = xrange
     if maxy > yrange:
         miny = miny - (maxy - yrange)
         maxy = yrange
-    if maxz > zrange:
-        minz = minz - (maxz - zrange)
-        maxz = zrange
+    minz = minz if minz >= 0 else 0
+    maxz = maxz if maxz <= zrange else zrange
     return minx, maxx, miny, maxy, minz, maxz
 
 
@@ -93,8 +89,8 @@ def get_item_assignment(user):
                 if str(user['_id']) in whole_item['meta']:
                     # there is already a region checked out by this user, return it
                     it_id = whole_item['meta'][str(user['_id'])]
-                    it = Item().find({'folderId': ObjectId(folder['_id']),
-                                      '_id': it_id})
+                    it = Item().findOne({'folderId': ObjectId(folder['_id']),
+                                         '_id': ObjectId(it_id)})
                     return {
                         'user_id': user['_id'],
                         'item_id': it_id,
