@@ -10,7 +10,7 @@ export const useLoadData = ()  => {
   const [, dataDispatch] = useContext(DataContext);
   const [, errorDispatch] = useContext(ErrorContext);
 
-  return async ({ imageId, maskId }) => {
+  return async ({ imageId, maskId, label }) => {
     try {
       const data = await api.getData(imageId, maskId);
 
@@ -21,7 +21,7 @@ export const useLoadData = ()  => {
         type: SET_DATA,
         imageData: imageData,
         maskData: maskData,
-        label: 14
+        label: label
       });
     }
     catch (error) {

@@ -56,15 +56,22 @@ export const api = {
     const assignmentResponse = await axios.get(`/user/${ id }/assignment`);
 
     const itemId = assignmentResponse.data.item_id;
+    const label = +assignmentResponse.data.region_label;
 
     if (!itemId) return null;
 
     const filesResponse = await axios.get(`/item/${ itemId }/files`);
 
+    const { imageInfo, maskInfo } = filesResponse.data.reduce((info, item) => {
+      item.name.includes('mask') ? info.maskInfo = item : info.imageInfo = item;
+      return info;
+    }, {});
+
     return {
       itemId: itemId,
-      imageId: filesResponse.data[0]._id,
-      maskId: filesResponse.data[1]._id
+      imageId: imageInfo._id,
+      maskId: maskInfo._id,
+      label: label
     };
   },
   getData: async (imageId, maskId) => {
