@@ -31,7 +31,7 @@ export const SubmitButton = ({ disabled }) => {
         closeModal();
 
         dataDispatch({ type: CLEAR_DATA });
-      }, 2000);
+      }, 1000);
     }
     catch (error) {
       console.log(error);        
