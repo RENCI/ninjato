@@ -20,10 +20,8 @@ export const SubmitButton = ({ disabled }) => {
 
     const buffer = encodeTIFF(maskData);
 
-    const blob = new Blob([buffer], { type: 'image/tiff' });
-
     try {
-      await api.saveAnnotations(id, assignment.itemId, blob, true);
+      await api.saveAnnotations(id, assignment.itemId, buffer, true);
 
       setSuccess(true);
       setTimeout(() => {        
@@ -31,7 +29,7 @@ export const SubmitButton = ({ disabled }) => {
         closeModal();
 
         dataDispatch({ type: CLEAR_DATA });
-      }, 2000);
+      }, 1000);
     }
     catch (error) {
       console.log(error);        

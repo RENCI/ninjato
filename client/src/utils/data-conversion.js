@@ -9,7 +9,8 @@ utif.ttypes[297] = 5;
 
 // Based on encodeImage from utif, but adjusted for multipage single component images with different bits
 const encodeImage = (image, w, h, n, bpp = 16) => {
-  const stripByteCounts = w * h * bpp / 8;
+  const bytes = bpp / 8;
+  const stripByteCounts = w * h * bytes;
   const arrayType = bpp === 32 ? Uint32Array : bpp === 16 ? Uint16Array : Uint8Array;
  
   const idf = { 
@@ -29,27 +30,29 @@ const encodeImage = (image, w, h, n, bpp = 16) => {
     t296: [3]                 // resolution unit
   };
 
+
   // XXX: Magic number, should be able to calculate from idf size?
   const headerOffset = 120 * n;
   
   const idfs = [];
   for (let i = 0; i < n; i++) {
-    const offset = headerOffset * bpp / 8 + i * stripByteCounts;
+    const offset = headerOffset * bytes + i * stripByteCounts;
 
-    idf.t273 = [offset];      // strip offsets
-    idf.t297 = [i, n];        // page number
-
-    idfs.push({...idf});
+    idfs.push({
+      ...idf,
+      t273: [offset],      // strip offsets
+      t297: [i, n],        // page number
+    });
   }
-	
-	const prfx = new arrayType(utif.encode(idfs));
-	const img = new arrayType(image);
+  
+  const prfx = new arrayType(utif.encode(idfs));
   const data = new arrayType(headerOffset + n * stripByteCounts);
+  const view = new DataView(data.buffer);
   
-	for(let i = 0; i < prfx.length; i++) data[i] = prfx[i];
-  for(let i = 0; i < img.length; i++) data[headerOffset + i] = img[i];
-  
-	return data.buffer;
+	for (let i = 0; i < prfx.length; i++) data[i] = prfx[i];
+  for (let i = 0; i < image.length; i++) view.setUint16(headerOffset * bytes + i * bytes, image[i], false);
+
+	return view.buffer;
 }
 
 export const decodeTIFF = buffer => {

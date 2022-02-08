@@ -22,15 +22,18 @@ export const SaveButton = ({ disabled, onSaving }) => {
 
     if (download) {  
       saveTIFF(buffer, 'testTiff.tif');
+
+      setSaving(false);      
+      onSaving(false);
+
+      return;
     }
 
-    const blob = new Blob([buffer], { type: 'image/tiff' });
-
     try {
-      await api.saveAnnotations(id, assignment.itemId, blob);
+      await api.saveAnnotations(id, assignment.itemId, buffer);
 
       setSuccess(true);
-      setTimeout(() => setSuccess(false), 2000);
+      setTimeout(() => setSuccess(false), 1000);
     }
     catch (error) {
       console.log(error);        

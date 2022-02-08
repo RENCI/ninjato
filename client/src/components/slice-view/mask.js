@@ -6,7 +6,13 @@ import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransf
 import vtkPiecewiseFunction  from '@kitware/vtk.js/Common/DataModel/PiecewiseFunction';
 
 import vtkNinjatoPainter from 'vtk/ninjato-painter';
+import vtkImageContour from 'vtk/image-contour';
 import { Reds, Blues } from 'utils/colors';
+
+
+import vtkLineSource from '@kitware/vtk.js/Filters/Sources/LineSource';
+import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
+import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 
 const sliceMode = vtkImageMapper.SlicingMode.K;
 
@@ -20,8 +26,12 @@ export function Mask() {
   painter.setSlicingMode(sliceMode);
   painter.setRadius(0.1);
 
+  const contour = vtkImageContour.newInstance();
+  contour.setInputConnection(painter.getOutputPort());
+
+/*  
   const mapper = vtkImageMapper.newInstance();
-  mapper.setInputConnection(painter.getOutputPort());  
+  mapper.setInputConnection(contour.getOutputPort());  
   
   const opacity = vtkPiecewiseFunction.newInstance();
   opacity.addPoint(0, 0);
@@ -31,6 +41,20 @@ export function Mask() {
   actor.getProperty().setInterpolationTypeToNearest();
   actor.getProperty().setOpacity(0.5);
   actor.setMapper(mapper);
+*/
+  const line = vtkLineSource.newInstance({
+    point1: [0, 0, 0],
+    point2: [20, 20, 0]
+  });
+  
+  const mapper = vtkMapper.newInstance();
+  mapper.setInputConnection(contour.getOutputPort());
+  mapper.setResolveCoincidentTopology(true);
+  mapper.setResolveCoincidentTopologyPolygonOffsetParameters(-1, -1);
+
+  const actor = vtkActor.newInstance();
+  actor.setMapper(mapper);
+  actor.getProperty().setColor([1, 0, 0]);
 
   return {
     getPainter: () => painter,
@@ -54,8 +78,8 @@ export function Mask() {
       color.addRGBPoint(label, ...regionColor);
       color.addRGBPoint(label + 1, ...backgroundColor);
 
-      actor.getProperty().setRGBTransferFunction(color);
-      actor.getProperty().setPiecewiseFunction(opacity);
+      //actor.getProperty().setRGBTransferFunction(color);
+      //actor.getProperty().setPiecewiseFunction(opacity);
     },
     getLabel: () => label,
     setEditMode: editMode => {
