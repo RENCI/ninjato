@@ -43,6 +43,9 @@ export function Mask() {
     setInputData: (imageData, maskData) => {
       painter.setBackgroundImage(imageData);
       painter.setLabelMap(maskData);
+
+      const [w, h] = imageData.getDimensions();
+      contour.setWidth(Math.max(w, h) / 200);
     },
     setLabel: regionLabel => {
       label = regionLabel;
