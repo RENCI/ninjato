@@ -4,11 +4,9 @@ import vtkFullScreenRenderWindow from '@kitware/vtk.js/Rendering/Misc/FullScreen
 import vtkInteractorStyleManipulator from '@kitware/vtk.js/Interaction/Style/InteractorStyleManipulator';
 import vtkMouseRangeManipulator from '@kitware/vtk.js/Interaction/Manipulators/MouseRangeManipulator';
 import vtkImageMapper from '@kitware/vtk.js/Rendering/Core/ImageMapper';
-import vtkPlane from '@kitware/vtk.js/Common/DataModel/Plane';
 import { Widgets } from './widgets';
 import { Image } from './image';
 import { Mask } from './mask';
-//import { Outline } from './outline';
 
 const slicingMode = vtkImageMapper.SlicingMode.K;
 
@@ -21,7 +19,7 @@ const resetCamera = (renderer, imageData) => {
   const position = [x, y, -1];
   const focalPoint = [x, y, 0];
   const viewUp = [0, -1, 0];
-  const parallelScale = Math.max(x, y);
+  const parallelScale = Math.max(x, y) + 0.5; // Add fudge factor to make sure full image visible
 
   renderer.getActiveCamera().set({ position, focalPoint, viewUp, parallelScale });
 };
@@ -161,6 +159,7 @@ export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
         // Update mask slice
         // TODO: Probably need a new clipping filter for outlines
         //mask.getMapper().set(image.getMapper().get('slice', 'slicingMode'));
+        mask.setSlice(z);
 
         onSliceChange(z);
       };

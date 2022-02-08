@@ -52,14 +52,19 @@ export default function widgetBehavior(publicAPI, model) {
         model.apiSpecificRenderWindow
       );
 
+      const toPixelCenter = (v, max) => {
+        if (v < 0) v = 0;
+        else if (v > max - 1) v = max - 1.5;
+        
+        return (Math.floor(v * max / (max - 1)) + 0.5) * (max - 1) / max;
+      };
+
       if (worldCoords.length) {
         const imageData = model.factory.getImageData();
 
         if (imageData) {
           const ijk = imageData.worldToIndex([...worldCoords]);
           const dims = imageData.getDimensions();
-
-          const toPixelCenter = (v, max) => (Math.floor(v * max / (max - 1)) + 0.5) * (max - 1) / max;
 
           worldCoords[0] = toPixelCenter(ijk[0], dims[0]);
           worldCoords[1] = toPixelCenter(ijk[1], dims[1]);
