@@ -2,7 +2,6 @@ import '@kitware/vtk.js/Rendering/Profiles/All';
 
 import vtkImageMapper from '@kitware/vtk.js/Rendering/Core/ImageMapper';
 import vtkImageSlice from '@kitware/vtk.js/Rendering/Core/ImageSlice';
-import vtkImageSliceFilter from '@kitware/vtk.js/Filters/General/ImageSliceFilter';
 import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
 import vtkPiecewiseFunction  from '@kitware/vtk.js/Common/DataModel/PiecewiseFunction';
 
@@ -20,46 +19,25 @@ const sliceMode = vtkImageMapper.SlicingMode.K;
 export function Mask() {      
   let label = null;
 
-  const backgroundColor = Blues[5];
+  const backgroundColor = Blues[7];
   const regionColor = Reds[5];
 
   const painter = vtkNinjatoPainter.newInstance();
   painter.setSlicingMode(sliceMode);
   painter.setRadius(0.1);
 
-  const slice = vtkImageSliceFilter.newInstance();
-  slice.setSliceIndex(8);
-  slice.setInputConnection(painter.getOutputPort());
-
   const contour = vtkImageContour.newInstance();
-  contour.setInputConnection(slice.getOutputPort());
+  contour.setInputConnection(painter.getOutputPort());
 
-/*  
-  const mapper = vtkImageMapper.newInstance();
-  mapper.setInputConnection(contour.getOutputPort());  
-  
-  const opacity = vtkPiecewiseFunction.newInstance();
-  opacity.addPoint(0, 0);
-  opacity.addPoint(1, 1);
-
-  const actor = vtkImageSlice.newInstance();
-  actor.getProperty().setInterpolationTypeToNearest();
-  actor.getProperty().setOpacity(0.5);
-  actor.setMapper(mapper);
-*/
-  const line = vtkLineSource.newInstance({
-    point1: [0, 0, 0],
-    point2: [20, 20, 0]
-  });
+  const color = vtkColorTransferFunction.newInstance();
   
   const mapper = vtkMapper.newInstance();
+  mapper.setUseLookupTableScalarRange(true);
+  mapper.setLookupTable(color);
   mapper.setInputConnection(contour.getOutputPort());
-  mapper.setResolveCoincidentTopology(true);
-  mapper.setResolveCoincidentTopologyPolygonOffsetParameters(-1, -1);
 
   const actor = vtkActor.newInstance();
   actor.setMapper(mapper);
-  actor.getProperty().setColor([1, 0, 0]);
 
   return {
     getPainter: () => painter,
@@ -74,23 +52,21 @@ export function Mask() {
       
       painter.setLabel(label);
 
-      const color = vtkColorTransferFunction.newInstance();
+      color.removeAllPoints();
       color.addRGBPoint(0, 0, 0, 0);
+      color.addRGBPoint(0, 0, 1, 0);
       if (label > 1) {
         color.addRGBPoint(1, ...backgroundColor);
         color.addRGBPoint(label - 1, ...backgroundColor);
       }
       color.addRGBPoint(label, ...regionColor);
-      color.addRGBPoint(label + 1, ...backgroundColor);
-
-      //actor.getProperty().setRGBTransferFunction(color);
-      //actor.getProperty().setPiecewiseFunction(opacity);
+      color.addRGBPoint(label + 1, ...backgroundColor);      
     },
     getLabel: () => label,
     setEditMode: editMode => {
       painter.setLabel(editMode === 'erase' ? 0 : label);
       painter.setErase(editMode === 'erase');
     },
-    setSlice: sliceIndex => slice.setSliceIndex(sliceIndex)
+    setSlice: slice => contour.setSlice(slice)
   };
 }

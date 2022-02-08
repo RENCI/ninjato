@@ -1,5 +1,6 @@
 import macro from '@kitware/vtk.js/macros';
 import vtkPolyData from '@kitware/vtk.js/Common/DataModel/PolyData';
+import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
 import * as vtkMath from '@kitware/vtk.js/Common/Core/Math';
 
 const { vtkErrorMacro, vtkWarningMacro } = macro;
@@ -22,10 +23,10 @@ function vtkImageContour(publicAPI, model) {
     }
 
     // Retrieve output and volume data
-    const origin = input.getOrigin();
     const spacing = input.getSpacing();
     const dims = input.getDimensions();
-    const s = input.getPointData().getScalars().getData();
+    const inputScalars = input.getPointData().getScalars();
+    const inputDataArray = input.getPointData().getScalars().getData();
 
     // Points - dynamic array
     const points = [];
@@ -33,6 +34,9 @@ function vtkImageContour(publicAPI, model) {
     // Cells - dynamic array
     // First value is number of line segments, followed by pairs of indeces
     const lines = [];
+
+    // Data - dynamic array
+    const values = [];
 
     const getIndex = (point, dims) =>
     point[0] + point[1] * dims[0] + point[2] * dims[0] * dims[1];
@@ -44,10 +48,6 @@ function vtkImageContour(publicAPI, model) {
       ijk[2] = Math.floor(index / (dims[0] * dims[1]));
       return ijk;
     };
-
-    const values = new Uint8Array(input.getNumberOfPoints());
-
-    const inputDataArray = input.getPointData().getScalars().getData();
 
     let kernelX = 0; // default K slicing mode
     let kernelY = 1;
@@ -80,12 +80,13 @@ function vtkImageContour(publicAPI, model) {
     kSpacing[1] = spacing[kernelY];
     kSpacing[2] = spacing[kernelZ];
 
-
     const toPixelCenter = (v, max) => (Math.floor(v * max / (max - 1)) + 0.5) * (max - 1) / max;
 
     inputDataArray.forEach((el, index) => {
-      if (el !== model.background) {
+      if (el !== 0) {
         const ijk = getIJK(index, dims);
+
+        if (ijk[kernelZ] !== model.slice) return;
 
         offsets.forEach(({ dx, dy }) => {
           const evalX = ijk[kernelX] + dx;
@@ -133,8 +134,8 @@ function vtkImageContour(publicAPI, model) {
                 p2[kernelZ] = pz;    
               }            
                 
-              points.push(...p1);
-              points.push(...p2);
+              points.push(...p1, ...p2);
+              values.push(el, el);
             }
           }
         });
@@ -150,7 +151,13 @@ function vtkImageContour(publicAPI, model) {
     const polydata = vtkPolyData.newInstance();
     polydata.getPoints().setData(new Float32Array(points), 3);
     polydata.getLines().setData(new Uint32Array(lines));
-  
+    polydata.getPointData().setScalars(vtkDataArray.newInstance({
+      numberOfComponents: 1,
+      values: values,
+      dataType: inputScalars.getDataType(),
+      name: inputScalars.getName()
+    }));
+
     outData[0] = polydata;
   };
 }
