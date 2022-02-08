@@ -99,9 +99,9 @@ def get_item_assignment(user):
                 # no region has been assigned to the user yet, look into the whole partition
                 # item to find a region for assignment
                 coords = whole_item['meta']['coordinates']
-                x_range = coords["max_x"] - coords["min_x"]
-                y_range = coords["max_y"] - coords["min_y"]
-                z_range = coords["max_z"] - coords["min_z"]
+                x_range = coords["x_max"] - coords["x_min"]
+                y_range = coords["y_max"] - coords["y_min"]
+                z_range = coords["z_max"] - coords["z_min"]
                 # look into regions of this whole item for assignment
                 for key, val in whole_item['meta']['regions'].items():
                     if 'user' not in val:
