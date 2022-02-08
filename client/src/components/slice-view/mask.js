@@ -1,18 +1,14 @@
 import '@kitware/vtk.js/Rendering/Profiles/All';
 
 import vtkImageMapper from '@kitware/vtk.js/Rendering/Core/ImageMapper';
-import vtkImageSlice from '@kitware/vtk.js/Rendering/Core/ImageSlice';
 import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
-import vtkPiecewiseFunction  from '@kitware/vtk.js/Common/DataModel/PiecewiseFunction';
+import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
+import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 
 import vtkNinjatoPainter from 'vtk/ninjato-painter';
 import vtkImageContour from 'vtk/image-contour';
 import { Reds, Blues } from 'utils/colors';
 
-
-import vtkLineSource from '@kitware/vtk.js/Filters/Sources/LineSource';
-import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
-import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 
 const sliceMode = vtkImageMapper.SlicingMode.K;
 
@@ -38,6 +34,7 @@ export function Mask() {
 
   const actor = vtkActor.newInstance();
   actor.setMapper(mapper);
+  actor.getProperty().setLighting(false);
 
   return {
     getPainter: () => painter,
