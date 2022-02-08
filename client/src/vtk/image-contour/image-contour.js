@@ -51,82 +51,100 @@ function vtkImageContour(publicAPI, model) {
 
     let kernelX = 0; // default K slicing mode
     let kernelY = 1;
+    let kernelZ = 2;
     if (model.slicingMode === 1) {
       kernelX = 0;
       kernelY = 2;
+      kernelZ = 1;
     } 
     else if (model.slicingMode === 0) {
       kernelX = 1;
       kernelY = 2;
+      kernelZ = 0;
     }
+
+    const offsets = [
+      { dx: -1, dy:  0},
+      { dx:  1, dy:  0},
+      { dx:  0, dy: -1},
+      { dx:  0, dy:  1 }
+    ];
+
+    const kDims = [];
+    kDims[0] = dims[kernelX];
+    kDims[1] = dims[kernelY];
+    kDims[2] = dims[kernelZ];
+
+    const kSpacing = [];
+    kSpacing[0] = spacing[kernelX];
+    kSpacing[1] = spacing[kernelY];
+    kSpacing[2] = spacing[kernelZ];
+
+
+    const toPixelCenter = (v, max) => (Math.floor(v * max / (max - 1)) + 0.5) * (max - 1) / max;
 
     inputDataArray.forEach((el, index) => {
       if (el !== model.background) {
         const ijk = getIJK(index, dims);
 
-        // XXX: TODO
-        // 1. Create array of x/y offsets, loop over that
-        // 2. Make work for arbitrary slice
-        // 3. Compute world coordinates properly
+        offsets.forEach(({ dx, dy }) => {
+          const evalX = ijk[kernelX] + dx;
+          const evalY = ijk[kernelY] + dy;
 
+          // check boundaries
+          if (
+            evalX >= 0 &&
+            evalX < dims[kernelX] &&
+            evalY >= 0 &&
+            evalY < dims[kernelY]
+          ) {
+            const ijk2 = [];
+            ijk2[kernelX] = evalX;
+            ijk2[kernelY] = evalY;
+            ijk2[kernelZ] = ijk[kernelZ];
 
-        for (let x = -1; x <= 1; x++) {
-          for (let y = -1; y <= 1; y++) {
-            if ((x === 0 && y === 0) || (x !== 0 && y !== 0)) continue;
+            const value = inputDataArray[getIndex(ijk2, dims)];
 
-            let dx = x;
-            let dy = y;
-            let dz = 0;
+            if (value !== el) {                
+              const p = input.indexToWorld(ijk);
+              const px = toPixelCenter(p[kernelX], kDims[kernelX]);
+              const py = toPixelCenter(p[kernelY], kDims[kernelY]);
+              const pz = p[kernelZ];
 
-            if (model.slicingMode === 1) {
-              dx = x;
-              dy = 0;
-              dz = y;
-            } 
-            else if (model.slicingMode === 0) {
-              dx = 0;
-              dy = y;
-              dz = x;
-            }
+              const p1 = [];
+              const p2 = [];
+              
+              if (dx === 0) {
+                p1[kernelX] = px + 0.5;
+                p1[kernelY] = py + dy * 0.5;
+                p1[kernelZ] = pz;
 
-            const evalX = ijk[kernelX] + dx;
-            const evalY = ijk[kernelY] + dy;
-
-            // check boundaries
-            if (
-              evalX >= 0 &&
-              evalX < dims[kernelX] &&
-              evalY >= 0 &&
-              evalY < dims[kernelY]
-            ) {
-              const ijk2 = [ijk[0] + dx, ijk[1] + dy, ijk[2] + dz];
-              const value = inputDataArray[getIndex(ijk2, dims)];
-
-              if (value !== el) {                
-                if (dx === -1) {
-                  points.push(ijk[0] - 0.5, ijk[1] - 0.5, ijk[2]);
-                  points.push(ijk[0] - 0.5, ijk[1] + 0.5, ijk[2]);
-                }
-                else if (dx === 1) {
-                  points.push(ijk[0] + 0.5, ijk[1] - 0.5, ijk[2]);
-                  points.push(ijk[0] + 0.5, ijk[1] + 0.5, ijk[2]);
-                }
-                else if (dy === -1) {
-                  points.push(ijk[0] - 0.5, ijk[1] - 0.5, ijk[2]);
-                  points.push(ijk[0] + 0.5, ijk[1] - 0.5, ijk[2]);
-                }
-                else if (dy === 1) {
-                  points.push(ijk[0] - 0.5, ijk[1] + 0.5, ijk[2]);
-                  points.push(ijk[0] + 0.5, ijk[1] + 0.5, ijk[2]);
-                }
-
-                lines.push(2, points.length / 3 - 2, points.length / 3 - 1);
+                p2[kernelX] = px - 0.5;
+                p2[kernelY] = py + dy * 0.5;
+                p2[kernelZ] = pz;  
               }
+              else {
+                p1[kernelX] = px + dx * 0.5;
+                p1[kernelY] = py + 0.5;
+                p1[kernelZ] = pz;
+
+                p2[kernelX] = px + dx * 0.5;
+                p2[kernelY] = py - 0.5;
+                p2[kernelZ] = pz;    
+              }            
+                
+              points.push(...p1);
+              points.push(...p2);
             }
           }
-        }
+        });
       }
     });
+
+    // Create lines
+    for (let i = 0; i < points.length / 2; i++) {
+      lines.push(2, i * 2, i * 2 + 1);
+    }
 
     // Update output
     const polydata = vtkPolyData.newInstance();

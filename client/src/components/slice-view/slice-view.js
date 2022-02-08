@@ -161,6 +161,7 @@ export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
         // Update mask slice
         // TODO: Probably need a new clipping filter for outlines
         //mask.getMapper().set(image.getMapper().get('slice', 'slicingMode'));
+        mask.setSlice(z);
 
         onSliceChange(z);
       };

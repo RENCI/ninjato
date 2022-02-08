@@ -2,6 +2,7 @@ import '@kitware/vtk.js/Rendering/Profiles/All';
 
 import vtkImageMapper from '@kitware/vtk.js/Rendering/Core/ImageMapper';
 import vtkImageSlice from '@kitware/vtk.js/Rendering/Core/ImageSlice';
+import vtkImageSliceFilter from '@kitware/vtk.js/Filters/General/ImageSliceFilter';
 import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
 import vtkPiecewiseFunction  from '@kitware/vtk.js/Common/DataModel/PiecewiseFunction';
 
@@ -26,8 +27,12 @@ export function Mask() {
   painter.setSlicingMode(sliceMode);
   painter.setRadius(0.1);
 
+  const slice = vtkImageSliceFilter.newInstance();
+  slice.setSliceIndex(8);
+  slice.setInputConnection(painter.getOutputPort());
+
   const contour = vtkImageContour.newInstance();
-  contour.setInputConnection(painter.getOutputPort());
+  contour.setInputConnection(slice.getOutputPort());
 
 /*  
   const mapper = vtkImageMapper.newInstance();
@@ -85,6 +90,7 @@ export function Mask() {
     setEditMode: editMode => {
       painter.setLabel(editMode === 'erase' ? 0 : label);
       painter.setErase(editMode === 'erase');
-    }
+    },
+    setSlice: sliceIndex => slice.setSliceIndex(sliceIndex)
   };
 }
