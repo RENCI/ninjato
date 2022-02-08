@@ -1,9 +1,8 @@
 import macro from '@kitware/vtk.js/macros';
 import vtkPolyData from '@kitware/vtk.js/Common/DataModel/PolyData';
 import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
-import * as vtkMath from '@kitware/vtk.js/Common/Core/Math';
 
-const { vtkErrorMacro, vtkWarningMacro } = macro;
+const { vtkErrorMacro } = macro;
 
 // ----------------------------------------------------------------------------
 // vtkImageContour methods
@@ -72,7 +71,8 @@ function vtkImageContour(publicAPI, model) {
     const halfSpacing = spacing.map(d => d / 2);
     const w = model.width / 2;
 
-    const toPixelCenter = (v, max) => (Math.floor(v * max / (max - 1)) + 0.5) * (max - 1) / max;
+    const toPixelCenter = (v, max) => 
+      v === max - 1 ? max - 2 + 0.5 : (Math.floor(v * max / (max - 1)) + 0.5) * (max - 1) / max;
 
     inputDataArray.forEach((el, index) => {
       if (el !== 0) {
@@ -84,7 +84,8 @@ function vtkImageContour(publicAPI, model) {
           const evalX = ijk[kernelX] + dx;
           const evalY = ijk[kernelY] + dy;
 
-          // check boundaries
+          // Check boundaries
+          let value = 0;
           if (
             evalX >= 0 &&
             evalX < dims[kernelX] &&
@@ -96,58 +97,57 @@ function vtkImageContour(publicAPI, model) {
             ijk2[kernelY] = evalY;
             ijk2[kernelZ] = ijk[kernelZ];
 
-            const value = inputDataArray[getIndex(ijk2, dims)];
+            value = inputDataArray[getIndex(ijk2, dims)];
+          }
 
-            if (value !== el) {                
-              const p = input.indexToWorld(ijk);
-              const px = toPixelCenter(p[kernelX], dims[kernelX]) + dx * halfSpacing[kernelX];
-              const py = toPixelCenter(p[kernelY], dims[kernelY]) + dy * halfSpacing[kernelY];
-              const pz = p[kernelZ];
+          if (value !== el) {                
+            const p = input.indexToWorld(ijk);
+            const px = toPixelCenter(p[kernelX], dims[kernelX]) + dx * halfSpacing[kernelX];
+            const py = toPixelCenter(p[kernelY], dims[kernelY]) + dy * halfSpacing[kernelY];
+            const pz = p[kernelZ];
 
+            const p1 = [];
+            const p2 = [];
+            const p3 = [];
+            const p4 = [];
+            
+            if (dx === 0) {
+              p1[kernelX] = px - halfSpacing[kernelX] - w;
+              p1[kernelY] = py + w;
+              p1[kernelZ] = pz;
 
-              const p1 = [];
-              const p2 = [];
-              const p3 = [];
-              const p4 = [];
-              
-              if (dx === 0) {
-                p1[kernelX] = px - halfSpacing[kernelX] - w;
-                p1[kernelY] = py + w;
-                p1[kernelZ] = pz;
+              p2[kernelX] = px + halfSpacing[kernelX] + w;
+              p2[kernelY] = py + w;
+              p2[kernelZ] = pz;
 
-                p2[kernelX] = px + halfSpacing[kernelX] + w;
-                p2[kernelY] = py + w;
-                p2[kernelZ] = pz;
+              p3[kernelX] = px + halfSpacing[kernelX] + w;
+              p3[kernelY] = py - w;
+              p3[kernelZ] = pz; 
 
-                p3[kernelX] = px + halfSpacing[kernelX] + w;
-                p3[kernelY] = py - w;
-                p3[kernelZ] = pz; 
-
-                p4[kernelX] = px - halfSpacing[kernelX] - w;
-                p4[kernelY] = py - w;
-                p4[kernelZ] = pz; 
-              }
-              else {              
-                p1[kernelX] = px + w;
-                p1[kernelY] = py - halfSpacing[kernelY] - w;
-                p1[kernelZ] = pz;
-
-                p2[kernelX] = px + w;
-                p2[kernelY] = py + halfSpacing[kernelY] + w;
-                p2[kernelZ] = pz;
-
-                p3[kernelX] = px - w;
-                p3[kernelY] = py + halfSpacing[kernelY] + w;
-                p3[kernelZ] = pz; 
-
-                p4[kernelX] = px - w;
-                p4[kernelY] = py - halfSpacing[kernelY] - w;
-                p4[kernelZ] = pz;   
-              }            
-                
-              points.push(...p1, ...p2, ...p3, ...p4);
-              values.push(el, el, el, el);
+              p4[kernelX] = px - halfSpacing[kernelX] - w;
+              p4[kernelY] = py - w;
+              p4[kernelZ] = pz; 
             }
+            else {              
+              p1[kernelX] = px + w;
+              p1[kernelY] = py - halfSpacing[kernelY] - w;
+              p1[kernelZ] = pz;
+
+              p2[kernelX] = px + w;
+              p2[kernelY] = py + halfSpacing[kernelY] + w;
+              p2[kernelZ] = pz;
+
+              p3[kernelX] = px - w;
+              p3[kernelY] = py + halfSpacing[kernelY] + w;
+              p3[kernelZ] = pz; 
+
+              p4[kernelX] = px - w;
+              p4[kernelY] = py - halfSpacing[kernelY] - w;
+              p4[kernelZ] = pz;   
+            }            
+              
+            points.push(...p1, ...p2, ...p3, ...p4);
+            values.push(el, el, el, el);
           }
         });
       }
@@ -201,4 +201,5 @@ export const newInstance = macro.newInstance(extend, 'vtkImageContour');
 
 // ----------------------------------------------------------------------------
 
+// eslint-disable-next-line import/no-anonymous-default-export
 export default { newInstance, extend };
