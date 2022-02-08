@@ -59,7 +59,6 @@ export default function widgetBehavior(publicAPI, model) {
           const ijk = imageData.worldToIndex([...worldCoords]);
           const dims = imageData.getDimensions();
 
-          // XXX: Assuming pixel spacing of 1 in X and Y?
           const toPixelCenter = (v, max) => (Math.floor(v * max / (max - 1)) + 0.5) * (max - 1) / max;
 
           worldCoords[0] = toPixelCenter(ijk[0], dims[0]);

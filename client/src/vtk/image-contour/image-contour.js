@@ -204,7 +204,7 @@ const DEFAULT_VALUES = {
   slicingMode: 2,
   sliceRange: [0, Infinity],
   width: 0.2,
-  labelOffsets: []
+  labelOffsets: {}
 };
 
 // ----------------------------------------------------------------------------
