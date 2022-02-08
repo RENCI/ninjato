@@ -19,7 +19,7 @@ const resetCamera = (renderer, imageData) => {
   const position = [x, y, -1];
   const focalPoint = [x, y, 0];
   const viewUp = [0, -1, 0];
-  const parallelScale = Math.max(x, y);
+  const parallelScale = Math.max(x, y) + 0.5; // Add fudge factor to make sure full image visible
 
   renderer.getActiveCamera().set({ position, focalPoint, viewUp, parallelScale });
 };
