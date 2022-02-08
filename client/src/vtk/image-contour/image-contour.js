@@ -74,84 +74,107 @@ function vtkImageContour(publicAPI, model) {
     const toPixelCenter = (v, max) => 
       v === max - 1 ? max - 2 + 0.5 : (Math.floor(v * max / (max - 1)) + 0.5) * (max - 1) / max;
 
-    inputDataArray.forEach((el, index) => {
-      if (el !== 0) {
-        const ijk = getIJK(index, dims);
+    const jStride = dims[0];
+    const kStride = dims[0] * dims[1];
 
-        if (ijk[kernelZ] !== model.slice) return;
+    const zRange = [
+      Math.max(model.sliceRange[0], 0),
+      Math.min(model.sliceRange[1], dims[kernelZ])
+    ];
 
-        offsets.forEach(({ dx, dy }) => {
-          const evalX = ijk[kernelX] + dx;
-          const evalY = ijk[kernelY] + dy;
+    for (let z = zRange[0]; z <= zRange[1]; z++) {
+      for (let y = 0; y < dims[kernelY]; y++) {
+        for (let x = 0; x < dims[kernelX]; x++) {
+          const value = inputDataArray[x + jStride * y + kStride * z];
 
-          // Check boundaries
-          let value = 0;
-          if (
-            evalX >= 0 &&
-            evalX < dims[kernelX] &&
-            evalY >= 0 &&
-            evalY < dims[kernelY]
-          ) {
-            const ijk2 = [];
-            ijk2[kernelX] = evalX;
-            ijk2[kernelY] = evalY;
-            ijk2[kernelZ] = ijk[kernelZ];
+          if (value === 0) continue;
 
-            value = inputDataArray[getIndex(ijk2, dims)];
-          }
+          const ijk = [];
+          ijk[kernelX] = x;
+          ijk[kernelY] = y;
+          ijk[kernelZ] = z;
 
-          if (value !== el) {                
-            const p = input.indexToWorld(ijk);
-            const px = toPixelCenter(p[kernelX], dims[kernelX]) + dx * halfSpacing[kernelX];
-            const py = toPixelCenter(p[kernelY], dims[kernelY]) + dy * halfSpacing[kernelY];
-            const pz = p[kernelZ];
+          offsets.forEach(({ dx, dy }) => {
+            const evalX = ijk[kernelX] + dx;
+            const evalY = ijk[kernelY] + dy;
 
-            const p1 = [];
-            const p2 = [];
-            const p3 = [];
-            const p4 = [];
-            
-            if (dx === 0) {
-              p1[kernelX] = px - halfSpacing[kernelX] - w;
-              p1[kernelY] = py + w;
-              p1[kernelZ] = pz;
+            // Check boundaries
+            let value2 = 0;
+            if (
+              evalX >= 0 &&
+              evalX < dims[kernelX] &&
+              evalY >= 0 &&
+              evalY < dims[kernelY]
+            ) {
+              const ijk2 = [];
+              ijk2[kernelX] = evalX;
+              ijk2[kernelY] = evalY;
+              ijk2[kernelZ] = ijk[kernelZ];
 
-              p2[kernelX] = px + halfSpacing[kernelX] + w;
-              p2[kernelY] = py + w;
-              p2[kernelZ] = pz;
-
-              p3[kernelX] = px + halfSpacing[kernelX] + w;
-              p3[kernelY] = py - w;
-              p3[kernelZ] = pz; 
-
-              p4[kernelX] = px - halfSpacing[kernelX] - w;
-              p4[kernelY] = py - w;
-              p4[kernelZ] = pz; 
+              value2 = inputDataArray[getIndex(ijk2, dims)];
             }
-            else {              
-              p1[kernelX] = px + w;
-              p1[kernelY] = py - halfSpacing[kernelY] - w;
-              p1[kernelZ] = pz;
 
-              p2[kernelX] = px + w;
-              p2[kernelY] = py + halfSpacing[kernelY] + w;
-              p2[kernelZ] = pz;
+            if (value2 !== value) {                
+              const p = input.indexToWorld(ijk);
+              const px = toPixelCenter(p[kernelX], dims[kernelX]) + dx * halfSpacing[kernelX];
+              const py = toPixelCenter(p[kernelY], dims[kernelY]) + dy * halfSpacing[kernelY];
+              const pz = p[kernelZ];
 
-              p3[kernelX] = px - w;
-              p3[kernelY] = py + halfSpacing[kernelY] + w;
-              p3[kernelZ] = pz; 
-
-              p4[kernelX] = px - w;
-              p4[kernelY] = py - halfSpacing[kernelY] - w;
-              p4[kernelZ] = pz;   
-            }            
+              const p1 = [];
+              const p2 = [];
+              const p3 = [];
+              const p4 = [];
               
-            points.push(...p1, ...p2, ...p3, ...p4);
-            values.push(el, el, el, el);
-          }
-        });
+              if (dx === 0) {
+                p1[kernelX] = px - halfSpacing[kernelX] - w;
+                p1[kernelY] = py + w;
+                p1[kernelZ] = pz;
+
+                p2[kernelX] = px + halfSpacing[kernelX] + w;
+                p2[kernelY] = py + w;
+                p2[kernelZ] = pz;
+
+                p3[kernelX] = px + halfSpacing[kernelX] + w;
+                p3[kernelY] = py - w;
+                p3[kernelZ] = pz; 
+
+                p4[kernelX] = px - halfSpacing[kernelX] - w;
+                p4[kernelY] = py - w;
+                p4[kernelZ] = pz; 
+              }
+              else {              
+                p1[kernelX] = px + w;
+                p1[kernelY] = py - halfSpacing[kernelY] - w;
+                p1[kernelZ] = pz;
+
+                p2[kernelX] = px + w;
+                p2[kernelY] = py + halfSpacing[kernelY] + w;
+                p2[kernelZ] = pz;
+
+                p3[kernelX] = px - w;
+                p3[kernelY] = py + halfSpacing[kernelY] + w;
+                p3[kernelZ] = pz; 
+
+                p4[kernelX] = px - w;
+                p4[kernelY] = py - halfSpacing[kernelY] - w;
+                p4[kernelZ] = pz;   
+              }            
+                
+              const zOffset = model.labelOffsets[value];
+              if (zOffset) {
+                p1[kernelZ] += zOffset;
+                p2[kernelZ] += zOffset;
+                p3[kernelZ] += zOffset;
+                p4[kernelZ] += zOffset;
+              }
+
+              points.push(...p1, ...p2, ...p3, ...p4);
+              values.push(value, value, value, value);
+            }
+          });
+        }
       }
-    });
+    }
 
     // Create quads
     for (let i = 0; i < points.length / 4; i++) {
@@ -179,8 +202,9 @@ function vtkImageContour(publicAPI, model) {
 
 const DEFAULT_VALUES = {
   slicingMode: 2,
-  slice: 0,
-  width: 0.2
+  sliceRange: [0, Infinity],
+  width: 0.2,
+  labelOffsets: []
 };
 
 // ----------------------------------------------------------------------------
@@ -191,7 +215,7 @@ export function extend(publicAPI, model, initialValues = {}) {
   // Build VTK API
   macro.obj(publicAPI, model);
   macro.algo(publicAPI, model, 1, 1);
-  macro.setGet(publicAPI, model, ['slicingMode', 'slice', 'width']);
+  macro.setGet(publicAPI, model, ['slicingMode', 'sliceRange', 'width', 'labelOffsets']);
   vtkImageContour(publicAPI, model);
 }
 

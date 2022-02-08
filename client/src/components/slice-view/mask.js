@@ -57,13 +57,15 @@ export function Mask() {
         color.addRGBPoint(label - 1, ...backgroundColor);
       }
       color.addRGBPoint(label, ...regionColor);
-      color.addRGBPoint(label + 1, ...backgroundColor);      
+      color.addRGBPoint(label + 1, ...backgroundColor);
+
+      contour.setLabelOffsets({[label]: -0.01 });
     },
     getLabel: () => label,
     setEditMode: editMode => {
       painter.setLabel(editMode === 'erase' ? 0 : label);
       painter.setErase(editMode === 'erase');
     },
-    setSlice: slice => contour.setSlice(slice)
+    setSlice: slice => contour.setSliceRange([slice, slice])
   };
 }
