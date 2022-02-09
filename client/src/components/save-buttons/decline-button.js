@@ -1,15 +1,16 @@
 import { useContext, useState, useRef } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
-import { DataContext, CLEAR_DATA } from 'contexts';
-import { useModal } from 'hooks';
+import { UserContext, DataContext, CLEAR_DATA } from 'contexts';
+import { useModal, useGetAssignment } from 'hooks';
 //import { api } from 'utils/api';
 
 const { Header, Content, Actions } = Modal;
 
 export const DeclineButton = ({ disabled }) => {
-  // const [{ id, assignment }] = useContext(UserContext);
+   const [{ id }] = useContext(UserContext);
   const [, dataDispatch] = useContext(DataContext);
   const [open, openModal, closeModal] = useModal();
+  const getAssignment = useGetAssignment();
   const [declining, setDeclining] = useState(false);
   const [success, setSuccess] = useState(false);
   const ref = useRef();
@@ -19,7 +20,7 @@ export const DeclineButton = ({ disabled }) => {
 
     try {
       // XXX: Need a decline endpoint
-      // await api.saveAnnotations(id, assignment.itemId, blob, true);
+      // await api.declineAssignment(id, assignment.itemId);
 
       setSuccess(true);
       setTimeout(() => {        
@@ -28,6 +29,8 @@ export const DeclineButton = ({ disabled }) => {
 
         dataDispatch({ type: CLEAR_DATA });
       }, 1000);
+
+      getAssignment(id);
     }
     catch (error) {
       console.log(error);        
