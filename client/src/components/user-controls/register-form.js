@@ -1,14 +1,15 @@
 import { useContext, useState } from 'react';
 import { Button, Form, Menu, Message, Modal } from 'semantic-ui-react';
-import { LOGIN, SET_ASSIGNMENT, UserContext } from 'contexts';
+import { LOGIN, UserContext } from 'contexts';
 import { AutoFocusForm } from 'components/auto-focus-form';
 import { api } from 'utils/api';
-import { useModal } from 'hooks';
+import { useModal, useGetAssignment } from 'hooks';
 import styles from './styles.module.css';
 
 export const RegisterForm = () => {
   const [, userDispatch] = useContext(UserContext);
   const [open, openModal, closeModal] = useModal();
+  const getAssignment = useGetAssignment();
   const [values, setValues] = useState({
     username: null,
     email: null,
@@ -38,12 +39,7 @@ export const RegisterForm = () => {
         admin: false
       });
 
-      const assignment = await api.getAssignment(id);
-
-      userDispatch({
-        type: SET_ASSIGNMENT,
-        assignment: assignment
-      });
+      getAssignment(id);
 
       closeModal();
     }

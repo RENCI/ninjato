@@ -1,7 +1,7 @@
 import { useContext, useState, useRef } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { UserContext, DataContext, CLEAR_DATA } from 'contexts';
-import { useModal } from 'hooks';
+import { useModal, useGetAssignment } from 'hooks';
 import { api } from 'utils/api';
 import { encodeTIFF } from 'utils/data-conversion';
 
@@ -11,6 +11,7 @@ export const SubmitButton = ({ disabled }) => {
   const [{ id, assignment }] = useContext(UserContext);
   const [{ maskData }, dataDispatch] = useContext(DataContext);
   const [open, openModal, closeModal] = useModal();
+  const getAssignment = useGetAssignment();
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const ref = useRef();
@@ -30,6 +31,8 @@ export const SubmitButton = ({ disabled }) => {
 
         dataDispatch({ type: CLEAR_DATA });
       }, 1000);
+
+      getAssignment(id);
     }
     catch (error) {
       console.log(error);        
