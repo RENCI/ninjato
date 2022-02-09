@@ -65,10 +65,6 @@ export function Mask() {
       contour.setLabelOffsets({[label]: -0.01 });
     },
     getLabel: () => label,
-    setEditMode: editMode => {
-      painter.setLabel(editMode === 'erase' ? 0 : label);
-      painter.setErase(editMode === 'erase');
-    },
     setSlice: slice => contour.setSliceRange([slice, slice])
   };
 }

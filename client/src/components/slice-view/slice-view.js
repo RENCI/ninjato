@@ -172,7 +172,7 @@ export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
       mask.setLabel(label);
     },
     setEditMode: editMode => {
-      mask.setEditMode(editMode);
+      widgets.setEditMode(editMode);
     },
     setSlice: slice => {
       image.getMapper().setSlice(slice);

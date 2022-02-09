@@ -184,7 +184,7 @@ function vtkNinjatoPainter(publicAPI, model) {
       const radius = spacing.map((s) => model.radius / s);
 
       workerPromise.exec('erase', { 
-        background: model.background.getPointData().getScalars().getData(),
+        background: model.backgroundImage.getPointData().getScalars().getData(),
         labels: model.labelMap.getPointData().getScalars().getData(),
         label: model.label,
         pointList: points, 

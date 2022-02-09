@@ -223,10 +223,10 @@ function handlePaintFloodFill({ labels, label, erase, pointList, radius }) {
 }
 
 // XXX: Currently assuming z slice
-function handleErase({ labels, label, pointList, radius }) {
+function handleErase({ background, labels, label, pointList, radius }) {
   if (pointList.length === 0) return;
 
-  globals.buffer.set(labels.map(d => d === label ? 1 : 0));
+  //globals.buffer.set(labels.map(d => d === label ? 1 : 0));
 
   // Paint points
   pointList.forEach((point, i) => {
