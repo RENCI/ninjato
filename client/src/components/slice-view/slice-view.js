@@ -121,7 +121,7 @@ export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
     },
     setData: (imageData, maskData) => {
       image.setInputData(imageData);    
-      mask.setInputData(imageData, maskData);
+      mask.setInputData(maskData);
 
       sliceRanges = getSliceRanges(imageData);
 

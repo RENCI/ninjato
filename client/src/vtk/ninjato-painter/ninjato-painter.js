@@ -47,8 +47,6 @@ function vtkNinjatoPainter(publicAPI, model) {
   publicAPI.startStroke = () => {
     if (model.labelMap) {
       if (!workerPromise) {
-        //worker = new WebworkerPromise(new Worker('./ninjato-painter.worker.js'));
-        //worker = new WebworkerPromise(new Worker('workers/ninjato-painter.worker.js'));
         worker = new Worker();
         workerPromise = new WebworkerPromise(worker);
       }
@@ -164,6 +162,37 @@ function vtkNinjatoPainter(publicAPI, model) {
     }
   };
   
+  publicAPI.erase = (pointList) => {
+    if (workerPromise && pointList.length > 0) {
+      const points = [];
+      for (let i = 0; i < pointList.length / 3; i++) {
+        const worldPt = [
+          pointList[3 * i + 0],
+          pointList[3 * i + 1],
+          pointList[3 * i + 2]
+        ];
+        const indexPt = [0, 0, 0];
+        vec3.transformMat4(indexPt, worldPt, model.maskWorldToIndex);
+        indexPt[0] = Math.round(indexPt[0]);
+        indexPt[1] = Math.round(indexPt[1]);
+        indexPt[2] = Math.round(indexPt[2]);
+
+        points.push(indexPt);
+      }
+      
+      const spacing = model.labelMap.getSpacing();
+      const radius = spacing.map((s) => model.radius / s);
+
+      workerPromise.exec('erase', { 
+        background: model.background.getPointData().getScalars().getData(),
+        labels: model.labelMap.getPointData().getScalars().getData(),
+        label: model.label,
+        pointList: points, 
+        radius: radius 
+      });
+    }
+  };
+
   // --------------------------------------------------------------------------
 
   publicAPI.applyLabelMap = (labelMap) => {

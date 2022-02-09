@@ -222,6 +222,20 @@ function handlePaintFloodFill({ labels, label, erase, pointList, radius }) {
   }
 }
 
+// XXX: Currently assuming z slice
+function handleErase({ labels, label, pointList, radius }) {
+  if (pointList.length === 0) return;
+
+  globals.buffer.set(labels.map(d => d === label ? 1 : 0));
+
+  // Paint points
+  pointList.forEach((point, i) => {
+    handlePaint({ point, radius, label: 1 });
+
+    if (i === 0) globals.prevPoint = null;
+  });
+}
+
 // --------------------------------------------------------------------------
 
 registerWebworker()
@@ -236,6 +250,7 @@ registerWebworker()
     }
   })
   .operation('paintFloodFill', handlePaintFloodFill)
+  .operation('erase', handleErase)
   .operation('end', () => {
     const response = new registerWebworker.TransferableResponse(
       globals.buffer.buffer,

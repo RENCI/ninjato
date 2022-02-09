@@ -40,11 +40,11 @@ export function Mask() {
     getPainter: () => painter,
     getActor: () => actor,
     getMapper: () => mapper,
-    setInputData: (imageData, maskData) => {
-      painter.setBackgroundImage(imageData);
+    setInputData: maskData => {
+      painter.setBackgroundImage(maskData);
       painter.setLabelMap(maskData);
 
-      const [w, h] = imageData.getDimensions();
+      const [w, h] = maskData.getDimensions();
       contour.setWidth(Math.max(w, h) / 200);
     },
     setLabel: regionLabel => {
