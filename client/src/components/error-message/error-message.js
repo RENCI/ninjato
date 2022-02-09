@@ -10,6 +10,10 @@ export const ErrorMessage = () => {
   const onDismiss = () => {
     dispatch({ type: CLEAR_ERROR });
   };
+  
+  const text = !error ? null :
+    (typeof error === 'string' || error instanceof String) ? error :
+    JSON.stringify(error, Object.getOwnPropertyNames(error));
 
   return (
     <Dimmer 
@@ -24,7 +28,7 @@ export const ErrorMessage = () => {
         <Icon name='exclamation circle' />
         <Content>
           <Header>Error</Header>
-          { error }
+          { text }
         </Content>
       </Message>
     </Dimmer>

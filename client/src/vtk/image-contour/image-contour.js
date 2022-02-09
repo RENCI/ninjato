@@ -39,14 +39,6 @@ function vtkImageContour(publicAPI, model) {
     const getIndex = (point, dims) =>
       point[0] + point[1] * dims[0] + point[2] * dims[0] * dims[1];
 
-    const getIJK = (index, dims) => {
-      const ijk = [0, 0, 0];
-      ijk[0] = index % dims[0];
-      ijk[1] = Math.floor(index / dims[0]) % dims[1];
-      ijk[2] = Math.floor(index / (dims[0] * dims[1]));
-      return ijk;
-    };
-
     let kernelX = 0; // default K slicing mode
     let kernelY = 1;
     let kernelZ = 2;
