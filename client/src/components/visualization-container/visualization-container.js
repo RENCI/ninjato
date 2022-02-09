@@ -27,6 +27,7 @@ export const VisualizationContainer = () => {
   }
 
   function onSliceChange(slice) {
+    volumeView.current.setSlice(slice);
     setSlice(slice);
   }
 
@@ -35,7 +36,8 @@ export const VisualizationContainer = () => {
   }, []);
 
   const onSliderChange = useCallback(value => {
-    sliceView.current.setSlice(value);
+    sliceView.current.setSlice(slice);
+    volumeView.current.setSlice(slice);
     setSlice(value);
   }, [sliceView]);
 
