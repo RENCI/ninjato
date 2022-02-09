@@ -12,7 +12,7 @@ from girder.models.folder import Folder
 from girder.exceptions import RestException
 from girder.utility import assetstore_utilities
 from girder.utility import path as path_util
-from .constants import COLLECTION_NAME, BUFFER_X_Y_FACTOR, BUFFER_Z_ADDITION
+from .constants import COLLECTION_NAME, BUFFER_FACTOR
 
 
 def save_file(as_id, item, path, user, file_name):
@@ -27,20 +27,23 @@ def get_buffered_extent(minx, maxx, miny, maxy, minz, maxz, xrange, yrange, zran
     height = maxy - miny
 
     if height > width:
-        end_size = height * BUFFER_X_Y_FACTOR
-        half_height = int((end_size-height)/2)
-        half_width = int((end_size-width)/2)
+        end_size = height * BUFFER_FACTOR
+        half_height = int((end_size - height) / 2 + 0.5)
+        half_width = int((end_size - width) / 2 + 0.5)
     else:
-        end_size = width * BUFFER_X_Y_FACTOR
-        half_width = int((end_size - width) / 2)
-        half_height = int((end_size - height) / 2)
+        end_size = width * BUFFER_FACTOR
+        half_width = int((end_size - width) / 2 + 0.5)
+        half_height = int((end_size - height) / 2 + 0.5)
 
     minx = minx - half_width
     maxx = maxx + half_width
     miny = miny - half_height
     maxy = maxy + half_height
-    minz = minz - BUFFER_Z_ADDITION
-    maxz = maxz + BUFFER_Z_ADDITION
+    z = maxz - minz
+    end_z = z * BUFFER_FACTOR
+    half_z = int((end_z - z) / 2 + 0.5)
+    minz = minz - half_z
+    maxz = maxz + half_z
 
     if minx < 0:
         maxx = maxx - minx
