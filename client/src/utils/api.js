@@ -99,18 +99,21 @@ export const api = {
   saveAnnotations: async (userId, itemId, buffer, done = false) => {
     const blob = new Blob([buffer], { type: 'image/tiff' });
 
-    // Set data and parameters as form data
+    // Set data form data
     const formData = new FormData();
-    formData.append('id', userId);
-    formData.append('item_id', itemId);
-    formData.append('done', done);
-    formData.append('comment', '');
     formData.append('content_data', blob);
 
     await axios.post(`/user/${ userId }/annotation`, 
       formData,
       {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        params: { 
+          item_id: itemId,
+          done: done,
+          comment: ''
+        },
+        headers: { 
+          'Content-Type': 'multipart/form-data' 
+        }
       }
     );
   }
