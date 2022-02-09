@@ -12,8 +12,8 @@ import stateGenerator from './state';
 // Factory
 // ----------------------------------------------------------------------------
 
-function vtkFloodWidget(publicAPI, model) {
-  model.classHierarchy.push('vtkFloodWidget');
+function vtkBrushWidget(publicAPI, model) {
+  model.classHierarchy.push('vtkBrushWidget');
 
   // --- Widget Requirement ---------------------------------------------------
   model.behavior = widgetBehavior;
@@ -72,12 +72,12 @@ export function extend(publicAPI, model, initialValues = {}) {
   macro.get(publicAPI, model, ['painting']);
   macro.setGet(publicAPI, model, ['manipulator', 'radius', 'color', 'imageData']);
 
-  vtkFloodWidget(publicAPI, model);
+  vtkBrushWidget(publicAPI, model);
 }
 
 // ----------------------------------------------------------------------------
 
-export const newInstance = macro.newInstance(extend, 'vtkFloodWidget');
+export const newInstance = macro.newInstance(extend, 'vtkBrushWidget');
 
 // ----------------------------------------------------------------------------
 
