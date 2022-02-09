@@ -1,8 +1,8 @@
 import '@kitware/vtk.js/Rendering/Profiles/Geometry';
 import vtkFullScreenRenderWindow from '@kitware/vtk.js/Rendering/Misc/FullScreenRenderWindow';
+
 import { Surface } from './surface';
 import { BoundingBox } from './bounding-box';
-import { Reds, Blues } from 'utils/colors';
 
 const resetCamera = renderer => {
   const position = [0, 0, -1];
@@ -16,27 +16,13 @@ const resetCamera = renderer => {
   renderer.getActiveCamera().elevation(20);
 };
 
-const regionFormula = label => (v => v === label ? 1 : 0);
-const backgroundFormula = label => (v => v !== label && v !== 0 ? 1 : 0);
-
 export function VolumeView() {
   let fullScreenRenderWindow = null;
   let renderWindow = null;
   let renderer = null;
 
-  const regionColor = Reds[5];
-  const region = Surface();
-  region.getActor().getProperty().setDiffuseColor(regionColor);
-  region.getActor().getProperty().setAmbientColor(regionColor);
-  region.getActor().getProperty().setAmbient(0.2);
-
+  const region = Surface('region');  
   const background = Surface();
-  background.getActor().getProperty().setDiffuseColor([1, 1, 1]);
-  background.getActor().getProperty().setAmbientColor(Blues[8]);
-  background.getActor().getProperty().setAmbient(0.8);
-  background.getActor().getProperty().setOpacity(0.4);
-  background.getActor().getProperty().setBackfaceCulling(true);
-
 
   const boundingBox = BoundingBox();
 
@@ -78,8 +64,12 @@ export function VolumeView() {
       }
     },
     setLabel: label => {
-      region.setFormula(regionFormula(label));
-      background.setFormula(backgroundFormula(label));
+      region.setLabel(label);
+      background.setLabel(label);
+    },
+    setSlice: slice => {
+      region.setSlice(slice);
+      render();
     },
     render: () => {
       render();

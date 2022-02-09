@@ -14,6 +14,8 @@ export const AssignmentSelection = () => {
     loadData(assignment);
   };
 
+  const practiceButton = <Button basic onClick={ loadPracticeData }>Load practice data</Button>;
+
   return (
     <>
       { login ?
@@ -30,9 +32,9 @@ export const AssignmentSelection = () => {
                       You have an assignment waiting for you
                     </Message.Header>
                     <div style={{ marginTop: 10 }}>
-                      <Button primary onClick={ onLoadClick }>Load assignment</Button>
+                      <Button positive onClick={ onLoadClick }>Load assignment</Button>
                       <Divider horizontal>Or</Divider>
-                      <Button secondary onClick={ loadPracticeData }>Load practice data</Button>
+                      { practiceButton }
                     </div>
                   </Message>
                 :
@@ -41,7 +43,7 @@ export const AssignmentSelection = () => {
                       No assignment found!
                     </Message.Header>
                     <div style={{ marginTop: 10 }}>
-                      <Button secondary onClick={ loadPracticeData }>Load practice data</Button>
+                      { practiceButton }
                     </div>
                   </Message>              
                 }
