@@ -17,7 +17,7 @@ function vtkBrushWidget(publicAPI, model) {
 
   // --- Widget Requirement ---------------------------------------------------
   model.behavior = widgetBehavior;
-  model.widgetState = stateGenerator(model.radius);
+  model.widgetState = stateGenerator(model.radius, model.brush);
 
   publicAPI.getRepresentationsForViewType = (viewType) => {
     switch (viewType) {
@@ -59,7 +59,8 @@ const DEFAULT_VALUES = {
   radius: 1,
   painting: false,
   color: [1],
-  imageData: null
+  imageData: null,
+  brush: [[1]]
 };
 
 // ----------------------------------------------------------------------------
@@ -70,7 +71,7 @@ export function extend(publicAPI, model, initialValues = {}) {
   vtkAbstractWidgetFactory.extend(publicAPI, model, initialValues);
 
   macro.get(publicAPI, model, ['painting']);
-  macro.setGet(publicAPI, model, ['manipulator', 'radius', 'color', 'imageData']);
+  macro.setGet(publicAPI, model, ['manipulator', 'radius', 'color', 'imageData', 'brush']);
 
   vtkBrushWidget(publicAPI, model);
 }

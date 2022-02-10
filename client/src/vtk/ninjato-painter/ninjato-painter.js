@@ -159,7 +159,7 @@ function vtkNinjatoPainter(publicAPI, model) {
 
   // --------------------------------------------------------------------------
 
-  publicAPI.paintFloodFill = (pointList) => {
+  publicAPI.paintFloodFill = (pointList, brush) => {
     if (workerPromise && pointList.length > 0) {
       const points = [];
       for (let i = 0; i < pointList.length / 3; i++) {
@@ -176,20 +176,17 @@ function vtkNinjatoPainter(publicAPI, model) {
 
         points.push(indexPt);
       }
-      
-      const spacing = model.labelMap.getSpacing();
-      const radius = spacing.map((s) => model.radius / s);
 
       workerPromise.exec('paintFloodFill', { 
         labels: model.labelMap.getPointData().getScalars().getData(),
         label: model.label,
         pointList: points, 
-        radius: radius 
+        brush
       });
     }
   };
   
-  publicAPI.erase = (pointList) => {
+  publicAPI.erase = (pointList, brush) => {
     if (workerPromise && pointList.length > 0) {
       const points = [];
       for (let i = 0; i < pointList.length / 3; i++) {
@@ -206,13 +203,10 @@ function vtkNinjatoPainter(publicAPI, model) {
 
         points.push(indexPt);
       }
-      
-      const spacing = model.labelMap.getSpacing();
-      const radius = spacing.map((s) => model.radius / s);
 
       workerPromise.exec('erase', {
         pointList: points, 
-        radius: radius 
+        brush 
       });
     }
   };

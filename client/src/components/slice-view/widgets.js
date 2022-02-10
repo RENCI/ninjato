@@ -11,6 +11,12 @@ export function Widgets(painter, onEdit) {
   const eraseWidget = vtkBrushWidget.newInstance();
   let floodHandle = null;
   let eraseHandle = null;
+  
+  const brush = [
+    [0, 1, 0],
+    [1, 1, 1],
+    [0, 1, 0]
+  ];
 
   return {
     setRenderer: renderer => {
@@ -26,7 +32,7 @@ export function Widgets(painter, onEdit) {
       });
 
       floodHandle.onEndInteractionEvent(async () => {
-        painter.paintFloodFill(floodHandle.getPoints());
+        painter.paintFloodFill(floodHandle.getPoints(), brush);
 
         await painter.endStroke();
   
@@ -38,7 +44,7 @@ export function Widgets(painter, onEdit) {
       });
 
       eraseHandle.onEndInteractionEvent(async () => {
-        painter.erase(eraseHandle.getPoints());
+        painter.erase(eraseHandle.getPoints(), brush);
 
         await painter.endStroke(true);
 
@@ -52,9 +58,9 @@ export function Widgets(painter, onEdit) {
       floodHandle.updateRepresentationForRender();
 
       eraseWidget.getManipulator().setOrigin(position);
-      eraseWidget.setRadius(5 * Math.max(...spacing));
+      eraseWidget.setRadius(0.5 * Math.max(...spacing));
       
-      floodHandle.updateRepresentationForRender();
+      eraseHandle.updateRepresentationForRender();
     },
     setImageData: imageData => {
       floodWidget.setImageData(imageData);
@@ -68,6 +74,8 @@ export function Widgets(painter, onEdit) {
 
       floodHandle.updateRepresentationForRender();
       eraseHandle.updateRepresentationForRender();
-    }
+    },
+    setPaintBrush: brush => floodWidget.setBrush(brush),
+    setEraseBrush: brush => eraseWidget.setBrush(brush)
   }
 }

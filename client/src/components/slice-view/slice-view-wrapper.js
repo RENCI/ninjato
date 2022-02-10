@@ -27,15 +27,15 @@ export const SliceViewWrapper = ({ sliceView }) => {
       sliceView.initialize(div.current, onKeyDown, onKeyUp);
       setInitialized(true);
     }
-  }, [div, width, sliceView, onKeyDown, onKeyUp]);
+  }, [initialized, div, width, sliceView, onKeyDown, onKeyUp]);
 
   // Update data
   useEffect(() => {
-    if (div.current && width && imageData && maskData) {
+    if (initialized && imageData && maskData) {
       sliceView.setLabel(label);
       sliceView.setData(imageData, maskData);
     }
-  }, [div, width, sliceView, imageData, maskData, label]);   
+  }, [initialized, sliceView, imageData, maskData, label]);   
 
   // Edit mode
   useEffect(() => {

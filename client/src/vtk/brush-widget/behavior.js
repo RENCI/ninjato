@@ -13,8 +13,8 @@ export default function widgetBehavior(publicAPI, model) {
     }
 
     model.painting = true;
-    const trailCircle = model.widgetState.addTrail();
-    trailCircle.set(
+    const trail = model.widgetState.addTrail();
+    trail.set(
       model.activeState.get('origin', 'up', 'right', 'direction', 'scale1')
     );
     publicAPI.invokeStartInteractionEvent();
@@ -74,8 +74,8 @@ export default function widgetBehavior(publicAPI, model) {
         model.activeState.setOrigin(...worldCoords);
 
         if (model.painting) {
-          const trailCircle = model.widgetState.addTrail();
-          trailCircle.set(
+          const trail = model.widgetState.addTrail();
+          trail.set(
             model.activeState.get(
               'origin',
               'up',
