@@ -52,7 +52,7 @@ export function Widgets(painter, onEdit) {
       floodHandle.updateRepresentationForRender();
 
       eraseWidget.getManipulator().setOrigin(position);
-      eraseWidget.setRadius(0.5 * Math.max(...spacing));
+      eraseWidget.setRadius(1.5 * Math.max(...spacing));
       
       floodHandle.updateRepresentationForRender();
     },
@@ -61,8 +61,6 @@ export function Widgets(painter, onEdit) {
       eraseWidget.setImageData(imageData);
     },
     setEditMode: editMode => {
-      if (!floodHandle) return;
-
       manager.grabFocus(editMode === 'erase' ? eraseWidget : floodWidget);
 
       floodHandle.setVisibility(editMode === 'paint');

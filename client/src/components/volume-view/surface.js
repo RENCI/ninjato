@@ -69,7 +69,7 @@ export function Surface(type = 'background') {
   else {
     mapper.setInputConnection(marchingCubes.getOutputPort());
 
-    actor.getProperty().setDiffuseColor([1, 1, 1]);
+    actor.getProperty().setDiffuseColor(Blues[2]);
     actor.getProperty().setAmbientColor(Blues[8]);
     actor.getProperty().setAmbient(0.8);
     actor.getProperty().setOpacity(0.4);

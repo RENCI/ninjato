@@ -1,6 +1,7 @@
 import { createContext, useReducer } from "react";
 
 export const SET_EDIT_MODE = 'controls/EDIT_MODE';
+export const RESET = 'controls/RESET';
 
 const initialState = {
   editMode: 'paint'
@@ -12,6 +13,11 @@ const reducer = (state, action) => {
       return {
         ...state,
         editMode: action.mode
+      };
+
+    case RESET:
+      return {
+        ...initialState
       };
 
     default: 
