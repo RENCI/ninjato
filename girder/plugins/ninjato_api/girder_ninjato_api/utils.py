@@ -39,7 +39,7 @@ def get_buffered_extent(minx, maxx, miny, maxy, minz, maxz, xrange, yrange, zran
     maxx = maxx + half_width
     miny = miny - half_height
     maxy = maxy + half_height
-    z = maxz - minz
+    z = maxz - minz + 1
     end_z = z * BUFFER_FACTOR
     half_z = int((end_z - z) / 2 + 0.5)
     minz = minz - half_z
