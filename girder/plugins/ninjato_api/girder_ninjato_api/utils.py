@@ -59,6 +59,13 @@ def get_buffered_extent(minx, maxx, miny, maxy, minz, maxz, xrange, yrange, zran
         maxy = yrange
     minz = minz if minz >= 0 else 0
     maxz = maxz if maxz <= zrange else zrange
+    # make sure to send at least 3 slices
+    if maxz - minz < 2:
+        if minz > 0:
+            minz -= 1
+        else:
+            maxz += 1
+
     return minx, maxx, miny, maxy, minz, maxz
 
 
