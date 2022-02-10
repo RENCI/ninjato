@@ -53,7 +53,7 @@ function vtkNinjatoPainter(publicAPI, model) {
       }
 
       workerPromise.exec('start', {
-        bufferType: 'Uint8Array',
+        bufferType: 'Uint16Array',
         dimensions: model.labelMap.getDimensions(),
         slicingMode: model.slicingMode,
       });
@@ -81,7 +81,7 @@ function vtkNinjatoPainter(publicAPI, model) {
   publicAPI.applyBinaryMask = (maskBuffer, erase = false) => {
     const scalars = model.labelMap.getPointData().getScalars();
     const data = scalars.getData();
-    const maskLabelMap = new Uint8Array(maskBuffer);
+    const maskLabelMap = new Uint16Array(maskBuffer);
 
     let diffCount = 0;
     for (let i = 0; i < maskLabelMap.length; i++) {
@@ -266,7 +266,7 @@ function vtkNinjatoPainter(publicAPI, model) {
   publicAPI.setBackgroundImage = (image) => {
     model.backgroundImage = image;
 
-    initialData = new Uint8Array(image.getPointData().getScalars().getData());
+    initialData = new Uint16Array(image.getPointData().getScalars().getData());
   };
 
   // --------------------------------------------------------------------------
@@ -335,7 +335,7 @@ function vtkNinjatoPainter(publicAPI, model) {
       labelMap.computeTransforms();
 
       // right now only support 256 labels
-      const values = new Uint8Array(model.backgroundImage.getNumberOfPoints());
+      const values = new Uint16Array(model.backgroundImage.getNumberOfPoints());
       const dataArray = vtkDataArray.newInstance({
         numberOfComponents: 1, // labelmap with single component
         values,
