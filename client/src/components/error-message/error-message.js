@@ -11,14 +11,10 @@ export const ErrorMessage = () => {
     dispatch({ type: CLEAR_ERROR });
   };
   
-if (error) console.log(error.messages);
-
   const text = !error ? null :
     (typeof error === 'string' || error instanceof String) ? error :
-    error.message ? error.message.split(`\n`).map(s => <p>{ s }</p>) :
+    error.message ? error.message.split(`\n`).map((s, i) => <p key={ i }>{ s }</p>) :
     JSON.stringify(error, Object.getOwnPropertyNames(error));
-
-    console.log(text);
 
   return (
     <Dimmer 
