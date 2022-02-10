@@ -13,7 +13,7 @@ const globals = {
 
 // --------------------------------------------------------------------------
 // center and scale3 are in IJK coordinates
-function handlePaintEllipse({ center, scale3, label }) {
+function handlePaintEllipse({ center, scale3 }) {
   const radius3 = [...scale3];
   const indexCenter = center.map((val) => Math.round(val));
 
@@ -68,7 +68,7 @@ function handlePaintEllipse({ center, scale3, label }) {
           }
           if (xmin <= xmax) {
             const index = y * yStride + z * zStride;
-            globals.buffer.fill(label, index + xmin, index + xmax + 1);
+            globals.buffer.fill(1, index + xmin, index + xmax + 1);
           }
         }
       }
@@ -78,7 +78,7 @@ function handlePaintEllipse({ center, scale3, label }) {
 
 // --------------------------------------------------------------------------
 
-function handlePaint({ point, radius, label }) {
+function handlePaint({ point, radius }) {
   if (!globals.prevPoint) {
     globals.prevPoint = point;
   }
@@ -102,7 +102,7 @@ function handlePaint({ point, radius, label }) {
   const thresh = [step, step, step];
   const pt = [...globals.prevPoint];
   for (let s = 0; s <= step; s++) {
-    handlePaintEllipse({ center: pt, scale3: radius, label });
+    handlePaintEllipse({ center: pt, scale3: radius });
 
     for (let ii = 0; ii < 3; ii++) {
       thresh[ii] -= delta[ii];
@@ -165,7 +165,7 @@ function handlePaintFloodFill({ labels, label, pointList, radius }) {
 
   // Paint points
   pointList.forEach((point, i) => {
-    handlePaint({ point, radius, label: 1 });
+    handlePaint({ point, radius });
 
     if (i === 0) globals.prevPoint = null;
   });
@@ -224,11 +224,9 @@ function handlePaintFloodFill({ labels, label, pointList, radius }) {
 function handleErase({ pointList, radius }) {
   if (pointList.length === 0) return;
 
-  //globals.buffer.set(labels.map(d => d === label ? 1 : 0));
-
   // Paint points
   pointList.forEach((point, i) => {
-    handlePaint({ point, radius, label: 1 });
+    handlePaint({ point, radius });
 
     if (i === 0) globals.prevPoint = null;
   });

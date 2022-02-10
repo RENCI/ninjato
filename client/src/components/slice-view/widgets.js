@@ -52,7 +52,7 @@ export function Widgets(painter, onEdit) {
       floodHandle.updateRepresentationForRender();
 
       eraseWidget.getManipulator().setOrigin(position);
-      eraseWidget.setRadius(1.5 * Math.max(...spacing));
+      eraseWidget.setRadius(5 * Math.max(...spacing));
       
       floodHandle.updateRepresentationForRender();
     },
