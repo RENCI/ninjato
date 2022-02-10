@@ -61,7 +61,15 @@ export function Widgets(painter, onEdit) {
       eraseWidget.setImageData(imageData);
     },
     setEditMode: editMode => {
-      editMode === 'paint' ? manager.grabFocus(floodWidget) : manager.grabFocus(eraseWidget);
+      if (!floodHandle) return;
+
+      manager.grabFocus(editMode === 'erase' ? eraseWidget : floodWidget);
+
+      floodHandle.setVisibility(editMode === 'paint');
+      eraseHandle.setVisibility(editMode === 'erase');
+
+      floodHandle.updateRepresentationForRender();
+      eraseHandle.updateRepresentationForRender();
     }
   }
 }
