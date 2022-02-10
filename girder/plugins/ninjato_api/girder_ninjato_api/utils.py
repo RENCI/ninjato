@@ -107,6 +107,8 @@ def get_item_assignment(user):
                 z_range = coords["z_max"] - coords["z_min"]
                 # look into regions of this whole item for assignment
                 for key, val in whole_item['meta']['regions'].items():
+                    if 'done' in val and val['done'] == 'true':
+                        continue
                     if 'user' not in val:
                         # this region can be assigned to a user
                         val['user'] = user['_id']
@@ -219,25 +221,28 @@ def save_user_annotation(user, item_id, done, comment, content_data):
     except Exception as e:
         raise RestException(f'failure: {e}', 500)
 
-    # check if all regions for the partition is done, and if so add done metadata to whole item
-    whole_items = Item().find({'folderId': ObjectId(item['folderId']),
-                               'name': 'whole'})
-    partition_done = True
-    whole_item = whole_items[0]
-    for key, val in whole_item['meta']['regions'].items():
-        if 'user' not in val:
-            # this region is not assigned to any user yet
-            partition_done = False
-            break
-        if 'item_id' in val and val['item_id'] == item_id:
-            val['done'] = 'true'
-            continue
-        if 'done' not in val or val['done'] != 'true':
-            partition_done = False
-            break
-    if partition_done:
-        add_meta = {'done': 'true'}
-        Item().setMetadata(whole_item, add_meta)
+    if done:
+        # check if all regions for the partition is done, and if so add done metadata to whole item
+        whole_item = Item().findOne({'folderId': ObjectId(item['folderId']),
+                                     'name': 'whole'})
+        del whole_item['meta'][str(uid)]
+        whole_item = Item().save(whole_item)
+        partition_done = True
+        for key, val in whole_item['meta']['regions'].items():
+            if 'user' not in val:
+                # this region is not assigned to any user yet
+                partition_done = False
+                break
+            if 'item_id' in val and str(val['item_id']) == item_id:
+                whole_item['meta']['regions'][key]['done'] = 'true'
+                whole_item = Item().save(whole_item)
+                continue
+            if 'done' not in val or val['done'] != 'true':
+                partition_done = False
+                break
+        if partition_done:
+            add_meta = {'done': 'true'}
+            Item().setMetadata(whole_item, add_meta)
 
     return {
         'user_id': uid,
