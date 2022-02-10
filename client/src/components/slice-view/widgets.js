@@ -40,7 +40,7 @@ export function Widgets(painter, onEdit) {
       eraseHandle.onEndInteractionEvent(async () => {
         painter.erase(eraseHandle.getPoints());
 
-        await painter.endStroke();
+        await painter.endStroke(true);
 
         onEdit();
       });

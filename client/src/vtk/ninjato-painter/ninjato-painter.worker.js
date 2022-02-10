@@ -158,7 +158,7 @@ function floodFillScanlineStack({ buffer, w, h, seed }) {
 } 
 
 // XXX: Currently assuming z slice
-function handlePaintFloodFill({ labels, label, erase, pointList, radius }) {
+function handlePaintFloodFill({ labels, label, pointList, radius }) {
   if (pointList.length === 0) return;
 
   globals.buffer.set(labels.map(d => d === label ? 1 : 0));
@@ -169,8 +169,6 @@ function handlePaintFloodFill({ labels, label, erase, pointList, radius }) {
 
     if (i === 0) globals.prevPoint = null;
   });
-
-  if (erase) return;
 
   // Slice info
   const w = globals.dimensions[0];
@@ -223,7 +221,7 @@ function handlePaintFloodFill({ labels, label, erase, pointList, radius }) {
 }
 
 // XXX: Currently assuming z slice
-function handleErase({ background, labels, label, pointList, radius }) {
+function handleErase({ pointList, radius }) {
   if (pointList.length === 0) return;
 
   //globals.buffer.set(labels.map(d => d === label ? 1 : 0));

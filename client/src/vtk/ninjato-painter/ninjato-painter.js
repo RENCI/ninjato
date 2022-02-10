@@ -19,6 +19,7 @@ function vtkNinjatoPainter(publicAPI, model) {
 
   let worker = null;
   let workerPromise = null;
+  let initialData = null;
   const history = {};
 
   // --------------------------------------------------------------------------
@@ -61,14 +62,14 @@ function vtkNinjatoPainter(publicAPI, model) {
 
   // --------------------------------------------------------------------------
 
-  publicAPI.endStroke = () => {
+  publicAPI.endStroke = (erase = false) => {
     let endStrokePromise;
 
     if (workerPromise) {
       endStrokePromise = workerPromise.exec('end');
 
       endStrokePromise.then((strokeBuffer) => {
-        publicAPI.applyBinaryMask(strokeBuffer);
+        publicAPI.applyBinaryMask(strokeBuffer, erase);
         worker.terminate();
         worker = null;
         workerPromise = null;
@@ -77,7 +78,7 @@ function vtkNinjatoPainter(publicAPI, model) {
     return endStrokePromise;
   };
 
-  publicAPI.applyBinaryMask = (maskBuffer) => {
+  publicAPI.applyBinaryMask = (maskBuffer, erase = false) => {
     const scalars = model.labelMap.getPointData().getScalars();
     const data = scalars.getData();
     const maskLabelMap = new Uint8Array(maskBuffer);
@@ -95,24 +96,51 @@ function vtkNinjatoPainter(publicAPI, model) {
     const label = model.label;
 
     let diffIdx = 0;
-    if (model.voxelFunc) {
-      const bgScalars = model.backgroundImage.getPointData().getScalars();
-      for (let i = 0; i < maskLabelMap.length; i++) {
-        if (maskLabelMap[i]) {
-          const voxel = bgScalars.getTuple(i);
-          // might not fill up snapshot
-          if (model.voxelFunc(voxel, i, label)) {
-            snapshot[diffIdx++] = [i, data[i]];
-            data[i] = label;
+    if (erase) {
+      if (model.voxelFunc) {
+        const bgScalars = model.backgroundImage.getPointData().getScalars();
+        for (let i = 0; i < maskLabelMap.length; i++) {
+          if (maskLabelMap[i]) {
+            const voxel = bgScalars.getTuple(i);
+            // might not fill up snapshot
+            if (!model.voxelFunc(voxel, i, label)) {
+              snapshot[diffIdx++] = [i, data[i]];
+              data[i] = initialData[i] === label ? 0 : initialData[i];
+            }
+          }
+        }
+      } else {
+        for (let i = 0; i < maskLabelMap.length; i++) {
+          if (maskLabelMap[i]) {
+            if (data[i] === label) {
+              snapshot[diffIdx++] = [i, data[i]];
+              data[i] = initialData[i] === label ? 0 : initialData[i];
+            }
           }
         }
       }
-    } else {
-      for (let i = 0; i < maskLabelMap.length; i++) {
-        if (maskLabelMap[i]) {
-          if (data[i] !== label) {
-            snapshot[diffIdx++] = [i, data[i]];
-            data[i] = label;
+    }
+    else {
+      if (model.voxelFunc) {
+        const bgScalars = model.backgroundImage.getPointData().getScalars();
+        for (let i = 0; i < maskLabelMap.length; i++) {
+          if (maskLabelMap[i]) {
+            const voxel = bgScalars.getTuple(i);
+            // might not fill up snapshot
+            if (model.voxelFunc(voxel, i, label)) {
+              snapshot[diffIdx++] = [i, data[i]];
+              data[i] = label;
+            }
+          }
+        }
+      } 
+      else {
+        for (let i = 0; i < maskLabelMap.length; i++) {
+          if (maskLabelMap[i]) {
+            if (data[i] !== label) {
+              snapshot[diffIdx++] = [i, data[i]];
+              data[i] = label;
+            }
           }
         }
       }
@@ -155,7 +183,6 @@ function vtkNinjatoPainter(publicAPI, model) {
       workerPromise.exec('paintFloodFill', { 
         labels: model.labelMap.getPointData().getScalars().getData(),
         label: model.label,
-        erase: model.erase,
         pointList: points, 
         radius: radius 
       });
@@ -183,10 +210,7 @@ function vtkNinjatoPainter(publicAPI, model) {
       const spacing = model.labelMap.getSpacing();
       const radius = spacing.map((s) => model.radius / s);
 
-      workerPromise.exec('erase', { 
-        background: model.backgroundImage.getPointData().getScalars().getData(),
-        labels: model.labelMap.getPointData().getScalars().getData(),
-        label: model.label,
+      workerPromise.exec('erase', {
         pointList: points, 
         radius: radius 
       });
@@ -237,6 +261,12 @@ function vtkNinjatoPainter(publicAPI, model) {
       model.labelMap.modified();
       publicAPI.modified();
     }
+  };
+
+  publicAPI.setBackgroundImage = (image) => {
+    model.backgroundImage = image;
+
+    initialData = new Uint8Array(image.getPointData().getScalars().getData());
   };
 
   // --------------------------------------------------------------------------
@@ -349,7 +379,6 @@ const DEFAULT_VALUES = {
   voxelFunc: null,
   radius: 1,
   label: 0,
-  erase: false,
   slicingMode: null,
 };
 
@@ -365,12 +394,10 @@ export function extend(publicAPI, model, initialValues = {}) {
   macro.algo(publicAPI, model, 0, 1);
 
   macro.setGet(publicAPI, model, [
-    'backgroundImage',
     'labelMap',
     'maskWorldToIndex',
     'voxelFunc',
     'label',
-    'erase',
     'radius',
     'slicingMode',
   ]);
