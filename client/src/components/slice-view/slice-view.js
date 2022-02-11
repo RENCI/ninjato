@@ -127,7 +127,6 @@ export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
 
       renderer.addViewProp(image.getActor());
       renderer.addViewProp(mask.getActor());
-      //renderer.addViewProp(outline.getActor());
     
       resetCamera(renderer, imageData);
 

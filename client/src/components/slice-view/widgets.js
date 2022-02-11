@@ -15,12 +15,6 @@ export function Widgets(painter, onEdit) {
   const eraseWidget = vtkBrushWidget.newInstance();
   let floodHandle = null;
   let eraseHandle = null;
-  
-  const brush = [
-    [0, 1, 0],
-    [1, 1, 1],
-    [0, 1, 0]
-  ];
 
   return {
     setRenderer: renderer => {

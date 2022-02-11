@@ -1,7 +1,5 @@
 import registerWebworker from 'webworker-promise/lib/register';
 
-import { SlicingMode } from '@kitware/vtk.js/Rendering/Core/ImageMapper/Constants';
-
 const globals = {
   // single-component labelmap
   buffer: null,
@@ -10,71 +8,6 @@ const globals = {
   prevPoint: null,
   slicingMode: null, // 2D or 3D painting
 };
-
-// --------------------------------------------------------------------------
-// center and scale3 are in IJK coordinates
-function handlePaintEllipse({ center, scale3 }) {
-  const radius3 = [...scale3];
-  const indexCenter = center.map((val) => Math.round(val));
-
-  let sliceAxis = -1;
-  if (globals.slicingMode != null && globals.slicingMode !== SlicingMode.NONE) {
-    sliceAxis = globals.slicingMode % 3;
-  }
-
-  const yStride = globals.dimensions[0];
-  const zStride = globals.dimensions[0] * globals.dimensions[1];
-
-  let [xmin, ymin, zmin] = indexCenter;
-  let [xmax, ymax, zmax] = indexCenter;
-
-  if (sliceAxis !== 2) {
-    zmin = Math.round(Math.max(indexCenter[2] - radius3[2], 0));
-    zmax = Math.round(
-      Math.min(indexCenter[2] + radius3[2], globals.dimensions[2] - 1)
-    );
-  }
-
-  for (let z = zmin; z <= zmax; z++) {
-    let dz = 0;
-    if (sliceAxis !== 2) {
-      dz = (indexCenter[2] - z) / radius3[2];
-    }
-
-    const dzSquared = dz * dz;
-
-    if (dzSquared <= 1) {
-      const ay = radius3[1] * Math.sqrt(1 - dzSquared);
-      if (sliceAxis !== 1) {
-        ymin = Math.round(Math.max(indexCenter[1] - ay, 0));
-        ymax = Math.round(
-          Math.min(indexCenter[1] + ay, globals.dimensions[1] - 1)
-        );
-      }
-
-      for (let y = ymin; y <= ymax; y++) {
-        let dy = 0;
-        if (sliceAxis !== 1) {
-          dy = (indexCenter[1] - y) / radius3[1];
-        }
-        const dySquared = dy * dy;
-        if (dySquared + dzSquared <= 1) {
-          if (sliceAxis !== 0) {
-            const ax = radius3[0] * Math.sqrt(1 - dySquared - dzSquared);
-            xmin = Math.round(Math.max(indexCenter[0] - ax, 0));
-            xmax = Math.round(
-              Math.min(indexCenter[0] + ax, globals.dimensions[0] - 1)
-            );
-          }
-          if (xmin <= xmax) {
-            const index = y * yStride + z * zStride;
-            globals.buffer.fill(1, index + xmin, index + xmax + 1);
-          }
-        }
-      }
-    }
-  }
-}
 
 // --------------------------------------------------------------------------
 
