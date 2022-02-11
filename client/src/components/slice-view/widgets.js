@@ -5,6 +5,10 @@ import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants'
 
 import vtkBrushWidget from 'vtk/brush-widget';
 
+const setBrush = (handle, brush) => {
+  handle.getRepresentations()[0].setBrush(brush);
+};
+
 export function Widgets(painter, onEdit) {
   const manager = vtkWidgetManager.newInstance();
   const floodWidget = vtkBrushWidget.newInstance();
@@ -25,7 +29,8 @@ export function Widgets(painter, onEdit) {
       floodHandle = manager.addWidget(floodWidget, ViewTypes.SLICE);
       eraseHandle = manager.addWidget(eraseWidget, ViewTypes.SLICE);
 
-      floodHandle.getRepresentations()[0].setBrush(brush);
+      //setBrush(floodHandle, brush);
+      //setBrush(eraseHandle, brush);
     
       manager.grabFocus(floodWidget);
     
@@ -83,7 +88,7 @@ export function Widgets(painter, onEdit) {
       floodHandle.updateRepresentationForRender();
       eraseHandle.updateRepresentationForRender();
     },
-    setPaintBrush: brush => floodWidget.setBrush(brush),
-    setEraseBrush: brush => eraseWidget.setBrush(brush)
+    setPaintBrush: brush => setBrush(floodHandle, brush),
+    setEraseBrush: brush => setBrush(eraseHandle, brush)
   }
 }

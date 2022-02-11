@@ -4,7 +4,7 @@ import { useResize } from 'hooks';
 
 export const SliceViewWrapper = ({ sliceView }) => {
   const [{ imageData, maskData, label }] = useContext(DataContext);
-  const [{ editMode }, controlsDispatch] = useContext(ControlsContext);
+  const [{ editMode, brushes, paintBrush, eraseBrush }, controlsDispatch] = useContext(ControlsContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);
   const { width } = useResize(div);
@@ -41,6 +41,16 @@ export const SliceViewWrapper = ({ sliceView }) => {
   useEffect(() => {
     if (initialized) sliceView.setEditMode(editMode);
   }, [initialized, sliceView, editMode]);
+
+  // Paint brush
+  useEffect(() => {
+    if (initialized) sliceView.setPaintBrush(brushes[paintBrush]);
+  }, [initialized, sliceView, brushes, paintBrush]);
+
+  // Erase brush
+  useEffect(() => {
+    if (initialized) sliceView.setEraseBrush(brushes[eraseBrush]);
+  }, [initialized, sliceView, brushes, eraseBrush]);
 
   // Clean up
   useEffect(() => {

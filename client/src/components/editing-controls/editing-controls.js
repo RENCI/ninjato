@@ -1,15 +1,13 @@
 import { useContext } from 'react';
-import { Button, Icon } from 'semantic-ui-react';
-import { SET_EDIT_MODE, ControlsContext } from 'contexts';
+import { Button } from 'semantic-ui-react';
+import { ControlsContext, SET_EDIT_MODE } from 'contexts';
+import { Settings } from './settings.js';
 import styles from './styles.module.css';
 
-const modes = [
-  { value: 'paint', icon: 'paint brush' },
-  { value: 'erase', icon: 'eraser' }
-];
+const { Group } = Button;
 
 export const EditingControls = ({ sliceView, canUndo, canRedo }) => {
-  const [{ editMode }, dispatch] = useContext(ControlsContext);
+  const [{ editModes, editMode }, dispatch] = useContext(ControlsContext);
 
   const onModeClick = value => {
     dispatch({ type: SET_EDIT_MODE, mode: value });
@@ -25,33 +23,30 @@ export const EditingControls = ({ sliceView, canUndo, canRedo }) => {
 
   return (
     <div className={ styles.buttons }>
-      <Button.Group vertical>
-        { modes.map(({ value, icon }, i) => (
+      <Group vertical>
+        { editModes.map(({ value, icon }, i) => (
           <Button 
             key={ i }
             toggle
-            icon 
+            icon={ icon }
             color={ value === editMode ? 'grey' : null }
             onClick={ () => onModeClick(value) } 
-          >
-            <Icon name={ icon } />
-          </Button>
+          />
         ))}
-      </Button.Group>
-      <Button
-        icon
-        disabled={ !canUndo }
-        onClick={ onUndoClick }
-      >
-        <Icon name={ 'undo alternate'} />
-      </Button>
-      <Button 
-        icon
-        disabled={ !canRedo }
-        onClick={ onRedoClick }
-      >
-        <Icon name={ 'redo alternate'} />
-      </Button>
+      </Group>     
+      <Settings />
+      <Group vertical>
+        <Button
+          icon='undo alternate'
+          disabled={ !canUndo }
+          onClick={ onUndoClick }
+        />
+        <Button
+          icon='redo alternate'
+          disabled={ !canRedo }
+          onClick={ onRedoClick }
+        />
+      </Group>
     </div>
   );
 };

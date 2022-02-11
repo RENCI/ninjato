@@ -1,10 +1,50 @@
 import { createContext, useReducer } from "react";
 
-export const SET_EDIT_MODE = 'controls/EDIT_MODE';
+export const SET_EDIT_MODE = 'controls/SET_EDIT_MODE';
+export const SET_BRUSH = 'controls/SET_BRUSH'
 export const RESET = 'controls/RESET';
 
+const editModes = [
+  { value: 'paint', icon: 'paint brush' },
+  { value: 'erase', icon: 'eraser' }
+];
+
+const brushes = [
+  [
+    [1]
+  ],
+  [
+    [1, 1, 1],
+    [1, 1, 1],
+    [1, 1, 1]
+  ],  
+  [
+    [0, 1, 0],
+    [1, 1, 1],
+    [0, 1, 0]
+  ],
+  [
+    [1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1]
+  ],
+  [
+    [0, 0, 1, 0, 0],
+    [0, 1, 1, 1, 0],
+    [1, 1, 1, 1, 1],
+    [0, 1, 1, 1, 0],
+    [0, 0, 1, 0, 0]
+  ]
+];
+
 const initialState = {
-  editMode: 'paint'
+  editMode: 'paint',
+  editModes: editModes,
+  brushes: brushes,
+  paintBrush: 0,
+  eraseBrush: 1
 };
 
 const reducer = (state, action) => {
@@ -13,6 +53,12 @@ const reducer = (state, action) => {
       return {
         ...state,
         editMode: action.mode
+      };
+
+    case SET_BRUSH:
+      return {
+        ...state,
+        [`${ action.which }Brush`]: action.brush
       };
 
     case RESET:

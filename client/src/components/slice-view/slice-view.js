@@ -168,15 +168,11 @@ export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
       image.getMapper().onModified(update); 
       image.getMapper().setSlice(findFirstSlice(maskData, mask.getLabel()));
     },
-    setLabel: label => {
-      mask.setLabel(label);
-    },
-    setEditMode: editMode => {
-      widgets.setEditMode(editMode);
-    },
-    setSlice: slice => {
-      image.getMapper().setSlice(slice);
-    },
+    setLabel: label => mask.setLabel(label),
+    setEditMode: editMode => widgets.setEditMode(editMode),
+    setPaintBrush: brush => widgets.setPaintBrush(brush),
+    setEraseBrush: brush => widgets.setEraseBrush(brush),
+    setSlice: slice => image.getMapper().setSlice(slice),
     undo: () => {
       mask.getPainter().undo();
       onEdit()
