@@ -269,6 +269,12 @@ function vtkCalculator(publicAPI, model) {
     outData[0] = newDataSet;
 
     const arrays = publicAPI.prepareArrays(arraySpec, inData[0], outData[0]);
+
+    // Add check for null output arrays
+    if (arrays.arraysOut.reduce((hasNull, array) => hasNull || array === null, false)) {      
+      return 0;
+    }
+
     model.formula.evaluate(arrays.arraysIn, arrays.arraysOut);
 
     return 1;
