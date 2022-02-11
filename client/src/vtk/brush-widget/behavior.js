@@ -15,8 +15,9 @@ export default function widgetBehavior(publicAPI, model) {
     model.painting = true;
     const trail = model.widgetState.addTrail();
     trail.set(
-      model.activeState.get('origin', 'up', 'right', 'direction', 'scale1')
+      model.activeState.get('origin', 'up', 'right', 'direction')
     );
+    trail.setScale1(1);
     publicAPI.invokeStartInteractionEvent();
     return macro.EVENT_ABORT;
   };
@@ -80,10 +81,10 @@ export default function widgetBehavior(publicAPI, model) {
               'origin',
               'up',
               'right',
-              'direction',
-              'scale1'
+              'direction'
             )
           );
+          trail.setScale1(1);
         }
       }
 

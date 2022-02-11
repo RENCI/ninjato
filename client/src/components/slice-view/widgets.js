@@ -65,13 +65,17 @@ export function Widgets(painter, onEdit) {
       });
     },
     update: (position, spacing) => {
+      const radius = 0.5 * Math.max(...spacing);
+
+      console.log(radius);
+
       floodWidget.getManipulator().setOrigin(position);
-      floodWidget.setRadius(0.5 * Math.max(...spacing));
+      floodWidget.setRadius(radius);
       
       floodHandle.updateRepresentationForRender();
 
       eraseWidget.getManipulator().setOrigin(position);
-      eraseWidget.setRadius(0.5 * Math.max(...spacing));
+      eraseWidget.setRadius(radius);
       
       eraseHandle.updateRepresentationForRender();
     },

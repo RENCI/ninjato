@@ -20,7 +20,6 @@ export function Mask() {
 
   const painter = vtkNinjatoPainter.newInstance();
   painter.setSlicingMode(sliceMode);
-  painter.setRadius(0.1);
 
   const contour = vtkImageContour.newInstance();
   contour.setInputConnection(painter.getOutputPort());
