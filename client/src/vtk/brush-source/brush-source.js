@@ -21,59 +21,80 @@ function vtkBrushSource(publicAPI, model) {
     const pointDataType = dataset
       ? dataset.getPoints().getDataType()
       : model.pointType;
-    const pd = vtkPolyData.newInstance();
 
     // Get number of pixels
     const brush = model.brush;
     const n = brush.reduce((count, row) => count + row.reduce((count, d) => count + (d > 0 ? 1 : 0), 0), 0);
 
-    // Points
-    const points = macro.newTypedArray(pointDataType, n * 4 * 3);
-    pd.getPoints().setData(points, 3);
+    // Points - dynamic array
+    const points = [];
 
-    // Cells
-    const polys = new Uint32Array(n * 5);
-    pd.getPolys().setData(polys, 1);
+    // Cells - dynamic array
+    const lines = [];
 
-    // Create points  
-    let index = 0;
+    // Create brush  
     const offsets = [
-      [-0.5, -0.5], 
-      [-0.5, 0.5],
-      [0.5, 0.5], 
-      [0.5, -0.5]
+      [-1, 0],
+      [1, 0],
+      [0, -1],
+      [0, 1]
     ];
     const jOffset = -Math.floor(brush.length / 2);
     for (let j = 0; j < brush.length; j++) {
+      const cy = j + jOffset;
       const iOffset = -Math.floor(brush[j].length / 2);
       for (let i = 0; i < brush[j].length; i++) {
-        if (brush[j][i] > 0) {
-          const x = i + iOffset;
-          const y = j + jOffset;
+        const cx = i + iOffset;
 
+        if (brush[j][i] > 0) {
           for (let k = 0; k < offsets.length; k++) {
-            const offset = offsets[k];
-            points[index * 3] = x + offset[0];
-            points[index * 3 + 1] = y + offset[1];
-            points[index * 3 + 2] = 0;
-  
-            index++;
+            const dx = offsets[k][0];
+            const dy = offsets[k][1];
+
+            const ni = i + dx
+            const nj = j + dy;
+
+            if (ni < 0 || ni > brush[j].length - 1 ||
+                nj < 0 || nj > brush.length - 1 ||
+                brush[nj][ni] === 0) {
+              const p1 = [];
+              const p2 = [];
+
+              if (dx === 0) {
+                p1[0] = cx - 0.5;
+                p1[1] = cy + dy * 0.5;
+                p1[2] = 0;
+
+                p2[0] = cx + 0.5;
+                p2[1] = p1[1];
+                p2[2] = 0;
+              }
+              else {
+                p1[0] = cx + dx * 0.5;;
+                p1[1] = cy - 0.5;
+                p1[2] = 0;
+
+                p2[0] = p1[0];
+                p2[1] = cy + 0.5
+                p2[2] = 0;
+              }
+
+              points.push(...p1, ...p2);
+
+              const np = points.length / 3;
+              lines.push(2, np - 2, np - 1);
+            }
           }
         }
       }
     }
 
-    // Create polys
-    for (let i = 0; i < n; i++) {
-      polys[i * 5] = 4;
-      polys[i * 5 + 1] = i * 4;
-      polys[i * 5 + 2] = i * 4 + 1;
-      polys[i * 5 + 3] = i * 4 + 2;
-      polys[i * 5 + 4] = i * 4 + 3;
-    }
-
     // Update output
-    outData[0] = pd;
+    const polydata = vtkPolyData.newInstance();
+    polydata.getPoints().setData(new Float32Array(points), 3);
+    polydata.getLines().setData(new Uint32Array(lines));
+
+    outData[0] = polydata;
   };
 }
 
