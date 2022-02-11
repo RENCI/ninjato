@@ -80,7 +80,6 @@ export function VolumeView() {
     },
     setSlice: slice => {
       region.setSlice(slice);
-      render();
     },
     render: () => {
       render();

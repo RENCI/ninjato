@@ -28,6 +28,7 @@ export const VisualizationContainer = () => {
 
   function onSliceChange(slice) {
     volumeView.current.setSlice(slice);
+    volumeView.current.render();
     setSlice(slice);
   }
 
