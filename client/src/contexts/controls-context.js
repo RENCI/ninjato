@@ -12,23 +12,16 @@ const editModes = [
 const brushes = [
   [
     [1]
-  ],
-  [
-    [1, 1, 1],
-    [1, 1, 1],
-    [1, 1, 1]
-  ],  
+  ], 
   [
     [0, 1, 0],
     [1, 1, 1],
     [0, 1, 0]
   ],
   [
-    [1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1]
+    [1, 1, 1],
+    [1, 1, 1],
+    [1, 1, 1]
   ],
   [
     [0, 0, 1, 0, 0],
@@ -36,6 +29,13 @@ const brushes = [
     [1, 1, 1, 1, 1],
     [0, 1, 1, 1, 0],
     [0, 0, 1, 0, 0]
+  ],
+  [
+    [1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1]
   ]
 ];
 
@@ -44,7 +44,7 @@ const initialState = {
   editModes: editModes,
   brushes: brushes,
   paintBrush: 0,
-  eraseBrush: 1
+  eraseBrush: 2
 };
 
 const reducer = (state, action) => {
@@ -63,7 +63,8 @@ const reducer = (state, action) => {
 
     case RESET:
       return {
-        ...initialState
+        ...state,
+        editMode: initialState.editMode
       };
 
     default: 
