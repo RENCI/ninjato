@@ -28,9 +28,6 @@ export function Widgets(painter, onEdit) {
 
       floodHandle = manager.addWidget(floodWidget, ViewTypes.SLICE);
       eraseHandle = manager.addWidget(eraseWidget, ViewTypes.SLICE);
-
-      //setBrush(floodHandle, brush);
-      //setBrush(eraseHandle, brush);
     
       manager.grabFocus(floodWidget);
     
@@ -66,8 +63,6 @@ export function Widgets(painter, onEdit) {
     },
     update: (position, spacing) => {
       const radius = 0.5 * Math.max(...spacing);
-
-      console.log(radius);
 
       floodWidget.getManipulator().setOrigin(position);
       floodWidget.setRadius(radius);

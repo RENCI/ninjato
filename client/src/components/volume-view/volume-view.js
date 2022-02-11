@@ -4,16 +4,27 @@ import vtkFullScreenRenderWindow from '@kitware/vtk.js/Rendering/Misc/FullScreen
 import { Surface } from './surface';
 import { BoundingBox } from './bounding-box';
 
-const resetCamera = renderer => {
+const resetCamera = (renderer, surface) => {
+  const [x1, x2, y1, y2, z1, z2] = surface.getPoints().getBounds();
+  const x = (x2 + x1) / 2;
+  const y = (y2 + y1) / 2;
+  const z = (z2 + z1) / 2;
+
   const position = [0, 0, -1];
   const focalPoint = [0, 0, 0];
   const viewUp = [0, -1, 0];
 
-  renderer.getActiveCamera().set({ position, focalPoint, viewUp });
+  const cam = renderer.getActiveCamera();
+
+  cam.set({ position, focalPoint, viewUp });
   renderer.resetCamera();
 
-  renderer.getActiveCamera().azimuth(-15);
-  renderer.getActiveCamera().elevation(20);
+  const p = cam.getPosition();
+  cam.translate(x - p[0], y - p[1], 0);
+  cam.setDistance(Math.abs(p[2] - z));
+
+  cam.azimuth(-15);
+  cam.elevation(20);
 };
 
 export function VolumeView() {
@@ -52,7 +63,7 @@ export function VolumeView() {
         renderer.addActor(background.getActor());
         renderer.addActor(boundingBox.getActor());
 
-        resetCamera(renderer);
+        resetCamera(renderer, region.getOutput());
         renderer.resetCameraClippingRange();
         render();
 
