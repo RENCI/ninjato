@@ -110,7 +110,7 @@ function vtkImageContour(publicAPI, model) {
               const p = input.indexToWorld(ijk);
               const px = toPixelCenter(p[kernelX], dims[kernelX]) + dx * halfSpacing[kernelX];
               const py = toPixelCenter(p[kernelY], dims[kernelY]) + dy * halfSpacing[kernelY];
-              const pz = p[kernelZ];
+              const pz = p[kernelZ] + model.zOffset;
 
               const p1 = [];
               const p2 = [];
@@ -152,12 +152,12 @@ function vtkImageContour(publicAPI, model) {
                 p4[kernelZ] = pz;   
               }            
                 
-              const zOffset = model.labelOffsets[value];
-              if (zOffset) {
-                p1[kernelZ] += zOffset;
-                p2[kernelZ] += zOffset;
-                p3[kernelZ] += zOffset;
-                p4[kernelZ] += zOffset;
+              const labelOffset = model.labelOffsets[value];
+              if (labelOffset) {
+                p1[kernelZ] += labelOffset;
+                p2[kernelZ] += labelOffset;
+                p3[kernelZ] += labelOffset;
+                p4[kernelZ] += labelOffset;
               }
 
               points.push(...p1, ...p2, ...p3, ...p4);
@@ -196,6 +196,7 @@ const DEFAULT_VALUES = {
   slicingMode: 2,
   sliceRange: [0, Infinity],
   width: 0.2,
+  zOffset: -0.1,
   labelOffsets: {}
 };
 

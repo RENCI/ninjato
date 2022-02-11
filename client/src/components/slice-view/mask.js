@@ -9,7 +9,6 @@ import vtkNinjatoPainter from 'vtk/ninjato-painter';
 import vtkImageContour from 'vtk/image-contour';
 import { Reds, Blues } from 'utils/colors';
 
-
 const sliceMode = vtkImageMapper.SlicingMode.K;
 
 export function Mask() {      
