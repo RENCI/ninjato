@@ -27,8 +27,6 @@ function vtkBrushSource(publicAPI, model) {
     const brush = model.brush;
     const n = brush.reduce((count, row) => count + row.reduce((count, d) => count + (d > 0 ? 1 : 0), 0), 0);
 
-    console.log(n);
-
     // Points
     const points = macro.newTypedArray(pointDataType, n * 4 * 3);
     pd.getPoints().setData(points, 3);
@@ -39,13 +37,13 @@ function vtkBrushSource(publicAPI, model) {
 
     // Create points  
     let index = 0;
-    const jOffset = -Math.floor(brush.length / 2);
     const offsets = [
       [-0.5, -0.5], 
       [-0.5, 0.5],
       [0.5, 0.5], 
       [0.5, -0.5]
     ];
+    const jOffset = -Math.floor(brush.length / 2);
     for (let j = 0; j < brush.length; j++) {
       const iOffset = -Math.floor(brush[j].length / 2);
       for (let i = 0; i < brush[j].length; i++) {
@@ -53,12 +51,8 @@ function vtkBrushSource(publicAPI, model) {
           const x = i + iOffset;
           const y = j + jOffset;
 
-          console.log(x, y);
-
-          console.log(offets);
-          for (const offset in offsets) {            
-            console.log(offset);
-
+          for (let k = 0; k < offsets.length; k++) {
+            const offset = offsets[k];
             points[index * 3] = x + offset[0];
             points[index * 3 + 1] = y + offset[1];
             points[index * 3 + 2] = 0;
@@ -72,14 +66,11 @@ function vtkBrushSource(publicAPI, model) {
     // Create polys
     for (let i = 0; i < n; i++) {
       polys[i * 5] = 4;
-      polys[i * 5 + 1] = i * 12;
-      polys[i * 5 + 2] = i * 12 + 1;
-      polys[i * 5 + 3] = i * 12 + 2;
-      polys[i * 5 + 4] = i * 12 + 3;
+      polys[i * 5 + 1] = i * 4;
+      polys[i * 5 + 2] = i * 4 + 1;
+      polys[i * 5 + 3] = i * 4 + 2;
+      polys[i * 5 + 4] = i * 4 + 3;
     }
-
-    console.log(points);
-    console.log(polys);
 
     // Update output
     outData[0] = pd;
@@ -92,9 +83,9 @@ function vtkBrushSource(publicAPI, model) {
 
 const DEFAULT_VALUES = {
   brush: [
+    [0, 1, 0],
     [1, 1, 1],
-    [1, 1, 1],
-    [1, 1, 1]
+    [0, 1, 0]
   ],
   pointType: 'Float64Array',
 };
