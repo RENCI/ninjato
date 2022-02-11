@@ -24,6 +24,8 @@ export function Widgets(painter, onEdit) {
 
       floodHandle = manager.addWidget(floodWidget, ViewTypes.SLICE);
       eraseHandle = manager.addWidget(eraseWidget, ViewTypes.SLICE);
+
+      floodHandle.getRepresentations()[0].setBrush(brush);
     
       manager.grabFocus(floodWidget);
     
@@ -32,7 +34,10 @@ export function Widgets(painter, onEdit) {
       });
 
       floodHandle.onEndInteractionEvent(async () => {
-        painter.paintFloodFill(floodHandle.getPoints(), brush);
+        painter.paintFloodFill(
+          floodHandle.getPoints(), 
+          floodHandle.getRepresentations()[0].getBrush()
+        );
 
         await painter.endStroke();
   
@@ -44,7 +49,10 @@ export function Widgets(painter, onEdit) {
       });
 
       eraseHandle.onEndInteractionEvent(async () => {
-        painter.erase(eraseHandle.getPoints(), brush);
+        painter.erase(
+          eraseHandle.getPoints(), 
+          eraseHandle.getRepresentations()[0].getBrush()
+        );
 
         await painter.endStroke(true);
 

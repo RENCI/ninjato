@@ -73,8 +73,6 @@ export default function widgetBehavior(publicAPI, model) {
         model.widgetState.setTrueOrigin(...worldCoords);
         model.activeState.setOrigin(...worldCoords);
 
-        model.representations[0].setBrush(model.factory.getBrush());
-
         if (model.painting) {
           const trail = model.widgetState.addTrail();
           trail.set(

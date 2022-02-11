@@ -7,6 +7,10 @@ export default function generateState(radius) {
       name: 'trueOrigin',
       initialValue: [0, 0, 0],
     })
+    .addField({
+      name: 'brush',
+      initialValue: [[1, 1, 1, 1]],
+    })
     .addStateFromMixin({
       labels: ['handle'],
       mixins: [

@@ -60,13 +60,7 @@ function vtkBrushRepresentation(publicAPI, model) {
   model.pipelines = {
     brush: {
       source: publicAPI,
-      glyph: vtkBrushSource.newInstance({
-        xResolution: 1,
-        yResolution: 1,
-        origin: [-0.5, -0.5, 0],
-        point1: [0.5, -0.5, 0],
-        point2: [-0.5, 0.5, 0]
-      }),
+      glyph: vtkBrushSource.newInstance(),
       mapper: vtkGlyph3DMapper.newInstance({
         orientationArray: 'direction',
         scaleArray: 'scale',
@@ -94,29 +88,12 @@ function vtkBrushRepresentation(publicAPI, model) {
 
   model.transform = vtkMatrixBuilder.buildFromDegree();
 
-  /*
-  // --------------------------------------------------------------------------
-
-  publicAPI.setGlyphResolution = macro.chain(
-    publicAPI.setGlyphResolution,
-    (r) => model.pipelines.brush.glyph.setResolution(r)
-  );
-
-  // --------------------------------------------------------------------------
-
-  publicAPI.setDrawBorder = (draw) => {
-    model.pipelines.brush.glyph.setLines(draw);
-  };
-
-  // --------------------------------------------------------------------------
-
-  publicAPI.setDrawFace = (draw) => {
-    model.pipelines.brush.glyph.setFace(draw);
-  };
-  */
-
   publicAPI.setBrush = (brush) => {
     model.pipelines.brush.glyph.setBrush(brush);
+  };
+
+  publicAPI.getBrush = () => {
+    return model.pipelines.brush.glyph.getBrush();
   };
 
   // --------------------------------------------------------------------------
