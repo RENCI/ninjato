@@ -18,9 +18,6 @@ export function Image() {
     getMapper: () => mapper,
     setInputData: data => {
       mapper.setInputData(data);
-
-      const extent = data.getExtent();          
-      mapper.setSlice((extent[5] - extent[4]) / 2);
     },
     cleanUp: () => {
       actor.delete();

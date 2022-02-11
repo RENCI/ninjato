@@ -56,8 +56,8 @@ export function Widgets(painter, onEdit) {
       });
     },
     update: (position, spacing) => {
-      // XXX: Why is the 0.9 necessary here?
-      const radius = Math.max(spacing[0], spacing[1]) * 0.9;
+      // XXX: Why is the 0.85 necessary here?
+      const radius = Math.max(spacing[0], spacing[1]) * 0.85;
  
       floodWidget.getManipulator().setOrigin(position);
       floodWidget.setRadius(radius);
