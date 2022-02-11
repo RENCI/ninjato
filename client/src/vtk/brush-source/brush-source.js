@@ -47,7 +47,7 @@ function vtkBrushSource(publicAPI, model) {
     for (let j = 0; j < brush.length; j++) {
       const iOffset = -Math.floor(brush[j].length / 2);
       for (let i = 0; i < brush[j].length; i++) {
-        if (brush[j][i]) {
+        if (brush[j][i] > 0) {
           const x = i + iOffset;
           const y = j + jOffset;
 
@@ -82,11 +82,7 @@ function vtkBrushSource(publicAPI, model) {
 // ----------------------------------------------------------------------------
 
 const DEFAULT_VALUES = {
-  brush: [
-    [0, 1, 0],
-    [1, 1, 1],
-    [0, 1, 0]
-  ],
+  brush: [[1]],
   pointType: 'Float64Array',
 };
 

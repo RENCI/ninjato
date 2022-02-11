@@ -1,15 +1,11 @@
 import vtkStateBuilder from '@kitware/vtk.js/Widgets/Core/StateBuilder';
 
-export default function generateState(radius, brush) {
+export default function generateState(radius) {
   return vtkStateBuilder
     .createBuilder()
     .addField({
       name: 'trueOrigin',
       initialValue: [0, 0, 0],
-    })
-    .addField({
-      name: 'brush',
-      initialValue: [[1]]
     })
     .addStateFromMixin({
       labels: ['handle'],

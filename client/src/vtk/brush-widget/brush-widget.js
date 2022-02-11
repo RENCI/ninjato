@@ -17,7 +17,7 @@ function vtkBrushWidget(publicAPI, model) {
 
   // --- Widget Requirement ---------------------------------------------------
   model.behavior = widgetBehavior;
-  model.widgetState = stateGenerator(model.radius, model.brush);
+  model.widgetState = stateGenerator(model.radius);
 
   publicAPI.getRepresentationsForViewType = (viewType) => {
     switch (viewType) {
@@ -60,7 +60,11 @@ const DEFAULT_VALUES = {
   painting: false,
   color: [1],
   imageData: null,
-  brush: [[1]]
+  brush: [
+    [1, 1, 1],
+    [1, 1, 1],
+    [1, 1, 1]
+  ],
 };
 
 // ----------------------------------------------------------------------------
