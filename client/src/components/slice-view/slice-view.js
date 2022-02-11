@@ -121,7 +121,7 @@ export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
     },
     setData: (imageData, maskData) => {
       image.setInputData(imageData);    
-      mask.setInputData(imageData, maskData);
+      mask.setInputData(maskData);
 
       sliceRanges = getSliceRanges(imageData);
 
@@ -158,8 +158,6 @@ export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
         widgets.update(position, imageData.getSpacing());
   
         // Update mask slice
-        // TODO: Probably need a new clipping filter for outlines
-        //mask.getMapper().set(image.getMapper().get('slice', 'slicingMode'));
         mask.setSlice(z);
 
         onSliceChange(z);
@@ -168,15 +166,11 @@ export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
       image.getMapper().onModified(update); 
       image.getMapper().setSlice(findFirstSlice(maskData, mask.getLabel()));
     },
-    setLabel: label => {
-      mask.setLabel(label);
-    },
-    setEditMode: editMode => {
-      mask.setEditMode(editMode);
-    },
-    setSlice: slice => {
-      image.getMapper().setSlice(slice);
-    },
+    setLabel: label => mask.setLabel(label),
+    setEditMode: editMode => widgets.setEditMode(editMode),
+    setPaintBrush: brush => widgets.setPaintBrush(brush),
+    setEraseBrush: brush => widgets.setEraseBrush(brush),
+    setSlice: slice => image.getMapper().setSlice(slice),
     undo: () => {
       mask.getPainter().undo();
       onEdit()

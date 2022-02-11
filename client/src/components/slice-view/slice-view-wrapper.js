@@ -1,10 +1,11 @@
-import { useContext, useRef, useEffect, useCallback } from 'react';
+import { useContext, useState, useRef, useEffect, useCallback } from 'react';
 import { DataContext, ControlsContext, SET_EDIT_MODE } from 'contexts';
 import { useResize } from 'hooks';
 
 export const SliceViewWrapper = ({ sliceView }) => {
   const [{ imageData, maskData, label }] = useContext(DataContext);
-  const [{ editMode }, controlsDispatch] = useContext(ControlsContext);
+  const [{ editMode, brushes, paintBrush, eraseBrush }, controlsDispatch] = useContext(ControlsContext);
+  const [initialized, setInitialized] = useState(false);
   const div = useRef(null);
   const { width } = useResize(div);
 
@@ -22,23 +23,34 @@ export const SliceViewWrapper = ({ sliceView }) => {
   
   // Initialize
   useEffect(() => {
-    if (div.current && width) { 
+    if (!initialized && div.current && width) { 
       sliceView.initialize(div.current, onKeyDown, onKeyUp);
+      setInitialized(true);
     }
-  }, [div, width, sliceView, onKeyDown, onKeyUp]);
+  }, [initialized, div, width, sliceView, onKeyDown, onKeyUp]);
 
   // Update data
   useEffect(() => {
-    if (div.current && width && imageData && maskData) {
+    if (initialized && imageData && maskData) {
       sliceView.setLabel(label);
       sliceView.setData(imageData, maskData);
     }
-  }, [div, width, sliceView, imageData, maskData, label]);   
+  }, [initialized, sliceView, imageData, maskData, label]);   
 
   // Edit mode
   useEffect(() => {
-    sliceView.setEditMode(editMode);
-  }, [sliceView, editMode]);
+    if (initialized) sliceView.setEditMode(editMode);
+  }, [initialized, sliceView, editMode]);
+
+  // Paint brush
+  useEffect(() => {
+    if (initialized) sliceView.setPaintBrush(brushes[paintBrush]);
+  }, [initialized, sliceView, brushes, paintBrush]);
+
+  // Erase brush
+  useEffect(() => {
+    if (initialized) sliceView.setEraseBrush(brushes[eraseBrush]);
+  }, [initialized, sliceView, brushes, eraseBrush]);
 
   // Clean up
   useEffect(() => {

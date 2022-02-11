@@ -13,7 +13,7 @@ const globals = {
 
 // --------------------------------------------------------------------------
 // center and scale3 are in IJK coordinates
-function handlePaintEllipse({ center, scale3, label }) {
+function handlePaintEllipse({ center, scale3 }) {
   const radius3 = [...scale3];
   const indexCenter = center.map((val) => Math.round(val));
 
@@ -68,7 +68,7 @@ function handlePaintEllipse({ center, scale3, label }) {
           }
           if (xmin <= xmax) {
             const index = y * yStride + z * zStride;
-            globals.buffer.fill(label, index + xmin, index + xmax + 1);
+            globals.buffer.fill(1, index + xmin, index + xmax + 1);
           }
         }
       }
@@ -78,7 +78,31 @@ function handlePaintEllipse({ center, scale3, label }) {
 
 // --------------------------------------------------------------------------
 
-function handlePaint({ point, radius, label }) {
+// center and brush are in IJK coordinates
+function handlePaintBrush({ center, brush }) {
+  const indexCenter = center.map((val) => Math.round(val));
+  const z = indexCenter[2];
+  const yStride = globals.dimensions[0];
+  const zStride = globals.dimensions[0] * globals.dimensions[1];
+
+  const jOffset = -Math.floor(brush.length / 2);
+  for (let j = 0; j < brush.length; j++) {
+    const iOffset = -Math.floor(brush[j].length / 2);
+    for (let i = 0; i < brush[j].length; i++) {
+      if (brush[j][i]) {
+        const x = indexCenter[0] + iOffset + i;
+        const y = indexCenter[1] + jOffset + j;
+
+        const index = x + y * yStride + z * zStride;
+        globals.buffer[index] = 1;
+      }
+    }
+  }
+}
+
+// --------------------------------------------------------------------------
+
+function handlePaint({ point, brush }) {
   if (!globals.prevPoint) {
     globals.prevPoint = point;
   }
@@ -102,7 +126,7 @@ function handlePaint({ point, radius, label }) {
   const thresh = [step, step, step];
   const pt = [...globals.prevPoint];
   for (let s = 0; s <= step; s++) {
-    handlePaintEllipse({ center: pt, scale3: radius, label });
+    handlePaintBrush({ center: pt, brush });
 
     for (let ii = 0; ii < 3; ii++) {
       thresh[ii] -= delta[ii];
@@ -158,19 +182,17 @@ function floodFillScanlineStack({ buffer, w, h, seed }) {
 } 
 
 // XXX: Currently assuming z slice
-function handlePaintFloodFill({ labels, label, erase, pointList, radius }) {
+function handlePaintFloodFill({ labels, label, pointList, brush }) {
   if (pointList.length === 0) return;
 
   globals.buffer.set(labels.map(d => d === label ? 1 : 0));
 
   // Paint points
   pointList.forEach((point, i) => {
-    handlePaint({ point, radius, label: 1 });
+    handlePaint({ point, brush });
 
     if (i === 0) globals.prevPoint = null;
   });
-
-  if (erase) return;
 
   // Slice info
   const w = globals.dimensions[0];
@@ -222,6 +244,18 @@ function handlePaintFloodFill({ labels, label, erase, pointList, radius }) {
   }
 }
 
+// XXX: Currently assuming z slice
+function handleErase({ pointList, brush }) {
+  if (pointList.length === 0) return;
+
+  // Paint points
+  pointList.forEach((point, i) => {
+    handlePaint({ point, brush });
+
+    if (i === 0) globals.prevPoint = null;
+  });
+}
+
 // --------------------------------------------------------------------------
 
 registerWebworker()
@@ -236,6 +270,7 @@ registerWebworker()
     }
   })
   .operation('paintFloodFill', handlePaintFloodFill)
+  .operation('erase', handleErase)
   .operation('end', () => {
     const response = new registerWebworker.TransferableResponse(
       globals.buffer.buffer,

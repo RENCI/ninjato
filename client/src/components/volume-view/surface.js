@@ -69,7 +69,7 @@ export function Surface(type = 'background') {
   else {
     mapper.setInputConnection(marchingCubes.getOutputPort());
 
-    actor.getProperty().setDiffuseColor([1, 1, 1]);
+    actor.getProperty().setDiffuseColor(Blues[2]);
     actor.getProperty().setAmbientColor(Blues[8]);
     actor.getProperty().setAmbient(0.8);
     actor.getProperty().setOpacity(0.4);
@@ -90,7 +90,7 @@ export function Surface(type = 'background') {
       )
     },
     setSlice: slice => {
-      const [,,z] = maskCalculator.getInputData().indexToWorld([0, 0, slice]);
+      const z = maskCalculator.getInputData().indexToWorld([0, 0, slice])[2];
 
       const [r1, g1, b1] = Reds[5];
       const [r2, g2, b2] = Reds[3];
@@ -100,6 +100,10 @@ export function Surface(type = 'background') {
       color.addRGBPoint(z - 0.1, r2, g2, b2);
       color.addRGBPoint(z, r1, g1, b1);
       color.addRGBPoint(z + 0.1, r2, g2, b2);
+    },
+    getOutput: () => {
+      mapper.update();
+      return mapper.getInputData();
     },
     cleanUp: () => {
       actor.delete();

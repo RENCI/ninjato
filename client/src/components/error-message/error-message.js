@@ -13,6 +13,7 @@ export const ErrorMessage = () => {
   
   const text = !error ? null :
     (typeof error === 'string' || error instanceof String) ? error :
+    error.message ? error.message.split(`\n`).map((s, i) => <p key={ i }>{ s }</p>) :
     JSON.stringify(error, Object.getOwnPropertyNames(error));
 
   return (
@@ -26,7 +27,7 @@ export const ErrorMessage = () => {
         onDismiss={ onDismiss }
       >
         <Icon name='exclamation circle' />
-        <Content>
+        <Content style={{ textAlign: 'left' }}>
           <Header>Error</Header>
           { text }
         </Content>

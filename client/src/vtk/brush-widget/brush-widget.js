@@ -1,7 +1,6 @@
 import macro from '@kitware/vtk.js/macros';
 import vtkAbstractWidgetFactory from '@kitware/vtk.js/Widgets/Core/AbstractWidgetFactory';
 import vtkPlaneManipulator from '@kitware/vtk.js/Widgets/Manipulators/PlaneManipulator';
-import vtkSphereHandleRepresentation from '@kitware/vtk.js/Widgets/Representations/SphereHandleRepresentation';
 import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
 import vtkBrushRepresentation from 'vtk/brush-representation';
@@ -12,8 +11,8 @@ import stateGenerator from './state';
 // Factory
 // ----------------------------------------------------------------------------
 
-function vtkFloodWidget(publicAPI, model) {
-  model.classHierarchy.push('vtkFloodWidget');
+function vtkBrushWidget(publicAPI, model) {
+  model.classHierarchy.push('vtkBrushWidget');
 
   // --- Widget Requirement ---------------------------------------------------
   model.behavior = widgetBehavior;
@@ -24,15 +23,14 @@ function vtkFloodWidget(publicAPI, model) {
       case ViewTypes.DEFAULT:
       case ViewTypes.GEOMETRY:
       case ViewTypes.SLICE:
+      case ViewTypes.VOLUME:
+      default:
         return [
           {
             builder: vtkBrushRepresentation,
-            labels: ['handle', 'trail'],
+            labels: ['handle', 'trail']
           },
         ];
-      case ViewTypes.VOLUME:
-      default:
-        return [{ builder: vtkSphereHandleRepresentation, labels: ['handle'] }];
     }
   };
   // --- Widget Requirement ---------------------------------------------------
@@ -59,7 +57,7 @@ const DEFAULT_VALUES = {
   radius: 1,
   painting: false,
   color: [1],
-  imageData: null
+  imageData: null,
 };
 
 // ----------------------------------------------------------------------------
@@ -72,12 +70,12 @@ export function extend(publicAPI, model, initialValues = {}) {
   macro.get(publicAPI, model, ['painting']);
   macro.setGet(publicAPI, model, ['manipulator', 'radius', 'color', 'imageData']);
 
-  vtkFloodWidget(publicAPI, model);
+  vtkBrushWidget(publicAPI, model);
 }
 
 // ----------------------------------------------------------------------------
 
-export const newInstance = macro.newInstance(extend, 'vtkFloodWidget');
+export const newInstance = macro.newInstance(extend, 'vtkBrushWidget');
 
 // ----------------------------------------------------------------------------
 

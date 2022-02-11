@@ -20,7 +20,6 @@ export function Mask() {
 
   const painter = vtkNinjatoPainter.newInstance();
   painter.setSlicingMode(sliceMode);
-  painter.setRadius(0.1);
 
   const contour = vtkImageContour.newInstance();
   contour.setInputConnection(painter.getOutputPort());
@@ -40,11 +39,11 @@ export function Mask() {
     getPainter: () => painter,
     getActor: () => actor,
     getMapper: () => mapper,
-    setInputData: (imageData, maskData) => {
-      painter.setBackgroundImage(imageData);
+    setInputData: maskData => {
+      painter.setBackgroundImage(maskData);
       painter.setLabelMap(maskData);
 
-      const [w, h] = imageData.getDimensions();
+      const [w, h] = maskData.getDimensions();
       contour.setWidth(Math.max(w, h) / 200);
     },
     setLabel: regionLabel => {
@@ -65,10 +64,6 @@ export function Mask() {
       contour.setLabelOffsets({[label]: -0.01 });
     },
     getLabel: () => label,
-    setEditMode: editMode => {
-      painter.setLabel(editMode === 'erase' ? 0 : label);
-      painter.setErase(editMode === 'erase');
-    },
     setSlice: slice => contour.setSliceRange([slice, slice])
   };
 }

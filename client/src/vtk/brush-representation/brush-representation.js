@@ -1,6 +1,5 @@
 import macro from '@kitware/vtk.js/macros';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
-import vtkPlaneSource from '@kitware/vtk.js/Filters/Sources/PlaneSource';
 import vtkContextRepresentation from '@kitware/vtk.js/Widgets/Representations/ContextRepresentation';
 import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
 import vtkGlyph3DMapper from '@kitware/vtk.js/Rendering/Core/Glyph3DMapper';
@@ -10,6 +9,8 @@ import vtkWidgetRepresentation from '@kitware/vtk.js/Widgets/Representations/Wid
 import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
 
 import { ScalarMode } from '@kitware/vtk.js/Rendering/Core/Mapper/Constants';
+
+import vtkBrushSource from 'vtk/brush-source';
 
 // ----------------------------------------------------------------------------
 // vtkBrushRepresentation methods
@@ -59,13 +60,7 @@ function vtkBrushRepresentation(publicAPI, model) {
   model.pipelines = {
     brush: {
       source: publicAPI,
-      glyph: vtkPlaneSource.newInstance({
-        xResolution: 1,
-        yResolution: 1,
-        origin: [-0.5, -0.5, 0],
-        point1: [0.5, -0.5, 0],
-        point2: [-0.5, 0.5, 0]
-      }),
+      glyph: vtkBrushSource.newInstance(),
       mapper: vtkGlyph3DMapper.newInstance({
         orientationArray: 'direction',
         scaleArray: 'scale',
@@ -93,26 +88,13 @@ function vtkBrushRepresentation(publicAPI, model) {
 
   model.transform = vtkMatrixBuilder.buildFromDegree();
 
-  /*
-  // --------------------------------------------------------------------------
-
-  publicAPI.setGlyphResolution = macro.chain(
-    publicAPI.setGlyphResolution,
-    (r) => model.pipelines.brush.glyph.setResolution(r)
-  );
-
-  // --------------------------------------------------------------------------
-
-  publicAPI.setDrawBorder = (draw) => {
-    model.pipelines.brush.glyph.setLines(draw);
+  publicAPI.setBrush = (brush) => {
+    model.pipelines.brush.glyph.setBrush(brush);
   };
 
-  // --------------------------------------------------------------------------
-
-  publicAPI.setDrawFace = (draw) => {
-    model.pipelines.brush.glyph.setFace(draw);
+  publicAPI.getBrush = () => {
+    return model.pipelines.brush.glyph.getBrush();
   };
-  */
 
   // --------------------------------------------------------------------------
 
@@ -196,10 +178,6 @@ function vtkBrushRepresentation(publicAPI, model) {
 // ----------------------------------------------------------------------------
 
 const DEFAULT_VALUES = {
-  glyphResolution: 32,
-  defaultScale: 1,
-  drawBorder: false,
-  drawFace: true,
 };
 
 // ----------------------------------------------------------------------------
@@ -208,7 +186,7 @@ export function extend(publicAPI, model, initialValues = {}) {
   Object.assign(model, DEFAULT_VALUES, initialValues);
 
   vtkContextRepresentation.extend(publicAPI, model, initialValues);
-  macro.setGet(publicAPI, model, ['glyphResolution', 'defaultScale']);
+  macro.setGet(publicAPI, model, []);
   macro.get(publicAPI, model, ['glyph', 'mapper', 'actor']);
 
   // Object specific methods

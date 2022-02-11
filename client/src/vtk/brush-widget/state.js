@@ -7,6 +7,10 @@ export default function generateState(radius) {
       name: 'trueOrigin',
       initialValue: [0, 0, 0],
     })
+    .addField({
+      name: 'brush',
+      initialValue: [[1, 1, 1, 1]],
+    })
     .addStateFromMixin({
       labels: ['handle'],
       mixins: [
@@ -15,13 +19,13 @@ export default function generateState(radius) {
         'scale1',
         'orientation',
         'manipulator',
-        'visible',
+        'visible'
       ],
       name: 'handle',
       initialValues: {
         scale1: radius * 2,
-        orientation: [1, 0, 0, 0, 1, 0, 0, 0, 1],
-      },
+        orientation: [1, 0, 0, 0, 1, 0, 0, 0, 1]
+      },      
     })
     .addDynamicMixinState({
       labels: ['trail'],

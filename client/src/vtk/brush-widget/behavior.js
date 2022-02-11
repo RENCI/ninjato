@@ -13,10 +13,11 @@ export default function widgetBehavior(publicAPI, model) {
     }
 
     model.painting = true;
-    const trailCircle = model.widgetState.addTrail();
-    trailCircle.set(
-      model.activeState.get('origin', 'up', 'right', 'direction', 'scale1')
+    const trail = model.widgetState.addTrail();
+    trail.set(
+      model.activeState.get('origin', 'up', 'right', 'direction')
     );
+    trail.setScale1(1);
     publicAPI.invokeStartInteractionEvent();
     return macro.EVENT_ABORT;
   };
@@ -74,16 +75,16 @@ export default function widgetBehavior(publicAPI, model) {
         model.activeState.setOrigin(...worldCoords);
 
         if (model.painting) {
-          const trailCircle = model.widgetState.addTrail();
-          trailCircle.set(
+          const trail = model.widgetState.addTrail();
+          trail.set(
             model.activeState.get(
               'origin',
               'up',
               'right',
-              'direction',
-              'scale1'
+              'direction'
             )
           );
+          trail.setScale1(1);
         }
       }
 
