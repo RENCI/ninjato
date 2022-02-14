@@ -1,4 +1,5 @@
 .buttons {
+  padding-left: 0 !important;
   display: flex;
   flex-direction: column;
   justify-content: center;
