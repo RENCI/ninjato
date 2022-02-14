@@ -4,9 +4,8 @@ import { DataContext } from 'contexts/data-context';
 import { VolumeViewWrapper, VolumeView } from 'modules/refining/components/volume-view';
 import { SliceViewWrapper, SliceView } from 'modules/refining/components/slice-view';
 import { EditingControls } from 'modules/refining/components/editing-controls';
-import { VerticalSlider } from 'modules/common/components/vertical-slider';
+import { SliceSlider } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
-import styles from './styles.module.css';
 
 const { Row, Column } = Grid;
 
@@ -61,14 +60,12 @@ export const VisualizationContainer = () => {
                   <SliceViewWrapper sliceView={ sliceView.current } />
                 </Column>                  
                   { !loading &&
-                    <div className={ styles.autoSize } style={{ width: 30 }}>
-                      <VerticalSlider 
-                        value={ slice } 
-                        min={ 0 }
-                        max={ numSlices - 1 }
-                        onChange={ onSliderChange } 
-                      />
-                    </div>
+                    <SliceSlider
+                      value={ slice } 
+                      min={ 0 }
+                      max={ numSlices - 1 }
+                      onChange={ onSliderChange } 
+                    />
                   }
               </Row>
             </Grid>            

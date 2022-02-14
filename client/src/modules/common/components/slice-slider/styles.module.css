@@ -1,3 +1,4 @@
-.autoSize {
+.sliceSlider {
   flex: 0 0 auto !important;  
+  width: 30px;
 }
