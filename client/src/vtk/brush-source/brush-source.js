@@ -15,16 +15,8 @@ function vtkBrushSource(publicAPI, model) {
       return;
     }
 
-    const dataset = outData[0];
-
-    // Check input
-    const pointDataType = dataset
-      ? dataset.getPoints().getDataType()
-      : model.pointType;
-
     // Get number of pixels
     const brush = model.brush;
-    const n = brush.reduce((count, row) => count + row.reduce((count, d) => count + (d > 0 ? 1 : 0), 0), 0);
 
     // Points - dynamic array
     const points = [];

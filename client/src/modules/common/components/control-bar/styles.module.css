@@ -1,0 +1,11 @@
+.controlBar {
+  padding-left: 0 !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+}
+
+.controlBar > *:not(:last-child) {
+  margin-bottom: .5rem;
+}

@@ -1,0 +1,11 @@
+.splitButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1 1 auto;
+}
+
+.iconDiv {
+  margin-right: .5rem;
+  margin-left: .5rem;
+}

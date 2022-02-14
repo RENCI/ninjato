@@ -1,11 +1,11 @@
 import { useContext, useRef, useCallback, useState } from 'react';
 import { Segment, Grid, Dimmer, Loader } from 'semantic-ui-react';
 import { DataContext } from 'contexts/data-context';
-import { VolumeViewWrapper, VolumeView } from 'components/volume-view';
-import { SliceViewWrapper, SliceView } from 'components/slice-view';
-import { EditingControls } from 'components/editing-controls';
-import { VerticalSlider } from 'components/vertical-slider';
-import { SaveButtons } from 'components/save-buttons';
+import { VolumeViewWrapper, VolumeView } from 'modules/refining/components/volume-view';
+import { SliceViewWrapper, SliceView } from 'modules/refining/components/slice-view';
+import { EditingControls } from 'modules/refining/components/editing-controls';
+import { VerticalSlider } from 'modules/common/components/vertical-slider';
+import { SaveButtons } from 'modules/assignment/components/save-buttons';
 import styles from './styles.module.css';
 
 const { Row, Column } = Grid;
