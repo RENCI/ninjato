@@ -1,6 +1,7 @@
 import { useContext, useRef, useCallback, useState } from 'react';
-import { Segment, Grid, Dimmer, Loader } from 'semantic-ui-react';
+import { Grid } from 'semantic-ui-react';
 import { DataContext } from 'contexts/data-context';
+import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization';
 import { VolumeViewWrapper, VolumeView } from 'modules/refining/components/volume-view';
 import { SliceViewWrapper, SliceView } from 'modules/refining/components/slice-view';
 import { EditingControls } from 'modules/refining/components/editing-controls';
@@ -9,7 +10,7 @@ import { SaveButtons } from 'modules/assignment/components/save-buttons';
 
 const { Row, Column } = Grid;
 
-export const VisualizationContainer = () => {
+export const RefiningContainer = () => {
   const [{ imageData }] = useContext(DataContext);
   const volumeView = useRef(VolumeView());
   const sliceView = useRef(SliceView(onEdit, onSliceChange));
@@ -45,12 +46,10 @@ export const VisualizationContainer = () => {
 
   return (
     <div> 
-      <Dimmer active={ loading } page>
-        <Loader>Loading</Loader>
-      </Dimmer>
+      <VisualizationLoader loading={ loading } />
       <Grid columns='equal' verticalAlign='middle' padded stackable reversed='mobile'>
         <Column>
-          <Segment raised>
+          <VisualizationSection>
             <Grid columns='equal'>              
               <Row>
                 <Column>
@@ -60,7 +59,7 @@ export const VisualizationContainer = () => {
                   <SliceViewWrapper sliceView={ sliceView.current } />
                 </Column>                  
                   { !loading &&
-                    <SliceSlider
+                    <SliceSlider 
                       value={ slice } 
                       min={ 0 }
                       max={ numSlices - 1 }
@@ -69,7 +68,7 @@ export const VisualizationContainer = () => {
                   }
               </Row>
             </Grid>            
-          </Segment>
+          </VisualizationSection>
         </Column>
         { !loading && 
           <EditingControls 
