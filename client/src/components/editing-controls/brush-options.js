@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { List, Popup, Icon, Button } from 'semantic-ui-react';
+import { Popup, Icon, Button } from 'semantic-ui-react';
 import { ControlsContext, SET_BRUSH } from 'contexts';
 
 const { Group } = Button;

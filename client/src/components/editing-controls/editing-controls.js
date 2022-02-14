@@ -1,7 +1,6 @@
 import { useContext } from 'react';
-import { Menu, Button, Icon, Dropdown } from 'semantic-ui-react';
+import { Button, Icon} from 'semantic-ui-react';
 import { ControlsContext, SET_EDIT_MODE } from 'contexts';
-import { Settings } from './settings';
 import { BrushOptions } from './brush-options';
 import styles from './styles.module.css';
 
