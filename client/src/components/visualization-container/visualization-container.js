@@ -75,13 +75,11 @@ export const VisualizationContainer = () => {
           </Segment>
         </Column>
         { !loading && 
-          <Column className={ styles.autoSize }>
-            <EditingControls 
-              sliceView={ sliceView.current }
-              canUndo={ canUndo }
-              canRedo={ canRedo }
-            />
-          </Column>
+          <EditingControls 
+            sliceView={ sliceView.current }
+            canUndo={ canUndo }
+            canRedo={ canRedo }
+          />
         }
       </Grid>
       { !loading && <SaveButtons /> }
