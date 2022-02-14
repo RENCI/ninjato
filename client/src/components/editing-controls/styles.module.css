@@ -1,3 +1,11 @@
+.buttons {
+  padding-left: 0 !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+}
+
 .buttons > *:not(:last-child) {
   margin-bottom: .5rem;
 }

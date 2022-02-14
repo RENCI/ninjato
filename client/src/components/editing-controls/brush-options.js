@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { List, Popup, Button, Icon } from 'semantic-ui-react';
+import { Popup, Icon, Button } from 'semantic-ui-react';
 import { ControlsContext, SET_BRUSH } from 'contexts';
 
 const { Group } = Button;
@@ -14,14 +14,14 @@ const iconSize = brush => (
   'small'
 );
 
-export const Settings = () => {
+export const BrushOptions = ({ which }) => {
   const [{ brushes, paintBrush, eraseBrush }, dispatch] = useContext(ControlsContext);
 
   const onClick = (brush, which) => {
     dispatch({ type: SET_BRUSH, brush: brush, which: which });
   };
 
-  const brush = (brush, i, which) => (
+  const brush = (brush, i) => (
     <Button
       key={ i }
       toggle
@@ -43,24 +43,24 @@ export const Settings = () => {
 
   return (     
     <Popup
-      trigger={ <Button icon='settings' /> }
+      trigger={ 
+        <Button           
+          icon 
+          basic 
+          compact
+        >
+          <Icon name='caret down' fitted />
+        </Button>
+      }
       on='click'
-      position='left center'
+      position='top left'
       content={ 
-        <List relaxed>          
-          <List.Item>
-            Paint brush
-            <Group>
-              { brushes.map((d, i) => brush(d, i, 'paint')) }
-            </Group>
-          </List.Item>      
-          <List.Item>
-            Eraser
-            <Group>
-              { brushes.map((d, i) => brush(d, i, 'erase')) }
-            </Group>
-          </List.Item>
-        </List>
+        <>
+          { which === 'erase' ? 'Eraser' : 'Paint brush' }
+          <Group>
+            { brushes.map((d, i) => brush(d, i)) }
+          </Group>
+        </>
       }
     />
   );
