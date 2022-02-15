@@ -5,8 +5,8 @@ export const SET_BRUSH = 'controls/SET_BRUSH'
 export const RESET = 'controls/RESET';
 
 const editModes = [
-  { value: 'paint', icon: 'paint brush' },
-  { value: 'erase', icon: 'eraser' }
+  { value: 'paint', icon: 'paint brush', cursor: 'url("/cursors/paint-brush.png") 11 23, auto' },
+  { value: 'erase', icon: 'eraser', cursor: 'url("/cursors/eraser.png") 12 22, auto' }
 ];
 
 const brushes = [

@@ -113,8 +113,6 @@ export function SliceView(onEdit, onSliceChange) {
       interactor.onKeyUp(onKeyUp);
 
       widgets.setRenderer(renderer);
-
-      renderWindow.getInteractor().getView().setCursor('url("/cursors/paint-brush.png") 9 19, auto');
     },
     setData: (imageData, maskData) => {
       image.setInputData(imageData);    
@@ -164,7 +162,10 @@ export function SliceView(onEdit, onSliceChange) {
       update();
     },
     setLabel: label => mask.setLabel(label),
-    setEditMode: editMode => widgets.setEditMode(editMode),
+    setEditMode: (editMode, cursor) => {
+      widgets.setEditMode(editMode)
+      renderWindow.getInteractor().getView().setCursor(cursor);
+    },
     setPaintBrush: brush => widgets.setPaintBrush(brush),
     setEraseBrush: brush => widgets.setEraseBrush(brush),
     setSlice: slice => image.getMapper().setSlice(slice),
