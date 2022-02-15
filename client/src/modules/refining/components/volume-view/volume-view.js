@@ -47,7 +47,8 @@ export function VolumeView() {
 
       fullScreenRenderWindow = vtkFullScreenRenderWindow.newInstance({
         rootContainer: rootNode,
-        background: [0, 0, 0, 0]
+        background: [0, 0, 0, 0],
+        listenWindowResize: false
       });
   
       renderWindow = fullScreenRenderWindow.getRenderWindow();
