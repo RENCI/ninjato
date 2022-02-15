@@ -87,8 +87,8 @@ export const api = {
   },
   getPracticeData: async () => {
     const responses = await Promise.all([
-      axios.get('test-data.tiff', { baseURL: '/', responseType: 'arraybuffer' }),  
-      axios.get('test-masks.tiff', { baseURL: '/', responseType: 'arraybuffer' })
+      axios.get('test-data.tiff', { baseURL: '/data/', responseType: 'arraybuffer' }),  
+      axios.get('test-masks.tiff', { baseURL: '/data/', responseType: 'arraybuffer' })
     ]);
 
     return {

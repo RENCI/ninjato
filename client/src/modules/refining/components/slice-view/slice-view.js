@@ -114,7 +114,7 @@ export function SliceView(onEdit, onSliceChange) {
 
       widgets.setRenderer(renderer);
 
-      //renderWindow.getInteractor().getView().setCursor('inherit');
+      renderWindow.getInteractor().getView().setCursor('url("/cursors/paint-brush.png") 9 19, auto');
     },
     setData: (imageData, maskData) => {
       image.setInputData(imageData);    
