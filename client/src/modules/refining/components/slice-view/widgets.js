@@ -78,6 +78,13 @@ export function Widgets(painter, onEdit) {
 
       floodHandle.setVisibility(editMode === 'paint');
       eraseHandle.setVisibility(editMode === 'erase');
+      
+      if (editMode === 'erase') {
+        eraseWidget.setPosition(floodWidget.getPosition());
+      }
+      else {
+        floodWidget.setPosition(eraseWidget.getPosition());
+      }
 
       floodHandle.updateRepresentationForRender();
       eraseHandle.updateRepresentationForRender();

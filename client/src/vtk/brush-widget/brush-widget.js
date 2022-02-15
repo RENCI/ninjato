@@ -48,7 +48,15 @@ function vtkBrushWidget(publicAPI, model) {
       handle.setScale1(r);
     }
   };
-}
+
+  publicAPI.setPosition = (position) => {
+    handle.setOrigin(position);
+  };
+
+  publicAPI.getPosition = () => {
+    return handle.getOrigin();
+  };
+} 
 
 // ----------------------------------------------------------------------------
 
