@@ -51,7 +51,7 @@ export const SaveButton = ({ disabled, onSaving }) => {
         <Button 
           ref={ ref }
           basic
-          color='green'
+          primary
           disabled={ disabled}
           loading={ saving }
           onClick={ onSave }
