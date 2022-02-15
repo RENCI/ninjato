@@ -1,10 +1,10 @@
 import { useContext, useRef, useCallback, useState } from 'react';
 import { Grid } from 'semantic-ui-react';
 import { DataContext } from 'contexts/data-context';
-import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization';
+import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
 import { VolumeViewWrapper, VolumeView } from 'modules/refining/components/volume-view';
 import { SliceViewWrapper, SliceView } from 'modules/refining/components/slice-view';
-import { EditingControls } from 'modules/refining/components/editing-controls';
+import { RefiningControls } from 'modules/refining/components/refining-controls';
 import { SliceSlider } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
 
@@ -71,7 +71,7 @@ export const RefiningContainer = () => {
           </VisualizationSection>
         </Column>
         { !loading && 
-          <EditingControls 
+          <RefiningControls 
             sliceView={ sliceView.current }
             canUndo={ canUndo }
             canRedo={ canRedo }
