@@ -44,7 +44,6 @@ export const SliceViewWrapper = ({ sliceView }) => {
   useEffect(() => {
     if (initialized) {
       const mode = editModes.find(({ value }) => value === editMode);
-      console.log(mode);
       sliceView.setEditMode(editMode, mode.cursor);
     }
   }, [initialized, sliceView, editMode, editModes]);
