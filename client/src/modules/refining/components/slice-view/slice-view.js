@@ -71,7 +71,7 @@ const setWindowLevel = (actor, range) => {
   actor.getProperty().set({ colorLevel, colorWindow });
 };
 
-export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
+export function SliceView(onEdit, onSliceChange) {
   let fullScreenRenderWindow = null;
   let renderWindow = null;
   let renderer = null;
@@ -114,7 +114,7 @@ export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
 
       widgets.setRenderer(renderer);
 
-      //renderWindow.getInteractor().getView().setCursor('crosshair');
+      //renderWindow.getInteractor().getView().setCursor('inherit');
     },
     setData: (imageData, maskData) => {
       image.setInputData(imageData);    
