@@ -1,6 +1,6 @@
 import { Container, Menu } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
-import { UserControls } from 'components/user-controls';
+import { UserControls } from './user-controls';
 
 export const MainMenu = () => (
   <Menu stackable borderless inverted attached size='large'>

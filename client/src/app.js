@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { UserProvider, DataProvider, ControlsProvider, ErrorProvider } from "contexts"; 
-import { MainMenu } from 'components/main-menu';
-import { ErrorMessage } from 'components/error-message';
+import { MainMenu } from 'modules/menu/components/main-menu';
+import { ErrorMessage } from 'modules/common/components/error-message';
 import { Home } from 'pages';
 
 export const App = () => { 

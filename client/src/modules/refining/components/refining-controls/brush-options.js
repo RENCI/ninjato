@@ -53,7 +53,7 @@ export const BrushOptions = ({ which }) => {
         </Button>
       }
       on='click'
-      position='top left'
+      position='bottom left'
       content={ 
         <>
           { which === 'erase' ? 'Eraser' : 'Paint brush' }

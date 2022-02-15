@@ -1,4 +1,4 @@
-.buttons {
+.controlBar {
   padding-left: 0 !important;
   display: flex;
   flex-direction: column;
@@ -6,6 +6,6 @@
   align-items: stretch;
 }
 
-.buttons > *:not(:last-child) {
+.controlBar > *:not(:last-child) {
   margin-bottom: .5rem;
 }

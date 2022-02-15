@@ -84,10 +84,6 @@ export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
 
   const image = Image();
   const mask = Mask();  
-  
-  //const outline = Outline();
-  //outline.setInput(mask.getPainter());
-
   const widgets = Widgets(mask.getPainter(), onEdit);
 
   return {
@@ -164,6 +160,7 @@ export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
 
       image.getMapper().onModified(update); 
       image.getMapper().setSlice(findFirstSlice(maskData, mask.getLabel()));
+      update();
     },
     setLabel: label => mask.setLabel(label),
     setEditMode: editMode => widgets.setEditMode(editMode),

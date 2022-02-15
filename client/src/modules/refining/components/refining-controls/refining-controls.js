@@ -1,12 +1,12 @@
 import { useContext } from 'react';
 import { Button, Icon} from 'semantic-ui-react';
 import { ControlsContext, SET_EDIT_MODE } from 'contexts';
+import { ControlBar } from 'modules/common/components/control-bar';
 import { BrushOptions } from './brush-options';
-import styles from './styles.module.css';
 
 const { Group } = Button;
 
-export const EditingControls = ({ sliceView, canUndo, canRedo }) => {
+export const RefiningControls = ({ sliceView, canUndo, canRedo }) => {
   const [{ editModes, editMode }, dispatch] = useContext(ControlsContext);
 
   const onModeClick = value => {
@@ -22,7 +22,7 @@ export const EditingControls = ({ sliceView, canUndo, canRedo }) => {
   };
 
   return (
-    <div className={ styles.buttons }>
+    <ControlBar>
       <Group vertical>
         { editModes.map(({ value, icon }, i) => (
           <Button             
@@ -52,6 +52,6 @@ export const EditingControls = ({ sliceView, canUndo, canRedo }) => {
           onClick={ onRedoClick }
         />
       </Group>
-    </div>
+    </ControlBar>
   );
 };
