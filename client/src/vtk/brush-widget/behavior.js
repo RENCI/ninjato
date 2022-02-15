@@ -1,6 +1,13 @@
 import macro from '@kitware/vtk.js/macros';
 import { vec3 } from 'gl-matrix';
 
+const toPixelCenter = (v, max) => {
+  if (v < 0) v = 0;
+  else if (v > max - 1) v = max - 1.5;
+  
+  return (Math.floor(v * max / (max - 1)) + 0.5) * (max - 1) / max;
+};
+
 export default function widgetBehavior(publicAPI, model) {
   model.painting = model.factory.getPainting();
 
@@ -52,13 +59,6 @@ export default function widgetBehavior(publicAPI, model) {
         callData,
         model.apiSpecificRenderWindow
       );
-
-      const toPixelCenter = (v, max) => {
-        if (v < 0) v = 0;
-        else if (v > max - 1) v = max - 1.5;
-        
-        return (Math.floor(v * max / (max - 1)) + 0.5) * (max - 1) / max;
-      };
 
       if (worldCoords.length) {
         const imageData = model.factory.getImageData();
