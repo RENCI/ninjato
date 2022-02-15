@@ -21,8 +21,7 @@ export const AssignmentSelection = () => {
       { login ?
         <Grid padded>
           <Row>
-            <Column width={ 2 } >            
-            </Column>
+            <Column width={ 2 } />
             <Column width={ 12 }>
               <Segment>
                 <h3>Welcome { login }!</h3>
@@ -32,7 +31,12 @@ export const AssignmentSelection = () => {
                       You have an assignment waiting for you
                     </Message.Header>
                     <div style={{ marginTop: 10 }}>
-                      <Button positive onClick={ onLoadClick }>Load assignment</Button>
+                      <Button 
+                        primary 
+                        onClick={ onLoadClick }
+                      >
+                        Load assignment
+                      </Button>
                       <Divider horizontal>Or</Divider>
                       { practiceButton }
                     </div>

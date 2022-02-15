@@ -43,7 +43,7 @@ export const DeclineButton = ({ disabled }) => {
     <>
       <Button 
         ref={ ref }
-        negative
+        secondary
         disabled={ disabled }
         onClick={ openModal }
       >
@@ -71,14 +71,14 @@ export const DeclineButton = ({ disabled }) => {
         </Content>
         <Actions>
           <Button 
-            negative 
+            secondary 
             disabled={ declining || success }
             onClick={ closeModal }
           >
             Cancel
           </Button>
           <Button 
-            positive 
+            primary 
             disabled={ declining || success }
             loading={ declining }
             onClick={ onConfirm } 

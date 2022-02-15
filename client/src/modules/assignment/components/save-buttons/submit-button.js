@@ -45,7 +45,7 @@ export const SubmitButton = ({ disabled }) => {
     <>
       <Button 
         ref={ ref }
-        positive
+        primary
         disabled={ disabled }
         onClick={ openModal }
       >
@@ -70,14 +70,14 @@ export const SubmitButton = ({ disabled }) => {
         </Content>
         <Actions>
           <Button 
-            negative 
+            secondary 
             disabled={ submitting || success }
             onClick={ closeModal }
           >
             Cancel
           </Button>
           <Button 
-            positive 
+            primary 
             disabled={ submitting || success }
             loading={ submitting }
             onClick={ onConfirm } 
