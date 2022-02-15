@@ -50,7 +50,7 @@ export const RefiningContainer = () => {
       <Grid columns='equal' verticalAlign='middle' padded stackable reversed='mobile'>
         <Column>
           <VisualizationSection>
-            <Grid columns='equal'>              
+            <Grid columns='equal' stackable reversed='mobile'>              
               <Row>
                 <Column>
                   <VolumeViewWrapper volumeView={ volumeView.current } onLoaded={ onLoaded } />
