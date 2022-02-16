@@ -71,7 +71,7 @@ const setWindowLevel = (actor, range) => {
   actor.getProperty().set({ colorLevel, colorWindow });
 };
 
-export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
+export function SliceView(onEdit, onSliceChange) {
   let fullScreenRenderWindow = null;
   let renderWindow = null;
   let renderer = null;
@@ -113,8 +113,6 @@ export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
       interactor.onKeyUp(onKeyUp);
 
       widgets.setRenderer(renderer);
-
-      //renderWindow.getInteractor().getView().setCursor('crosshair');
     },
     setData: (imageData, maskData) => {
       image.setInputData(imageData);    
@@ -164,7 +162,10 @@ export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
       update();
     },
     setLabel: label => mask.setLabel(label),
-    setEditMode: editMode => widgets.setEditMode(editMode),
+    setEditMode: (editMode, cursor) => {
+      widgets.setEditMode(editMode)
+      renderWindow.getInteractor().getView().setCursor(cursor);
+    },
     setPaintBrush: brush => widgets.setPaintBrush(brush),
     setEraseBrush: brush => widgets.setEraseBrush(brush),
     setSlice: slice => image.getMapper().setSlice(slice),

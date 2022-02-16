@@ -45,7 +45,7 @@ export const RefiningContainer = () => {
   const numSlices = imageData ? imageData.getDimensions()[2] : 0;  
 
   return (
-    <div> 
+    <div className='cursorTest' > 
       <VisualizationLoader loading={ loading } />
       <Grid columns='equal' verticalAlign='middle' padded stackable reversed='mobile'>
         <Column>

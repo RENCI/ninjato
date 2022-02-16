@@ -4,9 +4,11 @@ export const SET_EDIT_MODE = 'controls/SET_EDIT_MODE';
 export const SET_BRUSH = 'controls/SET_BRUSH'
 export const RESET = 'controls/RESET';
 
+const getCursor = (file, x, y) => `url(/cursors/${ file }) ${ x } ${ y }, auto`;
+
 const editModes = [
-  { value: 'paint', icon: 'paint brush' },
-  { value: 'erase', icon: 'eraser' }
+  { value: 'paint', icon: 'paint brush', cursor: getCursor('paint-brush.png', 11, 23) },
+  { value: 'erase', icon: 'eraser', cursor: getCursor('eraser.png', 12, 22) }
 ];
 
 const brushes = [
