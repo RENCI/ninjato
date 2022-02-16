@@ -309,13 +309,14 @@ function vtkDiscreteFlyingEdges3D(publicAPI, model) {
       return;
     }
 
-    console.time('mcubes');
+    console.time('flying edges');
 
-    // Retrieve output and volume data
-    const origin = input.getOrigin();
-    const spacing = input.getSpacing();
-    const dims = input.getDimensions();
-    const s = input.getPointData().getScalars().getData();
+    // Check extent
+    const extent = input.getExtent();
+    if (extent[0] >= extent[1] || extent[2] >= extent[3] || extent[4] >= extent[5]) {
+      vtkErrorMacro('Discrete flying edges 3D requires 3D data');
+      return;
+    }
 
     // Points - dynamic array
     const pBuffer = [];
@@ -376,9 +377,11 @@ function vtkDiscreteFlyingEdges3D(publicAPI, model) {
 // ----------------------------------------------------------------------------
 
 const DEFAULT_VALUES = {
-  contourValue: 0,
-  computeNormals: false,
-  mergePoints: false,
+  computeNormals: true,
+  computeGradients: false,
+  computeScalars: true,
+  interpolateAttributes: false,
+  arrayComponent: 0
 };
 
 // ----------------------------------------------------------------------------
@@ -393,9 +396,11 @@ export function extend(publicAPI, model, initialValues = {}) {
   macro.algo(publicAPI, model, 1, 1);
 
   macro.setGet(publicAPI, model, [
-    'contourValue',
     'computeNormals',
-    'mergePoints',
+    'computeGradients',
+    'computeScalars',
+    'interpolateAttributes',
+    'arrayComponent'
   ]);
 
   // Object specific methods
