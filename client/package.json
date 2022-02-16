@@ -4,7 +4,7 @@
   "private": true,
   "main": "src/index.js",
   "dependencies": {
-    "@kitware/vtk.js": "^22.5.1",
+    "@kitware/vtk.js": "^22.5.4",
     "@testing-library/jest-dom": "^5.15.0",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",
@@ -50,6 +50,10 @@
     ]
   },
   "devDependencies": {
+    "react-error-overlay": "^6.0.9",
     "worker-loader": "^3.0.8"
+  },
+  "resolutions": {
+    "react-error-overlay": "6.0.9"
   }
 }
