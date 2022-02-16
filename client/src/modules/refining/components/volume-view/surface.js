@@ -1,4 +1,3 @@
-import vtkImageMarchingCubes from '@kitware/vtk.js/Filters/General/ImageMarchingCubes';
 import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
@@ -6,6 +5,7 @@ import { FieldDataTypes } from '@kitware/vtk.js/Common/DataModel/DataSet/Constan
 import { AttributeTypes } from '@kitware/vtk.js/Common/DataModel/DataSetAttributes/Constants';
 
 import vtkCalculator from 'vtk/calculator';
+import vtkDiscreteMarchingCubes from 'vtk/discrete-marching-cubes';
 import { Reds, Blues } from 'utils/colors';
 
 const regionFormula = label => (v => v === label ? 1 : 0);
@@ -14,7 +14,7 @@ const backgroundFormula = label => (v => v !== label && v !== 0 ? 1 : 0);
 export function Surface(type = 'background') {
   const maskCalculator = vtkCalculator.newInstance();
 
-  const marchingCubes = vtkImageMarchingCubes.newInstance({
+  const marchingCubes = vtkDiscreteMarchingCubes.newInstance({
     contourValue: 1,
     computeNormals: true,
     mergePoints: true
