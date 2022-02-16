@@ -5,7 +5,7 @@ import { FieldDataTypes } from '@kitware/vtk.js/Common/DataModel/DataSet/Constan
 import { AttributeTypes } from '@kitware/vtk.js/Common/DataModel/DataSetAttributes/Constants';
 
 import vtkCalculator from 'vtk/calculator';
-import vtkDiscreteMarchingCubes from 'vtk/discrete-marching-cubes';
+import vtkDiscreteFlyingEdges3D from 'vtk/discrete-marching-cubes';
 import { Reds, Blues } from 'utils/colors';
 
 const regionFormula = label => (v => v === label ? 1 : 0);
@@ -14,7 +14,7 @@ const backgroundFormula = label => (v => v !== label && v !== 0 ? 1 : 0);
 export function Surface(type = 'background') {
   const maskCalculator = vtkCalculator.newInstance();
 
-  const marchingCubes = vtkDiscreteMarchingCubes.newInstance({
+  const marchingCubes = vtkDiscreteFlyingEdges3D.newInstance({
     contourValue: 1,
     computeNormals: true,
     mergePoints: true
