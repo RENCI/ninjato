@@ -75,7 +75,7 @@ export const decodeTIFF = buffer => {
   });
 
   // XXX: Should read spacing from server/TIFF file
-  const spacing = [1, 1, 3];
+  const spacing = [2, 2, 6];
 
   const imageData = vtkImageData.newInstance({
     origin: [0, 0, 0],

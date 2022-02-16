@@ -70,17 +70,8 @@ export const LoginForm = () => {
           error 
           onSubmit={ onSubmit }
         >
-          <Form.Input 
-            label='Login or email' 
-            name='username' 
-            onChange={ onChange } 
-          />
-          <Form.Input 
-            label='Password' 
-            type='password' 
-            name='password' 
-            onChange={ onChange } 
-          />
+          <Form.Input label='Login or email' name='username' onChange={ onChange } />
+          <Form.Input label='Password' type='password' name='password' onChange={ onChange } />
           <Message
             error
             content={ errorMessage }
