@@ -6,6 +6,8 @@ import { api } from 'utils/api';
 import { useModal, useGetAssignment } from 'hooks';
 import styles from './styles.module.css';
 
+const { Header, Content, Actions } = Modal;
+
 export const LoginForm = () => {
   const [, userDispatch] = useContext(UserContext);
   const [open, openModal, closeModal] = useModal();
@@ -57,33 +59,45 @@ export const LoginForm = () => {
   return (
     <Modal
       size='tiny'
-      trigger={ <Menu.Item content='Log in'/> }
-      open={ open}
+      trigger={ <Menu.Item content='Log in' /> }
+      open={ open }
       onOpen={ onOpenModal }
       onClose={ closeModal }
     >
-      <Modal.Header>Log in</Modal.Header>
-      <Modal.Content>
-        <AutoFocusForm error onSubmit={ onSubmit }>
-          <Form.Input label='Login or email' name='username' onChange={ onChange } />
-          <Form.Input label='Password' type='password' name='password' onChange={ onChange } />
+      <Header>Log in</Header>
+      <Content>
+        <AutoFocusForm 
+          error 
+          onSubmit={ onSubmit }
+        >
+          <Form.Input 
+            label='Login or email' 
+            name='username' 
+            onChange={ onChange } 
+          />
+          <Form.Input 
+            label='Password' 
+            type='password' 
+            name='password' 
+            onChange={ onChange } 
+          />
           <Message
             error
             content={ errorMessage }
           />
           <div className={ styles.hide }>
-            <Form.Button content='Submit' />
+            <Button content='Submit' />
           </div>
         </AutoFocusForm>
-      </Modal.Content>
-      <Modal.Actions>
+      </Content>
+      <Actions>
         <Button onClick={ closeModal }>
           Cancel
         </Button>
-        <Button color='green' onClick={ onSubmit }>
+        <Button primary onClick={ onSubmit }>
           Log in
         </Button>
-      </Modal.Actions>
+      </Actions>
     </Modal>
   );
 };

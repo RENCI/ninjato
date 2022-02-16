@@ -6,6 +6,8 @@ import { api } from 'utils/api';
 import { useModal, useGetAssignment } from 'hooks';
 import styles from './styles.module.css';
 
+const { Header, Content, Actions } = Modal;
+
 export const RegisterForm = () => {
   const [, userDispatch] = useContext(UserContext);
   const [open, openModal, closeModal] = useModal();
@@ -65,9 +67,12 @@ export const RegisterForm = () => {
       onOpen={ onOpenModal }
       onClose={ closeModal }
     >
-      <Modal.Header>Register new user</Modal.Header>
-      <Modal.Content>
-        <AutoFocusForm error onSubmit={ onSubmit }>
+      <Header>Register new user</Header>
+      <Content>
+        <AutoFocusForm 
+          error 
+          onSubmit={ onSubmit }
+        >
           <Form.Input label='Enter a login name' name='username' onChange={ onChange } />
           <Form.Input label='Enter email address' name='email' onChange={ onChange } />
           <Form.Input label='Enter first name' name='firstname' onChange={ onChange } />
@@ -81,15 +86,15 @@ export const RegisterForm = () => {
             <Form.Button content='Submit' />
           </div>
         </AutoFocusForm>
-      </Modal.Content>
-      <Modal.Actions>
+      </Content>
+      <Actions>
         <Button onClick={ closeModal }>
           Cancel
         </Button>
-        <Button color='green' onClick={ onSubmit }>
+        <Button primary onClick={ onSubmit }>
           Register
         </Button>
-      </Modal.Actions>
+      </Actions>
     </Modal>
   );
 };
