@@ -61,10 +61,12 @@ function vtkImageContour(publicAPI, model) {
     ];
 
     const halfSpacing = spacing.map(d => d / 2);
-    const w = model.width / 2;
+    const w = model.width / 2 * spacing[kernelX];
 
-    const toPixelCenter = (v, max) => 
-      v === max - 1 ? max - 2 + 0.5 : (Math.floor(v * max / (max - 1)) + 0.5) * (max - 1) / max;
+    const toPixelCenter = (v, spacing, max) => (
+      v === max - 1 ? (max - 1.5) * spacing :
+      (Math.floor(v * max / (max - 1)) + 0.5) * spacing * (max - 1) / max
+    );
 
     const jStride = dims[0];
     const kStride = dims[0] * dims[1];
@@ -108,8 +110,8 @@ function vtkImageContour(publicAPI, model) {
 
             if (value2 !== value) {                
               const p = input.indexToWorld(ijk);
-              const px = toPixelCenter(p[kernelX], dims[kernelX]) + dx * halfSpacing[kernelX];
-              const py = toPixelCenter(p[kernelY], dims[kernelY]) + dy * halfSpacing[kernelY];
+              const px = toPixelCenter(ijk[kernelX], spacing[kernelX], dims[kernelX]) + dx * halfSpacing[kernelX];
+              const py = toPixelCenter(ijk[kernelY], spacing[kernelY], dims[kernelY]) + dy * halfSpacing[kernelY];
               const pz = p[kernelZ] + model.zOffset;
 
               const p1 = [];
