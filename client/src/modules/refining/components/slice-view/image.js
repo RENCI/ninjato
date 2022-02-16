@@ -20,6 +20,9 @@ export function Image() {
       mapper.setInputData(data);
     },
     cleanUp: () => {
+      console.log("Clean up image");
+
+      // Clean up anything we instantiated
       actor.delete();
       mapper.delete();
     }

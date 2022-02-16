@@ -63,6 +63,16 @@ export function Mask() {
       contour.setLabelOffsets({[label]: -0.01 });
     },
     getLabel: () => label,
-    setSlice: slice => contour.setSliceRange([slice, slice])
+    setSlice: slice => contour.setSliceRange([slice, slice]),
+    cleanUp: () => {
+      console.log("Clean up mask");
+
+      // Clean up anything we instantiated
+      painter.delete();
+      contour.delete();
+      color.delete();
+      mapper.delete();
+      actor.delete();
+    }
   };
 }
