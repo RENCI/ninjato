@@ -90,6 +90,14 @@ export function Widgets(painter, onEdit) {
       eraseHandle.updateRepresentationForRender();
     },
     setPaintBrush: brush => setBrush(floodHandle, brush),
-    setEraseBrush: brush => setBrush(eraseHandle, brush)
+    setEraseBrush: brush => setBrush(eraseHandle, brush),
+    cleanUp: () => {
+      console.log('Clean up widgets');
+
+      // Clean up anything we instantiated
+      manager.delete();
+      floodWidget.delete();
+      eraseWidget.delete();
+    }
   }
 }
