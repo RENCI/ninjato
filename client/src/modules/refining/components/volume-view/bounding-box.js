@@ -19,9 +19,12 @@ export function BoundingBox() {
     getActor: () => actor,
     setData: data => outline.setInputData(data),
     cleanUp: () => {
-      actor.delete();
-      mapper.delete();
+      console.log("Clean up bounding box");
+
+      // Clean up anything we instantiated
       outline.delete();
+      mapper.delete();
+      actor.delete();
     }
   };
 }

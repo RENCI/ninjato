@@ -86,10 +86,14 @@ export function VolumeView() {
       render();
     },
     cleanUp: () => {
+      console.log('Clean up volume view');
+
+      // Clean up anything we instantiated
+      if (fullScreenRenderWindow) fullScreenRenderWindow.delete();
+      
       region.cleanUp();
       background.cleanUp();
       boundingBox.cleanUp();
-      fullScreenRenderWindow.delete();
     }
   };
 }

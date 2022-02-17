@@ -106,9 +106,15 @@ export function Surface(type = 'background') {
       return mapper.getInputData();
     },
     cleanUp: () => {
-      actor.delete();
-      mapper.delete();
+      console.log("Clean up surface");
+
+      // Clean up anything we instantiated
+      maskCalculator.delete();
       marchingCubes.delete();
+      mapper.delete();
+      actor.delete();
+      if (zCalculator) zCalculator.delete();
+      if (color) color.delete();
     }
   };
 }

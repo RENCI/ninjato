@@ -1,11 +1,11 @@
 import macro from '@kitware/vtk.js/macros';
 import { vec3 } from 'gl-matrix';
 
-const toPixelCenter = (v, max) => {
+const toPixelCenter = (v, spacing, max) => {
   if (v < 0) v = 0;
   else if (v > max - 1) v = max - 1.5;
   
-  return (Math.floor(v * max / (max - 1)) + 0.5) * (max - 1) / max;
+  return (Math.floor(v * max / (max - 1)) + 0.5) * spacing * (max - 1) / max;
 };
 
 export default function widgetBehavior(publicAPI, model) {
@@ -24,7 +24,7 @@ export default function widgetBehavior(publicAPI, model) {
     trail.set(
       model.activeState.get('origin', 'up', 'right', 'direction')
     );
-    trail.setScale1(1);
+    trail.setScale1(model.factory.getImageData().getSpacing()[0]);
     publicAPI.invokeStartInteractionEvent();
     return macro.EVENT_ABORT;
   };
@@ -66,25 +66,26 @@ export default function widgetBehavior(publicAPI, model) {
         if (imageData) {
           const ijk = imageData.worldToIndex([...worldCoords]);
           const dims = imageData.getDimensions();
+          const spacing = imageData.getSpacing();
 
-          worldCoords[0] = toPixelCenter(ijk[0], dims[0]);
-          worldCoords[1] = toPixelCenter(ijk[1], dims[1]);
-        }
+          worldCoords[0] = toPixelCenter(ijk[0], spacing[0], dims[0]);
+          worldCoords[1] = toPixelCenter(ijk[1], spacing[1], dims[1]);
 
-        model.widgetState.setTrueOrigin(...worldCoords);
-        model.activeState.setOrigin(...worldCoords);
+          model.widgetState.setTrueOrigin(...worldCoords);
+          model.activeState.setOrigin(...worldCoords);
 
-        if (model.painting) {
-          const trail = model.widgetState.addTrail();
-          trail.set(
-            model.activeState.get(
-              'origin',
-              'up',
-              'right',
-              'direction'
-            )
-          );
-          trail.setScale1(1);
+          if (model.painting) {
+            const trail = model.widgetState.addTrail();
+            trail.set(
+              model.activeState.get(
+                'origin',
+                'up',
+                'right',
+                'direction'
+              )
+            );
+            trail.setScale1(spacing[0]);
+          }
         }
       }
 

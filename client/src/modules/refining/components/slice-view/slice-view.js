@@ -180,7 +180,18 @@ export function SliceView(onEdit, onSliceChange) {
     canUndo: () => mask.getPainter().canUndo(),
     canRedo: () => mask.getPainter().canRedo(),
     cleanUp: () => {
-      console.log("Clean up");
+      console.log("Clean up slice view");
+
+      // Clean up anything we instantiated
+      if (fullScreenRenderWindow) {
+        fullScreenRenderWindow.getInteractor().delete();
+        fullScreenRenderWindow.delete();
+      }
+      manipulator.delete();
+
+      image.cleanUp();
+      mask.cleanUp();
+      widgets.cleanUp();
     }
   };
 }
