@@ -29,6 +29,8 @@ export const RegisterForm = () => {
   const onSubmit = async () => {
     const { username, email, firstname, lastname, password } = values;
 
+    closeModal();
+
     try {
       const user = await api.register(username, email, firstname, lastname, password);
 
@@ -42,8 +44,6 @@ export const RegisterForm = () => {
       });
 
       getAssignment(id);
-
-      closeModal();
     }
     catch (error) {
       console.log(error);      
