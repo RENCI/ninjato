@@ -1,5 +1,4 @@
 import os
-import json
 from libtiff import TIFF
 import numpy as np
 from girder.models.item import Item
@@ -183,12 +182,13 @@ def get_item_assignment(user):
     }
 
 
-def save_user_annotation(user, item_id, done, comment, content_data):
+def save_user_annotation(user, item_id, done, reject, comment, content_data):
     """
     Save user annotation to item with item_id
     :param user: user object who saves annotation
     :param item_id: item the annotation is saved to
     :param done: whether annotation is done or only an intermediate save
+    :param reject: whether to reject the annotation rather than save it.
     :param comment: annotation comment from the user
     :param content_data: annotation content blob to be saved on server
     :return: success or failure
@@ -196,6 +196,24 @@ def save_user_annotation(user, item_id, done, comment, content_data):
     uid = user['_id']
     uname = user['login']
     item = Item().findOne({'_id': ObjectId(item_id)})
+    if reject:
+        # reject the annotation
+        Item().deleteMetadata(item, ['user'])
+        whole_item = Item().findOne({'folderId': ObjectId(item['folderId']),
+                                     'name': 'whole'})
+        Item().deleteMetadata(whole_item, [uid])
+        region_label = item['meta']['region_label']
+        del whole_item['meta']['regions'][region_label]["item_id"]
+        del whole_item['meta']['regions'][region_label]["user"]
+        files = File().find({'itemId': ObjectId(item_id)})
+        for file in files:
+            if file['name'].endswith(f'{uname}.tif'):
+                File().remove(file)
+                break
+        return {
+            'user_id': uid,
+            'item_id': item_id
+        }        
     if done:
         add_meta = {'done': 'true'}
         Item().setMetadata(item, add_meta)
