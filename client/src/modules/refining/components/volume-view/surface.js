@@ -5,7 +5,7 @@ import { FieldDataTypes } from '@kitware/vtk.js/Common/DataModel/DataSet/Constan
 import { AttributeTypes } from '@kitware/vtk.js/Common/DataModel/DataSetAttributes/Constants';
 
 import vtkCalculator from 'vtk/calculator';
-import vtkDiscreteFlyingEdges3D from 'vtk/discrete-marching-cubes';
+import vtkDiscreteFlyingEdges3D from 'vtk/discrete-flying-edges-3D';
 import { Reds, Blues } from 'utils/colors';
 
 const regionFormula = label => (v => v === label ? 1 : 0);
