@@ -115,6 +115,8 @@ def get_item_assignment(user):
                 for key, val in whole_item['meta']['regions'].items():
                     if 'done' in val and val['done'] == 'true':
                         continue
+                    if 'rejected_by' in val and val['rejected_by'] == str(user['_id']):
+                        continue
                     if 'user' not in val:
                         # this region can be assigned to a user
                         val['user'] = user['_id']
@@ -201,19 +203,20 @@ def save_user_annotation(user, item_id, done, reject, comment, content_data):
         Item().deleteMetadata(item, ['user'])
         whole_item = Item().findOne({'folderId': ObjectId(item['folderId']),
                                      'name': 'whole'})
-        Item().deleteMetadata(whole_item, [uid])
+        Item().deleteMetadata(whole_item, [str(uid)])
         region_label = item['meta']['region_label']
-        del whole_item['meta']['regions'][region_label]["item_id"]
         del whole_item['meta']['regions'][region_label]["user"]
         files = File().find({'itemId': ObjectId(item_id)})
         for file in files:
             if file['name'].endswith(f'{uname}.tif'):
                 File().remove(file)
                 break
+        whole_item['meta']['regions'][region_label]['rejected_by'] = str(uid)
+        Item().save(whole_item)
         return {
             'user_id': uid,
             'item_id': item_id
-        }        
+        }
     if done:
         add_meta = {'done': 'true'}
         Item().setMetadata(item, add_meta)
