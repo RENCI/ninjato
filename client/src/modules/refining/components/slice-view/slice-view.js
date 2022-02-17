@@ -184,7 +184,7 @@ export function SliceView(onEdit, onSliceChange) {
 
       // Clean up anything we instantiated
       if (fullScreenRenderWindow) {
-        fullScreenRenderWindow.getInteractor().delete();
+        if (fullScreenRenderWindow.getInteractor()) fullScreenRenderWindow.getInteractor().delete();
         fullScreenRenderWindow.delete();
       }
       manipulator.delete();
