@@ -2,12 +2,12 @@ import { useContext, useState, useRef } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { UserContext, DataContext, CLEAR_DATA } from 'contexts';
 import { useModal, useGetAssignment } from 'hooks';
-//import { api } from 'utils/api';
+import { api } from 'utils/api';
 
 const { Header, Content, Actions } = Modal;
 
 export const DeclineButton = ({ disabled }) => {
-   const [{ id }] = useContext(UserContext);
+  const [{ id, assignment }] = useContext(UserContext);
   const [, dataDispatch] = useContext(DataContext);
   const [open, openModal, closeModal] = useModal();
   const getAssignment = useGetAssignment();
@@ -19,8 +19,7 @@ export const DeclineButton = ({ disabled }) => {
     setDeclining(true);
 
     try {
-      // XXX: Need a decline endpoint
-      // await api.declineAssignment(id, assignment.itemId);
+      await api.declineAssignment(id, assignment.itemId);
 
       setSuccess(true);
       setTimeout(() => {        
