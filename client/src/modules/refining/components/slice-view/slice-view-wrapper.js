@@ -13,13 +13,13 @@ export const SliceViewWrapper = ({ sliceView }) => {
   const { width } = useResize(div);
 
   const onKeyDown = useCallback(evt => {
-    if (evt.key === 'Shift') {
+    if (evt.key === 'Control') {
       controlsDispatch({ type: SET_EDIT_MODE, mode: 'erase' });
     }
   }, [controlsDispatch]);
 
   const onKeyUp = useCallback(evt => {
-    if (evt.key === 'Shift') {
+    if (evt.key === 'Control') {
       controlsDispatch({ type: SET_EDIT_MODE, mode: 'paint' });
     }
   }, [controlsDispatch]);
