@@ -74,6 +74,17 @@ export const api = {
       label: label
     };
   },
+  declineAssignment: async (userId, itemId) => {
+    await axios.post(`/user/${ userId }/annotation`,
+      null,
+      {
+        params: {
+          item_id: itemId,
+          reject: true
+        }
+      }
+    );
+  },
   getData: async (imageId, maskId) => {
     const responses = await Promise.all([
       axios.get(fileUrl(imageId), { responseType: 'arraybuffer' }), 
