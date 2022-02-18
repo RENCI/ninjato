@@ -2,6 +2,7 @@ import macro from '@kitware/vtk.js/macros';
 import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
 import vtkPolyData from '@kitware/vtk.js/Common/DataModel/PolyData';
 import * as vtkMath from '@kitware/vtk.js/Common/Core/Math';
+import triangleCases from './marching-cubes-triangle-cases';
 
 const { vtkErrorMacro, vtkDebugMacro } = macro;
 
@@ -174,7 +175,7 @@ function vtkDiscreteFlyingEdges3D(publicAPI, model) {
       g[0] = s0_start - s;
     }
     else if (ijk[0] >= Dims[0] - 1) {
-      g[0] = *s - *s0_end;
+      g[0] = s - s0_end;
     }
     else {
       g[0] = 0.5 * (s0_start - s0_end);
@@ -184,7 +185,7 @@ function vtkDiscreteFlyingEdges3D(publicAPI, model) {
       g[1] = s1_start - s;
     }
     else if (ijk[1] >= Dims[1] - 1) {
-      g[1] = *s - *s1_end;
+      g[1] = s - s1_end;
     }
     else {
       g[1] = 0.5 * (s1_start - s1_end);
@@ -308,87 +309,48 @@ function vtkDiscreteFlyingEdges3D(publicAPI, model) {
     eIds[11] = eIds[10] + EdgeUses[eCase][11];
   };
 
-  // XXX: PUNTING FOR NOW
-  /*
-  // Threading integration via SMPTools
-  template <class TT>
-  class Pass1
-  {
-  public:
-    vtkDiscreteFlyingEdges3DAlgorithm<TT>* Algo;
-    double Value;
-    Pass1(vtkDiscreteFlyingEdges3DAlgorithm<TT>* algo, double value)
-    {
-      this->Algo = algo;
-      this->Value = value;
-    }
-    void operator()(vtkIdType slice, vtkIdType end)
-    {
-      vtkIdType row;
-      TT *rowPtr, *slicePtr = this->Algo->Scalars + slice * this->Algo->Inc2;
-      for (; slice < end; ++slice)
-      {
-        for (row = 0, rowPtr = slicePtr; row < this->Algo->Dims[1]; ++row)
-        {
-          this->Algo->ProcessXEdge(this->Value, rowPtr, row, slice);
-          rowPtr += this->Algo->Inc1;
+  const pass1 = (value, slice, end) => {
+    let row;
+    let rowPtr;
+    // XXX: Using slice below will be inefficient
+    let slicePtr = Scalars.slice(slice * Inc2);      
+    for (; slice < end; ++slice) {
+      for (row = 0, rowPtr = slicePtr; row < Dims[1]; ++row) {
+        processXEdge(value, rowPtr, row, slice);
+        rowPtr = rowPtr.slice(Inc1);
+      } // for all rows in this slice
+      slicePtr = slicePtr.slice(Inc2);
+    } // for all slices in this batch
+  };
+  
+  const pass2 = (slice, end) => {
+    for (; slice < end; ++slice) {
+      for (let row = 0; row < Dims[1] - 1; ++row) {
+        processYZEdges(row, slice);
+      } // for all rows in this slice
+    }   // for all slices in this batch
+  };
+
+  const pass4 = (value, slice, end) => {
+    let row;
+    let eMD0 = slice * 6 * Dims[1];
+    let eMD1 = eMD0 + 6 * Dims[1];
+    // XXX: Using slice below will be inefficient
+    let rowPtr;
+    let slicePtr = scalars.slice(slice * Inc2);
+    for (; slice < end; ++slice) {
+      // It's possible to skip entire slices if there is nothing to generate
+      if (EdgeMetaData[eMD1 + 3] > EdgeMetaData[eMD0 + 3]) { // there are triangle primitives!
+        for (row = 0, rowPtr = slicePtr; row < Dims[1] - 1; ++row) {
+          generateOutput(value, rowPtr, row, slice);
+          rowPtr = rowPtr.slice(Inc1);
         } // for all rows in this slice
-        slicePtr += this->Algo->Inc2;
-      } // for all slices in this batch
-    }
+      }   // if there are triangles
+      slicePtr = slicePtr.slice(Inc2);
+      eMD0 = eMD1;
+      eMD1 = eMD0 + 6 * Dims[1];
+    } // for all slices in this batch
   };
-  template <class TT>
-  class Pass2
-  {
-  public:
-    Pass2(vtkDiscreteFlyingEdges3DAlgorithm<TT>* algo) { this->Algo = algo; }
-    vtkDiscreteFlyingEdges3DAlgorithm<TT>* Algo;
-    void operator()(vtkIdType slice, vtkIdType end)
-    {
-      for (; slice < end; ++slice)
-      {
-        for (vtkIdType row = 0; row < (this->Algo->Dims[1] - 1); ++row)
-        {
-          this->Algo->ProcessYZEdges(row, slice);
-        } // for all rows in this slice
-      }   // for all slices in this batch
-    }
-  };
-  template <class TT>
-  class Pass4
-  {
-  public:
-    Pass4(vtkDiscreteFlyingEdges3DAlgorithm<TT>* algo, double value)
-    {
-      this->Algo = algo;
-      this->Value = value;
-    }
-    vtkDiscreteFlyingEdges3DAlgorithm<TT>* Algo;
-    double Value;
-    void operator()(vtkIdType slice, vtkIdType end)
-    {
-      vtkIdType row;
-      vtkIdType* eMD0 = this->Algo->EdgeMetaData + slice * 6 * this->Algo->Dims[1];
-      vtkIdType* eMD1 = eMD0 + 6 * this->Algo->Dims[1];
-      TT *rowPtr, *slicePtr = this->Algo->Scalars + slice * this->Algo->Inc2;
-      for (; slice < end; ++slice)
-      {
-        // It's possible to skip entire slices if there is nothing to generate
-        if (eMD1[3] > eMD0[3]) // there are triangle primitives!
-        {
-          for (row = 0, rowPtr = slicePtr; row < this->Algo->Dims[1] - 1; ++row)
-          {
-            this->Algo->GenerateOutput(this->Value, rowPtr, row, slice);
-            rowPtr += this->Algo->Inc1;
-          } // for all rows in this slice
-        }   // if there are triangles
-        slicePtr += this->Algo->Inc2;
-        eMD0 = eMD1;
-        eMD1 = eMD0 + 6 * this->Algo->Dims[1];
-      } // for all slices in this batch
-    }
-  };
-  */
 
   const initializeAlgorithm = () => {
     XCases = null;
@@ -399,48 +361,233 @@ function vtkDiscreteFlyingEdges3D(publicAPI, model) {
     NewGradients = null;
     NewNormals = null;
 
-    let i, j, k, l, ii, eCase, index, numTris;
+    let i, j, k, l, ii, eCase, index, numTris, edgeIndex, edgeCaseIndex;
     const vertMap = [ 0, 1, 3, 2, 4, 5, 7, 6];
     const CASE_MASK = [1, 2, 4, 8, 16, 32, 64, 128];
-    //EDGE_LIST* edge;
-    vtkMarchingCubesTriangleCases* triCase;
-    unsigned char* edgeCase;
+    let edge;
+    let edgeCase;
+
+    // Initialize cases, increments, and edge intersection flags
+    for (eCase = 0; eCase < 256; ++eCase) {
+      for (j = 0; j < 16; ++j) {
+        EdgeCases[eCase][j] = 0;
+      }
+      for (j = 0; j < 12; ++j) {
+        EdgeUses[eCase][j] = 0;
+      }
+      IncludesAxes[eCase] = 0;
+    }
+
+    // The voxel, edge-based case table is a function of the four x-edge cases
+    // that define the voxel. Here we convert the existing MC vertex-based case
+    // table into a x-edge case table. Note that the four x-edges are ordered
+    // (0->3): x, x+y, x+z, x+y+z; the four y-edges are ordered (4->7): y, y+x,
+    // y+z, y+x+z; and the four z-edges are ordered (8->11): z, z+x, z+y,
+    // z+x+y.
+    for (l = 0; l < 4; ++l) {
+      for (k = 0; k < 4; ++k) {
+        for (j = 0; j < 4; ++j) {
+          for (i = 0; i < 4; ++i) {
+            // yes we could just count to (0->255) but where's the fun in that?
+            eCase = i | (j << 2) | (k << 4) | (l << 6);
+            for (ii = 0, index = 0; ii < 8; ++ii) {
+              if (eCase & (1 << vertMap[ii])) { // map into ancient MC table
+                index |= CASE_MASK[ii];
+              }
+            }
+            // Now build case table
+            edge = triangleCases[index];
+            for (numTris = 0, edgeIndex = 0; edge[edgeIndex] > -1; edgeIndex += 3) { 
+              // count the number of triangles
+              numTris++;
+            }
+            if (numTris > 0) {
+              edgeCase = EdgeCases[eCase];
+              edgeCase[0] = numTris;
+              for (edgeIndex = 0, edgeCaseIndex = 1; edge[edgeIndex] > -1; edgeIndex += 3, edgeCaseIndex += 3) {
+                // Build new case table.
+                edgeCase[edgeCaseIndex] = EdgeMap[edge[0]];
+                edgeCase[edgeCaseIndex + 1] = EdgeMap[edge[1]];
+                edgeCase[edgeCaseIndex + 2] = EdgeMap[edge[2]];
+              }
+            }
+          } // x-edges
+        }   // x+y-edges
+      }     // x+z-edges
+    }       // x+y+z-edges
+
+    // Okay now build the acceleration structure. This is used to generate
+    // output points and triangles when processing a voxel x-row as well as to
+    // perform other topological reasoning. This structure is a function of the
+    // particular case number.
+    for (eCase = 0; eCase < 256; ++eCase) {
+      edgeCase = EdgeCases[eCase];
+      numTris = edgeCase[0];
+
+      // Mark edges that are used by this case.
+      for (i = 0, edgeCaseIndex = 1; i < numTris * 3; ++i) {
+        // just loop over all edges
+        EdgeUses[eCase][edgeCase[edgeCaseIndex + i]] = 1;
+      }
+
+      IncludesAxes[eCase] = EdgeUses[eCase][0] | EdgeUses[eCase][4] | EdgeUses[eCase][8];
+
+    } // for all cases
   };
 
-  const contour = (input, pBuffer, tBuffer, sBuffer, nBuffer, gBuffer) => {
+  //------------------------------------------------------------------------------
+  // Count intersections along voxel axes. When traversing the volume across
+  // x-edges, the voxel axes on the boundary may be undefined near boundaries
+  // (because there are no fully-formed cells). Thus the voxel axes on the
+  // boundary are treated specially.
+  const countBoundaryYZInts = (loc, edgeUses, eMD) => {
+    switch (loc) {
+      case 2: //+x boundary
+        eMD[0][1] += edgeUses[5];
+        eMD[0][2] += edgeUses[9];
+        break;
+      case 8: //+y
+        eMD[1][2] += edgeUses[10];
+        break;
+      case 10: //+x +y
+        eMD[0][1] += edgeUses[5];
+        eMD[0][2] += edgeUses[9];
+        eMD[1][2] += edgeUses[10];
+        eMD[1][2] += edgeUses[11];
+        break;
+      case 32: //+z
+        eMD[2][1] += edgeUses[6];
+        break;
+      case 34: //+x +z
+        eMD[0][1] += edgeUses[5];
+        eMD[0][2] += edgeUses[9];
+        eMD[2][1] += edgeUses[6];
+        eMD[2][1] += edgeUses[7];
+        break;
+      case 40: //+y +z
+        eMD[2][1] += edgeUses[6];
+        eMD[1][2] += edgeUses[10];
+        break;
+      case 42: //+x +y +z happens no more than once per volume
+        eMD[0][1] += edgeUses[5];
+        eMD[0][2] += edgeUses[9];
+        eMD[1][2] += edgeUses[10];
+        eMD[1][2] += edgeUses[11];
+        eMD[2][1] += edgeUses[6];
+        eMD[2][1] += edgeUses[7];
+        break;
+      default: // uh-oh shouldn't happen
+        break;
+    }
+  };
+
+  //------------------------------------------------------------------------------
+  // Interpolate a new point along a boundary edge. Make sure to consider
+  // proximity to the boundary when computing gradients, etc.
+  const interpolateEdge = (value, ijk, s, incs, edgeNum, edgeUses, eIds) => {
+    // if this edge is not used then get out
+    if (!edgeUses[edgeNum]) {
+      return;
+    }
+
+    // build the edge information
+    const vertMap = VertMap[edgeNum];
+
+    const ijk0 = [];
+    const ijk1 = [];
+    const vId = eIds[edgeNum];
+
+    const offsets = VertOffsets[vertMap[0]];
+    const s0 = s + offsets[0] * incs[0] + offsets[1] * incs[1] + offsets[2] * incs[2];
+    ijk0[0] = ijk[0] + offsets[0];
+    ijk0[1] = ijk[1] + offsets[1];
+    ijk0[2] = ijk[2] + offsets[2];
+
+    offsets = VertOffsets[vertMap[1]];
+    const s1 = s + offsets[0] * incs[0] + offsets[1] * incs[1] + offsets[2] * incs[2];
+    ijk1[0] = ijk[0] + offsets[0];
+    ijk1[1] = ijk[1] + offsets[1];
+    ijk1[2] = ijk[2] + offsets[2];
+
+    // Okay interpolate
+    const t = 0.5;
+    const xPtr = 3 * vId;
+    NewPoints[xPtr] = ijk0[0] + t * (ijk1[0] - ijk0[0]) + Min0;
+    NewPoints[xPtr + 1] = ijk0[1] + t * (ijk1[1] - ijk0[1]) + Min1;
+    NewPoints[xPtr + 2] = ijk0[2] + t * (ijk1[2] - ijk0[2]) + Min2;
+
+    if (NeedGradients) {
+      const g0 = [];
+      const g1 = [];
+      computeBoundaryGradient(
+        ijk0, s0 + incs[0], s0 - incs[0], s0 + incs[1], s0 - incs[1], s0 + incs[2], s0 - incs[2], g0);
+      computeBoundaryGradient(
+        ijk1, s1 + incs[0], s1 - incs[0], s1 + incs[1], s1 - incs[1], s1 + incs[2], s1 - incs[2], g1);
+
+      const gTmp0 = g0[0] + t * (g1[0] - g0[0]);
+      const gTmp1 = g0[1] + t * (g1[1] - g0[1]);
+      const gTmp2 = g0[2] + t * (g1[2] - g0[2]);
+
+      if (NewGradients) {
+        const g = 3 * vId;
+        NewGradients[g] = gTmp0;
+        NewGradients[g + 1] = gTmp1;
+        NewGradients[g + 2] = gTmp2;
+      }
+
+      if (NewNormals) {
+        const n = 3 * vId;
+        NewNormals[n] = -gTmp0;
+        NewNormals[n + 1] = -gTmp1;
+        NewNormals[n + 2] = -gTmp2;
+        vtkMath.normalize(n);
+      }
+    } // if normals or gradients required
+
+    if (InterpolateAttributes)
+    {
+      const v0 = ijk0[0] + ijk0[1] * incs[1] + ijk0[2] * incs[2];
+      const v1 = ijk1[0] + ijk1[1] * incs[1] + ijk1[2] * incs[2];
+      // XXX: Check below
+      //Arrays.InterpolateEdge(v0, v1, t, vId);
+    }
+  };
+
+  const contour = (
+    input, inScalars, extent, output, newPts, newTris, newScalars, newNormals, newGradients
+  ) => {
     const incs = input.computeIncrements(input.getExtent(), 1);
     const scalars = input.getPointData().getScalars();
     
     let value;
     const values = model.values;
     const numContours = values.length;
-    let vidx, row, slice, *eMD, zInc;
-    vtkIdType numOutXPts, numOutYPts, numOutZPts, numOutTris;
-    vtkIdType numXPts = 0, numYPts = 0, numZPts = 0, numTris = 0;
-    vtkIdType startXPts, startYPts, startZPts, startTris;
-    startXPts = startYPts = startZPts = startTris = 0;
+    let vidx, row, slice, emD, zInc;
+    let numOutputXPts, numOutYPts, numOutZPts, numOutTris;
+    let numXpts = 0, numYPts = 0, numZPts = 0, numTris = 0;
+    let startXPts = 0, startYPts = 0, startZPts = 0, startTris = 0;
 
     // This may be subvolume of the total 3D image. Capture information for
     // subsequent processing.
     vtkDiscreteFlyingEdges3DAlgorithm<T> algo;
-    algo.Scalars = scalars;
-    algo.Min0 = extent[0];
-    algo.Max0 = extent[1];
-    algo.Inc0 = incs[0];
-    algo.Min1 = extent[2];
-    algo.Max1 = extent[3];
-    algo.Inc1 = incs[1];
-    algo.Min2 = extent[4];
-    algo.Max2 = extent[5];
-    algo.Inc2 = incs[2];
+    Scalars = scalars;
+    Min0 = extent[0];
+    Max0 = extent[1];
+    Inc0 = incs[0];
+    Min1 = extent[2];
+    Max1 = extent[3];
+    Inc1 = incs[1];
+    Min2 = extent[4];
+    Max2 = extent[5];
+    Inc2 = incs[2];
 
     // Now allocate working arrays. The XCases array tracks x-edge cases.
-    algo.Dims[0] = algo.Max0 - algo.Min0 + 1;
-    algo.Dims[1] = algo.Max1 - algo.Min1 + 1;
-    algo.Dims[2] = algo.Max2 - algo.Min2 + 1;
-    algo.NumberOfEdges = algo.Dims[1] * algo.Dims[2];
-    algo.SliceOffset = (algo.Dims[0] - 1) * algo.Dims[1];
-    algo.XCases = new unsigned char[(algo.Dims[0] - 1) * algo.NumberOfEdges];
+    Dims[0] = algo.Max0 - algo.Min0 + 1;
+    Dims[1] = algo.Max1 - algo.Min1 + 1;
+    Dims[2] = algo.Max2 - algo.Min2 + 1;
+    NumberOfEdges = Dims[1] * Dims[2];
+    SliceOffset = (Dims[0] - 1) * Dims[1];
+    XCases = new Uint8Array((Dims[0] - 1) * NumberOfEdges);
 
     // Also allocate the characterization (metadata) array for the x edges.
     // This array tracks the number of x-, y- and z- intersections on the voxel
@@ -448,31 +595,29 @@ function vtkDiscreteFlyingEdges3D(publicAPI, model) {
     // the xMin_i and xMax_i (minimum index of first intersection, maximum
     // index of intersection for the ith x-row, the so-called trim edges used
     // for computational trimming).
-    algo.EdgeMetaData = new vtkIdType[algo.NumberOfEdges * 6];
+    EdgeMetaData = new Uint32Array[NumberOfEdges * 6];
 
     // Interpolating attributes and other stuff. Interpolate extra attributes only if they
     // exist and the user requests it.
-    algo.NeedGradients = (newGradients || newNormals);
-    algo.InterpolateAttributes =
-      self->GetInterpolateAttributes() && input->GetPointData()->GetNumberOfArrays() > 1;
+    NeedGradients = (newGradients || newNormals);
+    InterpolateAttributes = false;
+      // XXX: Check this
+      //self->GetInterpolateAttributes() && input->GetPointData()->GetNumberOfArrays() > 1;
 
     // Loop across each contour value. This encompasses all three passes.
-    for (vidx = 0; vidx < numContours; vidx++)
-    {
+    for (vidx = 0; vidx < numContours; vidx++) {
       value = values[vidx];
 
       // PASS 1: Traverse all x-rows building edge cases and counting number of
       // intersections (i.e., accumulate information necessary for later output
       // memory allocation, e.g., the number of output points along the x-rows
       // are counted).
-      Pass1<T> pass1(&algo, value);
-      vtkSMPTools::For(0, algo.Dims[2], pass1);
+      pass1(0, Dims[2]);
 
       // PASS 2: Traverse all voxel x-rows and process voxel y&z edges.  The
       // result is a count of the number of y- and z-intersections, as well as
       // the number of triangles generated along these voxel rows.
-      Pass2<T> pass2(&algo);
-      vtkSMPTools::For(0, algo.Dims[2] - 1, pass2);
+      pass2(0, algo.Dims[2] - 1);
 
       // PASS 3: Now allocate and generate output. First we have to update the
       // edge meta data to partition the output into separate pieces so
@@ -489,20 +634,18 @@ function vtkDiscreteFlyingEdges3D(publicAPI, model) {
       numOutTris = startTris;
 
       // Count number of points and tris generate along each cell row
-      for (slice = 0; slice < algo.Dims[2]; ++slice)
-      {
-        zInc = slice * algo.Dims[1];
-        for (row = 0; row < algo.Dims[1]; ++row)
-        {
-          eMD = algo.EdgeMetaData + (zInc + row) * 6;
-          numXPts = eMD[0];
-          numYPts = eMD[1];
-          numZPts = eMD[2];
-          numTris = eMD[3];
-          eMD[0] = numOutXPts + numOutYPts + numOutZPts;
-          eMD[1] = eMD[0] + numXPts;
-          eMD[2] = eMD[1] + numYPts;
-          eMD[3] = numOutTris;
+      for (slice = 0; slice < Dims[2]; ++slice) {
+        zInc = slice * Dims[1];
+        for (row = 0; row < algo.Dims[1]; ++row) {
+          eMD = (zInc + row) * 6;
+          numXPts = EdgeMetaData[eMD];
+          numYPts = EdgeMetaData[eMD + 1];
+          numZPts = EdgeMetaData[eMD + 2];
+          numTris = EdgeMetaData[eMD + 3];
+          EdgeMetaData[eMD] = numOutXPts + numOutYPts + numOutZPts;
+          EdgeMetaData[eMD + 1] = EdgeMetaData[eMD] + numXPts;
+          EdgeMetaData[eMD + 2] = EdgeMetaData[eMD + 1] + numYPts;
+          EdgeMetaData[eMD + 3] = numOutTris;
           numOutXPts += numXPts;
           numOutYPts += numYPts;
           numOutZPts += numZPts;
@@ -511,13 +654,13 @@ function vtkDiscreteFlyingEdges3D(publicAPI, model) {
       }
 
       // Output can now be allocated.
-      vtkIdType totalPts = numOutXPts + numOutYPts + numOutZPts;
-      if (totalPts > 0)
-      {
-        newPts->GetData()->WriteVoidPointer(0, 3 * totalPts);
-        algo.NewPoints = static_cast<float*>(newPts->GetVoidPointer(0));
-        newTris->ResizeExact(numOutTris, 3 * numOutTris);
-        algo.NewTris = newTris;
+      totalPts = numOutXPts + numOutYPts + numOutZPts;
+      if (totalPts > 0) {
+        newPts.setNumberOfPoints(totalPts);
+        NewPoints = new Float32Array(3 * totalPts);
+        //newTris->ResizeExact(numOutTris, 3 * numOutTris);
+        // XXX: Will need to change this to an array including 3 for number of points per triangle before setting as output
+        NewTris = new Uint32Array(3 * numOutTris);
         if (newScalars)
         {
           vtkIdType numPrevPts = newScalars->GetNumberOfTuples();
@@ -645,6 +788,8 @@ const DEFAULT_VALUES = {
   interpolateAttributes: false,
   arrayComponent: 0
 };
+
+initializeAlgorithm();
 
 // ----------------------------------------------------------------------------
 
