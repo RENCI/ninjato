@@ -26,7 +26,7 @@ export default function algorithm() {
   // several computational advantages (parallel separability, more efficient
   // computation). This table is built from the MC case table when the class
   // is instantiated.
-  const EdgeCases = new Array(256).fill(new Uint8Array(16));
+  const EdgeCases = new Array(256).fill(0).map(() => new Uint8Array(16));
 
   // A table to map old edge ids (as defined from vtkMarchingCubesCases) into
   // the edge-based case table. This is so that the existing Marching Cubes
@@ -68,7 +68,7 @@ export default function algorithm() {
   // indicates which voxel edges intersect with the contour (i.e., require
   // interpolation). This array is filled in at instantiation during the case
   // table generation process.
-  const EdgeUses = new Array(256).fill(new Uint8Array(12));
+  const EdgeUses = new Array(256).fill(0).map(() => new Uint8Array(12));
 
   // Flags indicate whether a particular case requires voxel axes to be
   // processed. A cheap acceleration structure computed from the case
@@ -694,9 +694,9 @@ export default function algorithm() {
               edgeCase[0] = numTris;
               for (edgeIndex = 0, edgeCaseIndex = 1; edge[edgeIndex] > -1; edgeIndex += 3, edgeCaseIndex += 3) {
                 // Build new case table.
-                edgeCase[edgeCaseIndex] = EdgeMap[edge[0]];
-                edgeCase[edgeCaseIndex + 1] = EdgeMap[edge[1]];
-                edgeCase[edgeCaseIndex + 2] = EdgeMap[edge[2]];
+                edgeCase[edgeCaseIndex] = EdgeMap[edge[edgeIndex]];
+                edgeCase[edgeCaseIndex + 1] = EdgeMap[edge[edgeIndex + 1]];
+                edgeCase[edgeCaseIndex + 2] = EdgeMap[edge[edgeIndex + 2]];
               }
             }
           } // x-edges
