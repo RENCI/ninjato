@@ -721,6 +721,9 @@ export default function algorithm() {
       IncludesAxes[eCase] = EdgeUses[eCase][0] | EdgeUses[eCase][4] | EdgeUses[eCase][8];
 
     } // for all cases
+
+    console.log(EdgeUses);
+    console.log(IncludesAxes);
   };
 
   //------------------------------------------------------------------------------
