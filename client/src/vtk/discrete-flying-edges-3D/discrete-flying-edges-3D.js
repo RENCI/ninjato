@@ -1,8 +1,7 @@
 import macro from '@kitware/vtk.js/macros';
 import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
 import vtkPolyData from '@kitware/vtk.js/Common/DataModel/PolyData';
-import * as vtkMath from '@kitware/vtk.js/Common/Core/Math';
-import triangleCases from './marching-cubes-triangle-cases';
+import algorithm from './algorithm';
 
 const { vtkErrorMacro, vtkDebugMacro } = macro;
 
@@ -13,6 +12,8 @@ const { vtkErrorMacro, vtkDebugMacro } = macro;
 function vtkDiscreteFlyingEdges3D(publicAPI, model) {
   // Set our className
   model.classHierarchy.push('vtkDiscreteFlyingEdges3D');
+
+  const algo = algorithm();
 
   publicAPI.requestData = (inData, outData) => {
     // implement requestData
@@ -52,7 +53,7 @@ function vtkDiscreteFlyingEdges3D(publicAPI, model) {
     // Gradients
     const gBuffer = [];
 
-    contour(input, pBuffer, tBuffer, sBuffer, nBuffer, gBuffer);
+    algo.contour(model, input, pBuffer, tBuffer, sBuffer, nBuffer, gBuffer);
 
     // Update output
     const polydata = vtkPolyData.newInstance();
@@ -85,8 +86,6 @@ const DEFAULT_VALUES = {
   interpolateAttributes: false,
   arrayComponent: 0
 };
-
-initializeAlgorithm();
 
 // ----------------------------------------------------------------------------
 

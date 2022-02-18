@@ -1,4 +1,8 @@
-export function algorithm() {
+import * as vtkMath from '@kitware/vtk.js/Common/Core/Math';
+
+import triangleCases from './marching-cubes-triangle-cases';
+
+export default function algorithm() {
   // Edge case table values.
   const EdgeClass = {
     BothOutside: 0,  // both vertices outside region
@@ -104,10 +108,308 @@ export function algorithm() {
   let InterpolateAttributes;
   let Arrays = [];
 
-  // The three main passes of the algorithm.
-  void processXEdge(double value, T const* inPtr, vtkIdType row, vtkIdType slice); // PASS 1
-  void processYZEdges(vtkIdType row, vtkIdType slice);                             // PASS 2
-  void generateOutput(double value, T* inPtr, vtkIdType row, vtkIdType slice);     // PASS 4
+  initializeAlgorithm();
+
+  //------------------------------------------------------------------------------
+  // PASS 1: Process a single volume x-row (and all of the voxel edges that
+  // compose the row). Determine the x-edges case classification, count the
+  // number of x-edge intersections, and figure out where intersections along
+  // the x-row begins and ends (i.e., gather information for computational
+  // trimming).
+  function processXEdge(value, inPtr, row, slice) {
+    const nxcells = Dims[0] - 1;
+    const minInt = nxcells, maxInt = 0;
+    let edgeMetaData;
+    let edgeCase, ePtr = XCases + slice * SliceOffset + row * nxcells;
+    let s0, s1 = inPtr;
+    let labelValue = value;
+    let sum = 0;
+/*
+    // run along the entire x-edge computing edge cases
+    edgeMetaData = this->EdgeMetaData + (slice * this->Dims[1] + row) * 6;
+    std::fill_n(edgeMetaData, 6, 0);
+
+    // pull this out help reduce false sharing
+    vtkIdType inc0 = this->Inc0;
+
+    for (vtkIdType i = 0; i < nxcells; ++i, ++ePtr)
+    {
+      s0 = s1;
+      s1 = static_cast<double>(*(inPtr + (i + 1) * inc0));
+
+      if (s0 != labelValue)
+      {
+        edgeCase = (s1 != value ? vtkDiscreteFlyingEdges3DAlgorithm::BothOutside
+                                : vtkDiscreteFlyingEdges3DAlgorithm::LeftOutside);
+      }
+      else // s0 == labelValue
+      {
+        edgeCase = (s1 != value ? vtkDiscreteFlyingEdges3DAlgorithm::RightOutside
+                                : vtkDiscreteFlyingEdges3DAlgorithm::BothInside);
+      }
+
+      this->SetXEdge(ePtr, edgeCase);
+
+      // if edge intersects contour
+      if (edgeCase == vtkDiscreteFlyingEdges3DAlgorithm::LeftOutside ||
+        edgeCase == vtkDiscreteFlyingEdges3DAlgorithm::RightOutside)
+      {
+        ++sum; // increment number of intersections along x-edge
+        if (i < minInt)
+        {
+          minInt = i;
+        }
+        maxInt = i + 1;
+      } // if contour interacts with this x-edge
+    }   // for all x-cell edges along this x-edge
+
+    edgeMetaData[0] += sum; // write back the number of intersections along x-edge
+
+    // The beginning and ending of intersections along the edge is used for
+    // computational trimming.
+    edgeMetaData[4] = minInt; // where intersections start along x edge
+    edgeMetaData[5] = maxInt; // where intersections end along x edge
+*/    
+  }
+
+  //------------------------------------------------------------------------------
+  // PASS 2: Process a single x-row of voxels. Count the number of y- and
+  // z-intersections by topological reasoning from x-edge cases. Determine the
+  // number of primitives (i.e., triangles) generated from this row. Use
+  // computational trimming to reduce work. Note *ePtr[4] is four pointers to
+  // four x-edge rows that bound the voxel x-row and which contain edge case
+  // information.
+  function processYZEdges(row, slice) {
+/*    
+    // Grab the four edge cases bounding this voxel x-row.
+    unsigned char *ePtr[4], ec0, ec1, ec2, ec3, xInts = 1;
+    ePtr[0] = this->XCases + slice * this->SliceOffset + row * (this->Dims[0] - 1);
+    ePtr[1] = ePtr[0] + this->Dims[0] - 1;
+    ePtr[2] = ePtr[0] + this->SliceOffset;
+    ePtr[3] = ePtr[2] + this->Dims[0] - 1;
+
+    // Grab the edge meta data surrounding the voxel row.
+    vtkIdType* eMD[4];
+    eMD[0] = this->EdgeMetaData + (slice * this->Dims[1] + row) * 6; // this x-edge
+    eMD[1] = eMD[0] + 6;                                             // x-edge in +y direction
+    eMD[2] = eMD[0] + this->Dims[1] * 6;                             // x-edge in +z direction
+    eMD[3] = eMD[2] + 6;                                             // x-edge in +y+z direction
+
+    // Determine whether this row of x-cells needs processing. If there are no
+    // x-edge intersections, and the state of the four bounding x-edges is the
+    // same, then there is no need for processing.
+    if ((eMD[0][0] | eMD[1][0] | eMD[2][0] | eMD[3][0]) == 0) // any x-ints?
+    {
+      if (*(ePtr[0]) == *(ePtr[1]) && *(ePtr[1]) == *(ePtr[2]) && *(ePtr[2]) == *(ePtr[3]))
+      {
+        return; // there are no y- or z-ints, thus no contour, skip voxel row
+      }
+      else
+      {
+        xInts = 0; // there are y- or z- edge ints however
+      }
+    }
+
+    // Determine proximity to the boundary of volume. This information is used
+    // to count edge intersections in boundary situations.
+    unsigned char loc, yLoc, zLoc, yzLoc;
+    yLoc = (row >= (this->Dims[1] - 2) ? MaxBoundary : Interior);
+    zLoc = (slice >= (this->Dims[2] - 2) ? MaxBoundary : Interior);
+    yzLoc = (yLoc << 2) | (zLoc << 4);
+
+    // The trim edges may need adjustment if the contour travels between rows
+    // of x-edges (without intersecting these x-edges). This means checking
+    // whether the trim faces at (xL,xR) made up of the y-z edges intersect the
+    // contour. Basically just an intersection operation. Determine the voxel
+    // row trim edges, need to check all four x-edges.
+    vtkIdType xL = eMD[0][4], xR = eMD[0][5];
+    vtkIdType i;
+    if (xInts)
+    {
+      for (i = 1; i < 4; ++i)
+      {
+        xL = (eMD[i][4] < xL ? eMD[i][4] : xL);
+        xR = (eMD[i][5] > xR ? eMD[i][5] : xR);
+      }
+
+      if (xL > 0) // if trimmed in the -x direction
+      {
+        ec0 = *(ePtr[0] + xL);
+        ec1 = *(ePtr[1] + xL);
+        ec2 = *(ePtr[2] + xL);
+        ec3 = *(ePtr[3] + xL);
+        if ((ec0 & 0x1) != (ec1 & 0x1) || (ec1 & 0x1) != (ec2 & 0x1) || (ec2 & 0x1) != (ec3 & 0x1))
+        {
+          xL = eMD[0][4] = 0; // reset left trim
+        }
+      }
+
+      if (xR < (this->Dims[0] - 1)) // if trimmed in the +x direction
+      {
+        ec0 = *(ePtr[0] + xR);
+        ec1 = *(ePtr[1] + xR);
+        ec2 = *(ePtr[2] + xR);
+        ec3 = *(ePtr[3] + xR);
+        if ((ec0 & 0x2) != (ec1 & 0x2) || (ec1 & 0x2) != (ec2 & 0x2) || (ec2 & 0x2) != (ec3 & 0x2))
+        {
+          xR = eMD[0][5] = this->Dims[0] - 1; // reset right trim
+        }
+      }
+    }
+    else // contour cuts through without intersecting x-edges, reset trim edges
+    {
+      xL = eMD[0][4] = 0;
+      xR = eMD[0][5] = this->Dims[0] - 1;
+    }
+
+    // Okay run along the x-voxels and count the number of y- and
+    // z-intersections. Here we are just checking y,z edges that make up the
+    // voxel axes. Also check the number of primitives generated.
+    unsigned char *edgeUses, eCase, numTris;
+    ePtr[0] += xL;
+    ePtr[1] += xL;
+    ePtr[2] += xL;
+    ePtr[3] += xL;
+    const vtkIdType dim0Wall = this->Dims[0] - 2;
+    for (i = xL; i < xR; ++i) // run along the trimmed x-voxels
+    {
+      eCase = this->GetEdgeCase(ePtr);
+      if ((numTris = this->GetNumberOfPrimitives(eCase)) > 0)
+      {
+        // Okay let's increment the triangle count.
+        eMD[0][3] += numTris;
+
+        // Count the number of y- and z-points to be generated. Pass# 1 counted
+        // the number of x-intersections along the x-edges. Now we count all
+        // intersections on the y- and z-voxel axes.
+        edgeUses = this->GetEdgeUses(eCase);
+        eMD[0][1] += edgeUses[4]; // y-voxel axes edge always counted
+        eMD[0][2] += edgeUses[8]; // z-voxel axes edge always counted
+        loc = yzLoc | (i >= dim0Wall ? MaxBoundary : Interior);
+        if (loc != 0)
+        {
+          this->CountBoundaryYZInts(loc, edgeUses, eMD);
+        }
+      } // if cell contains contour
+
+      // advance the four pointers along voxel row
+      ePtr[0]++;
+      ePtr[1]++;
+      ePtr[2]++;
+      ePtr[3]++;
+    } // for all voxels along this x-edge
+*/    
+  }
+
+  //------------------------------------------------------------------------------
+  // PASS 4: Process the x-row cells to generate output primitives, including
+  // point coordinates and triangles. This is the fourth and final pass of the
+  // algorithm.
+  function generateOutput(value, inPtr, row, slice) {
+/*    
+    // Grab the edge meta data surrounding the voxel row.
+    vtkIdType* eMD[4];
+    eMD[0] = this->EdgeMetaData + (slice * this->Dims[1] + row) * 6; // this x-edge
+    eMD[1] = eMD[0] + 6;                                             // x-edge in +y direction
+    eMD[2] = eMD[0] + this->Dims[1] * 6;                             // x-edge in +z direction
+    eMD[3] = eMD[2] + 6;                                             // x-edge in +y+z direction
+
+    // Return if there is nothing to do (i.e., no triangles to generate)
+    if (eMD[0][3] == eMD[1][3])
+    {
+      return;
+    }
+
+    // Get the voxel row trim edges and prepare to generate. Find the voxel row
+    // trim edges, need to check all four x-edges to compute row trim edge.
+    vtkIdType xL = eMD[0][4], xR = eMD[0][5];
+    vtkIdType i;
+    for (i = 1; i < 4; ++i)
+    {
+      xL = (eMD[i][4] < xL ? eMD[i][4] : xL);
+      xR = (eMD[i][5] > xR ? eMD[i][5] : xR);
+    }
+
+    // Grab the four edge cases bounding this voxel x-row. Begin at left trim edge.
+    unsigned char* ePtr[4];
+    ePtr[0] = this->XCases + slice * this->SliceOffset + row * (this->Dims[0] - 1) + xL;
+    ePtr[1] = ePtr[0] + this->Dims[0] - 1;
+    ePtr[2] = ePtr[0] + this->SliceOffset;
+    ePtr[3] = ePtr[2] + this->Dims[0] - 1;
+
+    // Traverse all voxels in this row, those containing the contour are
+    // further identified for processing, meaning generating points and
+    // triangles. Begin by setting up point ids on voxel edges.
+    vtkIdType triId = eMD[0][3];
+    vtkIdType eIds[12]; // the ids of generated points
+
+    unsigned char eCase = this->InitVoxelIds(ePtr, eMD, eIds);
+
+    // Determine the proximity to the boundary of volume. This information is
+    // used to generate edge intersections.
+    unsigned char loc, yLoc, zLoc, yzLoc;
+    yLoc = Interior;
+    if (row < 1)
+      yLoc |= MinBoundary;
+    if (row >= (this->Dims[1] - 2))
+      yLoc |= MaxBoundary;
+
+    zLoc = Interior;
+    if (slice < 1)
+      zLoc |= MinBoundary;
+    if (slice >= (this->Dims[2] - 2))
+      zLoc |= MaxBoundary;
+
+    yzLoc = (yLoc << 2) | (zLoc << 4);
+
+    // compute the ijk for this section
+    vtkIdType ijk[3] = { xL, row, slice };
+
+    // load the inc0/inc1/inc2 into local memory
+    const int incs[3] = { this->Inc0, this->Inc1, this->Inc2 };
+    const T* sPtr = rowPtr + xL * incs[0];
+    const vtkIdType dim0Wall = this->Dims[0] - 2;
+    const vtkIdType endVoxel = xR - 1;
+
+    for (i = xL; i < xR; ++i)
+    {
+      const unsigned char numTris = this->GetNumberOfPrimitives(eCase);
+      if (numTris > 0)
+      {
+        // Start by generating triangles for this case
+        this->GenerateTris(eCase, numTris, eIds, triId);
+
+        // Now generate point(s) along voxel axes if needed. Remember to take
+        // boundary into account.
+        loc = yzLoc;
+        if (i < 1)
+          loc |= MinBoundary;
+        if (i >= dim0Wall)
+          loc |= MaxBoundary;
+
+        if (this->CaseIncludesAxes(eCase) || loc != Interior)
+        {
+          unsigned char const* const edgeUses = this->GetEdgeUses(eCase);
+          this->GeneratePoints(value, loc, ijk, sPtr, incs, edgeUses, eIds);
+        }
+        this->AdvanceVoxelIds(eCase, eIds);
+      }
+
+      // Advance along voxel row if not at the end. Saves a little work.
+      if (i < endVoxel)
+      {
+        ePtr[0]++;
+        ePtr[1]++;
+        ePtr[2]++;
+        ePtr[3]++;
+        eCase = this->GetEdgeCase(ePtr);
+
+        ++ijk[0];
+        sPtr += incs[0];
+      } // if not at end of voxel row
+    }   // for all non-trimmed cells along this x-edge
+*/    
+  }
 
   // Place holder for now in case fancy bit fiddling is needed later.
   const setXEdge = (ePtr, edgeCase) => ePtr = edgeCase;
@@ -323,7 +625,7 @@ export function algorithm() {
     let eMD1 = eMD0 + 6 * Dims[1];
     // XXX: Using slice below will be inefficient
     let rowPtr;
-    let slicePtr = scalars.slice(slice * Inc2);
+    let slicePtr = Scalars.slice(slice * Inc2);
     for (; slice < end; ++slice) {
       // It's possible to skip entire slices if there is nothing to generate
       if (EdgeMetaData[eMD1 + 3] > EdgeMetaData[eMD0 + 3]) { // there are triangle primitives!
@@ -338,7 +640,7 @@ export function algorithm() {
     } // for all slices in this batch
   };
 
-  const initializeAlgorithm = () => {
+  function initializeAlgorithm() {
     XCases = null;
     EdgeMetaData = null;
     NewScalars = null;
@@ -539,167 +841,169 @@ export function algorithm() {
     }
   };
 
-  const contour = (
-    input, inScalars, extent, output, newPts, newTris, newScalars, newNormals, newGradients
-  ) => {
-    const incs = input.computeIncrements(input.getExtent(), 1);
-    const scalars = input.getPointData().getScalars();
-    
-    let value;
-    const values = model.values;
-    const numContours = values.length;
-    let vidx, row, slice, emD, zInc;
-    let numOutputXPts, numOutYPts, numOutZPts, numOutTris;
-    let numXpts = 0, numYPts = 0, numZPts = 0, numTris = 0;
-    let startXPts = 0, startYPts = 0, startZPts = 0, startTris = 0;
+  // Main function called externally
+  return {
+    contour: (
+      model, input, inScalars, extent, output, newPts, newTris, newScalars, newNormals, newGradients
+    ) => {
+      const incs = input.computeIncrements(input.getExtent(), 1);
+      const scalars = input.getPointData().getScalars();
+      
+      let value;
+      const values = model.values;
+      const numContours = values.length;
+      let vidx, row, slice, eMD, zInc;
+      let numOutXPts, numOutYPts, numOutZPts, numOutTris;
+      let numXPts = 0, numYPts = 0, numZPts = 0, numTris = 0;
+      let startXPts = 0, startYPts = 0, startZPts = 0, startTris = 0;
 
-    // This may be subvolume of the total 3D image. Capture information for
-    // subsequent processing.
-    vtkDiscreteFlyingEdges3DAlgorithm<T> algo;
-    Scalars = scalars;
-    Min0 = extent[0];
-    Max0 = extent[1];
-    Inc0 = incs[0];
-    Min1 = extent[2];
-    Max1 = extent[3];
-    Inc1 = incs[1];
-    Min2 = extent[4];
-    Max2 = extent[5];
-    Inc2 = incs[2];
+      // This may be subvolume of the total 3D image. Capture information for
+      // subsequent processing.
+      Scalars = scalars;
+      Min0 = extent[0];
+      Max0 = extent[1];
+      Inc0 = incs[0];
+      Min1 = extent[2];
+      Max1 = extent[3];
+      Inc1 = incs[1];
+      Min2 = extent[4];
+      Max2 = extent[5];
+      Inc2 = incs[2];
 
-    // Now allocate working arrays. The XCases array tracks x-edge cases.
-    Dims[0] = algo.Max0 - algo.Min0 + 1;
-    Dims[1] = algo.Max1 - algo.Min1 + 1;
-    Dims[2] = algo.Max2 - algo.Min2 + 1;
-    NumberOfEdges = Dims[1] * Dims[2];
-    SliceOffset = (Dims[0] - 1) * Dims[1];
-    XCases = new Uint8Array((Dims[0] - 1) * NumberOfEdges);
+      // Now allocate working arrays. The XCases array tracks x-edge cases.
+      Dims[0] = Max0 - Min0 + 1;
+      Dims[1] = Max1 - Min1 + 1;
+      Dims[2] = Max2 - Min2 + 1;
+      NumberOfEdges = Dims[1] * Dims[2];
+      SliceOffset = (Dims[0] - 1) * Dims[1];
+      XCases = new Uint8Array((Dims[0] - 1) * NumberOfEdges);
 
-    // Also allocate the characterization (metadata) array for the x edges.
-    // This array tracks the number of x-, y- and z- intersections on the voxel
-    // axes along an x-edge; as well as the number of the output triangles, and
-    // the xMin_i and xMax_i (minimum index of first intersection, maximum
-    // index of intersection for the ith x-row, the so-called trim edges used
-    // for computational trimming).
-    EdgeMetaData = new Uint32Array[NumberOfEdges * 6];
+      // Also allocate the characterization (metadata) array for the x edges.
+      // This array tracks the number of x-, y- and z- intersections on the voxel
+      // axes along an x-edge; as well as the number of the output triangles, and
+      // the xMin_i and xMax_i (minimum index of first intersection, maximum
+      // index of intersection for the ith x-row, the so-called trim edges used
+      // for computational trimming).
+      EdgeMetaData = new Uint32Array(NumberOfEdges * 6);
 
-    // Interpolating attributes and other stuff. Interpolate extra attributes only if they
-    // exist and the user requests it.
-    NeedGradients = (newGradients || newNormals);
-    InterpolateAttributes = false;
-      // XXX: Check this
-      //self->GetInterpolateAttributes() && input->GetPointData()->GetNumberOfArrays() > 1;
+      // Interpolating attributes and other stuff. Interpolate extra attributes only if they
+      // exist and the user requests it.
+      NeedGradients = (newGradients || newNormals);
+      InterpolateAttributes = false;
+        // XXX: Check this
+        //self->GetInterpolateAttributes() && input->GetPointData()->GetNumberOfArrays() > 1;
 
-    // Loop across each contour value. This encompasses all three passes.
-    for (vidx = 0; vidx < numContours; vidx++) {
-      value = values[vidx];
+      // Loop across each contour value. This encompasses all three passes.
+      for (vidx = 0; vidx < numContours; vidx++) {
+        value = values[vidx];
 
-      // PASS 1: Traverse all x-rows building edge cases and counting number of
-      // intersections (i.e., accumulate information necessary for later output
-      // memory allocation, e.g., the number of output points along the x-rows
-      // are counted).
-      pass1(0, Dims[2]);
+        // PASS 1: Traverse all x-rows building edge cases and counting number of
+        // intersections (i.e., accumulate information necessary for later output
+        // memory allocation, e.g., the number of output points along the x-rows
+        // are counted).
+        pass1(0, Dims[2]);
 
-      // PASS 2: Traverse all voxel x-rows and process voxel y&z edges.  The
-      // result is a count of the number of y- and z-intersections, as well as
-      // the number of triangles generated along these voxel rows.
-      pass2(0, algo.Dims[2] - 1);
+        // PASS 2: Traverse all voxel x-rows and process voxel y&z edges.  The
+        // result is a count of the number of y- and z-intersections, as well as
+        // the number of triangles generated along these voxel rows.
+        pass2(0, Dims[2] - 1);
 
-      // PASS 3: Now allocate and generate output. First we have to update the
-      // edge meta data to partition the output into separate pieces so
-      // independent threads can write without collisions. Once allocation is
-      // complete, the volume is processed on a voxel row by row basis to
-      // produce output points and triangles, and interpolate point attribute
-      // data (as necessary). NOTE: This implementation is serial. It is
-      // possible to use a threaded prefix sum to make it even faster. Since
-      // this pass usually takes a small amount of time, we choose simplicity
-      // over performance.
-      numOutXPts = startXPts;
-      numOutYPts = startYPts;
-      numOutZPts = startZPts;
-      numOutTris = startTris;
+        // PASS 3: Now allocate and generate output. First we have to update the
+        // edge meta data to partition the output into separate pieces so
+        // independent threads can write without collisions. Once allocation is
+        // complete, the volume is processed on a voxel row by row basis to
+        // produce output points and triangles, and interpolate point attribute
+        // data (as necessary). NOTE: This implementation is serial. It is
+        // possible to use a threaded prefix sum to make it even faster. Since
+        // this pass usually takes a small amount of time, we choose simplicity
+        // over performance.
+        numOutXPts = startXPts;
+        numOutYPts = startYPts;
+        numOutZPts = startZPts;
+        numOutTris = startTris;
 
-      // Count number of points and tris generate along each cell row
-      for (slice = 0; slice < Dims[2]; ++slice) {
-        zInc = slice * Dims[1];
-        for (row = 0; row < algo.Dims[1]; ++row) {
-          eMD = (zInc + row) * 6;
-          numXPts = EdgeMetaData[eMD];
-          numYPts = EdgeMetaData[eMD + 1];
-          numZPts = EdgeMetaData[eMD + 2];
-          numTris = EdgeMetaData[eMD + 3];
-          EdgeMetaData[eMD] = numOutXPts + numOutYPts + numOutZPts;
-          EdgeMetaData[eMD + 1] = EdgeMetaData[eMD] + numXPts;
-          EdgeMetaData[eMD + 2] = EdgeMetaData[eMD + 1] + numYPts;
-          EdgeMetaData[eMD + 3] = numOutTris;
-          numOutXPts += numXPts;
-          numOutYPts += numYPts;
-          numOutZPts += numZPts;
-          numOutTris += numTris;
-        }
-      }
-
-      // Output can now be allocated.
-      totalPts = numOutXPts + numOutYPts + numOutZPts;
-      if (totalPts > 0) {
-        newPts.setNumberOfPoints(totalPts);
-        NewPoints = new Float32Array(3 * totalPts);
-        //newTris->ResizeExact(numOutTris, 3 * numOutTris);
-        // XXX: Will need to change this to an array including 3 for number of points per triangle before setting as output
-        NewTris = new Uint32Array(3 * numOutTris);
-        if (newScalars) {
-          const numPrevPts = newScalars.getNumberOfTuples();
-          const numNewPts = totalPts - numPrevPts;
-          newScalars.setNumberOfPoints(totalPts);
-          NewScalars = new Float32Array(totalPts);
-          NewScalars.fill(value);
-        }
-        // XXX: Deal with these later
-/*        
-        if (newGradients)
-        {
-          newGradients->WriteVoidPointer(0, 3 * totalPts);
-          algo.NewGradients = static_cast<float*>(newGradients->GetVoidPointer(0));
-        }
-        if (newNormals)
-        {
-          newNormals->WriteVoidPointer(0, 3 * totalPts);
-          algo.NewNormals = static_cast<float*>(newNormals->GetVoidPointer(0));
-        }
-        if (algo.InterpolateAttributes)
-        {
-          if (vidx === 0) // first contour
-          {
-            // Make sure we don't interpolate the input scalars twice; or generate scalars
-            // when ComputeScalars is off.
-            output->GetPointData()->InterpolateAllocate(input->GetPointData(), totalPts);
-            output->GetPointData()->RemoveArray(inScalars->GetName());
-            algo.Arrays.ExcludeArray(inScalars);
-            algo.Arrays.AddArrays(totalPts, input->GetPointData(), output->GetPointData());
-          }
-          else
-          {
-            algo.Arrays.Realloc(totalPts);
+        // Count number of points and tris generate along each cell row
+        for (slice = 0; slice < Dims[2]; ++slice) {
+          zInc = slice * Dims[1];
+          for (row = 0; row < Dims[1]; ++row) {
+            eMD = (zInc + row) * 6;
+            numXPts = EdgeMetaData[eMD];
+            numYPts = EdgeMetaData[eMD + 1];
+            numZPts = EdgeMetaData[eMD + 2];
+            numTris = EdgeMetaData[eMD + 3];
+            EdgeMetaData[eMD] = numOutXPts + numOutYPts + numOutZPts;
+            EdgeMetaData[eMD + 1] = EdgeMetaData[eMD] + numXPts;
+            EdgeMetaData[eMD + 2] = EdgeMetaData[eMD + 1] + numYPts;
+            EdgeMetaData[eMD + 3] = numOutTris;
+            numOutXPts += numXPts;
+            numOutYPts += numYPts;
+            numOutZPts += numZPts;
+            numOutTris += numTris;
           }
         }
-*/        
 
-        // PASS 4: Fourth and final pass: Process voxel rows and generate output.
-        // Note that we are simultaneously generating triangles and interpolating
-        // points. These could be split into separate, parallel operations for
-        // maximum performance.
-        pass4(value, 0, Dims[2] - 1);
-      } // if anything generated
+        // Output can now be allocated.
+        const totalPts = numOutXPts + numOutYPts + numOutZPts;
+        if (totalPts > 0) {
+          newPts.setNumberOfPoints(totalPts);
+          NewPoints = new Float32Array(3 * totalPts);
+          //newTris->ResizeExact(numOutTris, 3 * numOutTris);
+          // XXX: Will need to change this to an array including 3 for number of points per triangle before setting as output
+          NewTris = new Uint32Array(3 * numOutTris);
+          if (newScalars) {
+            const numPrevPts = newScalars.getNumberOfTuples();
+            const numNewPts = totalPts - numPrevPts;
+            newScalars.setNumberOfPoints(totalPts);
+            NewScalars = new Float32Array(totalPts);
+            NewScalars.fill(value);
+          }
+          // XXX: Deal with these later
+  /*        
+          if (newGradients)
+          {
+            newGradients->WriteVoidPointer(0, 3 * totalPts);
+            algo.NewGradients = static_cast<float*>(newGradients->GetVoidPointer(0));
+          }
+          if (newNormals)
+          {
+            newNormals->WriteVoidPointer(0, 3 * totalPts);
+            algo.NewNormals = static_cast<float*>(newNormals->GetVoidPointer(0));
+          }
+          if (algo.InterpolateAttributes)
+          {
+            if (vidx === 0) // first contour
+            {
+              // Make sure we don't interpolate the input scalars twice; or generate scalars
+              // when ComputeScalars is off.
+              output->GetPointData()->InterpolateAllocate(input->GetPointData(), totalPts);
+              output->GetPointData()->RemoveArray(inScalars->GetName());
+              algo.Arrays.ExcludeArray(inScalars);
+              algo.Arrays.AddArrays(totalPts, input->GetPointData(), output->GetPointData());
+            }
+            else
+            {
+              algo.Arrays.Realloc(totalPts);
+            }
+          }
+  */        
 
-      // Handle multiple contours
-      startXPts = numOutXPts;
-      startYPts = numOutYPts;
-      startZPts = numOutZPts;
-      startTris = numOutTris;
-    } // for all contour values
+          // PASS 4: Fourth and final pass: Process voxel rows and generate output.
+          // Note that we are simultaneously generating triangles and interpolating
+          // points. These could be split into separate, parallel operations for
+          // maximum performance.
+          pass4(value, 0, Dims[2] - 1);
+        } // if anything generated
 
-    // Clean up and return
-    //delete[] algo.XCases;
-    //delete[] algo.EdgeMetaData;
+        // Handle multiple contours
+        startXPts = numOutXPts;
+        startYPts = numOutYPts;
+        startZPts = numOutZPts;
+        startTris = numOutTris;
+      } // for all contour values
+
+      // Clean up and return
+      //delete[] algo.XCases;
+      //delete[] algo.EdgeMetaData;
+    }
   };
 }
