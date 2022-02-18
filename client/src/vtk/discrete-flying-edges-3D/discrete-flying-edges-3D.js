@@ -53,7 +53,7 @@ function vtkDiscreteFlyingEdges3D(publicAPI, model) {
     // Gradients
     const gBuffer = [];
 
-    //algo.contour(model, input, pBuffer, tBuffer, sBuffer, nBuffer, gBuffer);
+    algo.contour(model, input, pBuffer, tBuffer, sBuffer, nBuffer, gBuffer);
 
     // Update output
     const polydata = vtkPolyData.newInstance();

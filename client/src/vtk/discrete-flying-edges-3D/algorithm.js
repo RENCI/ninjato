@@ -116,61 +116,54 @@ export default function algorithm() {
   // number of x-edge intersections, and figure out where intersections along
   // the x-row begins and ends (i.e., gather information for computational
   // trimming).
-  function processXEdge(value, inPtr, row, slice) {
+  const processXEdge = (value, inPtr, row, slice) => {
     const nxcells = Dims[0] - 1;
-    const minInt = nxcells, maxInt = 0;
+    let minInt = nxcells, maxInt = 0;
     let edgeMetaData;
-    let edgeCase, ePtr = XCases + slice * SliceOffset + row * nxcells;
-    let s0, s1 = inPtr;
+    let edgeCase, ePtr = slice * SliceOffset + row * nxcells;
+    let s0, s1 = 0;
     let labelValue = value;
     let sum = 0;
-/*
+
     // run along the entire x-edge computing edge cases
-    edgeMetaData = this->EdgeMetaData + (slice * this->Dims[1] + row) * 6;
-    std::fill_n(edgeMetaData, 6, 0);
+    edgeMetaData = (slice * Dims[1] + row) * 6;
+    EdgeMetaData.fill(edgeMetaData, edgeMetaData + 6, 0);
 
     // pull this out help reduce false sharing
-    vtkIdType inc0 = this->Inc0;
+    const inc0 = Inc0;
 
-    for (vtkIdType i = 0; i < nxcells; ++i, ++ePtr)
-    {
+    for (let i = 0; i < nxcells; ++i, ++ePtr) {
       s0 = s1;
-      s1 = static_cast<double>(*(inPtr + (i + 1) * inc0));
+      s1 = (i + 1) * inc0;
 
-      if (s0 != labelValue)
-      {
-        edgeCase = (s1 != value ? vtkDiscreteFlyingEdges3DAlgorithm::BothOutside
-                                : vtkDiscreteFlyingEdges3DAlgorithm::LeftOutside);
+      if (inPtr[s0] != labelValue) {
+        edgeCase = (inPtr[s1] !== value ? EdgeClass.BothOutside : EdgeClass.LeftOutside);
       }
-      else // s0 == labelValue
-      {
-        edgeCase = (s1 != value ? vtkDiscreteFlyingEdges3DAlgorithm::RightOutside
-                                : vtkDiscreteFlyingEdges3DAlgorithm::BothInside);
+      else { // s0 == labelValue
+        edgeCase = (inPtr[s1] !== value ? EdgeClass.RightOutside : EdgeClass.BothInside);
       }
 
-      this->SetXEdge(ePtr, edgeCase);
+      // XXX: Using slice below will be inefficient, and maybe wrong???
+      // XXX: FIGURE OUT WHAT THIS SHOULD BE DOING
+      setXEdge(XCases.slice(ePtr), edgeCase);
 
       // if edge intersects contour
-      if (edgeCase == vtkDiscreteFlyingEdges3DAlgorithm::LeftOutside ||
-        edgeCase == vtkDiscreteFlyingEdges3DAlgorithm::RightOutside)
-      {
+      if (edgeCase == EdgeClass.LeftOutside || edgeCase === EdgeClass.RightOutside) {
         ++sum; // increment number of intersections along x-edge
-        if (i < minInt)
-        {
+        if (i < minInt) {
           minInt = i;
         }
         maxInt = i + 1;
       } // if contour interacts with this x-edge
     }   // for all x-cell edges along this x-edge
 
-    edgeMetaData[0] += sum; // write back the number of intersections along x-edge
+    EdgeMetaData[edgeMetaData] += sum; // write back the number of intersections along x-edge
 
     // The beginning and ending of intersections along the edge is used for
     // computational trimming.
-    edgeMetaData[4] = minInt; // where intersections start along x edge
-    edgeMetaData[5] = maxInt; // where intersections end along x edge
-*/    
-  }
+    EdgeMetaData[edgeMetaData + 4] = minInt; // where intersections start along x edge
+    EdgeMetaData[edgeMetaData + 5] = maxInt; // where intersections end along x edge    
+  };
 
   //------------------------------------------------------------------------------
   // PASS 2: Process a single x-row of voxels. Count the number of y- and
@@ -721,9 +714,6 @@ export default function algorithm() {
       IncludesAxes[eCase] = EdgeUses[eCase][0] | EdgeUses[eCase][4] | EdgeUses[eCase][8];
 
     } // for all cases
-
-    console.log(EdgeUses);
-    console.log(IncludesAxes);
   };
 
   //------------------------------------------------------------------------------
@@ -847,10 +837,12 @@ export default function algorithm() {
   // Main function called externally
   return {
     contour: (
-      model, input, inScalars, extent, output, newPts, newTris, newScalars, newNormals, newGradients
+      model, input, newPts, newTris, newScalars, newNormals, newGradients
     ) => {
+      const inScalars = input.getPointData().getScalars();
+      const extent = input.getExtent();
       const incs = input.computeIncrements(input.getExtent(), 1);
-      const scalars = input.getPointData().getScalars();
+      const scalars = inScalars.getData();
       
       let value;
       const values = model.values;
@@ -897,14 +889,14 @@ export default function algorithm() {
         //self->GetInterpolateAttributes() && input->GetPointData()->GetNumberOfArrays() > 1;
 
       // Loop across each contour value. This encompasses all three passes.
-      for (vidx = 0; vidx < numContours; vidx++) {
+      for (vidx = 0; vidx < numContours; vidx++) {        
         value = values[vidx];
 
         // PASS 1: Traverse all x-rows building edge cases and counting number of
         // intersections (i.e., accumulate information necessary for later output
         // memory allocation, e.g., the number of output points along the x-rows
         // are counted).
-        pass1(0, Dims[2]);
+        pass1(value, 0, Dims[2]);
 
         // PASS 2: Traverse all voxel x-rows and process voxel y&z edges.  The
         // result is a count of the number of y- and z-intersections, as well as

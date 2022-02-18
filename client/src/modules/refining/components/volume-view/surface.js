@@ -14,12 +14,11 @@ const backgroundFormula = label => (v => v !== label && v !== 0 ? 1 : 0);
 export function Surface(type = 'background') {
   const maskCalculator = vtkCalculator.newInstance();
 
-  const marchingCubes = vtkDiscreteFlyingEdges3D.newInstance({
-    contourValue: 1,
-    computeNormals: true,
-    mergePoints: true
+  const flyingEdges = vtkDiscreteFlyingEdges3D.newInstance({
+    values: [1],
+    computeNormals: true
   });
-  marchingCubes.setInputConnection(maskCalculator.getOutputPort());
+  flyingEdges.setInputConnection(maskCalculator.getOutputPort());
 
   let zCalculator = null;
   let color = null;
@@ -56,7 +55,7 @@ export function Surface(type = 'background') {
         arraysOut.forEach(array => array.modified());
       }
     });
-    zCalculator.setInputConnection(marchingCubes.getOutputPort());
+    zCalculator.setInputConnection(flyingEdges.getOutputPort());
 
     color = vtkColorTransferFunction.newInstance();
 
@@ -67,7 +66,7 @@ export function Surface(type = 'background') {
     actor.getProperty().setAmbient(0.2);
   }
   else {
-    mapper.setInputConnection(marchingCubes.getOutputPort());
+    mapper.setInputConnection(flyingEdges.getOutputPort());
 
     actor.getProperty().setDiffuseColor(Blues[2]);
     actor.getProperty().setAmbientColor(Blues[8]);
@@ -110,7 +109,7 @@ export function Surface(type = 'background') {
 
       // Clean up anything we instantiated
       maskCalculator.delete();
-      marchingCubes.delete();
+      flyingEdges.delete();
       mapper.delete();
       actor.delete();
       if (zCalculator) zCalculator.delete();
