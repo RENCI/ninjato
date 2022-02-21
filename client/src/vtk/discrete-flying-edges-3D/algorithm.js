@@ -174,16 +174,16 @@ export default function algorithm() {
   // computational trimming to reduce work. Note *ePtr[4] is four pointers to
   // four x-edge rows that bound the voxel x-row and which contain edge case
   // information.
-  function processYZEdges(row, slice) {
+  const processYZEdges = (row, slice) => {
     // Grab the four edge cases bounding this voxel x-row.
-    let eIndeces = new Array(4).fill(), ec0, ec1, ec2, ec3, xInts = 1;
+    const eIndeces = new Array(4).fill(), ec0, ec1, ec2, ec3, xInts = 1;
     eIndeces[0] = slice * SliceOffset + row * (Dims[0] - 1);
     eIndeces[1] = eIndeces[0] + Dims[0] - 1;
     eIndeces[2] = eIndeces[0] + SliceOffset;
     eIndeces[3] = eIndeces[2] + Dims[0] - 1;
 
     // Grab the edge meta data surrounding the voxel row.
-    let eMDIndeces = new Array(4).fill();
+    const eMDIndeces = new Array(4).fill();
     eMDIndeces[0] = (slice * Dims[1] + row) * 6; // this x-edge
     eMDIndeces[1] = eMDIndeces[0] + 6;           // x-edge in +y direction
     eMDIndeces[2] = eMDIndeces[0] + Dims[1] * 6; // x-edge in +z direction
@@ -257,7 +257,7 @@ export default function algorithm() {
     eIndeces[3] += xL;
     const dim0Wall = Dims[0] - 2;
     for (i = xL; i < xR; ++i) { // run along the trimmed x-voxels
-      eCase = getEdgeCase(eIndeces);
+      eCase = getEdgeCase(XCases, eIndeces);
       if ((numTris = getNumberOfPrimitives(eCase)) > 0) {
         // Okay let's increment the triangle count.
         EdgeMetaData[eMDIndeces[0] + 3] += numTris;
@@ -280,117 +280,109 @@ export default function algorithm() {
       eMDIndeces[2]++;
       eMDIndeces[3]++;
     } // for all voxels along this x-edge
-  }
+  };
 
   //------------------------------------------------------------------------------
   // PASS 4: Process the x-row cells to generate output primitives, including
   // point coordinates and triangles. This is the fourth and final pass of the
   // algorithm.
-  function generateOutput(value, inPtr, row, slice) {
-/*    
+  const generateOutput = (value, rowArray, rowIndex, row, slice) => {
     // Grab the edge meta data surrounding the voxel row.
-    vtkIdType* eMD[4];
-    eMD[0] = this->EdgeMetaData + (slice * this->Dims[1] + row) * 6; // this x-edge
-    eMD[1] = eMD[0] + 6;                                             // x-edge in +y direction
-    eMD[2] = eMD[0] + this->Dims[1] * 6;                             // x-edge in +z direction
-    eMD[3] = eMD[2] + 6;                                             // x-edge in +y+z direction
+    const eMDIndeces = new Array(4).fill();
+    eMDIndeces[0] = (slice * Dims[1] + row) * 6; // this x-edge
+    eMDIndeces[1] = eMDIndeces[0] + 6;           // x-edge in +y direction
+    eMDIndeces[2] = eMDIndeces[0] + Dims[1] * 6; // x-edge in +z direction
+    eMDIndeces[3] = eMDIndeces[2] + 6;           // x-edge in +y+z direction
 
     // Return if there is nothing to do (i.e., no triangles to generate)
-    if (eMD[0][3] == eMD[1][3])
-    {
+    if (EdgeMetaData[eMDIndeces[0] + 3] === EdgeMetaData[eMDIndeces[1] + 3]) {
       return;
     }
 
     // Get the voxel row trim edges and prepare to generate. Find the voxel row
     // trim edges, need to check all four x-edges to compute row trim edge.
-    vtkIdType xL = eMD[0][4], xR = eMD[0][5];
-    vtkIdType i;
-    for (i = 1; i < 4; ++i)
-    {
-      xL = (eMD[i][4] < xL ? eMD[i][4] : xL);
-      xR = (eMD[i][5] > xR ? eMD[i][5] : xR);
+    let xL = EdgeMetaData[eMDIndeces[0] + 4], xR = EdgeMetaData[eMDIndeces[0] + 5];
+    let i;
+    for (i = 1; i < 4; ++i) {
+      xL = EdgeMetaData[eMDIndeces[i] + 4] < xL ? EdgeMetaData[eMDIndeces[i] + 4] : xL;
+      xR = EdgeMetaData[eMDIndeces[i] + 5] > xR ? EdgeMetaData[eMDIndeces[i] + 5] : xR;
     }
 
     // Grab the four edge cases bounding this voxel x-row. Begin at left trim edge.
-    unsigned char* ePtr[4];
-    ePtr[0] = this->XCases + slice * this->SliceOffset + row * (this->Dims[0] - 1) + xL;
-    ePtr[1] = ePtr[0] + this->Dims[0] - 1;
-    ePtr[2] = ePtr[0] + this->SliceOffset;
-    ePtr[3] = ePtr[2] + this->Dims[0] - 1;
+    const eIndeces = new Array(4).fill();
+    eIndeces[0] = slice * SliceOffset + row * (Dims[0] - 1) + xL;
+    eIndeces[1] = eIndeces[0] + Dims[0] - 1;
+    eIndeces[2] = eIndeces[0] + SliceOffset;
+    eIndeces[3] = eIndeces[2] + Dims[0] - 1;
 
     // Traverse all voxels in this row, those containing the contour are
     // further identified for processing, meaning generating points and
     // triangles. Begin by setting up point ids on voxel edges.
-    vtkIdType triId = eMD[0][3];
-    vtkIdType eIds[12]; // the ids of generated points
+    let triId = EdgeMetaData[eMDIndeces[0] + 3];
+    const eIds = new Array(12); // the ids of generated points
 
-    unsigned char eCase = this->InitVoxelIds(ePtr, eMD, eIds);
+    const eCase = initVoxelIds(XCases, eIndeces, EdgeMetaData, eMDIndeces, eIds);
 
     // Determine the proximity to the boundary of volume. This information is
     // used to generate edge intersections.
-    unsigned char loc, yLoc, zLoc, yzLoc;
+    let loc, yLoc, zLoc, yzLoc;
     yLoc = Interior;
     if (row < 1)
-      yLoc |= MinBoundary;
-    if (row >= (this->Dims[1] - 2))
-      yLoc |= MaxBoundary;
+      yLoc |= CellClass.MinBoundary;
+    if (row >= Dims[1] - 2)
+      yLoc |= CellClass.MaxBoundary;
 
     zLoc = Interior;
     if (slice < 1)
-      zLoc |= MinBoundary;
-    if (slice >= (this->Dims[2] - 2))
-      zLoc |= MaxBoundary;
+      zLoc |= CellClass.MinBoundary;
+    if (slice >= Dims[2] - 2)
+      zLoc |= CellClass.MaxBoundary;
 
     yzLoc = (yLoc << 2) | (zLoc << 4);
 
     // compute the ijk for this section
-    vtkIdType ijk[3] = { xL, row, slice };
+    const ijk = [xL, row, slice];
 
     // load the inc0/inc1/inc2 into local memory
-    const int incs[3] = { this->Inc0, this->Inc1, this->Inc2 };
-    const T* sPtr = rowPtr + xL * incs[0];
-    const vtkIdType dim0Wall = this->Dims[0] - 2;
-    const vtkIdType endVoxel = xR - 1;
+    const incs = [Inc0, Inc1, Inc2];
+    const sIndex = rowIndex + xL * incs[0];
+    const dim0Wall = Dims[0] - 2;
+    const endVoxel = xR - 1;
 
-    for (i = xL; i < xR; ++i)
-    {
-      const unsigned char numTris = this->GetNumberOfPrimitives(eCase);
-      if (numTris > 0)
-      {
+    for (i = xL; i < xR; ++i) {
+      const numTris = getNumberOfPrimitives(eCase);
+      if (numTris > 0) {
         // Start by generating triangles for this case
-        this->GenerateTris(eCase, numTris, eIds, triId);
+        generateTris(eCase, numTris, eIds, triId);
 
         // Now generate point(s) along voxel axes if needed. Remember to take
         // boundary into account.
         loc = yzLoc;
         if (i < 1)
-          loc |= MinBoundary;
+          loc |= CellClass.MinBoundary;
         if (i >= dim0Wall)
-          loc |= MaxBoundary;
+          loc |= CellClass.MaxBoundary;
 
-        if (this->CaseIncludesAxes(eCase) || loc != Interior)
-        {
-          unsigned char const* const edgeUses = this->GetEdgeUses(eCase);
-          this->GeneratePoints(value, loc, ijk, sPtr, incs, edgeUses, eIds);
+        if (caseIncludesAxes(eCase) || loc !== CellClass.Interior) {
+          const edgeUses = getEdgeUses(eCase);
+          generatePoints(value, loc, ijk, rowArray, sIndex, incs, edgeUses, eIds);
         }
-        this->AdvanceVoxelIds(eCase, eIds);
+        advanceVoxelIds(eCase, eIds);
       }
 
       // Advance along voxel row if not at the end. Saves a little work.
-      if (i < endVoxel)
-      {
-        ePtr[0]++;
-        ePtr[1]++;
-        ePtr[2]++;
-        ePtr[3]++;
-        eCase = this->GetEdgeCase(ePtr);
+      if (i < endVoxel) {
+        eIndeces[0]++;
+        eIndeces[1]++;
+        eIndeces[2]++;
+        eIndeces[3]++;
+        eCase = getEdgeCase(XCases, eIndeces);
 
         ++ijk[0];
-        sPtr += incs[0];
+        sIndex += incs[0];
       } // if not at end of voxel row
     }   // for all non-trimmed cells along this x-edge
-*/    
-  }
+  };
 
   // Place holder for now in case fancy bit fiddling is needed later.
   const setXEdge = (eArray, eIndex, edgeCase) => eArray[eIndex] = edgeCase;
@@ -410,9 +402,13 @@ export default function algorithm() {
   const caseIncludesAxes = (eCase) => IncludesAxes[eCase];
  
   // Produce the output triangles for this voxel cell.
-  const GenerateTris = (eCase, numTris, eIds, triId) => {
+  const generateTrisImpl = (edges, numTris, eIds, triId) => {
+
+  };
+
+  const generateTris = (eCase, numTris, eIds, triId) => {
     const edges = EdgeCases[eCase] + 1;
-    // XXX: IS THIS CORRECT?
+    // XXX: NEED TO PUT SOME THOUGHT INTO THIS...
 /*    
     NewTris.forEach(state => {
       const offsets = state.GetOffsets();
@@ -544,19 +540,19 @@ export default function algorithm() {
   };
 
   // Helper function to set up the point ids on voxel edges.
-  const initVoxelIds = (ePtr, eMD, eIds) => {
-    const eCase = getEdgeCase(ePtr);
-    eIds[0] = eMD[0][0]; // x-edges
-    eIds[1] = eMD[1][0];
-    eIds[2] = eMD[2][0];
-    eIds[3] = eMD[3][0];
-    eIds[4] = eMD[0][1]; // y-edges
+  const initVoxelIds = (eArray, eIndeces, eMDArray, eMDIndeces, eIds) => {
+    const eCase = getEdgeCase(eArray, eIndeces);
+    eIds[0] = eMDArray[eMDIndeces[0]]; // x-edges
+    eIds[1] = eMDArray[eMDIndeces[1]];
+    eIds[2] = eMDArray[eMDIndeces[2]];
+    eIds[3] = eMDArray[eMDIndeces[3]];
+    eIds[4] = eMDArray[eMDIndeces[0] + 1]; // y-edges
     eIds[5] = eIds[4] + EdgeUses[eCase][4];
-    eIds[6] = eMD[2][1];
+    eIds[6] = eMDArray[eMDIndeces[2] + 1];
     eIds[7] = eIds[6] + EdgeUses[eCase][6];
-    eIds[8] = eMD[0][2]; // z-edges
+    eIds[8] = eMDArray[eMDIndeces[0] + 2]; // z-edges
     eIds[9] = eIds[8] + EdgeUses[eCase][8];
-    eIds[10] = eMD[1][2];
+    eIds[10] = eMDArray[eMDIndeces[1] + 2];
     eIds[11] = eIds[10] + EdgeUses[eCase][10];
     return eCase;
   };
