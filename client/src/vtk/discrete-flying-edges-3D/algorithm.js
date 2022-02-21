@@ -26,7 +26,7 @@ export default function algorithm() {
   // several computational advantages (parallel separability, more efficient
   // computation). This table is built from the MC case table when the class
   // is instantiated.
-  const EdgeCases = new Array(256).fill(0).map(() => new Uint8Array(16));
+  const EdgeCases = new Array(256).fill().map(() => new Uint8Array(16));
 
   // A table to map old edge ids (as defined from vtkMarchingCubesCases) into
   // the edge-based case table. This is so that the existing Marching Cubes
@@ -68,7 +68,7 @@ export default function algorithm() {
   // indicates which voxel edges intersect with the contour (i.e., require
   // interpolation). This array is filled in at instantiation during the case
   // table generation process.
-  const EdgeUses = new Array(256).fill(0).map(() => new Uint8Array(12));
+  const EdgeUses = new Array(256).fill().map(() => new Uint8Array(12));
 
   // Flags indicate whether a particular case requires voxel axes to be
   // processed. A cheap acceleration structure computed from the case
@@ -108,6 +108,8 @@ export default function algorithm() {
   let InterpolateAttributes;
   let Arrays = [];
 
+  // Setup algorithm
+  // This takes the place of the vtkDiscreteFlyingEdges3DAlgorithm constructor
   initializeAlgorithm();
 
   //------------------------------------------------------------------------------
@@ -116,39 +118,39 @@ export default function algorithm() {
   // number of x-edge intersections, and figure out where intersections along
   // the x-row begins and ends (i.e., gather information for computational
   // trimming).
-  const processXEdge = (value, inPtr, row, slice) => {
+  const processXEdge = (value, inArray, inIndex, row, slice) => {
     const nxcells = Dims[0] - 1;
     let minInt = nxcells, maxInt = 0;
-    let edgeMetaData;
-    let edgeCase, ePtr = slice * SliceOffset + row * nxcells;
-    let s0, s1 = 0;
+    let edgeMetaDataIndex;
+    let edgeCase, eIndex = slice * SliceOffset + row * nxcells;
+    let s0, s1 = inArray[inIndex];
     let labelValue = value;
     let sum = 0;
 
     // run along the entire x-edge computing edge cases
-    edgeMetaData = (slice * Dims[1] + row) * 6;
-    EdgeMetaData.fill(edgeMetaData, edgeMetaData + 6, 0);
+    edgeMetaDataIndex = (slice * Dims[1] + row) * 6;
+    EdgeMetaData.fill(edgeMetaDataIndex, edgeMetaDataIndex + 6, 0);
 
     // pull this out help reduce false sharing
     const inc0 = Inc0;
 
-    for (let i = 0; i < nxcells; ++i, ++ePtr) {
+    for (let i = 0; i < nxcells; ++i, ++eIndex) {
       s0 = s1;
-      s1 = (i + 1) * inc0;
+      s1 = inArray[inIndex + (i + 1) * inc0];
 
-      if (inPtr[s0] != labelValue) {
-        edgeCase = (inPtr[s1] !== value ? EdgeClass.BothOutside : EdgeClass.LeftOutside);
+      if (s0 != labelValue) {
+        edgeCase = s1 !== value ? EdgeClass.BothOutside 
+                                : EdgeClass.LeftOutside;
       }
       else { // s0 == labelValue
-        edgeCase = (inPtr[s1] !== value ? EdgeClass.RightOutside : EdgeClass.BothInside);
+        edgeCase = s1 !== value ? EdgeClass.RightOutside 
+                                : EdgeClass.BothInside;
       }
 
-      // XXX: Using slice below will be inefficient, and maybe wrong???
-      // XXX: FIGURE OUT WHAT THIS SHOULD BE DOING
-      setXEdge(XCases.slice(ePtr), edgeCase);
+      setXEdge(XCases, eIndex, edgeCase);
 
       // if edge intersects contour
-      if (edgeCase == EdgeClass.LeftOutside || edgeCase === EdgeClass.RightOutside) {
+      if (edgeCase === EdgeClass.LeftOutside || edgeCase === EdgeClass.RightOutside) {
         ++sum; // increment number of intersections along x-edge
         if (i < minInt) {
           minInt = i;
@@ -157,12 +159,12 @@ export default function algorithm() {
       } // if contour interacts with this x-edge
     }   // for all x-cell edges along this x-edge
 
-    EdgeMetaData[edgeMetaData] += sum; // write back the number of intersections along x-edge
+    EdgeMetaData[edgeMetaDataIndex] += sum; // write back the number of intersections along x-edge
 
     // The beginning and ending of intersections along the edge is used for
     // computational trimming.
-    EdgeMetaData[edgeMetaData + 4] = minInt; // where intersections start along x edge
-    EdgeMetaData[edgeMetaData + 5] = maxInt; // where intersections end along x edge    
+    EdgeMetaData[edgeMetaDataIndex + 4] = minInt; // where intersections start along x edge
+    EdgeMetaData[edgeMetaDataIndex + 5] = maxInt; // where intersections end along x edge    
   };
 
   //------------------------------------------------------------------------------
@@ -405,7 +407,7 @@ export default function algorithm() {
   }
 
   // Place holder for now in case fancy bit fiddling is needed later.
-  const setXEdge = (ePtr, edgeCase) => ePtr = edgeCase;
+  const setXEdge = (eArray, eIndex, edgeCase) => eArray[eIndex] = edgeCase;
 
   // Given the four x-edge cases defining this voxel, return the voxel case
   // number.
