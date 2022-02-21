@@ -175,41 +175,37 @@ export default function algorithm() {
   // four x-edge rows that bound the voxel x-row and which contain edge case
   // information.
   function processYZEdges(row, slice) {
-/*    
     // Grab the four edge cases bounding this voxel x-row.
-    unsigned char *ePtr[4], ec0, ec1, ec2, ec3, xInts = 1;
-    ePtr[0] = this->XCases + slice * this->SliceOffset + row * (this->Dims[0] - 1);
-    ePtr[1] = ePtr[0] + this->Dims[0] - 1;
-    ePtr[2] = ePtr[0] + this->SliceOffset;
-    ePtr[3] = ePtr[2] + this->Dims[0] - 1;
+    let eIndeces = new Array(4).fill(), ec0, ec1, ec2, ec3, xInts = 1;
+    eIndeces[0] = slice * SliceOffset + row * (Dims[0] - 1);
+    eIndeces[1] = eIndeces[0] + Dims[0] - 1;
+    eIndeces[2] = eIndeces[0] + SliceOffset;
+    eIndeces[3] = eIndeces[2] + Dims[0] - 1;
 
     // Grab the edge meta data surrounding the voxel row.
-    vtkIdType* eMD[4];
-    eMD[0] = this->EdgeMetaData + (slice * this->Dims[1] + row) * 6; // this x-edge
-    eMD[1] = eMD[0] + 6;                                             // x-edge in +y direction
-    eMD[2] = eMD[0] + this->Dims[1] * 6;                             // x-edge in +z direction
-    eMD[3] = eMD[2] + 6;                                             // x-edge in +y+z direction
+    let eMDIndeces = new Array(4).fill();
+    eMDIndeces[0] = (slice * Dims[1] + row) * 6; // this x-edge
+    eMDIndeces[1] = eMDIndeces[0] + 6;           // x-edge in +y direction
+    eMDIndeces[2] = eMDIndeces[0] + Dims[1] * 6; // x-edge in +z direction
+    eMDIndeces[3] = eMDIndeces[2] + 6;           // x-edge in +y+z direction
 
     // Determine whether this row of x-cells needs processing. If there are no
     // x-edge intersections, and the state of the four bounding x-edges is the
     // same, then there is no need for processing.
-    if ((eMD[0][0] | eMD[1][0] | eMD[2][0] | eMD[3][0]) == 0) // any x-ints?
-    {
-      if (*(ePtr[0]) == *(ePtr[1]) && *(ePtr[1]) == *(ePtr[2]) && *(ePtr[2]) == *(ePtr[3]))
-      {
+    if ((EdgeMetaData[eMDIndeces[0]] | EdgeMetaData[eMDIndeces[2]] | EdgeMetaData[eMDIndeces[3]]) === 0) { // any x-ints?    
+      if (XCases[eIndeces[0]] === XCases[eIndeces[1]] && XCases[eIndeces[1]] === XCases[eIndeces[2]] && XCases[eIndeces[2]] === XCases[eIndeces[3]]) {
         return; // there are no y- or z-ints, thus no contour, skip voxel row
       }
-      else
-      {
+      else {
         xInts = 0; // there are y- or z- edge ints however
       }
     }
 
     // Determine proximity to the boundary of volume. This information is used
     // to count edge intersections in boundary situations.
-    unsigned char loc, yLoc, zLoc, yzLoc;
-    yLoc = (row >= (this->Dims[1] - 2) ? MaxBoundary : Interior);
-    zLoc = (slice >= (this->Dims[2] - 2) ? MaxBoundary : Interior);
+    let loc, yLoc, zLoc, yzLoc;
+    yLoc = row >= (Dims[1] - 2) ? CellClass.MaxBoundary : CellClass.Interior;
+    zLoc = slice >= (Dims[2] - 2) ? CellClass.MaxBoundary : CellClass.Interior;
     yzLoc = (yLoc << 2) | (zLoc << 4);
 
     // The trim edges may need adjustment if the contour travels between rows
@@ -217,83 +213,73 @@ export default function algorithm() {
     // whether the trim faces at (xL,xR) made up of the y-z edges intersect the
     // contour. Basically just an intersection operation. Determine the voxel
     // row trim edges, need to check all four x-edges.
-    vtkIdType xL = eMD[0][4], xR = eMD[0][5];
-    vtkIdType i;
-    if (xInts)
-    {
-      for (i = 1; i < 4; ++i)
-      {
-        xL = (eMD[i][4] < xL ? eMD[i][4] : xL);
-        xR = (eMD[i][5] > xR ? eMD[i][5] : xR);
+    let xL = EdgeMetaData[eMDIndeces[0] + 4], xR = EdgeMetaData[eMDIndeces[0] + 5];
+    let i;
+    if (xInts) {
+      for (i = 1; i < 4; ++i) {
+        xL = EdgeMetaData[eMDIndeces[i] + 4] < xL ? EdgeMetaData[eMDIndeces[i] + 4] : xL;
+        xR = EdgeMetaData[eMDIndeces[i] + 5] > xR ? EdgeMetaData[eMDIndeces[i] + 5] : xR;
       }
 
-      if (xL > 0) // if trimmed in the -x direction
-      {
-        ec0 = *(ePtr[0] + xL);
-        ec1 = *(ePtr[1] + xL);
-        ec2 = *(ePtr[2] + xL);
-        ec3 = *(ePtr[3] + xL);
-        if ((ec0 & 0x1) != (ec1 & 0x1) || (ec1 & 0x1) != (ec2 & 0x1) || (ec2 & 0x1) != (ec3 & 0x1))
-        {
-          xL = eMD[0][4] = 0; // reset left trim
+      if (xL > 0) { // if trimmed in the -x direction      
+        ec0 = XCases[eIndeces[0] + xL];
+        ec1 = XCases[eIndeces[1] + xL];
+        ec2 = XCases[eIndeces[2] + xL];
+        ec3 = XCases[eIndeces[3] + xL];
+        if ((ec0 & 0x1) !== (ec1 & 0x1) || (ec1 & 0x1) !== (ec2 & 0x1) || (ec2 & 0x1) !== (ec3 & 0x1)) {
+          xL = EdgeMetaData[eMDIndeces[0] + 4] = 0; // reset left trim
         }
       }
 
-      if (xR < (this->Dims[0] - 1)) // if trimmed in the +x direction
-      {
-        ec0 = *(ePtr[0] + xR);
-        ec1 = *(ePtr[1] + xR);
-        ec2 = *(ePtr[2] + xR);
-        ec3 = *(ePtr[3] + xR);
-        if ((ec0 & 0x2) != (ec1 & 0x2) || (ec1 & 0x2) != (ec2 & 0x2) || (ec2 & 0x2) != (ec3 & 0x2))
-        {
-          xR = eMD[0][5] = this->Dims[0] - 1; // reset right trim
+      if (xR < (Dims[0] - 1)) { // if trimmed in the +x direction      
+        ec0 = XCases[eIndeces[0] + xR];
+        ec1 = XCases[eIndeces[1] + xR];
+        ec2 = XCases[eIndeces[2] + xR];
+        ec3 = XCases[eIndeces[3] + xR];
+        if ((ec0 & 0x2) !== (ec1 & 0x2) || (ec1 & 0x2) !== (ec2 & 0x2) || (ec2 & 0x2) !== (ec3 & 0x2)) {
+          xR = EdgeMetaData[eMDIndeces[0] + 5] = Dims[0] - 1; // reset right trim
         }
       }
     }
     else // contour cuts through without intersecting x-edges, reset trim edges
     {
-      xL = eMD[0][4] = 0;
-      xR = eMD[0][5] = this->Dims[0] - 1;
+      xL = EdgeMetaData[eMDIndeces[0] + 4] = 0;
+      xR = EdgeMetaData[eMDIndeces[0] + 5] = Dims[0] - 1;
     }
 
     // Okay run along the x-voxels and count the number of y- and
     // z-intersections. Here we are just checking y,z edges that make up the
     // voxel axes. Also check the number of primitives generated.
-    unsigned char *edgeUses, eCase, numTris;
-    ePtr[0] += xL;
-    ePtr[1] += xL;
-    ePtr[2] += xL;
-    ePtr[3] += xL;
-    const vtkIdType dim0Wall = this->Dims[0] - 2;
-    for (i = xL; i < xR; ++i) // run along the trimmed x-voxels
-    {
-      eCase = this->GetEdgeCase(ePtr);
-      if ((numTris = this->GetNumberOfPrimitives(eCase)) > 0)
-      {
+    let edgeUses, eCase, numTris;
+    eIndeces[0] += xL;
+    eIndeces[1] += xL;
+    eIndeces[2] += xL;
+    eIndeces[3] += xL;
+    const dim0Wall = Dims[0] - 2;
+    for (i = xL; i < xR; ++i) { // run along the trimmed x-voxels
+      eCase = getEdgeCase(eIndeces);
+      if ((numTris = getNumberOfPrimitives(eCase)) > 0) {
         // Okay let's increment the triangle count.
-        eMD[0][3] += numTris;
+        EdgeMetaData[eMDIndeces[0] + 3] += numTris;
 
         // Count the number of y- and z-points to be generated. Pass# 1 counted
         // the number of x-intersections along the x-edges. Now we count all
         // intersections on the y- and z-voxel axes.
-        edgeUses = this->GetEdgeUses(eCase);
-        eMD[0][1] += edgeUses[4]; // y-voxel axes edge always counted
-        eMD[0][2] += edgeUses[8]; // z-voxel axes edge always counted
-        loc = yzLoc | (i >= dim0Wall ? MaxBoundary : Interior);
-        if (loc != 0)
-        {
-          this->CountBoundaryYZInts(loc, edgeUses, eMD);
+        edgeUses = getEdgeUses(eCase);
+        EdgeMetaData[eMDIndeces[0] + 1] += edgeUses[4]; // y-voxel axes edge always counted
+        EdgeMetaData[eMDIndeces[0] + 2] += edgeUses[8]; // z-voxel axes edge always counted
+        loc = yzLoc | (i >= dim0Wall ? CellClass.MaxBoundary : CellClass.Interior);
+        if (loc !== 0) {
+          countBoundaryYZInts(loc, edgeUses, EdgeMetaData, eMDIndeces);
         }
       } // if cell contains contour
 
       // advance the four pointers along voxel row
-      ePtr[0]++;
-      ePtr[1]++;
-      ePtr[2]++;
-      ePtr[3]++;
+      eMDIndeces[0]++;
+      eMDIndeces[1]++;
+      eMDIndeces[2]++;
+      eMDIndeces[3]++;
     } // for all voxels along this x-edge
-*/    
   }
 
   //------------------------------------------------------------------------------
@@ -411,9 +397,8 @@ export default function algorithm() {
 
   // Given the four x-edge cases defining this voxel, return the voxel case
   // number.
-  // XXX: IS THIS CORRECT?
-  const getEdgeCase = (ePtr) => 
-    ePtr[0] | (ePtr[1] << 2) | (ePtr[2] << 4) | (ePtr[3] << 6);
+  const getEdgeCase = (eArray, eIndeces) => 
+    eArray[eIndeces[0]] | (eArray[eIndeces[1]] << 2) | (eArray[eIndeces[2]] << 4) | (eArray[eIndeces[3]] << 6);
 
   // Return the number of contouring primitives for a particular edge case number.
   const getNumberOfPrimitives = (eCase) => EdgeCases[eCase][0];
@@ -723,41 +708,41 @@ export default function algorithm() {
   // x-edges, the voxel axes on the boundary may be undefined near boundaries
   // (because there are no fully-formed cells). Thus the voxel axes on the
   // boundary are treated specially.
-  const countBoundaryYZInts = (loc, edgeUses, eMD) => {
+  const countBoundaryYZInts = (loc, edgeUses, eMDArray, eMDIndeces) => {
     switch (loc) {
       case 2: //+x boundary
-        eMD[0][1] += edgeUses[5];
-        eMD[0][2] += edgeUses[9];
+        eMDArray[eMDIndeces[0] + 1] += edgeUses[5];
+        eMDArray[eMDIndeces[0] + 2] += edgeUses[9];
         break;
       case 8: //+y
-        eMD[1][2] += edgeUses[10];
+        eMDArray[eMDIndeces[1] + 2] += edgeUses[10];
         break;
       case 10: //+x +y
-        eMD[0][1] += edgeUses[5];
-        eMD[0][2] += edgeUses[9];
-        eMD[1][2] += edgeUses[10];
-        eMD[1][2] += edgeUses[11];
+        eMDArray[eMDIndeces[0] + 1] += edgeUses[5];
+        eMDArray[eMDIndeces[0] + 2] += edgeUses[9];
+        eMDArray[eMDIndeces[1] + 2] += edgeUses[10];
+        eMDArray[eMDIndeces[1] + 2] += edgeUses[11];
         break;
       case 32: //+z
-        eMD[2][1] += edgeUses[6];
+        eMDArray[eMDIndeces[2] + 1] += edgeUses[6];
         break;
       case 34: //+x +z
-        eMD[0][1] += edgeUses[5];
-        eMD[0][2] += edgeUses[9];
-        eMD[2][1] += edgeUses[6];
-        eMD[2][1] += edgeUses[7];
+        eMDArray[eMDIndeces[0] + 1] += edgeUses[5];
+        eMDArray[eMDIndeces[0] + 2] += edgeUses[9];
+        eMDArray[eMDIndeces[2] + 1] += edgeUses[6];
+        eMDArray[eMDIndeces[2] + 1] += edgeUses[7];
         break;
       case 40: //+y +z
-        eMD[2][1] += edgeUses[6];
-        eMD[1][2] += edgeUses[10];
+        eMDArray[eMDIndeces[2] + 1] += edgeUses[6];
+        eMDArray[eMDIndeces[1] + 2] += edgeUses[10];
         break;
       case 42: //+x +y +z happens no more than once per volume
-        eMD[0][1] += edgeUses[5];
-        eMD[0][2] += edgeUses[9];
-        eMD[1][2] += edgeUses[10];
-        eMD[1][2] += edgeUses[11];
-        eMD[2][1] += edgeUses[6];
-        eMD[2][1] += edgeUses[7];
+        eMDArray[eMDIndeces[0] + 1] += edgeUses[5];
+        eMDArray[eMDIndeces[0] + 2] += edgeUses[9];
+        eMDArray[eMDIndeces[1] + 2] += edgeUses[10];
+        eMDArray[eMDIndeces[1] + 2] += edgeUses[11];
+        eMDArray[eMDIndeces[2] + 1] += edgeUses[6];
+        eMDArray[eMDIndeces[2] + 1] += edgeUses[7];
         break;
       default: // uh-oh shouldn't happen
         break;
