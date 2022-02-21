@@ -138,7 +138,7 @@ export default function algorithm() {
       s0 = s1;
       s1 = inArray[inIndex + (i + 1) * inc0];
 
-      if (s0 != labelValue) {
+      if (s0 !== labelValue) {
         edgeCase = s1 !== value ? EdgeClass.BothOutside 
                                 : EdgeClass.LeftOutside;
       }
@@ -322,7 +322,7 @@ export default function algorithm() {
     let triId = EdgeMetaData[eMDIndeces[0] + 3];
     const eIds = new Array(12); // the ids of generated points
 
-    const eCase = initVoxelIds(XCases, eIndeces, EdgeMetaData, eMDIndeces, eIds);
+    let eCase = initVoxelIds(XCases, eIndeces, EdgeMetaData, eMDIndeces, eIds);
 
     // Determine the proximity to the boundary of volume. This information is
     // used to generate edge intersections.
@@ -346,7 +346,7 @@ export default function algorithm() {
 
     // load the inc0/inc1/inc2 into local memory
     const incs = [Inc0, Inc1, Inc2];
-    const sIndex = rowIndex + xL * incs[0];
+    let sIndex = rowIndex + xL * incs[0];
     const dim0Wall = Dims[0] - 2;
     const endVoxel = xR - 1;
 
@@ -580,7 +580,7 @@ export default function algorithm() {
 
     const ijk0 = new Array(3), ijk1 = new Array(3), vId = eIds[edgeNum];
 
-    const offsets = VertOffsets[vertMap[0]];
+    let offsets = VertOffsets[vertMap[0]];
     const s0 = sIndex + offsets[0] * incs[0] + offsets[1] * incs[1] + offsets[2] * incs[2];
     ijk0[0] = ijk[0] + offsets[0];
     ijk0[1] = ijk[1] + offsets[1];
