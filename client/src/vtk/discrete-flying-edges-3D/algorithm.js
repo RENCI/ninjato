@@ -449,13 +449,19 @@ export default function algorithm() {
   };
  
   // Produce the output triangles for this voxel cell.
-  const generateTrisImpl = (edges, numTris, eIds, triId) => {
-
-  };
-
   const generateTris = (eCase, numTris, eIds, triId) => {
-    const edges = EdgeCases[eCase] + 1;
+    const edges = EdgeCases[eCase];
+    let edgesIndex = 1;
+
+    for (let i = 0; i < numTris; i++) {
+      NewTris[triId * i * 3] = eIds[edges[edgesIndex++]];
+      NewTris[triId * i * 3 + 1] = eIds[edges[edgesIndex++]];
+      NewTris[triId * i * 3 + 2] = eIds[edges[edgesIndex++]];
+    }
+
     // XXX: NEED TO PUT SOME THOUGHT INTO THIS...
+
+    //console.log(edges);
 /*    
     NewTris.forEach(state => {
       const offsets = state.GetOffsets();
@@ -1055,17 +1061,17 @@ export default function algorithm() {
 
         // Output can now be allocated.
         const totalPts = numOutXPts + numOutYPts + numOutZPts;
+        console.log(totalPts);
+
         if (totalPts > 0) {
-          newPts.setNumberOfPoints(totalPts);
-          NewPoints = new Float32Array(3 * totalPts);
-          //newTris->ResizeExact(numOutTris, 3 * numOutTris);
-          // XXX: Will need to change this to an array including 3 for number of points per triangle before setting as output
+          newPts.length = 3 * totalPts;
+          NewPoints = newPts;
+          // XXX: Output newTris array needs 4 entries per triangle, including a 3 to indicate a triangle
+          newTris.length = 4 * numOutTris;
           NewTris = new Uint32Array(3 * numOutTris);
           if (newScalars) {
-            const numPrevPts = newScalars.getNumberOfTuples();
-            const numNewPts = totalPts - numPrevPts;
-            newScalars.setNumberOfPoints(totalPts);
-            NewScalars = new Float32Array(totalPts);
+            newScalars.length = totalPts;
+            NewScalars = newScalars;
             NewScalars.fill(value);
           }
           // XXX: Deal with these later
@@ -1112,9 +1118,18 @@ export default function algorithm() {
         startTris = numOutTris;
       } // for all contour values
 
-      // Clean up and return
-      //delete[] algo.XCases;
-      //delete[] algo.EdgeMetaData;
+      console.log(NewPoints);
+
+      console.log(NewTris);
+
+      for (let i = 0; i < numOutTris; i++) {
+        newTris[i * 4] = 3;
+        newTris[i * 4 + 1] = NewTris[i * 3];
+        newTris[i * 4 + 2] = NewTris[i * 3 + 1];
+        newTris[i * 4 + 3] = NewTris[i * 3 + 2];
+      }
+
+      console.log(newTris);
     }
   };
 }
