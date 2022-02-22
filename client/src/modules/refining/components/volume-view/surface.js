@@ -89,6 +89,9 @@ export function Surface(type = 'background') {
       )
     },
     setSlice: slice => {
+      // XXX: Flying edges currently not setting image information
+      // XXX: Consider setting z as attribute data in flying edges, or calculating above
+
       const input = maskCalculator.getInputData();
       //const z = input.indexToWorld([0, 0, slice])[2];
       const z = slice;
@@ -99,8 +102,6 @@ export function Surface(type = 'background') {
 
       const [r1, g1, b1] = Reds[7];
       const [r2, g2, b2] = Reds[3];
-
-      console.log(z);
   
       color.removeAllPoints();
       //color.addRGBPoint(0, r2, g2, b2);
