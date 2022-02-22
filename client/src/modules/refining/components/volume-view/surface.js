@@ -27,6 +27,7 @@ export function Surface(type = 'background') {
   
   const actor = vtkActor.newInstance();
   actor.setMapper(mapper); 
+  actor.getProperty().setInterpolationToFlat();
 
   if (type === 'region') {
     zCalculator = vtkCalculator.newInstance();
@@ -62,8 +63,6 @@ export function Surface(type = 'background') {
     mapper.setUseLookupTableScalarRange(true);
     mapper.setLookupTable(color);
     mapper.setInputConnection(zCalculator.getOutputPort());
-
-    actor.getProperty().setAmbient(0.2);
   }
   else {
     mapper.setInputConnection(flyingEdges.getOutputPort());
