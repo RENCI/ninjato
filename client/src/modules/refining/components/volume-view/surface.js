@@ -89,16 +89,18 @@ export function Surface(type = 'background') {
       )
     },
     setSlice: slice => {
-      const z = maskCalculator.getInputData().indexToWorld([0, 0, slice])[2];
+      const input = maskCalculator.getInputData();
+      const z = input.indexToWorld([0, 0, slice])[2];
+      const s = input.getSpacing()[2];
 
       const [r1, g1, b1] = Reds[5];
       const [r2, g2, b2] = Reds[3];
   
       color.removeAllPoints();
       color.addRGBPoint(0, r2, g2, b2);
-      color.addRGBPoint(z - 0.1, r2, g2, b2);
+      color.addRGBPoint(z - s / 2, r2, g2, b2);
       color.addRGBPoint(z, r1, g1, b1);
-      color.addRGBPoint(z + 0.1, r2, g2, b2);
+      color.addRGBPoint(z + s / 2, r2, g2, b2);
     },
     getOutput: () => {
       mapper.update();
