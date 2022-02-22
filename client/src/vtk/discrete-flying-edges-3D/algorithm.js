@@ -164,7 +164,7 @@ export default function algorithm() {
     // The beginning and ending of intersections along the edge is used for
     // computational trimming.
     EdgeMetaData[edgeMetaDataIndex + 4] = minInt; // where intersections start along x edge
-    EdgeMetaData[edgeMetaDataIndex + 5] = maxInt; // where intersections end along x edge    
+    EdgeMetaData[edgeMetaDataIndex + 5] = maxInt; // where intersections end along x edge  
   };
 
   //------------------------------------------------------------------------------
@@ -193,7 +193,7 @@ export default function algorithm() {
     // Determine whether this row of x-cells needs processing. If there are no
     // x-edge intersections, and the state of the four bounding x-edges is the
     // same, then there is no need for processing.
-    if ((EdgeMetaData[eMDIndeces[0]] | EdgeMetaData[eMDIndeces[2]] | EdgeMetaData[eMDIndeces[3]]) === 0) { // any x-ints?    
+    if ((EdgeMetaData[eMDIndeces[0]] | EdgeMetaData[eMDIndeces[1]] | EdgeMetaData[eMDIndeces[3]]) === 0) { // any x-ints?    
       if (XCases[eIndeces[0]] === XCases[eIndeces[1]] && XCases[eIndeces[1]] === XCases[eIndeces[2]] && XCases[eIndeces[2]] === XCases[eIndeces[3]]) {
         return; // there are no y- or z-ints, thus no contour, skip voxel row
       }
@@ -276,10 +276,10 @@ export default function algorithm() {
       } // if cell contains contour
 
       // advance the four pointers along voxel row
-      eMDIndeces[0]++;
-      eMDIndeces[1]++;
-      eMDIndeces[2]++;
-      eMDIndeces[3]++;
+      eIndeces[0]++;
+      eIndeces[1]++;
+      eIndeces[2]++;
+      eIndeces[3]++;
     } // for all voxels along this x-edge
   };
 
@@ -319,7 +319,7 @@ export default function algorithm() {
     // Traverse all voxels in this row, those containing the contour are
     // further identified for processing, meaning generating points and
     // triangles. Begin by setting up point ids on voxel edges.
-    let triId = EdgeMetaData[eMDIndeces[0] + 3];
+    let triId = { value: EdgeMetaData[eMDIndeces[0] + 3] };
     const eIds = new Array(12); // the ids of generated points
 
     let eCase = initVoxelIds(XCases, eIndeces, EdgeMetaData, eMDIndeces, eIds);
@@ -453,36 +453,13 @@ export default function algorithm() {
     const edges = EdgeCases[eCase];
     let edgesIndex = 1;
 
-    for (let i = 0; i < numTris; i++) {
-      NewTris[triId * i * 3] = eIds[edges[edgesIndex++]];
-      NewTris[triId * i * 3 + 1] = eIds[edges[edgesIndex++]];
-      NewTris[triId * i * 3 + 2] = eIds[edges[edgesIndex++]];
+    for (let i = 0; i < numTris; ++i, edgesIndex += 3) {
+      const triIndex = 4 * triId.value++;
+      NewTris[triIndex] = 3;
+      NewTris[triIndex + 1] = eIds[edges[edgesIndex]];
+      NewTris[triIndex + 2] = eIds[edges[edgesIndex + 1]];
+      NewTris[triIndex + 3] = eIds[edges[edgesIndex + 2]];
     }
-
-    // XXX: NEED TO PUT SOME THOUGHT INTO THIS...
-
-    //console.log(edges);
-/*    
-    NewTris.forEach(state => {
-      const offsets = state.GetOffsets();
-      const conn = state.GetConnectivity();
-
-      const offsetRange = vtk::DataArrayValueRange<1>(offsets);
-      const offsetIter = offsetRange.begin() + triId;
-      const connRange = vtk::DataArrayValueRange<1>(conn);
-      const connIter = connRange.begin() + (triId * 3);
-
-      for (let i = 0; i < numTris; ++i) {
-        *offsetIter++ = static_cast<ValueType>(3 * triId++);
-        *connIter++ = eIds[*edges++];
-        *connIter++ = eIds[*edges++];
-        *connIter++ = eIds[*edges++];
-      }
-
-      // Write the last offset:
-      *offsetIter = static_cast<ValueType>(3 * triId);
-    });
-*/    
   };
 
   // Compute gradient on interior point.
@@ -1061,14 +1038,12 @@ export default function algorithm() {
 
         // Output can now be allocated.
         const totalPts = numOutXPts + numOutYPts + numOutZPts;
-        console.log(totalPts);
 
         if (totalPts > 0) {
           newPts.length = 3 * totalPts;
           NewPoints = newPts;
-          // XXX: Output newTris array needs 4 entries per triangle, including a 3 to indicate a triangle
           newTris.length = 4 * numOutTris;
-          NewTris = new Uint32Array(3 * numOutTris);
+          NewTris = newTris;
           if (newScalars) {
             newScalars.length = totalPts;
             NewScalars = newScalars;
@@ -1117,19 +1092,6 @@ export default function algorithm() {
         startZPts = numOutZPts;
         startTris = numOutTris;
       } // for all contour values
-
-      console.log(NewPoints);
-
-      console.log(NewTris);
-
-      for (let i = 0; i < numOutTris; i++) {
-        newTris[i * 4] = 3;
-        newTris[i * 4 + 1] = NewTris[i * 3];
-        newTris[i * 4 + 2] = NewTris[i * 3 + 1];
-        newTris[i * 4 + 3] = NewTris[i * 3 + 2];
-      }
-
-      console.log(newTris);
     }
   };
 }
