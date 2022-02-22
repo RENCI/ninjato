@@ -497,8 +497,10 @@ export default function algorithm() {
       }
 
       if (NewNormals) {
-        const n = vtkMath.normalize([-gTmp0, -gTmp1, -gTmp2]);
-        const nIndex = + 3 * vId;
+        const n = [-gTmp0, -gTmp1, -gTmp2];
+        vtkMath.normalize(n);
+
+        const nIndex = 3 * vId;
         NewNormals[nIndex] = n[0];
         NewNormals[nIndex + 1] = n[1];
         NewNormals[nIndex + 2] = n[2];
@@ -553,10 +555,14 @@ export default function algorithm() {
   // Interpolate a new point along a boundary edge. Make sure to consider
   // proximity to the boundary when computing gradients, etc.
   const interpolateEdge = (notUsed, ijk, sArray, sIndex, incs, edgeNum, edgeUses, eIds) => {
+    console.log("HDLFDKLJ");
+
     // if this edge is not used then get out
     if (!edgeUses[edgeNum]) {
       return;
     }
+
+    console.log("DLKFUOIDJSF");
 
     // build the edge information
     const vertMap = VertMap[edgeNum];
@@ -601,7 +607,9 @@ export default function algorithm() {
       }
 
       if (NewNormals) {
-        const n = vtkMath.normalize([-gTmp0, -gTmp1, -gTmp2]);
+        const n = [-gTmp0, -gTmp1, -gTmp2];
+        vtkMath.normalize(n);
+console.log(n);
         const nIndex = 3 * vId;
         NewNormals[nIndex] = n[0];
         NewNormals[nIndex + 1] = n[1];
@@ -609,8 +617,7 @@ export default function algorithm() {
       }
     } // if normals or gradients required
 
-    if (InterpolateAttributes)
-    {
+    if (InterpolateAttributes) {
       const v0 = ijk0[0] + ijk0[1] * incs[1] + ijk0[2] * incs[2];
       const v1 = ijk1[0] + ijk1[1] * incs[1] + ijk1[2] * incs[2];
       // XXX: NEED AN IMPLEMENTATION FOR THIS
@@ -1048,19 +1055,17 @@ export default function algorithm() {
             newScalars.length = totalPts;
             NewScalars = newScalars;
             NewScalars.fill(value);
+          }              
+          if (newGradients) {
+            newGradients.length = 3 * totalPts;
+            NewGradients = newGradients;
           }
-          // XXX: Deal with these later
-  /*        
-          if (newGradients)
-          {
-            newGradients->WriteVoidPointer(0, 3 * totalPts);
-            algo.NewGradients = static_cast<float*>(newGradients->GetVoidPointer(0));
+          if (newNormals) {
+            newNormals.length = 3 * totalPts;
+            NewNormals = newNormals;
           }
-          if (newNormals)
-          {
-            newNormals->WriteVoidPointer(0, 3 * totalPts);
-            algo.NewNormals = static_cast<float*>(newNormals->GetVoidPointer(0));
-          }
+          // XXX: WORRY ABOUT THIS LATER
+          /*
           if (algo.InterpolateAttributes)
           {
             if (vidx === 0) // first contour
@@ -1077,7 +1082,7 @@ export default function algorithm() {
               algo.Arrays.Realloc(totalPts);
             }
           }
-  */        
+          */        
 
           // PASS 4: Fourth and final pass: Process voxel rows and generate output.
           // Note that we are simultaneously generating triangles and interpolating
