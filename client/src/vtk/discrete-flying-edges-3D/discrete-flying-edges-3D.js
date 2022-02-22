@@ -55,6 +55,10 @@ function vtkDiscreteFlyingEdges3D(publicAPI, model) {
 
     algo.contour(model, input, pBuffer, tBuffer, sBuffer, nBuffer, gBuffer);
 
+    console.log(pBuffer);
+    console.log(tBuffer);
+    console.log(nBuffer);
+
     // Update output
     const polydata = vtkPolyData.newInstance();
     polydata.getPoints().setData(new Float32Array(pBuffer), 3);

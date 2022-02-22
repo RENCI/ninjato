@@ -86,6 +86,8 @@ export default function algorithm() {
   // image data in a form more convenient to the algorithm.
   let Scalars;
   const Dims = new Array(3);
+  let Origin;
+  let Spacing;
   let NumberOfEdges;
   let SliceOffset;
   let Min0;
@@ -111,6 +113,13 @@ export default function algorithm() {
   // Setup algorithm
   // This takes the place of the vtkDiscreteFlyingEdges3DAlgorithm constructor
   initializeAlgorithm();
+
+  // Adjust the origin to the lower-left corner of the volume (if necessary)
+  const adjustOrigin = () => {
+    Origin[0] = Origin[0] + Spacing[0] * Min0;
+    Origin[1] = Origin[1] + Spacing[1] * Min1;
+    Origin[2] = Origin[2] + Spacing[2] * Min2;
+  };
 
   //------------------------------------------------------------------------------
   // PASS 1: Process a single volume x-row (and all of the voxel edges that
@@ -319,27 +328,28 @@ export default function algorithm() {
     // Traverse all voxels in this row, those containing the contour are
     // further identified for processing, meaning generating points and
     // triangles. Begin by setting up point ids on voxel edges.
-    let triId = { value: EdgeMetaData[eMDIndeces[0] + 3] };
+    const triId = { value: EdgeMetaData[eMDIndeces[0] + 3] };
     const eIds = new Array(12); // the ids of generated points
 
     let eCase = initVoxelIds(XCases, eIndeces, EdgeMetaData, eMDIndeces, eIds);
 
     // Determine the proximity to the boundary of volume. This information is
     // used to generate edge intersections.
-    let loc, yLoc, zLoc, yzLoc;
-    yLoc = CellClass.Interior;
-    if (row < 1)
-      yLoc |= CellClass.MinBoundary;
-    if (row >= Dims[1] - 2)
-      yLoc |= CellClass.MaxBoundary;
+		let loc, yLoc, zLoc, yzLoc;
+		yLoc = (row < 1 ? CellClass.MinBoundary :
+			(row >= (Dims[1] - 2) ? CellClass.MaxBoundary : CellClass.Interior));
+		zLoc = (slice < 1 ? CellClass.MinBoundary :
+			(slice >= (Dims[2] - 2) ? CellClass.MaxBoundary : CellClass.Interior));
+		yzLoc = (yLoc << 2) | (zLoc << 4);
 
-    zLoc = CellClass.Interior;
-    if (slice < 1)
-      zLoc |= CellClass.MinBoundary;
-    if (slice >= Dims[2] - 2)
-      zLoc |= CellClass.MaxBoundary;
-
-    yzLoc = (yLoc << 2) | (zLoc << 4);
+		// Run along voxels in x-row direction and generate output primitives. Note
+		// that active voxel axes edges are interpolated to produce points and
+		// possibly interpolate attribute data.
+		const x = [
+		  Origin[0] + xL * Spacing[0],
+		  Origin[1] + row * Spacing[1],
+      Origin[2] + slice * Spacing[2]
+    ];
 
     // compute the ijk for this section
     const ijk = [xL, row, slice];
@@ -347,6 +357,7 @@ export default function algorithm() {
     // load the inc0/inc1/inc2 into local memory
     const incs = [Inc0, Inc1, Inc2];
     let sIndex = rowIndex + xL * incs[0];
+    const xSpace = Spacing[0];
     const dim0Wall = Dims[0] - 2;
     const endVoxel = xR - 1;
 
@@ -358,15 +369,12 @@ export default function algorithm() {
 
         // Now generate point(s) along voxel axes if needed. Remember to take
         // boundary into account.
-        loc = yzLoc;
-        if (i < 1)
-          loc |= CellClass.MinBoundary;
-        if (i >= dim0Wall)
-          loc |= CellClass.MaxBoundary;
+        loc = yzLoc | (i < 1 ? CellClass.MinBoundary :
+					(i >= dim0Wall ? CellClass.MaxBoundary : CellClass.Interior));
 
         if (caseIncludesAxes(eCase) || loc !== CellClass.Interior) {
           const edgeUses = getEdgeUses(eCase);
-          generatePoints(value, loc, ijk, rowArray, sIndex, incs, edgeUses, eIds);
+          generatePoints(value, loc, ijk, rowArray, sIndex, incs, x, edgeUses, eIds);
         }
         advanceVoxelIds(eCase, eIds);
       }
@@ -381,6 +389,7 @@ export default function algorithm() {
 
         ++ijk[0];
         sIndex += incs[0];
+        x[0] += xSpace;
       } // if not at end of voxel row
     }   // for all non-trimmed cells along this x-edge
   };
@@ -475,16 +484,21 @@ export default function algorithm() {
   };
 
   // Interpolate along a voxel axes edge.
-  const interpolateAxesEdge = (t, loc, sArray, s, incs, vId, ijk0, ijk1, g0) => {
+  const interpolateAxesEdge = (t, loc, x0, sArray, s, incs, x1, vId, ijk0, ijk1, g0) => {
     const xIndex = 3 * vId;
-    NewPoints[xIndex] = ijk0[0] + t * (ijk1[0] - ijk0[0]) + Min0;
-    NewPoints[xIndex + 1] = ijk0[1] + t * (ijk1[1] - ijk0[1]) + Min1;
-    NewPoints[xIndex + 2] = ijk0[2] + t * (ijk1[2] - ijk0[2]) + Min2;
+    NewPoints[xIndex] = x0[0] + t * (x1[0] - x0[0]);
+    NewPoints[xIndex + 1] = x0[1] + t * (x1[1] - x0[1]);
+    NewPoints[xIndex + 2] = x0[2] + t * (x1[2] - x0[2]);
 
     if (NeedGradients) {
       const g1 = new Array(3);
-      computeGradient(loc, ijk1, sArray, s + incs[0], s - incs[0], s + incs[1], s - incs[1],
-        s + incs[2], s - incs[2], g1);
+      computeGradient(loc, ijk1, sArray, 
+        s + incs[0], s - incs[0], 
+        s + incs[1], s - incs[1],
+        s + incs[2], s - incs[2], 
+        g1);
+
+        console.log(g0);
 
       const gTmp0 = g0[0] + t * (g1[0] - g0[0]);
       const gTmp1 = g0[1] + t * (g1[1] - g0[1]);
@@ -609,7 +623,7 @@ export default function algorithm() {
       if (NewNormals) {
         const n = [-gTmp0, -gTmp1, -gTmp2];
         vtkMath.normalize(n);
-console.log(n);
+
         const nIndex = 3 * vId;
         NewNormals[nIndex] = n[0];
         NewNormals[nIndex + 1] = n[1];
@@ -625,15 +639,19 @@ console.log(n);
     }
   };
 
+  /*
   //------------------------------------------------------------------------------
   // Generate the output points and optionally normals, gradients and
   // interpolate attributes.
-  const generatePoints = (value, loc, ijk, sArray, sIndex, incs, edgeUses, eIds) => {
+  const generatePoints = (value, loc, ijk, sArray, sIndex, incs, x, edgeUses, eIds) => {
     // Create a slightly faster path for voxel axes interior to the volume.
     const g0 = new Array(3);
     if (NeedGradients) {
-      computeGradient(loc, ijk, sArray, sIndex + incs[0], sIndex - incs[0], sIndex + incs[1], sIndex - incs[1],
-        sIndex + incs[2], sIndex - incs[2], g0);
+      computeGradient(loc, ijk, sArray, 
+        sIndex + incs[0], sIndex - incs[0], 
+        sIndex + incs[1], sIndex - incs[1],
+        sIndex + incs[2], sIndex - incs[2], 
+        g0);
     }
 
     // Interpolate the cell axes edges
@@ -642,12 +660,14 @@ console.log(n);
         // edgesUses[0] == i axes edge
         // edgesUses[4] == j axes edge
         // edgesUses[8] == k axes edge
+        const x1 = [...x]; 
+        x1[i] += Spacing[i];
         const ijk1 = [ijk[0], ijk[1], ijk[2]];
         ++ijk1[i];
 
         const sIndex2 = sIndex + incs[i];
         const t = 0.5;
-        interpolateAxesEdge(t, loc, sArray, sIndex2, incs, eIds[i * 4], ijk, ijk1, g0);
+        interpolateAxesEdge(t, loc, x, sArray, sIndex2, incs, x1, eIds[i * 4], ijk, ijk1, g0);
       }
     }
 
@@ -781,6 +801,7 @@ console.log(n);
         return;
     }
   };
+  */
 
   // Helper function to set up the point ids on voxel edges.
   const initVoxelIds = (eArray, eIndeces, eMDArray, eMDIndeces, eIds) => {
@@ -961,6 +982,8 @@ console.log(n);
       // This may be subvolume of the total 3D image. Capture information for
       // subsequent processing.
       Scalars = scalars;
+      Origin = input.getOrigin();
+      Spacing = input.getSpacing();
       Min0 = extent[0];
       Max0 = extent[1];
       Inc0 = incs[0];
@@ -970,6 +993,7 @@ console.log(n);
       Min2 = extent[4];
       Max2 = extent[5];
       Inc2 = incs[2];
+      adjustOrigin();
 
       // Now allocate working arrays. The XCases array tracks x-edge cases.
       Dims[0] = Max0 - Min0 + 1;
