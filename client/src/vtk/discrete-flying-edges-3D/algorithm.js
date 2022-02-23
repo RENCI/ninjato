@@ -201,13 +201,6 @@ export default function algorithm() {
     eMDIndeces[2] = eMDIndeces[0] + Dims[1] * 6; // x-edge in +z direction
     eMDIndeces[3] = eMDIndeces[2] + 6;           // x-edge in +y+z direction
 
-    const TEST = row === 28 && slice === 0;
-
-    if (TEST) console.log("HERE");
-
-    if (TEST) console.log(eMDIndeces);
-    if (TEST) console.log(EdgeMetaData[eMDIndeces[0]], EdgeMetaData[eMDIndeces[1]], EdgeMetaData[eMDIndeces[3]])
-
     // Determine whether this row of x-cells needs processing. If there are no
     // x-edge intersections, and the state of the four bounding x-edges is the
     // same, then there is no need for processing.
@@ -226,8 +219,6 @@ export default function algorithm() {
     yLoc = row >= (Dims[1] - 2) ? CellClass.MaxBoundary : CellClass.Interior;
     zLoc = slice >= (Dims[2] - 2) ? CellClass.MaxBoundary : CellClass.Interior;
     yzLoc = (yLoc << 2) | (zLoc << 4);
-
-    if (TEST) console.log(yLoc, zLoc, yzLoc);
 
     // The trim edges may need adjustment if the contour travels between rows
     // of x-edges (without intersecting these x-edges). This means checking
@@ -268,8 +259,6 @@ export default function algorithm() {
       xR = EdgeMetaData[eMDIndeces[0] + 5] = Dims[0] - 1;
     }
 
-    if (TEST) console.log(xL, xR, ec0, ec1, ec2, ec3);
-
     // Okay run along the x-voxels and count the number of y- and
     // z-intersections. Here we are just checking y,z edges that make up the
     // voxel axes. Also check the number of primitives generated.
@@ -296,8 +285,6 @@ export default function algorithm() {
         if (loc !== 0) {
           countBoundaryYZInts(loc, edgeUses, EdgeMetaData, eMDIndeces);
         }
-
-        if (TEST) console.log(EdgeMetaData[87]);
       } // if cell contains contour
 
       // advance the four pointers along voxel row
@@ -306,8 +293,6 @@ export default function algorithm() {
       eIndeces[2]++;
       eIndeces[3]++;
     } // for all voxels along this x-edge
-
-    console.log(row, slice, EdgeMetaData[170]);
   };
 
   //------------------------------------------------------------------------------
@@ -970,48 +955,6 @@ export default function algorithm() {
         // XXX: Check this
         //self->GetInterpolateAttributes() && input->GetPointData()->GetNumberOfArrays() > 1;
 
-      
-      const checkArrays = (name, a1, a2) => {
-        const diff = a1.reduce((diff, v, i) => {
-          if (a1[i] !== a2[i]) diff.push(i)
-          return diff;
-        }, []);
-
-        if (diff.length > 0) {
-          console.log(`${ name }: ${ diff }`);
-          console.log(a1);
-          console.log(a2);
-        }
-        else {
-          console.log(`${ name }: No diffs`);
-        }
-      };
-
-      const checkArrays2D = (name, a1, a2) => {
-        const diff = a1.reduce((diff, v, i) => {
-          a1[i].forEach((v, j) => {
-            if (a1[i][j] !== a2[i][j]) diff.push(i);
-          });
-          return diff;
-        }, []);
-
-        if (diff.length > 0) {
-          console.log(`${ name }: ${ diff }`);
-          console.log(a1);
-          console.log(a2);
-        }
-        else {
-          console.log(`${ name }: No diffs`);
-        }
-      };
-
-      checkArrays2D('EdgeCases', regionTest.EdgeCases, EdgeCases);
-      checkArrays('EdgeMap', regionTest.EdgeMap, EdgeMap);
-      checkArrays2D('VertMap', regionTest.VertMap, VertMap);
-      checkArrays2D('VertOffsets', regionTest.VertOffsets, VertOffsets);
-      checkArrays2D('EdgeUses',regionTest.EdgeUses, EdgeUses);
-      checkArrays('IncludesAxes', regionTest.IncludesAxes, IncludesAxes);
-
       // Loop across each contour value. This encompasses all three passes.
       for (vidx = 0; vidx < numContours; vidx++) {        
         value = values[vidx];
@@ -1022,14 +965,10 @@ export default function algorithm() {
         // are counted).
         pass1(value, 0, Dims[2]);
 
-        checkArrays('EdgeMetaDataPass1', regionTest.EdgeMetaDataPass1, EdgeMetaData.slice());
-
         // PASS 2: Traverse all voxel x-rows and process voxel y&z edges.  The
         // result is a count of the number of y- and z-intersections, as well as
         // the number of triangles generated along these voxel rows.
         pass2(0, Dims[2] - 1);
-
-        checkArrays('EdgeMetaDataPass2', regionTest.EdgeMetaDataPass2, EdgeMetaData.slice());
 
         // PASS 3: Now allocate and generate output. First we have to update the
         // edge meta data to partition the output into separate pieces so
@@ -1111,11 +1050,6 @@ export default function algorithm() {
           // points. These could be split into separate, parallel operations for
           // maximum performance.
           pass4(value, 0, Dims[2] - 1);
-
-          checkArrays('XCases', regionTest.XCases, XCases);
-          //checkArrays('EdgeMetaData', regionTest.EdgeMetaData, EdgeMetaData);
-
-          checkArrays('EdgeMetaDataPass4', regionTest.EdgeMetaDataPass4, EdgeMetaData.slice());
         } // if anything generated
 
         // Handle multiple contours
@@ -1124,12 +1058,6 @@ export default function algorithm() {
         startZPts = numOutZPts;
         startTris = numOutTris;
       } // for all contour values
-
-      //console.log(NewPoints);
-      //for (let i = 0; i < NewPoints.length / 3; i++) {
-      //  console.log(i + ": ", NewPoints[i * 3], NewPoints[i * 3 + 1], NewPoints[i * 3 + 2]);
-      //}
-      //console.log(NewTris);
     }
   };
 }
