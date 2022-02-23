@@ -55,6 +55,9 @@ function vtkDiscreteFlyingEdges3D(publicAPI, model) {
 
     algo.contour(model, input, pBuffer, tBuffer, sBuffer, nBuffer, gBuffer);
 
+    console.log(tBuffer);
+    console.log(sBuffer);
+
     // Update output
     const polydata = vtkPolyData.newInstance();
     polydata.getPoints().setData(new Float32Array(pBuffer), 3);
@@ -68,6 +71,13 @@ function vtkDiscreteFlyingEdges3D(publicAPI, model) {
       });
       polydata.getPointData().setNormals(normals);
     }
+    const sData = new Float32Array(sBuffer);
+    const scalars = vtkDataArray.newInstance({
+      numberOfComponents: 1,
+      values: sData,
+      name: 'slice'
+    });
+    polydata.getCellData().setScalars(scalars);
     outData[0] = polydata; 
 
     console.timeEnd('flying edges');

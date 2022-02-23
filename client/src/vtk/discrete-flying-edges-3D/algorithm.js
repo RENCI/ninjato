@@ -368,7 +368,7 @@ export default function algorithm() {
       const numTris = getNumberOfPrimitives(eCase);
       if (numTris > 0) {
         // Start by generating triangles for this case
-        generateTris(eCase, numTris, eIds, triId);
+        generateTris(eCase, numTris, eIds, triId, x[2]);
 
         // Now generate point(s) along voxel axes if needed. Remember to take
         // boundary into account.
@@ -462,7 +462,7 @@ export default function algorithm() {
   };
  
   // Produce the output triangles for this voxel cell.
-  const generateTris = (eCase, numTris, eIds, triId) => {
+  const generateTris = (eCase, numTris, eIds, triId, slice) => {
     // XXX: CHECK THIS?
     const edges = EdgeCases[eCase];
     let edgesIndex = 1;
@@ -473,6 +473,8 @@ export default function algorithm() {
       NewTris[triIndex + 1] = eIds[edges[edgesIndex]];
       NewTris[triIndex + 2] = eIds[edges[edgesIndex + 1]];
       NewTris[triIndex + 3] = eIds[edges[edgesIndex + 2]];
+
+      NewScalars[triId.value - 1] = slice;
     }
   };
 
@@ -1015,7 +1017,7 @@ export default function algorithm() {
           if (newScalars) {
             newScalars.length = totalPts;
             NewScalars = newScalars;
-            NewScalars.fill(value);
+            //NewScalars.fill(value);
           }              
           if (newGradients) {
             newGradients.length = 3 * totalPts;
@@ -1057,7 +1059,20 @@ export default function algorithm() {
         startYPts = numOutYPts;
         startZPts = numOutZPts;
         startTris = numOutTris;
-      } // for all contour values
+
+        // Add z to scalars
+        /*
+        for (let i = 0; i < NewTris.length / 4; i++) {
+          const triIndex = 4 * i;
+
+          const z1 = NewPoints[NewTris[triIndex + 1] * 3 + 2];
+          const z2 = NewPoints[NewTris[triIndex + 2] * 3 + 2];
+          const z3 = NewPoints[NewTris[triIndex + 3] * 3 + 2];
+
+          NewScalars[i] = Math.min(z1, z2, z3);
+        }
+        */
+      } // for all contour values          
     }
   };
 }

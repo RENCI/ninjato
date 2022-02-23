@@ -45,6 +45,11 @@ export function Surface(type = 'background') {
           }
         ]}),
       evaluate: (arraysIn, arraysOut) => {
+        //arraysIn.forEach(d => console.log(d.getName()));
+        console.log(arraysIn);
+        console.log(arraysOut);
+        
+
         const [coords] = arraysIn.map(d => d.getData());
         const [slice] = arraysOut.map(d => d.getData());
   
@@ -61,11 +66,13 @@ export function Surface(type = 'background') {
     color = vtkColorTransferFunction.newInstance();
 
     mapper.setUseLookupTableScalarRange(true);
+    mapper.setScalarModeToUseCellData();
     mapper.setLookupTable(color);
     mapper.setInputConnection(zCalculator.getOutputPort());
   }
   else {
     mapper.setInputConnection(flyingEdges.getOutputPort());
+    mapper.setScalarVisibility(false);
 
     actor.getProperty().setDiffuseColor(Blues[2]);
     actor.getProperty().setAmbientColor(Blues[8]);
@@ -92,18 +99,17 @@ export function Surface(type = 'background') {
 
       const input = maskCalculator.getInputData();
       const z = input.indexToWorld([0, 0, slice])[2];
-      const s = input.getSpacing()[2] / 2;
+      const s = input.getSpacing()[2];
       const e = s / 10;
 
-      const [r1, g1, b1] = Reds[7];
+      const [r1, g1, b1] = Reds[5];
       const [r2, g2, b2] = Reds[3];
   
       color.removeAllPoints();
       color.addRGBPoint(0, r2, g2, b2);
-      color.addRGBPoint(z - s, r2, g2, b2);
-      color.addRGBPoint(z - s + e, r1, g1, b1);
-      color.addRGBPoint(z + s - e, r1, g1, b1);
-      color.addRGBPoint(z + s, r2, g2, b2);
+      color.addRGBPoint(z - e, r2, g2, b2);
+      color.addRGBPoint(z, r1, g1, b1);
+      color.addRGBPoint(z + e, r2, g2, b2);
     },
     getOutput: () => {
       mapper.update();
