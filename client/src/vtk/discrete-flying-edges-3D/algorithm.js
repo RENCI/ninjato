@@ -1056,6 +1056,12 @@ export default function algorithm() {
         startZPts = numOutZPts;
         startTris = numOutTris;
       } // for all contour values
+
+      //console.log(NewPoints);
+      for (let i = 0; i < NewPoints.length / 3; i++) {
+        console.log(i + ": ", NewPoints[i * 3], NewPoints[i * 3 + 1], NewPoints[i * 3 + 2]);
+      }
+      //console.log(NewTris);
     }
   };
 }
