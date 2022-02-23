@@ -78,6 +78,7 @@ def get_item_assignment(user):
     # when a region is selected, the user id is added to whole item meta specific region values
     # with a user key, and the user id is added to whole item meta as a key with a value of item id
     # for easy check whether a region is checked out by the user
+    # check whether a region has already been assigned to the user
     for vol_folder in vol_folders:
         sub_vol_folders = Folder().find({
             'parentId': vol_folder['_id'],
@@ -105,8 +106,26 @@ def get_item_assignment(user):
                         'item_id': it_id,
                         'region_label': it['meta']['region_label']
                     }
-                # no region has been assigned to the user yet, look into the whole partition
-                # item to find a region for assignment
+    # no region has been assigned to the user yet, look into the whole partition
+    # item to find a region for assignment
+    for vol_folder in vol_folders:
+        sub_vol_folders = Folder().find({
+            'parentId': vol_folder['_id'],
+            'parentCollection': 'folder'
+        })
+        for sub_vol_folder in sub_vol_folders:
+            folders = Folder().find({
+                'parentId': sub_vol_folder['_id'],
+                'parentCollection': 'folder'
+            })
+            for folder in folders:
+                whole_item = Item().findOne({'folderId': ObjectId(folder['_id']),
+                                             'name': 'whole'})
+
+                if 'done' in whole_item['meta'] and whole_item['meta']['done'] == 'true':
+                    # if an item is done, continue to check another folder
+                    continue
+
                 coords = whole_item['meta']['coordinates']
                 x_range = coords["x_max"] - coords["x_min"]
                 y_range = coords["y_max"] - coords["y_min"]
