@@ -11,7 +11,7 @@ from girder.models.folder import Folder
 from girder.exceptions import RestException
 from girder.utility import assetstore_utilities
 from girder.utility import path as path_util
-from .constants import COLLECTION_NAME, BUFFER_FACTOR
+from .constants import COLLECTION_NAME, BUFFER_FACTOR, DATA_PATH
 
 
 def save_file(as_id, item, path, user, file_name):
@@ -162,7 +162,8 @@ def get_item_assignment(user):
                             tif = TIFF.open(file_path, mode="r")
                             file_name = os.path.basename(file_res_path)
                             file_base_name, file_ext = os.path.splitext(file_name)
-                            out_path = f'/tmp/{file_base_name}_region_{key}{file_ext}'
+                            out_path = os.path.join(DATA_PATH, region_item['_id'],
+                                                    f'{file_base_name}_region_{key}{file_ext}')
                             output_tif = TIFF.open(out_path, mode="w")
                             counter = 0
                             for image in tif.iter_images():
@@ -261,7 +262,7 @@ def save_user_annotation(user, item_id, done, reject, comment, content_data):
     content = content_data.file.read()
     try:
         # save file to local file system before adding it to asset store
-        path = f'/tmp/{annot_file_name}'
+        path = os.path.join(DATA_PATH, annot_file_name)
         with open(path, "wb") as f:
             f.write(content)
         file = save_file(assetstore_id, item, path, user, annot_file_name)
