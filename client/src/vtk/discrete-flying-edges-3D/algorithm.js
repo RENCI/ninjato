@@ -86,6 +86,8 @@ export default function algorithm() {
   // image data in a form more convenient to the algorithm.
   let Scalars;
   const Dims = new Array(3);
+  let Origin;
+  let Spacing;
   let NumberOfEdges;
   let SliceOffset;
   let Min0;
@@ -112,6 +114,13 @@ export default function algorithm() {
   // This takes the place of the vtkDiscreteFlyingEdges3DAlgorithm constructor
   initializeAlgorithm();
 
+  // Adjust the origin to the lower-left corner of the volume (if necessary)
+  const adjustOrigin = () => {
+    Origin[0] = Origin[0] + Spacing[0] * Min0;
+    Origin[1] = Origin[1] + Spacing[1] * Min1;
+    Origin[2] = Origin[2] + Spacing[2] * Min2;
+  };
+
   //------------------------------------------------------------------------------
   // PASS 1: Process a single volume x-row (and all of the voxel edges that
   // compose the row). Determine the x-edges case classification, count the
@@ -129,6 +138,7 @@ export default function algorithm() {
 
     // run along the entire x-edge computing edge cases
     edgeMetaDataIndex = (slice * Dims[1] + row) * 6;
+    // XXX: TRY HERE
     EdgeMetaData.fill(edgeMetaDataIndex, edgeMetaDataIndex + 6, 0);
 
     // pull this out help reduce false sharing
@@ -319,7 +329,7 @@ export default function algorithm() {
     // Traverse all voxels in this row, those containing the contour are
     // further identified for processing, meaning generating points and
     // triangles. Begin by setting up point ids on voxel edges.
-    const triId = { value: EdgeMetaData[eMDIndeces[0] + 3] };
+    const triId = { value: EdgeMetaData[eMDIndeces[0] + 3] }; // Use object because need to pass by value
     const eIds = new Array(12); // the ids of generated points
 
     let eCase = initVoxelIds(XCases, eIndeces, EdgeMetaData, eMDIndeces, eIds);
@@ -327,19 +337,20 @@ export default function algorithm() {
     // Determine the proximity to the boundary of volume. This information is
     // used to generate edge intersections.
     let loc, yLoc, zLoc, yzLoc;
-    yLoc = CellClass.Interior;
-    if (row < 1)
-      yLoc |= CellClass.MinBoundary;
-    if (row >= Dims[1] - 2)
-      yLoc |= CellClass.MaxBoundary;
+		yLoc = (row < 1 ? CellClass.MinBoundary :
+			(row >= (Dims[1] - 2) ? CellClass.MaxBoundary :  CellClass.Interior));
+		zLoc = (slice < 1 ? CellClass.MinBoundary :
+			(slice >= (Dims[2] - 2) ? CellClass.MaxBoundary :  CellClass.Interior));
+		yzLoc = (yLoc << 2) | (zLoc << 4);
 
-    zLoc = CellClass.Interior;
-    if (slice < 1)
-      zLoc |= CellClass.MinBoundary;
-    if (slice >= Dims[2] - 2)
-      zLoc |= CellClass.MaxBoundary;
-
-    yzLoc = (yLoc << 2) | (zLoc << 4);
+		// Run along voxels in x-row direction and generate output primitives. Note
+		// that active voxel axes edges are interpolated to produce points and
+		// possibly interpolate attribute data.
+		const x = [
+      Origin[0] + xL * Spacing[0],
+      Origin[1] + row * Spacing[1],
+      Origin[2] + slice * Spacing[2]
+    ];
 
     // compute the ijk for this section
     const ijk = [xL, row, slice];
@@ -347,6 +358,7 @@ export default function algorithm() {
     // load the inc0/inc1/inc2 into local memory
     const incs = [Inc0, Inc1, Inc2];
     let sIndex = rowIndex + xL * incs[0];
+		const xSpace = Spacing[0];
     const dim0Wall = Dims[0] - 2;
     const endVoxel = xR - 1;
 
@@ -358,15 +370,13 @@ export default function algorithm() {
 
         // Now generate point(s) along voxel axes if needed. Remember to take
         // boundary into account.
-        loc = yzLoc;
-        if (i < 1)
-          loc |= CellClass.MinBoundary;
-        if (i >= dim0Wall)
-          loc |= CellClass.MaxBoundary;
-
+        loc = yzLoc | (i < 1 ? CellClass.MinBoundary :
+					(i >= dim0Wall ? CellClass.MaxBoundary : CellClass.Interior));
         if (caseIncludesAxes(eCase) || loc !== CellClass.Interior) {
           const edgeUses = getEdgeUses(eCase);
-          generatePoints(value, loc, ijk, rowArray, sIndex, incs, edgeUses, eIds);
+          generatePoints(value, loc, ijk, 
+            rowArray, sIndex, incs, 
+            x, edgeUses, eIds);
         }
         advanceVoxelIds(eCase, eIds);
       }
@@ -381,6 +391,7 @@ export default function algorithm() {
 
         ++ijk[0];
         sIndex += incs[0];
+				x[0] += xSpace;
       } // if not at end of voxel row
     }   // for all non-trimmed cells along this x-edge
   };
@@ -450,6 +461,7 @@ export default function algorithm() {
  
   // Produce the output triangles for this voxel cell.
   const generateTris = (eCase, numTris, eIds, triId) => {
+    // XXX: CHECK THIS?
     const edges = EdgeCases[eCase];
     let edgesIndex = 1;
 
@@ -465,26 +477,33 @@ export default function algorithm() {
   // Compute gradient on interior point.
   const computeGradient = (loc, ijk, sArray, s0_start, s0_end, s1_start, s1_end, s2_start, s2_end, g) => {
     if (loc === CellClass.Interior) {
-      g[0] = 0.5 * (sArray[s0_start] - sArray[s0_end]);
-      g[1] = 0.5 * (sArray[s1_start] - sArray[s1_end]);
-      g[2] = 0.5 * (sArray[s2_start] - sArray[s2_end]);
+      g[0] = 0.5 * ((sArray[s0_start] - sArray[s0_end]) / Spacing[0]);
+      g[1] = 0.5 * ((sArray[s1_start] - sArray[s1_end]) / Spacing[1]);
+      g[2] = 0.5 * ((sArray[s2_start] - sArray[s2_end]) / Spacing[2]);
     }
     else {
-      computeBoundaryGradient(ijk, sArray, s0_start, s0_end, s1_start, s1_end, s2_start, s2_end, g);
+      computeBoundaryGradient(ijk, sArray, 
+        s0_start, s0_end, 
+        s1_start, s1_end, 
+        s2_start, s2_end, 
+        g);
     }
   };
 
   // Interpolate along a voxel axes edge.
-  const interpolateAxesEdge = (t, loc, sArray, s, incs, vId, ijk0, ijk1, g0) => {
+  const interpolateAxesEdge = (t, loc, x0, sArray, sIndex, incs, x1, vId, ijk0, ijk1, g0) => {
     const xIndex = 3 * vId;
-    NewPoints[xIndex] = ijk0[0] + t * (ijk1[0] - ijk0[0]) + Min0;
-    NewPoints[xIndex + 1] = ijk0[1] + t * (ijk1[1] - ijk0[1]) + Min1;
-    NewPoints[xIndex + 2] = ijk0[2] + t * (ijk1[2] - ijk0[2]) + Min2;
-
+    NewPoints[xIndex] = x0[0] + t * (x1[0] - x0[0]);
+    NewPoints[xIndex + 1] = x0[1] + t * (x1[1] - x0[1]);
+    NewPoints[xIndex + 2] = x0[2] + t * (x1[2] - x0[2]);
+    
     if (NeedGradients) {
       const g1 = new Array(3);
-      computeGradient(loc, ijk1, sArray, s + incs[0], s - incs[0], s + incs[1], s - incs[1],
-        s + incs[2], s - incs[2], g1);
+      computeGradient(loc, ijk1, sArray, 
+        sIndex + incs[0], sIndex - incs[0], 
+        sIndex + incs[1], sIndex - incs[1],
+        sIndex + incs[2], sIndex - incs[2], 
+        g1);
 
       const gTmp0 = g0[0] + t * (g1[0] - g0[0]);
       const gTmp1 = g0[1] + t * (g1[1] - g0[1]);
@@ -508,8 +527,8 @@ export default function algorithm() {
     } // if normals or gradients required
 
     if (InterpolateAttributes) {
-      const v0 = ijk0[0] + ijk0[1] * incs[1] + ijk0[2] * incs[2];
-      const v1 = ijk1[0] + ijk1[1] * incs[1] + ijk1[2] * incs[2];
+      //const v0 = ijk0[0] + ijk0[1] * incs[1] + ijk0[2] * incs[2];
+      //const v1 = ijk1[0] + ijk1[1] * incs[1] + ijk1[2] * incs[2];
       // XXX: NEED AN IMPLEMENTATION FOR THIS
       //Arrays.InterpolateEdge(v0, v1, t, vId);
     }
@@ -521,40 +540,40 @@ export default function algorithm() {
     const sIndex = s0_start - Inc0;
 
     if (ijk[0] === 0) {
-      g[0] = sArray[s0_start] - sArray[sIndex];
+      g[0] = (sArray[s0_start] - sArray[sIndex]) / Spacing[0];
     }
     else if (ijk[0] >= Dims[0] - 1) {
-      g[0] = sArray[sIndex] - sArray[s0_end];
+      g[0] = (sArray[sIndex] - sArray[s0_end]) / Spacing[0];
     }
     else {
-      g[0] = 0.5 * (sArray[s0_start] - sArray[s0_end]);
+      g[0] = 0.5 * (sArray[s0_start] - sArray[s0_end]) / Spacing[0];
     }
 
     if (ijk[1] === 0) {
-      g[1] = sArray[s1_start] - sArray[sIndex];
+      g[1] = (sArray[s1_start] - sArray[sIndex]) / Spacing[1];
     }
     else if (ijk[1] >= Dims[1] - 1) {
-      g[1] = sArray[sIndex] - sArray[s1_end];
+      g[1] = (sArray[sIndex] - sArray[s1_end]) / Spacing[1];
     }
     else {
-      g[1] = 0.5 * (sArray[s1_start] - sArray[s1_end]);
+      g[1] = 0.5 * (sArray[s1_start] - sArray[s1_end]) / Spacing[1];
     }
 
     if (ijk[2] === 0) {
-      g[2] = sArray[s2_start] - sArray[sIndex];
+      g[2] = (sArray[s2_start] - sArray[sIndex]) / Spacing[2];
     }
     else if (ijk[2] >= Dims[2] - 1) {
-      g[2] = sArray[sIndex] - sArray[s2_end];
+      g[2] = (sArray[sIndex] - sArray[s2_end]) / Spacing[2];
     }
     else {
-      g[2] = 0.5 * (sArray[s2_start] - sArray[s2_end]);
+      g[2] = 0.5 * (sArray[s2_start] - sArray[s2_end]) / Spacing[2];
     }
   };
 
   //------------------------------------------------------------------------------
   // Interpolate a new point along a boundary edge. Make sure to consider
   // proximity to the boundary when computing gradients, etc.
-  const interpolateEdge = (notUsed, ijk, sArray, sIndex, incs, edgeNum, edgeUses, eIds) => {
+  const interpolateEdge = (notUsed, ijk, sArray, sIndex, incs, x, edgeNum, edgeUses, eIds) => {
     // if this edge is not used then get out
     if (!edgeUses[edgeNum]) {
       return;
@@ -563,33 +582,43 @@ export default function algorithm() {
     // build the edge information
     const vertMap = VertMap[edgeNum];
 
+    const x0 = new Array(3), x1 = new Array(3);
     const ijk0 = new Array(3), ijk1 = new Array(3), vId = eIds[edgeNum];
+    let i;
 
     let offsets = VertOffsets[vertMap[0]];
     const s0 = sIndex + offsets[0] * incs[0] + offsets[1] * incs[1] + offsets[2] * incs[2];
-    ijk0[0] = ijk[0] + offsets[0];
-    ijk0[1] = ijk[1] + offsets[1];
-    ijk0[2] = ijk[2] + offsets[2];
+    for (i = 0; i < 3; i++) {
+      ijk0[i] = ijk[i] + offsets[i];
+			x0[i] = x[i] + offsets[i] * Spacing[i];
+    }
 
     offsets = VertOffsets[vertMap[1]];
     const s1 = sIndex + offsets[0] * incs[0] + offsets[1] * incs[1] + offsets[2] * incs[2];
-    ijk1[0] = ijk[0] + offsets[0];
-    ijk1[1] = ijk[1] + offsets[1];
-    ijk1[2] = ijk[2] + offsets[2];
+		for (i = 0; i<3; ++i) {
+			ijk1[i] = ijk[i] + offsets[i];
+			x1[i] = x[i] + offsets[i] * Spacing[i];
+		}
 
     // Okay interpolate
     const t = 0.5;
     const xIndex = 3 * vId;
-    NewPoints[xIndex] = ijk0[0] + t * (ijk1[0] - ijk0[0]) + Min0;
-    NewPoints[xIndex + 1] = ijk0[1] + t * (ijk1[1] - ijk0[1]) + Min1;
-    NewPoints[xIndex + 2] = ijk0[2] + t * (ijk1[2] - ijk0[2]) + Min2;
+    NewPoints[xIndex] = x0[0] + t * (x1[0] - x0[0]);
+    NewPoints[xIndex + 1] = x0[1] + t * (x1[1] - x0[1]);
+    NewPoints[xIndex + 2] = x0[2] + t * (x1[2] - x0[2]);
 
     if (NeedGradients) {
       const g0 = new Array(3), g1 = new Array(3);
-      computeBoundaryGradient(
-        ijk0, sArray, s0 + incs[0], s0 - incs[0], s0 + incs[1], s0 - incs[1], s0 + incs[2], s0 - incs[2], g0);
-      computeBoundaryGradient(
-        ijk1, sArray, s1 + incs[0], s1 - incs[0], s1 + incs[1], s1 - incs[1], s1 + incs[2], s1 - incs[2], g1);
+      computeBoundaryGradient(ijk0, sArray, 
+        s0 + incs[0], s0 - incs[0], 
+        s0 + incs[1], s0 - incs[1], 
+        s0 + incs[2], s0 - incs[2], 
+        g0);
+      computeBoundaryGradient(ijk1, sArray, 
+        s1 + incs[0], s1 - incs[0], 
+        s1 + incs[1], s1 - incs[1], 
+        s1 + incs[2], s1 - incs[2], 
+        g1);
 
       const gTmp0 = g0[0] + t * (g1[0] - g0[0]);
       const gTmp1 = g0[1] + t * (g1[1] - g0[1]);
@@ -614,8 +643,8 @@ export default function algorithm() {
     } // if normals or gradients required
 
     if (InterpolateAttributes) {
-      const v0 = ijk0[0] + ijk0[1] * incs[1] + ijk0[2] * incs[2];
-      const v1 = ijk1[0] + ijk1[1] * incs[1] + ijk1[2] * incs[2];
+      //const v0 = ijk0[0] + ijk0[1] * incs[1] + ijk0[2] * incs[2];
+      //const v1 = ijk1[0] + ijk1[1] * incs[1] + ijk1[2] * incs[2];
       // XXX: NEED AN IMPLEMENTATION FOR THIS
       //Arrays.InterpolateEdge(v0, v1, t, vId);
     }
@@ -624,12 +653,15 @@ export default function algorithm() {
   //------------------------------------------------------------------------------
   // Generate the output points and optionally normals, gradients and
   // interpolate attributes.
-  const generatePoints = (value, loc, ijk, sArray, sIndex, incs, edgeUses, eIds) => {
+  const generatePoints = (value, loc, ijk, sArray, sIndex, incs, x, edgeUses, eIds) => {
     // Create a slightly faster path for voxel axes interior to the volume.
     const g0 = new Array(3);
     if (NeedGradients) {
-      computeGradient(loc, ijk, sArray, sIndex + incs[0], sIndex - incs[0], sIndex + incs[1], sIndex - incs[1],
-        sIndex + incs[2], sIndex - incs[2], g0);
+      computeGradient(loc, ijk, sArray, 
+        sIndex + incs[0], sIndex - incs[0], 
+        sIndex + incs[1], sIndex - incs[1],
+        sIndex + incs[2], sIndex - incs[2], 
+        g0);
     }
 
     // Interpolate the cell axes edges
@@ -638,144 +670,74 @@ export default function algorithm() {
         // edgesUses[0] == i axes edge
         // edgesUses[4] == j axes edge
         // edgesUses[8] == k axes edge
-        const ijk1 = [ijk[0], ijk[1], ijk[2]];
+        const x1 = [...x];
+        x1[i] += Spacing[i];
+        const ijk1 = [...ijk];
         ++ijk1[i];
 
         const sIndex2 = sIndex + incs[i];
         const t = 0.5;
-        interpolateAxesEdge(t, loc, sArray, sIndex2, incs, eIds[i * 4], ijk, ijk1, g0);
+        interpolateAxesEdge(t, loc, x, sArray, sIndex2, incs, x1, eIds[i * 4], ijk, ijk1, g0);
       }
     }
 
-    // Interior voxels are completed at this point, avoid the switch statement.
-    if (loc === CellClass.Interior) {
-      return;
-    }
-
-    // On the boundary voxels special work has to be done to process the
-    // partial cell axes located on the + boundary faces of the volume. These
-    // are boundary situations where the voxel axes is not fully formed.  (The
-    // other cases fall through the default: case which is expected.)
-    //
-    // Note that loc describes one of 64 (2^6) voxel configurations in the
-    // volume, with (0,1,2) in each of the +x, +y, +z directions indicating
-    // (interior, min, max) along the coordinate axes. Note that processing
-    // boundary voxels really only requires seven possibilities corresponding
-    // to various combinations of +x,+y,+z (an eighth combination loc==0 is
-    // interior).  However, for historical reasons, and to signal to
-    // the gradient computation that a boundary voxel is involved, the more
-    // complex switch statement below is used.
-    switch (loc) {
-      //+x
-      case 2:
-      case 3:
-      case 6:
-      case 7:
-      case 18:
-      case 19:
-      case 22:
-      case 23:
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 5, edgeUses, eIds);
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 9, edgeUses, eIds);
-        break;
-
-      //+y
-      case 8:
-      case 9:
-      case 12:
-      case 13:
-      case 24:
-      case 25:
-      case 28:
-      case 29:
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 1, edgeUses, eIds);
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 10, edgeUses, eIds);
-        break;
-
-      //+x +y
-      case 10:
-      case 11:
-      case 14:
-      case 15:
-      case 26:
-      case 27:
-      case 30:
-      case 31:
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 1, edgeUses, eIds);
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 5, edgeUses, eIds);
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 9, edgeUses, eIds);
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 10, edgeUses, eIds);
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 11, edgeUses, eIds);
-        break;
-
-      //+z
-      case 32:
-      case 33:
-      case 36:
-      case 37:
-      case 48:
-      case 49:
-      case 52:
-      case 53:
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 2, edgeUses, eIds);
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 6, edgeUses, eIds);
-        break;
-
-      //+x +z
-      case 34:
-      case 35:
-      case 38:
-      case 39:
-      case 50:
-      case 51:
-      case 54:
-      case 55:
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 2, edgeUses, eIds);
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 5, edgeUses, eIds);
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 9, edgeUses, eIds);
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 6, edgeUses, eIds);
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 7, edgeUses, eIds);
-        break;
-
-      //+y +z
-      case 40:
-      case 41:
-      case 44:
-      case 45:
-      case 56:
-      case 57:
-      case 60:
-      case 61:
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 1, edgeUses, eIds);
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 2, edgeUses, eIds);
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 3, edgeUses, eIds);
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 6, edgeUses, eIds);
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 10, edgeUses, eIds);
-        break;
-
-      //+x +y +z
-      case 42:
-      case 43:
-      case 46:
-      case 47:
-      case 58:
-      case 59:
-      case 62:
-      case 63:
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 1, edgeUses, eIds);
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 2, edgeUses, eIds);
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 3, edgeUses, eIds);
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 5, edgeUses, eIds);
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 9, edgeUses, eIds);
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 10, edgeUses, eIds);
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 11, edgeUses, eIds);
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 6, edgeUses, eIds);
-        interpolateEdge(value, ijk, sArray, sIndex, incs, 7, edgeUses, eIds);
-        break;
-
-      default: // voxels with only -x,-y,-z boundaries
-        return;
-    }
+		// On the boundary cells special work has to be done to cover the partial
+		// cell axes. These are boundary situations where the voxel axes is not
+		// fully formed. These situations occur on the +x,+y,+z volume
+		// boundaries. (The other cases fall through the default: case which is
+		// expected.)
+		//
+		// Note that loc is one of 27 regions in the volume, with (0,1,2)
+    // indicating (interior, min, max) along coordinate axes.
+		switch (loc)
+		{
+		case 2: case 6: case 18: case 22: //+x
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 5, edgeUses, eIds);
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 9, edgeUses, eIds);
+			break;
+		case 8: case 9: case 24: case 25: //+y
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 1, edgeUses, eIds);
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 10, edgeUses, eIds);
+			break;
+		case 32: case 33: case 36: case 37: //+z
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 2, edgeUses, eIds);
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 6, edgeUses, eIds);
+			break;
+		case 10: case 26: //+x +y
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 1, edgeUses, eIds);
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 5, edgeUses, eIds);
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 9, edgeUses, eIds);
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 10, edgeUses, eIds);
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 11, edgeUses, eIds);
+			break;
+		case 34: case 38: //+x +z
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 2, edgeUses, eIds);
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 5, edgeUses, eIds);
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 9, edgeUses, eIds);
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 6, edgeUses, eIds);
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 7, edgeUses, eIds);
+			break;
+		case 40: case 41: //+y +z
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 1, edgeUses, eIds);
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 2, edgeUses, eIds);
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 3, edgeUses, eIds);
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 6, edgeUses, eIds);
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 10, edgeUses, eIds);
+			break;
+		case 42: //+x +y +z happens no more than once per volume
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 1, edgeUses, eIds);
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 2, edgeUses, eIds);
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 3, edgeUses, eIds);
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 5, edgeUses, eIds);
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 9, edgeUses, eIds);
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 10, edgeUses, eIds);
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 11, edgeUses, eIds);
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 6, edgeUses, eIds);
+			interpolateEdge(value, ijk, sArray, sIndex, incs, x, 7, edgeUses, eIds);
+			break;
+		default: //interior, or -x,-y,-z boundaries
+			return;
+		}
   };
 
   // Helper function to set up the point ids on voxel edges.
@@ -814,8 +776,7 @@ export default function algorithm() {
 
   const pass1 = (value, slice, end) => {
     let row;
-    let rowIndex;
-    let sliceIndex = slice * Inc2;      
+    let rowIndex, sliceIndex = slice * Inc2;      
     for (; slice < end; ++slice) {
       for (row = 0, rowIndex = sliceIndex; row < Dims[1]; ++row) {
         processXEdge(value, Scalars, rowIndex, row, slice);
@@ -837,8 +798,7 @@ export default function algorithm() {
     let row;
     let eMDIndex0 = slice * 6 * Dims[1];
     let eMDIndex1 = eMDIndex0 + 6 * Dims[1];
-    let rowIndex;
-    let sliceIndex = slice * Inc2;
+    let rowIndex, sliceIndex = slice * Inc2;
     for (; slice < end; ++slice) {
       // It's possible to skip entire slices if there is nothing to generate
       if (EdgeMetaData[eMDIndex1 + 3] > EdgeMetaData[eMDIndex0 + 3]) { // there are triangle primitives!
@@ -862,11 +822,11 @@ export default function algorithm() {
     NewGradients = null;
     NewNormals = null;
 
-    let i, j, k, l, ii, eCase, index, numTris, edgeIndex, edgeCaseIndex;
+    let i, j, k, l, ii, eCase, index, numTris;
     const vertMap = [ 0, 1, 3, 2, 4, 5, 7, 6];
     const CASE_MASK = [1, 2, 4, 8, 16, 32, 64, 128];
-    let edge;
-    let edgeCase;
+    let edge, edgeIndex;
+    let edgeCase, edgeCaseIndex;
 
     // Initialize cases, increments, and edge intersection flags
     for (eCase = 0; eCase < 256; ++eCase) {
@@ -957,6 +917,8 @@ export default function algorithm() {
       // This may be subvolume of the total 3D image. Capture information for
       // subsequent processing.
       Scalars = scalars;
+      Origin = input.getOrigin();
+      Spacing = input.getSpacing();
       Min0 = extent[0];
       Max0 = extent[1];
       Inc0 = incs[0];
@@ -966,6 +928,7 @@ export default function algorithm() {
       Min2 = extent[4];
       Max2 = extent[5];
       Inc2 = incs[2];
+      adjustOrigin();
 
       // Now allocate working arrays. The XCases array tracks x-edge cases.
       Dims[0] = Max0 - Min0 + 1;
