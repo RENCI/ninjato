@@ -201,12 +201,17 @@ export default function algorithm() {
     eMDIndeces[2] = eMDIndeces[0] + Dims[1] * 6; // x-edge in +z direction
     eMDIndeces[3] = eMDIndeces[2] + 6;           // x-edge in +y+z direction
 
-    const TEST = row === 14 && slice === 0;
+    const TEST = row === 28 && slice === 0;
+
+    if (TEST) console.log("HERE");
+
+    if (TEST) console.log(eMDIndeces);
+    if (TEST) console.log(EdgeMetaData[eMDIndeces[0]], EdgeMetaData[eMDIndeces[1]], EdgeMetaData[eMDIndeces[3]])
 
     // Determine whether this row of x-cells needs processing. If there are no
     // x-edge intersections, and the state of the four bounding x-edges is the
     // same, then there is no need for processing.
-    if ((EdgeMetaData[eMDIndeces[0]] | EdgeMetaData[eMDIndeces[1]] | EdgeMetaData[eMDIndeces[3]]) === 0) { // any x-ints?    
+    if ((EdgeMetaData[eMDIndeces[0]] | EdgeMetaData[eMDIndeces[1]] | EdgeMetaData[eMDIndeces[2]] | EdgeMetaData[eMDIndeces[3]]) === 0) { // any x-ints?    
       if (XCases[eIndeces[0]] === XCases[eIndeces[1]] && XCases[eIndeces[1]] === XCases[eIndeces[2]] && XCases[eIndeces[2]] === XCases[eIndeces[3]]) {
         return; // there are no y- or z-ints, thus no contour, skip voxel row
       }
@@ -302,7 +307,7 @@ export default function algorithm() {
       eIndeces[3]++;
     } // for all voxels along this x-edge
 
-    console.log(EdgeMetaData[87]);
+    console.log(row, slice, EdgeMetaData[170]);
   };
 
   //------------------------------------------------------------------------------
@@ -1024,7 +1029,7 @@ export default function algorithm() {
         // the number of triangles generated along these voxel rows.
         pass2(0, Dims[2] - 1);
 
-        checkArrays('EdgeMetaDataPass2', regionTest.EdgeMetaData, EdgeMetaData.slice());
+        checkArrays('EdgeMetaDataPass2', regionTest.EdgeMetaDataPass2, EdgeMetaData.slice());
 
         // PASS 3: Now allocate and generate output. First we have to update the
         // edge meta data to partition the output into separate pieces so
@@ -1108,9 +1113,9 @@ export default function algorithm() {
           pass4(value, 0, Dims[2] - 1);
 
           checkArrays('XCases', regionTest.XCases, XCases);
-          checkArrays('EdgeMetaData', regionTest.EdgeMetaData, EdgeMetaData);
+          //checkArrays('EdgeMetaData', regionTest.EdgeMetaData, EdgeMetaData);
 
-
+          checkArrays('EdgeMetaDataPass4', regionTest.EdgeMetaDataPass4, EdgeMetaData.slice());
         } // if anything generated
 
         // Handle multiple contours
