@@ -108,6 +108,7 @@ export default function algorithm() {
   let NewPoints;
   let NewGradients;
   let NewNormals;
+  let NewCoordinates;
   let NeedGradients;
   let InterpolateAttributes;
   let Arrays = [];
@@ -368,7 +369,7 @@ export default function algorithm() {
       const numTris = getNumberOfPrimitives(eCase);
       if (numTris > 0) {
         // Start by generating triangles for this case
-        generateTris(eCase, numTris, eIds, triId, x);
+        generateTris(eCase, numTris, eIds, triId, ijk);
 
         // Now generate point(s) along voxel axes if needed. Remember to take
         // boundary into account.
@@ -462,7 +463,7 @@ export default function algorithm() {
   };
  
   // Produce the output triangles for this voxel cell.
-  const generateTris = (eCase, numTris, eIds, triId, x) => {
+  const generateTris = (eCase, numTris, eIds, triId, ijk) => {
     // XXX: CHECK THIS?
     const edges = EdgeCases[eCase];
     let edgesIndex = 1;
@@ -474,9 +475,10 @@ export default function algorithm() {
       NewTris[triIndex + 2] = eIds[edges[edgesIndex + 1]];
       NewTris[triIndex + 3] = eIds[edges[edgesIndex + 2]];
 
-      NewScalars[triId.value] = x[0];
-      NewScalars[triId.value + 1] = x[1];
-      NewScalars[triId.value + 2] = x[2];
+      // XXX: NEED A CHECK HERE
+      NewCoordinates[triId.value] = ijk[0];
+      NewCoordinates[triId.value + 1] = ijk[1];
+      NewCoordinates[triId.value + 2] = ijk[2];
 
       triId.value++;
     }
@@ -829,6 +831,7 @@ export default function algorithm() {
     NewPoints = null;
     NewGradients = null;
     NewNormals = null;
+    NewCoordinates = null;
 
     let i, j, k, l, ii, eCase, index, numTris;
     const vertMap = [ 0, 1, 3, 2, 4, 5, 7, 6];
@@ -907,7 +910,7 @@ export default function algorithm() {
   // Main function called externally
   return {
     contour: (
-      model, input, newPts, newTris, newScalars, newNormals, newGradients
+      model, input, newPts, newTris, newScalars, newNormals, newGradients, newCoordinates
     ) => {
       const inScalars = input.getPointData().getScalars();
       const extent = input.getExtent();
@@ -1021,7 +1024,7 @@ export default function algorithm() {
           if (newScalars) {
             newScalars.length = totalPts;
             NewScalars = newScalars;
-            //NewScalars.fill(value);
+            NewScalars.fill(value);
           }              
           if (newGradients) {
             newGradients.length = 3 * totalPts;
@@ -1030,6 +1033,10 @@ export default function algorithm() {
           if (newNormals) {
             newNormals.length = 3 * totalPts;
             NewNormals = newNormals;
+          }
+          if (newCoordinates) {
+            newCoordinates.lenght = 3 * totalPts;
+            NewCoordinates = newCoordinates;
           }
           // XXX: WORRY ABOUT THIS LATER
           /*
