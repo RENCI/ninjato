@@ -368,7 +368,7 @@ export default function algorithm() {
       const numTris = getNumberOfPrimitives(eCase);
       if (numTris > 0) {
         // Start by generating triangles for this case
-        generateTris(eCase, numTris, eIds, triId, x[2]);
+        generateTris(eCase, numTris, eIds, triId, x);
 
         // Now generate point(s) along voxel axes if needed. Remember to take
         // boundary into account.
@@ -462,19 +462,23 @@ export default function algorithm() {
   };
  
   // Produce the output triangles for this voxel cell.
-  const generateTris = (eCase, numTris, eIds, triId, slice) => {
+  const generateTris = (eCase, numTris, eIds, triId, x) => {
     // XXX: CHECK THIS?
     const edges = EdgeCases[eCase];
     let edgesIndex = 1;
 
     for (let i = 0; i < numTris; ++i, edgesIndex += 3) {
-      const triIndex = 4 * triId.value++;
+      const triIndex = 4 * triId.value;
       NewTris[triIndex] = 3;
       NewTris[triIndex + 1] = eIds[edges[edgesIndex]];
       NewTris[triIndex + 2] = eIds[edges[edgesIndex + 1]];
       NewTris[triIndex + 3] = eIds[edges[edgesIndex + 2]];
 
-      NewScalars[triId.value - 1] = slice;
+      NewScalars[triId.value] = x[0];
+      NewScalars[triId.value + 1] = x[1];
+      NewScalars[triId.value + 2] = x[2];
+
+      triId.value++;
     }
   };
 

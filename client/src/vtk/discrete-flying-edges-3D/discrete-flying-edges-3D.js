@@ -53,31 +53,47 @@ function vtkDiscreteFlyingEdges3D(publicAPI, model) {
     // Gradients
     const gBuffer = [];
 
-    algo.contour(model, input, pBuffer, tBuffer, sBuffer, nBuffer, gBuffer);
+    // Coordinates
+    const cBuffer = [];
+
+    algo.contour(model, input, pBuffer, tBuffer, sBuffer, nBuffer, gBuffer, cBuffer);
 
     console.log(tBuffer);
     console.log(sBuffer);
+    console.log(cBuffer);
 
     // Update output
     const polydata = vtkPolyData.newInstance();
     polydata.getPoints().setData(new Float32Array(pBuffer), 3);
     polydata.getPolys().setData(new Uint32Array(tBuffer));
-    if (model.computeNormals) {
-      const nData = new Float32Array(nBuffer);
-      const normals = vtkDataArray.newInstance({
-        numberOfComponents: 3,
-        values: nData,
-        name: 'Normals',
-      });
-      polydata.getPointData().setNormals(normals);
+    if (model.computeScalars) {
+      polydata.getPointData().setScalars(vtkDataArray.newInstance({
+        numberOfComponents: 1,
+        values: sBuffer,
+        name: input.getPointData().getScalars().getName()
+      }));
     }
-    const sData = new Float32Array(sBuffer);
-    const scalars = vtkDataArray.newInstance({
-      numberOfComponents: 1,
-      values: sData,
-      name: 'slice'
-    });
-    polydata.getCellData().setScalars(scalars);
+    if (model.computeNormals) {
+      polydata.getPointData().setNormals(vtkDataArray.newInstance({
+        numberOfComponents: 3,
+        values: new Float32Array(nBuffer),
+        name: 'Normals'
+      }));
+    }
+    if (model.computeGradients) {
+      polydata.getPointData().addArray(vtkDataArray.newInstance({
+        numberOfComponents: 3,
+        values: new Float32Array(gBuffer),
+        name: 'Gradients'
+      }));
+    }
+    if (model.computeCoordinates) {
+      polydata.getCellData().setVectors(vtkDataArray.newInstance({
+        numberOfComponents: 3,
+        values: new Float32Array(cBuffer),
+        name: 'Coordinates'
+      }));
+    }
     outData[0] = polydata; 
 
     console.timeEnd('flying edges');
