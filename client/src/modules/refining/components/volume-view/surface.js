@@ -21,7 +21,7 @@ export function Surface(type = 'background') {
   });
   flyingEdges.setInputConnection(maskCalculator.getOutputPort());
 
-  let zCalculator = null;
+  let sliceCalculator = null;
   let color = null;
   
   const mapper = vtkMapper.newInstance();
@@ -31,58 +31,21 @@ export function Surface(type = 'background') {
   actor.getProperty().setInterpolationToFlat();
 
   if (type === 'region') {
-    zCalculator = vtkCalculator.newInstance();
-    /*
-    zCalculator.setFormulaSimple(
+    sliceCalculator = vtkCalculator.newInstance();
+    sliceCalculator.setFormulaSimple(
       FieldDataTypes.CELL,
       ['Coordinates'],
       'slice',
       coordinate => coordinate[2]
-    )
-    */
-    zCalculator.setFormula({
-      getArrays: () => ({
-        input: [
-          { 
-            location: FieldDataTypes.CELL,
-            name: 'Coordinates',
-            attribute: AttributeTypes.VECTORS
-          }
-        ],
-        output: [
-          {
-            location: FieldDataTypes.CELL,
-            name: 'slice',
-            dataType: 'Float32Array',
-            attribute: AttributeTypes.SCALARS
-          }
-        ]}),
-      evaluate: (arraysIn, arraysOut) => {
-        console.log(arraysIn);
-        console.log(arraysOut);
-        
-        const [coords] = arraysIn.map(d => d.getData());
-        const [slice] = arraysOut.map(d => d.getData());
-  
-        console.log(coords);
-
-        const n = coords.length / 3;
-        for (let i = 0; i < n; i++) {
-          slice[i] = coords[i * 3 + 2];
-        }
-  
-        arraysOut.forEach(array => array.modified());
-      }
-
-    });
-    zCalculator.setInputConnection(flyingEdges.getOutputPort());
+    );
+    sliceCalculator.setInputConnection(flyingEdges.getOutputPort());
 
     color = vtkColorTransferFunction.newInstance();
 
     mapper.setUseLookupTableScalarRange(true);
     mapper.setScalarModeToUseCellData();
     mapper.setLookupTable(color);
-    mapper.setInputConnection(zCalculator.getOutputPort());
+    mapper.setInputConnection(sliceCalculator.getOutputPort());
   }
   else {
     mapper.setInputConnection(flyingEdges.getOutputPort());
@@ -109,15 +72,23 @@ export function Surface(type = 'background') {
       )
     },
     setSlice: slice => {
+      const bounds = mapper.getInputData().getBounds();
+      const spacing = flyingEdges.getInputData().getSpacing();
+      const sliceMin = bounds[4] / spacing[2];
+
+      // XXX: Hack to deal with edge case
+      if (sliceMin - slice === -0.5) slice--;
+      const s = 0;
       const e = 0.1;
 
       const [r1, g1, b1] = Reds[5];
       const [r2, g2, b2] = Reds[3];
   
       color.removeAllPoints();
-      color.addRGBPoint(slice - e, r2, g2, b2);
-      color.addRGBPoint(slice, r1, g1, b1);
-      color.addRGBPoint(slice + e, r2, g2, b2);
+      color.addRGBPoint(slice - s - e, r2, g2, b2);
+      color.addRGBPoint(slice - s, r1, g1, b1);
+      color.addRGBPoint(slice + s, r1, g1, b1);
+      color.addRGBPoint(slice + s + e, r2, g2, b2);
     },
     getOutput: () => {
       mapper.update();
@@ -131,7 +102,7 @@ export function Surface(type = 'background') {
       flyingEdges.delete();
       mapper.delete();
       actor.delete();
-      if (zCalculator) zCalculator.delete();
+      if (sliceCalculator) sliceCalculator.delete();
       if (color) color.delete();
     }
   };

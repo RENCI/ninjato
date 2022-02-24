@@ -110,8 +110,6 @@ export default function algorithm() {
   let NewNormals;
   let NewCoordinates;
   let NeedGradients;
-  let InterpolateAttributes;
-  let Arrays = [];
 
   // Setup algorithm
   // This takes the place of the vtkDiscreteFlyingEdges3DAlgorithm constructor
@@ -479,7 +477,7 @@ export default function algorithm() {
         NewCoordinates[coordIndex] = ijk[0];
         NewCoordinates[coordIndex + 1] = ijk[1];
         NewCoordinates[coordIndex + 2] = ijk[2];
-      }
+      }     
 
       triId.value++;
     }
@@ -536,13 +534,6 @@ export default function algorithm() {
         NewNormals[nIndex + 2] = n[2];
       }
     } // if normals or gradients required
-
-    if (InterpolateAttributes) {
-      //const v0 = ijk0[0] + ijk0[1] * incs[1] + ijk0[2] * incs[2];
-      //const v1 = ijk1[0] + ijk1[1] * incs[1] + ijk1[2] * incs[2];
-      // XXX: NEED AN IMPLEMENTATION FOR THIS
-      //Arrays.InterpolateEdge(v0, v1, t, vId);
-    }
   };
 
   // Compute the gradient when the point may be near the boundary of the
@@ -652,13 +643,6 @@ export default function algorithm() {
         NewNormals[nIndex + 2] = n[2];
       }
     } // if normals or gradients required
-
-    if (InterpolateAttributes) {
-      //const v0 = ijk0[0] + ijk0[1] * incs[1] + ijk0[2] * incs[2];
-      //const v1 = ijk1[0] + ijk1[1] * incs[1] + ijk1[2] * incs[2];
-      // XXX: NEED AN IMPLEMENTATION FOR THIS
-      //Arrays.InterpolateEdge(v0, v1, t, vId);
-    }
   };
 
   //------------------------------------------------------------------------------
@@ -961,9 +945,6 @@ export default function algorithm() {
       // Interpolating attributes and other stuff. Interpolate extra attributes only if they
       // exist and the user requests it.
       NeedGradients = (newGradients || newNormals);
-      InterpolateAttributes = false;
-        // XXX: Check this
-        //self->GetInterpolateAttributes() && input->GetPointData()->GetNumberOfArrays() > 1;
 
       // Loop across each contour value. This encompasses all three passes.
       for (vidx = 0; vidx < numContours; vidx++) {        
@@ -1038,26 +1019,7 @@ export default function algorithm() {
           if (newCoordinates) {
             newCoordinates.length = 3 * numOutTris;
             NewCoordinates = newCoordinates;
-          }
-          // XXX: WORRY ABOUT THIS LATER
-          /*
-          if (algo.InterpolateAttributes)
-          {
-            if (vidx === 0) // first contour
-            {
-              // Make sure we don't interpolate the input scalars twice; or generate scalars
-              // when ComputeScalars is off.
-              output->GetPointData()->InterpolateAllocate(input->GetPointData(), totalPts);
-              output->GetPointData()->RemoveArray(inScalars->GetName());
-              algo.Arrays.ExcludeArray(inScalars);
-              algo.Arrays.AddArrays(totalPts, input->GetPointData(), output->GetPointData());
-            }
-            else
-            {
-              algo.Arrays.Realloc(totalPts);
-            }
-          }
-          */        
+          }       
 
           // PASS 4: Fourth and final pass: Process voxel rows and generate output.
           // Note that we are simultaneously generating triangles and interpolating
@@ -1070,20 +1032,7 @@ export default function algorithm() {
         startXPts = numOutXPts;
         startYPts = numOutYPts;
         startZPts = numOutZPts;
-        startTris = numOutTris;
-
-        // Add z to scalars
-        /*
-        for (let i = 0; i < NewTris.length / 4; i++) {
-          const triIndex = 4 * i;
-
-          const z1 = NewPoints[NewTris[triIndex + 1] * 3 + 2];
-          const z2 = NewPoints[NewTris[triIndex + 2] * 3 + 2];
-          const z3 = NewPoints[NewTris[triIndex + 3] * 3 + 2];
-
-          NewScalars[i] = Math.min(z1, z2, z3);
-        }
-        */
+        startTris = numOutTris;        
       } // for all contour values          
     }
   };

@@ -45,50 +45,45 @@ function vtkDiscreteFlyingEdges3D(publicAPI, model) {
     const tBuffer = [];
 
     // Scalars
-    const sBuffer = [];
+    const sBuffer = model.computeScalars ? [] : null;
 
     // Normals
-    const nBuffer = [];
+    const nBuffer = model.computeNormals ? [] : null;
 
     // Gradients
-    const gBuffer = [];
+    const gBuffer = model.computeGradients ? [] : null;
 
     // Coordinates
-    const cBuffer = [];
+    const cBuffer = model.computeCoordinates ? [] : null;
 
     algo.contour(model, input, pBuffer, tBuffer, sBuffer, nBuffer, gBuffer, cBuffer);
-
-    console.log(pBuffer);
-    console.log(tBuffer);
-    console.log(sBuffer);
-    console.log(cBuffer);
 
     // Update output
     const polydata = vtkPolyData.newInstance();
     polydata.getPoints().setData(new Float32Array(pBuffer), 3);
     polydata.getPolys().setData(new Uint32Array(tBuffer));
-    if (model.computeScalars) {
+    if (sBuffer) {
       polydata.getPointData().setScalars(vtkDataArray.newInstance({
         numberOfComponents: 1,
         values: sBuffer,
         name: input.getPointData().getScalars().getName()
       }));
     }
-    if (model.computeNormals) {
+    if (nBuffer) {
       polydata.getPointData().setNormals(vtkDataArray.newInstance({
         numberOfComponents: 3,
         values: new Float32Array(nBuffer),
         name: 'Normals'
       }));
     }
-    if (model.computeGradients) {
+    if (gBuffer) {
       polydata.getPointData().addArray(vtkDataArray.newInstance({
         numberOfComponents: 3,
         values: new Float32Array(gBuffer),
         name: 'Gradients'
       }));
     }
-    if (model.computeCoordinates) {
+    if (cBuffer) {
       polydata.getCellData().addArray(vtkDataArray.newInstance({
         numberOfComponents: 3,
         values: new Float32Array(cBuffer),
@@ -110,9 +105,7 @@ const DEFAULT_VALUES = {
   computeNormals: true,
   computeGradients: false,
   computeScalars: true,
-  computeCoordinates: false,
-  interpolateAttributes: false,
-  arrayComponent: 0
+  computeCoordinates: false
 };
 
 // ----------------------------------------------------------------------------
@@ -131,8 +124,7 @@ export function extend(publicAPI, model, initialValues = {}) {
     'computeNormals',
     'computeGradients',
     'computeScalars',
-    'interpolateAttributes',
-    'arrayComponent'
+    'computeCoordinates'
   ]);
 
   // Object specific methods
