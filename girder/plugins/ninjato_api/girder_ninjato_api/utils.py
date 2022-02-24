@@ -108,6 +108,10 @@ def get_item_assignment(user):
                     }
     # no region has been assigned to the user yet, look into the whole partition
     # item to find a region for assignment
+    vol_folders = Folder().find({
+        'parentId': coll['_id'],
+        'parentCollection': 'collection'
+    })
     for vol_folder in vol_folders:
         sub_vol_folders = Folder().find({
             'parentId': vol_folder['_id'],
@@ -162,8 +166,12 @@ def get_item_assignment(user):
                             tif = TIFF.open(file_path, mode="r")
                             file_name = os.path.basename(file_res_path)
                             file_base_name, file_ext = os.path.splitext(file_name)
-                            out_path = os.path.join(DATA_PATH, region_item['_id'],
+                            out_dir_path = os.path.join(DATA_PATH, str(region_item['_id']))
+                            out_path = os.path.join(out_dir_path,
                                                     f'{file_base_name}_region_{key}{file_ext}')
+                            if not os.path.isdir(out_dir_path):
+                                os.makedirs(out_dir_path)
+
                             output_tif = TIFF.open(out_path, mode="w")
                             counter = 0
                             for image in tif.iter_images():
