@@ -58,6 +58,7 @@ function vtkDiscreteFlyingEdges3D(publicAPI, model) {
 
     algo.contour(model, input, pBuffer, tBuffer, sBuffer, nBuffer, gBuffer, cBuffer);
 
+    console.log(pBuffer);
     console.log(tBuffer);
     console.log(sBuffer);
     console.log(cBuffer);
@@ -88,7 +89,7 @@ function vtkDiscreteFlyingEdges3D(publicAPI, model) {
       }));
     }
     if (model.computeCoordinates) {
-      polydata.getCellData().setVectors(vtkDataArray.newInstance({
+      polydata.getCellData().addArray(vtkDataArray.newInstance({
         numberOfComponents: 3,
         values: new Float32Array(cBuffer),
         name: 'Coordinates'
@@ -109,6 +110,7 @@ const DEFAULT_VALUES = {
   computeNormals: true,
   computeGradients: false,
   computeScalars: true,
+  computeCoordinates: false,
   interpolateAttributes: false,
   arrayComponent: 0
 };

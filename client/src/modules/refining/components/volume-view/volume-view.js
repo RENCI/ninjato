@@ -61,7 +61,7 @@ export function VolumeView() {
         boundingBox.setData(maskData);
 
         renderer.addActor(region.getActor());
-        renderer.addActor(background.getActor());
+        //renderer.addActor(background.getActor());
         renderer.addActor(boundingBox.getActor());
 
         resetCamera(renderer, region.getOutput());

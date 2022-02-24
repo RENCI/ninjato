@@ -464,7 +464,6 @@ export default function algorithm() {
  
   // Produce the output triangles for this voxel cell.
   const generateTris = (eCase, numTris, eIds, triId, ijk) => {
-    // XXX: CHECK THIS?
     const edges = EdgeCases[eCase];
     let edgesIndex = 1;
 
@@ -475,10 +474,12 @@ export default function algorithm() {
       NewTris[triIndex + 2] = eIds[edges[edgesIndex + 1]];
       NewTris[triIndex + 3] = eIds[edges[edgesIndex + 2]];
 
-      // XXX: NEED A CHECK HERE
-      NewCoordinates[triId.value] = ijk[0];
-      NewCoordinates[triId.value + 1] = ijk[1];
-      NewCoordinates[triId.value + 2] = ijk[2];
+      if (NewCoordinates) {
+        const coordIndex = 3 * triId.value;
+        NewCoordinates[coordIndex] = ijk[0];
+        NewCoordinates[coordIndex + 1] = ijk[1];
+        NewCoordinates[coordIndex + 2] = ijk[2];
+      }
 
       triId.value++;
     }
@@ -1035,7 +1036,7 @@ export default function algorithm() {
             NewNormals = newNormals;
           }
           if (newCoordinates) {
-            newCoordinates.lenght = 3 * totalPts;
+            newCoordinates.length = 3 * numOutTris;
             NewCoordinates = newCoordinates;
           }
           // XXX: WORRY ABOUT THIS LATER

@@ -16,7 +16,8 @@ export function Surface(type = 'background') {
 
   const flyingEdges = vtkDiscreteFlyingEdges3D.newInstance({
     values: [1],
-    computeNormals: true
+    computeNormals: true,
+    computeCoordinates: true
   });
   flyingEdges.setInputConnection(maskCalculator.getOutputPort());
 
@@ -31,28 +32,40 @@ export function Surface(type = 'background') {
 
   if (type === 'region') {
     zCalculator = vtkCalculator.newInstance();
+    /*
+    zCalculator.setFormulaSimple(
+      FieldDataTypes.CELL,
+      ['Coordinates'],
+      'slice',
+      coordinate => coordinate[2]
+    )
+    */
     zCalculator.setFormula({
       getArrays: () => ({
         input: [
-          { location: FieldDataTypes.COORDINATE }
+          { 
+            location: FieldDataTypes.CELL,
+            name: 'Coordinates',
+            attribute: AttributeTypes.VECTORS
+          }
         ],
         output: [
           {
-            location: FieldDataTypes.POINT,
-            name: 'z',
+            location: FieldDataTypes.CELL,
+            name: 'slice',
             dataType: 'Float32Array',
             attribute: AttributeTypes.SCALARS
           }
         ]}),
       evaluate: (arraysIn, arraysOut) => {
-        //arraysIn.forEach(d => console.log(d.getName()));
         console.log(arraysIn);
         console.log(arraysOut);
         
-
         const [coords] = arraysIn.map(d => d.getData());
         const [slice] = arraysOut.map(d => d.getData());
   
+        console.log(coords);
+
         const n = coords.length / 3;
         for (let i = 0; i < n; i++) {
           slice[i] = coords[i * 3 + 2];
@@ -60,6 +73,7 @@ export function Surface(type = 'background') {
   
         arraysOut.forEach(array => array.modified());
       }
+
     });
     zCalculator.setInputConnection(flyingEdges.getOutputPort());
 
@@ -95,21 +109,15 @@ export function Surface(type = 'background') {
       )
     },
     setSlice: slice => {
-      // XXX: Consider setting z as attribute data in flying edges, or calculating above
-
-      const input = maskCalculator.getInputData();
-      const z = input.indexToWorld([0, 0, slice])[2];
-      const s = input.getSpacing()[2];
-      const e = s / 10;
+      const e = 0.1;
 
       const [r1, g1, b1] = Reds[5];
       const [r2, g2, b2] = Reds[3];
   
       color.removeAllPoints();
-      color.addRGBPoint(0, r2, g2, b2);
-      color.addRGBPoint(z - e, r2, g2, b2);
-      color.addRGBPoint(z, r1, g1, b1);
-      color.addRGBPoint(z + e, r2, g2, b2);
+      color.addRGBPoint(slice - e, r2, g2, b2);
+      color.addRGBPoint(slice, r1, g1, b1);
+      color.addRGBPoint(slice + e, r2, g2, b2);
     },
     getOutput: () => {
       mapper.update();
