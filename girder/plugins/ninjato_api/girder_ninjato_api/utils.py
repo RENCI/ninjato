@@ -270,10 +270,13 @@ def save_user_annotation(user, item_id, done, reject, comment, content_data):
     content = content_data.file.read()
     try:
         # save file to local file system before adding it to asset store
-        path = os.path.join(DATA_PATH, annot_file_name)
-        with open(path, "wb") as f:
+        out_dir_path = os.path.join(DATA_PATH, str(item_id))
+        out_path = os.path.join(out_dir_path, annot_file_name)
+        if not os.path.isdir(out_dir_path):
+            os.makedirs(out_dir_path)
+        with open(out_path, "wb") as f:
             f.write(content)
-        file = save_file(assetstore_id, item, path, user, annot_file_name)
+        file = save_file(assetstore_id, item, out_path, user, annot_file_name)
     except Exception as e:
         raise RestException(f'failure: {e}', 500)
 
