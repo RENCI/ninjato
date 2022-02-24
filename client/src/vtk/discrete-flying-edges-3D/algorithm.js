@@ -2,8 +2,6 @@ import * as vtkMath from '@kitware/vtk.js/Common/Core/Math';
 
 import triangleCases from './marching-cubes-triangle-cases';
 
-import { regionTest } from './test-region-20';
-
 export default function algorithm() {
   // Edge case table values.
   const EdgeClass = {

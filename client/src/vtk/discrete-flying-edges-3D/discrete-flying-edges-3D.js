@@ -3,7 +3,7 @@ import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
 import vtkPolyData from '@kitware/vtk.js/Common/DataModel/PolyData';
 import algorithm from './algorithm';
 
-const { vtkErrorMacro, vtkDebugMacro } = macro;
+const { vtkErrorMacro } = macro;
 
 // ----------------------------------------------------------------------------
 // vtkDiscreteFlyingEdges3D methods
