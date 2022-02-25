@@ -13,6 +13,8 @@ services:
     build:
       context: ./girder/
       dockerfile: Dockerfile
+      args:
+        GIRDER_CFG_FILE: girder.dev.cfg
     container_name: girder
     ports:
       - "8080:8080"

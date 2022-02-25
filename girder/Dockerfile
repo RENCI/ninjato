@@ -1,10 +1,14 @@
 FROM girder/girder:latest
 
+ARG GIRDER_CFG_FILE
+
 WORKDIR /girder
-RUN mkdir data
+RUN mkdir data log 
 COPY data /girder/data
 COPY plugins /girder/plugins
 COPY requirements.txt /girder/requirements.txt
+COPY $GIRDER_CFG_FILE /girder/girder/conf/girder.dist.cfg
+
 RUN pip install girder-jobs \
   && pip install girder-homepage \
   && pip install numpy==1.18.5 \
