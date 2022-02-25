@@ -11,7 +11,7 @@ from girder.models.folder import Folder
 from girder.exceptions import RestException
 from girder.utility import assetstore_utilities
 from girder.utility import path as path_util
-from .constants import COLLECTION_NAME, BUFFER_FACTOR
+from .constants import COLLECTION_NAME, BUFFER_FACTOR, DATA_PATH
 
 
 def save_file(as_id, item, path, user, file_name):
@@ -69,6 +69,11 @@ def get_buffered_extent(minx, maxx, miny, maxy, minz, maxz, xrange, yrange, zran
 
 
 def get_item_assignment(user):
+    if user['login'] == 'admin':
+        return {
+            'user_id': user['_id'],
+            'item_id': ''
+            }
     coll = Collection().findOne({'name': COLLECTION_NAME})
     vol_folders = Folder().find({
         'parentId': coll['_id'],
@@ -78,6 +83,7 @@ def get_item_assignment(user):
     # when a region is selected, the user id is added to whole item meta specific region values
     # with a user key, and the user id is added to whole item meta as a key with a value of item id
     # for easy check whether a region is checked out by the user
+    # check whether a region has already been assigned to the user
     for vol_folder in vol_folders:
         sub_vol_folders = Folder().find({
             'parentId': vol_folder['_id'],
@@ -105,8 +111,30 @@ def get_item_assignment(user):
                         'item_id': it_id,
                         'region_label': it['meta']['region_label']
                     }
-                # no region has been assigned to the user yet, look into the whole partition
-                # item to find a region for assignment
+    # no region has been assigned to the user yet, look into the whole partition
+    # item to find a region for assignment
+    vol_folders = Folder().find({
+        'parentId': coll['_id'],
+        'parentCollection': 'collection'
+    })
+    for vol_folder in vol_folders:
+        sub_vol_folders = Folder().find({
+            'parentId': vol_folder['_id'],
+            'parentCollection': 'folder'
+        })
+        for sub_vol_folder in sub_vol_folders:
+            folders = Folder().find({
+                'parentId': sub_vol_folder['_id'],
+                'parentCollection': 'folder'
+            })
+            for folder in folders:
+                whole_item = Item().findOne({'folderId': ObjectId(folder['_id']),
+                                             'name': 'whole'})
+
+                if 'done' in whole_item['meta'] and whole_item['meta']['done'] == 'true':
+                    # if an item is done, continue to check another folder
+                    continue
+
                 coords = whole_item['meta']['coordinates']
                 x_range = coords["x_max"] - coords["x_min"]
                 y_range = coords["y_max"] - coords["y_min"]
@@ -143,7 +171,12 @@ def get_item_assignment(user):
                             tif = TIFF.open(file_path, mode="r")
                             file_name = os.path.basename(file_res_path)
                             file_base_name, file_ext = os.path.splitext(file_name)
-                            out_path = f'/tmp/{file_base_name}_region_{key}{file_ext}'
+                            out_dir_path = os.path.join(DATA_PATH, str(region_item['_id']))
+                            out_path = os.path.join(out_dir_path,
+                                                    f'{file_base_name}_region_{key}{file_ext}')
+                            if not os.path.isdir(out_dir_path):
+                                os.makedirs(out_dir_path)
+
                             output_tif = TIFF.open(out_path, mode="w")
                             counter = 0
                             for image in tif.iter_images():
@@ -184,7 +217,7 @@ def get_item_assignment(user):
     }
 
 
-def save_user_annotation(user, item_id, done, reject, comment, content_data):
+def save_user_annotation_as_item(user, item_id, done, reject, comment, content_data):
     """
     Save user annotation to item with item_id
     :param user: user object who saves annotation
@@ -242,10 +275,13 @@ def save_user_annotation(user, item_id, done, reject, comment, content_data):
     content = content_data.file.read()
     try:
         # save file to local file system before adding it to asset store
-        path = f'/tmp/{annot_file_name}'
-        with open(path, "wb") as f:
+        out_dir_path = os.path.join(DATA_PATH, str(item_id))
+        out_path = os.path.join(out_dir_path, annot_file_name)
+        if not os.path.isdir(out_dir_path):
+            os.makedirs(out_dir_path)
+        with open(out_path, "wb") as f:
             f.write(content)
-        file = save_file(assetstore_id, item, path, user, annot_file_name)
+        file = save_file(assetstore_id, item, out_path, user, annot_file_name)
     except Exception as e:
         raise RestException(f'failure: {e}', 500)
 
@@ -276,4 +312,51 @@ def save_user_annotation(user, item_id, done, reject, comment, content_data):
         'user_id': uid,
         'item_id': item_id,
         'annotation_file_id': file['_id']
+    }
+
+
+def get_subvolume_item_ids():
+    coll = Collection().findOne({'name': COLLECTION_NAME})
+    vol_folders = Folder().find({
+        'parentId': coll['_id'],
+        'parentCollection': 'collection'
+    })
+    ret_data = {'ids': []}
+    for vol_folder in vol_folders:
+        sub_vol_folders = Folder().find({
+            'parentId': vol_folder['_id'],
+            'parentCollection': 'folder'
+        })
+        for sub_vol_folder in sub_vol_folders:
+            folders = Folder().find({
+                'parentId': sub_vol_folder['_id'],
+                'parentCollection': 'folder'
+            })
+            for folder in folders:
+                whole_item = Item().findOne({'folderId': ObjectId(folder['_id']),
+                                             'name': 'whole'})
+                ret_data['ids'].append(whole_item['_id'])
+
+    return ret_data
+
+
+def get_subvolume_item_info(item):
+    item_id = item['_id']
+    region_dict = item['meta']['regions']
+    total_regions = len(region_dict)
+    total_regions_done = 0
+    total_regions_at_work = 0
+    for key, val in region_dict.items():
+        total_regions += 1
+        if 'user' in val:
+            if 'done' in val and val['done'] == 'true':
+                total_regions_done += 1
+            else:
+                total_regions_at_work += 1
+    return {
+        'item_id': item_id,
+        'item_description': item['description'],
+        'total_regions': total_regions,
+        'total_regions_done': total_regions_done,
+        'total_regions_at_work': total_regions_at_work
     }
