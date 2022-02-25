@@ -1,11 +1,10 @@
-import vtkImageMarchingCubes from '@kitware/vtk.js/Filters/General/ImageMarchingCubes';
 import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
-import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
 import { FieldDataTypes } from '@kitware/vtk.js/Common/DataModel/DataSet/Constants';
-import { AttributeTypes } from '@kitware/vtk.js/Common/DataModel/DataSetAttributes/Constants';
 
 import vtkCalculator from 'vtk/calculator';
+import vtkDiscreteFlyingEdges3D from 'vtk/discrete-flying-edges-3D';
+import { SliceHighlightVP, SliceHighlightFP } from 'vtk/shaders';
 import { Reds, Blues } from 'utils/colors';
 
 const regionFormula = label => (v => v === label ? 1 : 0);
@@ -14,15 +13,14 @@ const backgroundFormula = label => (v => v !== label && v !== 0 ? 1 : 0);
 export function Surface(type = 'background') {
   const maskCalculator = vtkCalculator.newInstance();
 
-  const marchingCubes = vtkImageMarchingCubes.newInstance({
-    contourValue: 1,
+  const flyingEdges = vtkDiscreteFlyingEdges3D.newInstance({
+    values: [1],
     computeNormals: true,
-    mergePoints: true
+    computeCoordinates: true
   });
-  marchingCubes.setInputConnection(maskCalculator.getOutputPort());
+  flyingEdges.setInputConnection(maskCalculator.getOutputPort());
 
-  let zCalculator = null;
-  let color = null;
+  let sliceCalculator = null;
   
   const mapper = vtkMapper.newInstance();
   
@@ -30,44 +28,29 @@ export function Surface(type = 'background') {
   actor.setMapper(mapper); 
 
   if (type === 'region') {
-    zCalculator = vtkCalculator.newInstance();
-    zCalculator.setFormula({
-      getArrays: () => ({
-        input: [
-          { location: FieldDataTypes.COORDINATE }
-        ],
-        output: [
-          {
-            location: FieldDataTypes.POINT,
-            name: 'z',
-            dataType: 'Float32Array',
-            attribute: AttributeTypes.SCALARS
-          }
-        ]}),
-      evaluate: (arraysIn, arraysOut) => {
-        const [coords] = arraysIn.map(d => d.getData());
-        const [slice] = arraysOut.map(d => d.getData());
-  
-        const n = coords.length / 3;
-        for (let i = 0; i < n; i++) {
-          slice[i] = coords[i * 3 + 2];
-        }
-  
-        arraysOut.forEach(array => array.modified());
-      }
-    });
-    zCalculator.setInputConnection(marchingCubes.getOutputPort());
+    sliceCalculator = vtkCalculator.newInstance();
+    sliceCalculator.setFormulaSimple(
+      FieldDataTypes.CELL,
+      ['Coordinates'],
+      'slice',
+      coordinate => coordinate[2]
+    );
+    sliceCalculator.setInputConnection(flyingEdges.getOutputPort());
 
-    color = vtkColorTransferFunction.newInstance();
+    mapper.setScalarVisibility(false);
+    mapper.setInputConnection(sliceCalculator.getOutputPort());
 
-    mapper.setUseLookupTableScalarRange(true);
-    mapper.setLookupTable(color);
-    mapper.setInputConnection(zCalculator.getOutputPort());
+    const mapperSpecificProp = mapper.getViewSpecificProperties();
+    mapperSpecificProp.OpenGL = {
+      VertexShaderCode: SliceHighlightVP,
+      FragmentShaderCode: SliceHighlightFP
+    };
 
-    actor.getProperty().setAmbient(0.2);
+    actor.getProperty().setColor(Reds[3]);
   }
   else {
-    mapper.setInputConnection(marchingCubes.getOutputPort());
+    mapper.setInputConnection(flyingEdges.getOutputPort());
+    mapper.setScalarVisibility(false);
 
     actor.getProperty().setDiffuseColor(Blues[2]);
     actor.getProperty().setAmbientColor(Blues[8]);
@@ -89,17 +72,36 @@ export function Surface(type = 'background') {
         value => formula(value)
       )
     },
-    setSlice: slice => {
-      const z = maskCalculator.getInputData().indexToWorld([0, 0, slice])[2];
+    setSlice: slice => {      
+      const input = maskCalculator.getInputData();
+      const z = input.indexToWorld([0, 0, slice])[2]; 
+      const sliceWidth = input.getSpacing()[2];
+      const borderWidth = sliceWidth / 8;      
 
-      const [r1, g1, b1] = Reds[5];
-      const [r2, g2, b2] = Reds[3];
-  
-      color.removeAllPoints();
-      color.addRGBPoint(0, r2, g2, b2);
-      color.addRGBPoint(z - 0.1, r2, g2, b2);
-      color.addRGBPoint(z, r1, g1, b1);
-      color.addRGBPoint(z + 0.1, r2, g2, b2);
+      mapper.getViewSpecificProperties().ShadersCallbacks = [
+        {
+          userData: [z, sliceWidth / 2, borderWidth, Reds[5], Reds[7]],
+          callback: ([z, halfWidth, borderWidth, color, borderColor], cellBO) => {
+            const cabo = cellBO.getCABO();
+            if (cabo.getCoordShiftAndScaleEnabled()) {
+              const scale = cabo.getCoordScale()[2];
+              const shift = cabo.getCoordShift()[2];
+
+              z -= shift;
+              z *= scale;
+              halfWidth *= scale;
+              borderWidth *= scale;
+            }
+
+            const program = cellBO.getProgram();
+            program.setUniformf('sliceMin', z - halfWidth);
+            program.setUniformf('sliceMax', z + halfWidth);
+            program.setUniformf('borderWidth', borderWidth);
+            program.setUniform3fArray('highlightColor', color);
+            program.setUniform3fArray('borderColor', borderColor);
+          }
+        }
+      ];
     },
     getOutput: () => {
       mapper.update();
@@ -110,11 +112,10 @@ export function Surface(type = 'background') {
 
       // Clean up anything we instantiated
       maskCalculator.delete();
-      marchingCubes.delete();
+      flyingEdges.delete();
       mapper.delete();
       actor.delete();
-      if (zCalculator) zCalculator.delete();
-      if (color) color.delete();
+      if (sliceCalculator) sliceCalculator.delete();
     }
   };
 }
