@@ -2,7 +2,8 @@ from girder.plugin import getPlugin, GirderPlugin
 from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.constants import AccessType
-from .utils import get_item_assignment, save_user_annotation
+from .utils import get_item_assignment, save_user_annotation_as_item, get_subvolume_item_ids, \
+    get_subvolume_item_info
 
 
 @access.public
@@ -12,7 +13,7 @@ from .utils import get_item_assignment, save_user_annotation
     .errorResponse()
     .errorResponse('Read access was denied on the user.', 403)
 )
-def getUserAssignInfo(user):
+def get_user_assign_info(user):
     return get_item_assignment(user)
 
 
@@ -35,8 +36,31 @@ def getUserAssignInfo(user):
     .errorResponse('Save action was denied on the user.', 403)
     .errorResponse('Failed to save user annotations', 500)
 )
-def saveUserAnnotation(user, item_id, done, reject, comment, content_data):
-    return save_user_annotation(user, item_id, done, reject, comment, content_data)
+def save_user_annotation(user, item_id, done, reject, comment, content_data):
+    return save_user_annotation_as_item(user, item_id, done, reject, comment, content_data)
+
+
+@access.public
+@autoDescribeRoute(
+    Description('Get subvolume item ids.')
+    .errorResponse()
+    .errorResponse('Get action was denied on the user.', 403)
+    .errorResponse('Failed to get subvolume ids', 500)
+)
+def get_subvolume_ids():
+    return get_subvolume_item_ids()
+
+
+@access.public
+@autoDescribeRoute(
+    Description('Get the specified subvolume item info.')
+    .modelParam('id', 'The item ID', model='item', level=AccessType.READ)
+    .errorResponse()
+    .errorResponse('Get action was denied on the user.', 403)
+    .errorResponse('Failed to get subvolume info', 500)
+)
+def get_subvolume_info(item):
+    return get_subvolume_item_info(item)
 
 
 class NinjatoPlugin(GirderPlugin):
@@ -47,5 +71,7 @@ class NinjatoPlugin(GirderPlugin):
         # add plugin loading logic here
         getPlugin('jobs').load(info)
         # attach API route to Girder
-        info['apiRoot'].user.route('GET', (':id', 'assignment'), getUserAssignInfo)
-        info['apiRoot'].user.route('POST', (':id', 'annotation'), saveUserAnnotation)
+        info['apiRoot'].user.route('GET', (':id', 'assignment'), get_user_assign_info)
+        info['apiRoot'].user.route('POST', (':id', 'annotation'), save_user_annotation)
+        info['apiRoot'].system.route('GET', ('subvolume_ids',), get_subvolume_ids)
+        info['apiRoot'].item.route('GET', (':id', 'subvolume_info'), get_subvolume_info)

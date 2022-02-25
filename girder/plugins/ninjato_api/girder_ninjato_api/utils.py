@@ -212,7 +212,7 @@ def get_item_assignment(user):
     }
 
 
-def save_user_annotation(user, item_id, done, reject, comment, content_data):
+def save_user_annotation_as_item(user, item_id, done, reject, comment, content_data):
     """
     Save user annotation to item with item_id
     :param user: user object who saves annotation
@@ -307,4 +307,51 @@ def save_user_annotation(user, item_id, done, reject, comment, content_data):
         'user_id': uid,
         'item_id': item_id,
         'annotation_file_id': file['_id']
+    }
+
+
+def get_subvolume_item_ids():
+    coll = Collection().findOne({'name': COLLECTION_NAME})
+    vol_folders = Folder().find({
+        'parentId': coll['_id'],
+        'parentCollection': 'collection'
+    })
+    ret_data = {'ids': []}
+    for vol_folder in vol_folders:
+        sub_vol_folders = Folder().find({
+            'parentId': vol_folder['_id'],
+            'parentCollection': 'folder'
+        })
+        for sub_vol_folder in sub_vol_folders:
+            folders = Folder().find({
+                'parentId': sub_vol_folder['_id'],
+                'parentCollection': 'folder'
+            })
+            for folder in folders:
+                whole_item = Item().findOne({'folderId': ObjectId(folder['_id']),
+                                             'name': 'whole'})
+                ret_data['ids'].append(whole_item['_id'])
+
+    return ret_data
+
+
+def get_subvolume_item_info(item):
+    item_id = item['_id']
+    region_dict = item['meta']['regions']
+    total_regions = len(region_dict)
+    total_regions_done = 0
+    total_regions_at_work = 0
+    for key, val in region_dict.items():
+        total_regions += 1
+        if 'user' in val:
+            if 'done' in val and val['done'] == 'true':
+                total_regions_done += 1
+            else:
+                total_regions_at_work += 1
+    return {
+        'item_id': item_id,
+        'item_description': item['description'],
+        'total_regions': total_regions,
+        'total_regions_done': total_regions_done,
+        'total_regions_at_work': total_regions_at_work
     }
