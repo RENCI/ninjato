@@ -2,41 +2,8 @@
 // but performs slice highlighting.
 
 export const SliceHighlightFP =
-  `#version 300 es
-  #define attribute in
-  #define textureCube texture
-  #define texture2D texture
-  #define textureCubeLod textureLod
-  #define texture2DLod textureLod
-  
-  
-  
-  
-  
-  #ifdef GL_FRAGMENT_PRECISION_HIGH
-  precision highp float;
-  precision highp int;
-  #else
-  precision mediump float;
-  precision mediump int;
-  #endif
-  
-  /*=========================================================================
-  
-    Program:   Visualization Toolkit
-    Module:    vtkPolyDataFS.glsl
-  
-    Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
-    All rights reserved.
-    See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
-  
-        This software is distributed WITHOUT ANY WARRANTY; without even
-        the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-        PURPOSE.  See the above copyright notice for more information.
-  
-  =========================================================================*/
-  // Template for the polydata mappers fragment shader
-  
+  `//VTK::System::Dec
+    
   uniform int PrimitiveIDOffset;
 
   // Slice highlighting
@@ -122,13 +89,13 @@ export const SliceHighlightFP =
     }
   
     // Generate the normal if we are not passed in one
-      fdx = normalize(fdx);
+    fdx = normalize(fdx);
     fdy = normalize(fdy);
     vec3 normalVCVSOutput = normalize(cross(fdx,fdy));
     if (cameraParallel == 1 && normalVCVSOutput.z < 0.0) { normalVCVSOutput = -1.0*normalVCVSOutput; }
     if (cameraParallel == 0 && dot(normalVCVSOutput,vertexVC.xyz) > 0.0) { normalVCVSOutput = -1.0*normalVCVSOutput; }
   
-      float df = max(0.0, normalVCVSOutput.z);
+    float df = max(0.0, normalVCVSOutput.z);
     float sf = pow(df, specularPower);
     vec3 diffuseL = df * diffuseColor;
     vec3 specularL = sf * specularColor;
