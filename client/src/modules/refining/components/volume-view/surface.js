@@ -138,6 +138,11 @@ export function Surface(type = 'background') {
     // Template for the polydata mappers fragment shader
     
     uniform int PrimitiveIDOffset;
+
+    // Slice highlighting
+    uniform float sliceMin;
+    uniform float sliceMax;
+    uniform vec3 highlightColor;
     
     // VC position of this fragment
     in vec4 vertexVCVSOutput;
@@ -196,8 +201,13 @@ export function Surface(type = 'background') {
       specularColor = specularColorUniform;
       specularPower = specularPowerUniform;
 
-      if (positionWC.z > 5.0 && normalWC.z > 0.95) {
-        diffuseColor = vec3(0.0, 1.0, 0.0);
+      const float epsilon = 0.001;
+      if (
+        (positionWC.z > sliceMin + epsilon && positionWC.z < sliceMax - epsilon) ||
+        (abs(positionWC.z - sliceMin) <= epsilon && normalWC.z < 0.0) || 
+        (abs(positionWC.z - sliceMax) <= epsilon && normalWC.z > 0.0)
+      ) {
+        diffuseColor = highlightColor;
       }
     
       // Generate the normal if we are not passed in one
@@ -249,15 +259,9 @@ export function Surface(type = 'background') {
     },
     setSlice: slice => {      
       const bounds = mapper.getInputData().getBounds();
-      const mid = (bounds[5] + bounds[4]) / 2;
-
       const input = maskCalculator.getInputData();
       let z = input.indexToWorld([0, 0, slice])[2]; 
-
-      // XXX: Maybe use normal in fragment shader to handle edge cases?
-
-      const e = 0.001;
-      const w = z < bounds[4] || z > bounds[5] ? 0 : input.getSpacing()[2] / 2 + e;
+      const w = input.getSpacing()[2] / 2;
 
       mapper.getViewSpecificProperties().ShadersCallbacks = [
         {
