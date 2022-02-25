@@ -1,8 +1,6 @@
 import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
-import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
 import { FieldDataTypes } from '@kitware/vtk.js/Common/DataModel/DataSet/Constants';
-import { AttributeTypes } from '@kitware/vtk.js/Common/DataModel/DataSetAttributes/Constants';
 
 import vtkCalculator from 'vtk/calculator';
 import vtkDiscreteFlyingEdges3D from 'vtk/discrete-flying-edges-3D';
@@ -142,7 +140,9 @@ export function Surface(type = 'background') {
     // Slice highlighting
     uniform float sliceMin;
     uniform float sliceMax;
+    uniform float borderWidth;
     uniform vec3 highlightColor;
+    uniform vec3 borderColor;
     
     // VC position of this fragment
     in vec4 vertexVCVSOutput;
@@ -201,13 +201,26 @@ export function Surface(type = 'background') {
       specularColor = specularColorUniform;
       specularPower = specularPowerUniform;
 
-      const float epsilon = 0.001;
+      const float epsilon = 0.00001;
+      float minDist = abs(positionWC.z - sliceMin);
+      float maxDist = abs(positionWC.z - sliceMax);
       if (
         (positionWC.z > sliceMin + epsilon && positionWC.z < sliceMax - epsilon) ||
-        (abs(positionWC.z - sliceMin) <= epsilon && normalWC.z < 0.0) || 
-        (abs(positionWC.z - sliceMax) <= epsilon && normalWC.z > 0.0)
+        (minDist <= epsilon && normalWC.z < 0.0) || (maxDist <= epsilon && normalWC.z > 0.0)
       ) {
-        diffuseColor = highlightColor;
+        if ((minDist >= epsilon && minDist <= borderWidth) || (maxDist >= epsilon && maxDist <= borderWidth)) {
+          //diffuseColor = vec3(0.4, 0.0, 0.0);
+
+          //minDist += borderWidth * 0.5;
+          //maxDist += borderWidth * 0.5;
+
+          float x = smoothstep(0.0, borderWidth, min(minDist, maxDist) * 0.2);
+
+          diffuseColor = mix(borderColor, highlightColor, x);
+        }
+        else {
+          diffuseColor = highlightColor;
+        }
       }
     
       // Generate the normal if we are not passed in one
@@ -258,22 +271,32 @@ export function Surface(type = 'background') {
       )
     },
     setSlice: slice => {      
-      const bounds = mapper.getInputData().getBounds();
       const input = maskCalculator.getInputData();
-      let z = input.indexToWorld([0, 0, slice])[2]; 
-      const w = input.getSpacing()[2] / 2;
+      const z = input.indexToWorld([0, 0, slice])[2]; 
+      const width = input.getSpacing()[2];
+      const borderWidth = width / 8;      
 
       mapper.getViewSpecificProperties().ShadersCallbacks = [
         {
-          userData: [z - w, z + w, Reds[5]],
-          callback: function(userData, cellBO) {
-            const program = cellBO.getProgram();
-            program.setUniformf('sliceMin', userData[0]);
-            program.setUniformf('sliceMax', userData[1]);
-            program.setUniform3fArray('highlightColor', userData[2]);
+          userData: [z, width / 2, borderWidth, Reds[5], Reds[7]],
+          callback: ([z, w, bw, c, bc], cellBO) => {
+            const cabo = cellBO.getCABO();
+            if (cabo.getCoordShiftAndScaleEnabled()) {
+              const scale = cabo.getCoordScale()[2];
+              const shift = cabo.getCoordShift()[2];
 
-            console.log(program.getVertexShader().getSource());
-            console.log(program.getFragmentShader().getSource());
+              z -= shift;
+              z *= scale;
+              w *= scale;
+              bw *= scale;
+            }
+
+            const program = cellBO.getProgram();
+            program.setUniformf('sliceMin', z - w);
+            program.setUniformf('sliceMax', z + w);
+            program.setUniformf('borderWidth', bw);
+            program.setUniform3fArray('highlightColor', c);
+            program.setUniform3fArray('borderColor', bc);
           }
         }
       ];
