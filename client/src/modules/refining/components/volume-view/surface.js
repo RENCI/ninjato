@@ -26,7 +26,6 @@ export function Surface(type = 'background') {
   
   const actor = vtkActor.newInstance();
   actor.setMapper(mapper); 
-  //actor.getProperty().setInterpolationToFlat();
 
   if (type === 'region') {
     sliceCalculator = vtkCalculator.newInstance();
@@ -42,7 +41,7 @@ export function Surface(type = 'background') {
     mapper.setInputConnection(sliceCalculator.getOutputPort());
 
     const mapperSpecificProp = mapper.getViewSpecificProperties();
-    mapperSpecificProp['OpenGL'] = {
+    mapperSpecificProp.OpenGL = {
       VertexShaderCode: SliceHighlightVP,
       FragmentShaderCode: SliceHighlightFP
     };
@@ -76,13 +75,13 @@ export function Surface(type = 'background') {
     setSlice: slice => {      
       const input = maskCalculator.getInputData();
       const z = input.indexToWorld([0, 0, slice])[2]; 
-      const width = input.getSpacing()[2];
-      const borderWidth = width / 8;      
+      const sliceWidth = input.getSpacing()[2];
+      const borderWidth = sliceWidth / 8;      
 
       mapper.getViewSpecificProperties().ShadersCallbacks = [
         {
-          userData: [z, width / 2, borderWidth, Reds[5], Reds[7]],
-          callback: ([z, w, bw, c, bc], cellBO) => {
+          userData: [z, sliceWidth / 2, borderWidth, Reds[5], Reds[7]],
+          callback: ([z, halfWidth, borderWidth, color, borderColor], cellBO) => {
             const cabo = cellBO.getCABO();
             if (cabo.getCoordShiftAndScaleEnabled()) {
               const scale = cabo.getCoordScale()[2];
@@ -90,16 +89,16 @@ export function Surface(type = 'background') {
 
               z -= shift;
               z *= scale;
-              w *= scale;
-              bw *= scale;
+              halfWidth *= scale;
+              borderWidth *= scale;
             }
 
             const program = cellBO.getProgram();
-            program.setUniformf('sliceMin', z - w);
-            program.setUniformf('sliceMax', z + w);
-            program.setUniformf('borderWidth', bw);
-            program.setUniform3fArray('highlightColor', c);
-            program.setUniform3fArray('borderColor', bc);
+            program.setUniformf('sliceMin', z - halfWidth);
+            program.setUniformf('sliceMax', z + halfWidth);
+            program.setUniformf('borderWidth', borderWidth);
+            program.setUniform3fArray('highlightColor', color);
+            program.setUniform3fArray('borderColor', borderColor);
           }
         }
       ];
