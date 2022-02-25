@@ -69,6 +69,11 @@ def get_buffered_extent(minx, maxx, miny, maxy, minz, maxz, xrange, yrange, zran
 
 
 def get_item_assignment(user):
+    if user['login'] == 'admin':
+        return {
+            'user_id': user['_id'],
+            'item_id': ''
+            }
     coll = Collection().findOne({'name': COLLECTION_NAME})
     vol_folders = Folder().find({
         'parentId': coll['_id'],
