@@ -27,7 +27,7 @@ export function Surface(type = 'background') {
   
   const actor = vtkActor.newInstance();
   actor.setMapper(mapper); 
-  actor.getProperty().setInterpolationToFlat();
+  //actor.getProperty().setInterpolationToFlat();
 
   if (type === 'region') {
     sliceCalculator = vtkCalculator.newInstance();
@@ -47,9 +47,24 @@ export function Surface(type = 'background') {
       VertexShaderCode: '',
       FragmentShaderCode: ''
     };
-    mapperSpecificProp['OpenGL']['VertexShaderCode'] =
-    `//VTK::System::Dec
 
+    mapperSpecificProp['OpenGL']['VertexShaderCode'] =
+    `#version 300 es
+    #define attribute in
+    #define textureCube texture
+    #define texture2D texture
+    #define textureCubeLod textureLod
+    #define texture2DLod textureLod
+    
+    
+    #ifdef GL_FRAGMENT_PRECISION_HIGH
+    precision highp float;
+    precision highp int;
+    #else
+    precision mediump float;
+    precision mediump int;
+    #endif
+    
     /*=========================================================================
     
       Program:   Visualization Toolkit
@@ -66,60 +81,46 @@ export function Surface(type = 'background') {
     =========================================================================*/
     
     attribute vec4 vertexMC;
+    out vec4 positionWC;
+
+    attribute vec3 normalMC;
+    out vec3 normalWC;
     
     // frag position in VC
-    //VTK::PositionVC::Dec
-
-    // frag position in WC
-    out vec4 positionWC;
-    
-    // optional normal declaration
-    //VTK::Normal::Dec
-    
-    // extra lighting parameters
-    //VTK::Light::Dec
-    
-    // Texture coordinates
-    //VTK::TCoord::Dec
-    
-    // material property values
-    //VTK::Color::Dec
-    
-    // clipping plane vars
-    //VTK::Clip::Dec
+    out vec4 vertexVCVSOutput;
     
     // camera and actor matrix values
-    //VTK::Camera::Dec
-    
-    // Apple Bug
-    //VTK::PrimID::Dec
-    
-    // picking support
-    //VTK::Picking::Dec
+    uniform mat4 MCPCMatrix;
+    uniform mat4 MCVCMatrix;
     
     void main()
     {
-      //VTK::Color::Impl
-    
-      //VTK::Normal::Impl
-    
-      //VTK::TCoord::Impl
-    
-      //VTK::Clip::Impl
-    
-      //VTK::PrimID::Impl
-    
-      //VTK::PositionVC::Impl
-    
-      //VTK::Light::Impl
-    
-      //VTK::Picking::Impl
+      vertexVCVSOutput = MCVCMatrix * vertexMC;
+      gl_Position = MCPCMatrix * vertexMC;
 
       positionWC = vertexMC;
+      normalWC = normalMC;
     }`;
     mapperSpecificProp['OpenGL']['FragmentShaderCode'] =
-    `//VTK::System::Dec
-
+    `#version 300 es
+    #define attribute in
+    #define textureCube texture
+    #define texture2D texture
+    #define textureCubeLod textureLod
+    #define texture2DLod textureLod
+    
+    
+    
+    
+    
+    #ifdef GL_FRAGMENT_PRECISION_HIGH
+    precision highp float;
+    precision highp int;
+    #else
+    precision mediump float;
+    precision mediump int;
+    #endif
+    
     /*=========================================================================
     
       Program:   Visualization Toolkit
@@ -137,94 +138,88 @@ export function Surface(type = 'background') {
     // Template for the polydata mappers fragment shader
     
     uniform int PrimitiveIDOffset;
-
-    uniform float sliceMin;
-    uniform float sliceMax;
-    uniform vec3 highlightColor;
     
     // VC position of this fragment
-    //VTK::PositionVC::Dec
+    in vec4 vertexVCVSOutput;
 
     in vec4 positionWC;
+    in vec3 normalWC;
     
     // optional color passed in from the vertex shader, vertexColor
-    //VTK::Color::Dec
+    uniform float ambient;
+    uniform float diffuse;
+    uniform float specular;
+    uniform float opacityUniform; // the fragment opacity
+    uniform vec3 ambientColorUniform;
+    uniform vec3 diffuseColorUniform;
+    uniform vec3 specularColorUniform;
+    uniform float specularPowerUniform;
     
     // optional surface normal declaration
-    //VTK::Normal::Dec
-    
-    // extra lighting parameters
-    //VTK::Light::Dec
-    
-    // Texture coordinates
-    //VTK::TCoord::Dec
+    uniform int cameraParallel;
     
     // picking support
-    //VTK::Picking::Dec
-    
-    // Depth Peeling Support
-    //VTK::DepthPeeling::Dec
-    
-    // clipping plane vars
-    //VTK::Clip::Dec
+    uniform vec3 mapperIndex;
+    uniform int picking;
     
     // the output of this shader
-    //VTK::Output::Dec
-    
-    // Apple Bug
-    //VTK::PrimID::Dec
+    layout(location = 0) out vec4 fragOutput0;
     
     // handle coincident offsets
-    //VTK::Coincident::Dec
-    
-    //VTK::ZBuffer::Dec
+    uniform float cfactor;
+    // XXX: HAD TO REMOVE THIS
+    //uniform float coffset;
     
     void main()
     {
       // VC position of this fragment. This should not branch/return/discard.
-      //VTK::PositionVC::Impl
+      vec4 vertexVC = vertexVCVSOutput;
     
       // Place any calls that require uniform flow (e.g. dFdx) here.
-      //VTK::UniformFlow::Impl
+        vec3 fdx = dFdx(vertexVC.xyz);
+      vec3 fdy = dFdy(vertexVC.xyz);
+      float cscale = length(vec2(dFdx(gl_FragCoord.z),dFdy(gl_FragCoord.z)));
     
       // Set gl_FragDepth here (gl_FragCoord.z by default)
-      //VTK::Depth::Impl
+      // XXX: HAD TO REMOVE coffset
+      //gl_FragDepth = gl_FragCoord.z + cfactor*cscale + 0.000016*coffset;
+      gl_FragDepth = gl_FragCoord.z + cfactor*cscale + 0.000016;
     
-      // Early depth peeling abort:
-      //VTK::DepthPeeling::PreColor
-    
-      // Apple Bug
-      //VTK::PrimID::Impl
-    
-      //VTK::Clip::Impl
-    
-      //VTK::Color::Impl
+      vec3 ambientColor;
+      vec3 diffuseColor;
+      float opacity;
+      vec3 specularColor;
+      float specularPower;
+      ambientColor = ambientColorUniform;
+      diffuseColor = diffuseColorUniform;
+      opacity = opacityUniform;
+      specularColor = specularColorUniform;
+      specularPower = specularPowerUniform;
 
-      if (positionWC.z >= sliceMin && positionWC.z <= sliceMax) {
-        diffuseColor = highlightColor;
+      if (positionWC.z > 5.0 && normalWC.z > 0.95) {
+        diffuseColor = vec3(0.0, 1.0, 0.0);
       }
     
       // Generate the normal if we are not passed in one
-      //VTK::Normal::Impl
+        fdx = normalize(fdx);
+      fdy = normalize(fdy);
+      vec3 normalVCVSOutput = normalize(cross(fdx,fdy));
+      if (cameraParallel == 1 && normalVCVSOutput.z < 0.0) { normalVCVSOutput = -1.0*normalVCVSOutput; }
+      if (cameraParallel == 0 && dot(normalVCVSOutput,vertexVC.xyz) > 0.0) { normalVCVSOutput = -1.0*normalVCVSOutput; }
     
-      //VTK::TCoord::Impl
+        float df = max(0.0, normalVCVSOutput.z);
+      float sf = pow(df, specularPower);
+      vec3 diffuseL = df * diffuseColor;
+      vec3 specularL = sf * specularColor;
+      fragOutput0 = vec4(ambientColor * ambient + diffuseL * diffuse + specularL * specular, opacity);
     
-      //VTK::Light::Impl
-    
-      if (gl_FragData[0].a <= 0.0)
+      if (fragOutput0.a <= 0.0)
         {
         discard;
         }
     
-      //VTK::DepthPeeling::Impl
-    
-      //VTK::Picking::Impl
-    
-      // handle coincident offsets
-      //VTK::Coincident::Impl
-    
-      //VTK::ZBuffer::Impl
-    }`;
+        fragOutput0 = picking != 0 ? vec4(mapperIndex,1.0) : fragOutput0;
+    }`; 
 
     actor.getProperty().setColor(Reds[3]);
   }
@@ -272,6 +267,9 @@ export function Surface(type = 'background') {
             program.setUniformf('sliceMin', userData[0]);
             program.setUniformf('sliceMax', userData[1]);
             program.setUniform3fArray('highlightColor', userData[2]);
+
+            console.log(program.getVertexShader().getSource());
+            console.log(program.getFragmentShader().getSource());
           }
         }
       ];
