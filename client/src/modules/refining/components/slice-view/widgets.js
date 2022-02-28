@@ -86,7 +86,7 @@ export function Widgets(painter, onEdit) {
     setImageData: imageData => {
       floodWidget.setImageData(imageData);
       eraseWidget.setImageData(imageData);
-      cropWidget.setImageData(imageData);
+//      cropWidget.setImageData(imageData);
     },
     setEditMode: editMode => {
       manager.grabFocus(

@@ -1,11 +1,19 @@
 import macro from '@kitware/vtk.js/macros';
-import vtkAbstractWidgetFactory from '@kitware/vtk.js/Widgets/Core/AbstractWidgetFactory';
 import vtkPlanePointManipulator from '@kitware/vtk.js/Widgets/Manipulators/PlaneManipulator';
+import vtkShapeWidget from '@kitware/vtk.js/Widgets/Widgets3D/ShapeWidget';
+import vtkSphereHandleRepresentation from '@kitware/vtk.js/Widgets/Representations/SphereHandleRepresentation';
 import vtkRectangleContextRepresentation from '@kitware/vtk.js/Widgets/Representations/RectangleContextRepresentation';
-import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
+import vtkSVGLandmarkRepresentation from '@kitware/vtk.js/Widgets/SVG/SVGLandmarkRepresentation';
 
 import widgetBehavior from './behavior';
 import stateGenerator from './state';
+
+import {
+  BehaviorCategory,
+  ShapeBehavior,
+} from '@kitware/vtk.js/Widgets/Widgets3D/ShapeWidget/Constants';
+
+import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
 // ----------------------------------------------------------------------------
 // Factory
@@ -14,10 +22,19 @@ import stateGenerator from './state';
 function vtkCropWidget(publicAPI, model) {
   model.classHierarchy.push('vtkCropWidget');
 
-  // --- Widget Requirement ---------------------------------------------------
-  model.behavior = widgetBehavior;
-  model.widgetState = stateGenerator();
+  model.methodsToLink = [
+    ...model.methodsToLink,
+    'activeScaleFactor',
+    'activeColor',
+    'useActiveColor',
+    'drawBorder',
+    'drawFace',
+    'opacity',
+  ];
 
+  // --- Widget Requirement ---------------------------------------------------
+
+  model.behavior = widgetBehavior;
   publicAPI.getRepresentationsForViewType = (viewType) => {
     switch (viewType) {
       case ViewTypes.DEFAULT:
@@ -27,36 +44,66 @@ function vtkCropWidget(publicAPI, model) {
       default:
         return [
           {
+            builder: vtkSphereHandleRepresentation,
+            labels: ['moveHandle'],
+            initialValues: {
+              scaleInPixels: true,
+            },
+          },
+          {
             builder: vtkRectangleContextRepresentation,
-            labels: ['handle'],
+            labels: ['rectangleHandle'],
+          },
+          {
+            builder: vtkSVGLandmarkRepresentation,
+            initialValues: {
+              showCircle: false,
+              text: '',
+            },
+            labels: ['SVGtext'],
           },
         ];
     }
   };
-  // --- Widget Requirement ---------------------------------------------------
 
-  const handle = model.widgetState.getHandle();
+  // --------------------------------------------------------------------------
+  // initialization
+  // --------------------------------------------------------------------------
 
   // Default manipulator
   model.manipulator = vtkPlanePointManipulator.newInstance();
-  handle.setManipulator(model.manipulator);
-} 
+  model.widgetState = stateGenerator();
+}
 
 // ----------------------------------------------------------------------------
 
-const DEFAULT_VALUES = {
-  manipulator: null,
-  imageData: null,
-};
+function defaultValues(initalValues) {
+  return {
+    modifierBehavior: {
+      None: {
+        [BehaviorCategory.PLACEMENT]:
+          ShapeBehavior[BehaviorCategory.PLACEMENT].CLICK_AND_DRAG,
+        [BehaviorCategory.POINTS]:
+          ShapeBehavior[BehaviorCategory.POINTS].CORNER_TO_CORNER,
+        [BehaviorCategory.RATIO]: ShapeBehavior[BehaviorCategory.RATIO].FREE,
+      },
+      Shift: {
+        [BehaviorCategory.RATIO]: ShapeBehavior[BehaviorCategory.RATIO].FIXED,
+      },
+      Control: {
+        [BehaviorCategory.POINTS]:
+          ShapeBehavior[BehaviorCategory.POINTS].CENTER_TO_CORNER,
+      },
+    },
+    ...initalValues,
+  };
+}
 
 // ----------------------------------------------------------------------------
 
 export function extend(publicAPI, model, initialValues = {}) {
-  Object.assign(model, DEFAULT_VALUES, initialValues);
-
-  vtkAbstractWidgetFactory.extend(publicAPI, model, initialValues);
-
-  macro.setGet(publicAPI, model, ['manipulator', 'imageData']);
+  vtkShapeWidget.extend(publicAPI, model, defaultValues(initialValues));
+  macro.setGet(publicAPI, model, ['manipulator', 'widgetState']);
 
   vtkCropWidget(publicAPI, model);
 }
@@ -67,5 +114,4 @@ export const newInstance = macro.newInstance(extend, 'vtkCropWidget');
 
 // ----------------------------------------------------------------------------
 
-// eslint-disable-next-line import/no-anonymous-default-export
 export default { newInstance, extend };
