@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from libtiff import TIFF
 import numpy as np
 from girder.models.item import Item
@@ -143,67 +144,77 @@ def get_item_assignment(user):
                 for key, val in whole_item['meta']['regions'].items():
                     if 'done' in val and val['done'] == 'true':
                         continue
-                    if 'rejected_by' in val and val['rejected_by'] == str(user['_id']):
+                    if 'rejected_by' in val and val['rejected_by'].split()[0] == str(user['_id']):
                         continue
                     if 'user' not in val:
                         # this region can be assigned to a user
                         val['user'] = user['_id']
-                        # create an item for this selected region
-                        min_x, max_x, min_y, max_y, min_z, max_z = get_buffered_extent(
-                            val['x_min'], val['x_max'], val['y_min'], val['y_max'],
-                            val['z_min'], val['z_max'], x_range, y_range, z_range
-                        )
-                        admin_user = User().getAdmins()[0]
-                        region_item = Item().createItem(
-                            f'region{key}',
-                            creator=admin_user,
-                            folder=folder,
-                            description=f'region{key} of the partition')
-                        val['item_id'] = region_item['_id']
-                        item_files = File().find({'itemId': whole_item['_id']})
-                        for item_file in item_files:
-                            file_res_path = path_util.getResourcePath('file',
-                                                                      item_file,
-                                                                      force=True)
-                            file = File().load(item_file['_id'], force=True)
-                            file_path = File().getLocalFilePath(file)
-                            assetstore_id = item_file['assetstoreId']
-                            tif = TIFF.open(file_path, mode="r")
-                            file_name = os.path.basename(file_res_path)
-                            file_base_name, file_ext = os.path.splitext(file_name)
-                            out_dir_path = os.path.join(DATA_PATH, str(region_item['_id']))
-                            out_path = os.path.join(out_dir_path,
-                                                    f'{file_base_name}_region_{key}{file_ext}')
-                            if not os.path.isdir(out_dir_path):
-                                os.makedirs(out_dir_path)
+                        val['assigned_to'] = f'{user["login"]} at ' \
+                                             f'{datetime.now().strftime("%m/%d/%Y %H:%M")}'
+                        if 'rejected_by' in val:
+                            # no need to create an item for this selected region since it already
+                            # exists
+                            region_item = Item().findOne({'folderId': ObjectId(folder['_id']),
+                                                          'name': f'region{key}'})
+                            add_meta = {'user': user['_id']}
+                            Item().setMetadata(region_item, add_meta)
+                        else:
+                            # create an item for this selected region
+                            min_x, max_x, min_y, max_y, min_z, max_z = get_buffered_extent(
+                                val['x_min'], val['x_max'], val['y_min'], val['y_max'],
+                                val['z_min'], val['z_max'], x_range, y_range, z_range
+                            )
+                            admin_user = User().getAdmins()[0]
+                            region_item = Item().createItem(
+                                f'region{key}',
+                                creator=admin_user,
+                                folder=folder,
+                                description=f'region{key} of the partition')
+                            val['item_id'] = region_item['_id']
+                            item_files = File().find({'itemId': whole_item['_id']})
+                            for item_file in item_files:
+                                file_res_path = path_util.getResourcePath('file',
+                                                                          item_file,
+                                                                          force=True)
+                                file = File().load(item_file['_id'], force=True)
+                                file_path = File().getLocalFilePath(file)
+                                assetstore_id = item_file['assetstoreId']
+                                tif = TIFF.open(file_path, mode="r")
+                                file_name = os.path.basename(file_res_path)
+                                file_base_name, file_ext = os.path.splitext(file_name)
+                                out_dir_path = os.path.join(DATA_PATH, str(region_item['_id']))
+                                out_path = os.path.join(out_dir_path,
+                                                        f'{file_base_name}_region_{key}{file_ext}')
+                                if not os.path.isdir(out_dir_path):
+                                    os.makedirs(out_dir_path)
 
-                            output_tif = TIFF.open(out_path, mode="w")
-                            counter = 0
-                            for image in tif.iter_images():
-                                if counter >= min_z and counter <= max_z:
-                                    img = np.copy(image[min_y:max_y + 1, min_x:max_x + 1])
-                                    output_tif.write_image(img)
-                                if counter > max_z:
-                                    break
-                                counter += 1
-                            save_file(assetstore_id, region_item, out_path, admin_user,
-                                      f'{file_base_name}_region_{key}{file_ext}')
+                                output_tif = TIFF.open(out_path, mode="w")
+                                counter = 0
+                                for image in tif.iter_images():
+                                    if counter >= min_z and counter <= max_z:
+                                        img = np.copy(image[min_y:max_y + 1, min_x:max_x + 1])
+                                        output_tif.write_image(img)
+                                    if counter > max_z:
+                                        break
+                                    counter += 1
+                                save_file(assetstore_id, region_item, out_path, admin_user,
+                                          f'{file_base_name}_region_{key}{file_ext}')
+                                add_meta = {
+                                    'coordinates': {
+                                        "x_max": max_x,
+                                        "x_min": min_x,
+                                        "y_max": max_y,
+                                        "y_min": min_y,
+                                        "z_max": max_z,
+                                        "z_min": min_z
+                                    },
+                                    'user': user['_id'],
+                                    'region_label': key
+                                }
+                                Item().setMetadata(region_item, add_meta)
 
                         add_meta = {str(user['_id']): str(region_item['_id'])}
                         Item().setMetadata(whole_item, add_meta)
-                        add_meta = {
-                            'coordinates': {
-                                "x_max": max_x,
-                                "x_min": min_x,
-                                "y_max": max_y,
-                                "y_min": min_y,
-                                "z_max": max_z,
-                                "z_min": min_z
-                            },
-                            'user': user['_id'],
-                            'region_label': key
-                        }
-                        Item().setMetadata(region_item, add_meta)
                         return {
                             'user_id': user['_id'],
                             'item_id': region_item['_id'],
@@ -244,14 +255,19 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, content_d
             if file['name'].endswith(f'{uname}.tif'):
                 File().remove(file)
                 break
-        whole_item['meta']['regions'][region_label]['rejected_by'] = str(uid)
+        whole_item['meta']['regions'][region_label]['rejected_by'] = \
+            f'{uname} at {datetime.now().strftime("%m/%d/%Y %H:%M")}'
+        if comment:
+            whole_item['meta']['regions'][region_label]['rejected_comment'] = comment
+
         Item().save(whole_item)
         return {
             'user_id': uid,
             'item_id': item_id
         }
     if done:
-        add_meta = {'done': 'true'}
+        add_meta = {'done': 'true',
+                    'completed_by': f'{uname} at {datetime.now().strftime("%m/%d/%Y %H:%M")}'}
         Item().setMetadata(item, add_meta)
     else:
         add_meta = {'done': 'false'}
