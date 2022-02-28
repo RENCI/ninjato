@@ -144,7 +144,7 @@ def get_item_assignment(user):
                 for key, val in whole_item['meta']['regions'].items():
                     if 'done' in val and val['done'] == 'true':
                         continue
-                    if 'rejected_by' in val and val['rejected_by'].split()[0] == str(user['_id']):
+                    if 'rejected_by' in val and val['rejected_by'].split()[0] == str(user['login']):
                         continue
                     if 'user' not in val:
                         # this region can be assigned to a user
@@ -242,11 +242,11 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, content_d
     uid = user['_id']
     uname = user['login']
     item = Item().findOne({'_id': ObjectId(item_id)})
+    whole_item = Item().findOne({'folderId': ObjectId(item['folderId']),
+                                 'name': 'whole'})
     if reject:
         # reject the annotation
         Item().deleteMetadata(item, ['user'])
-        whole_item = Item().findOne({'folderId': ObjectId(item['folderId']),
-                                     'name': 'whole'})
         Item().deleteMetadata(whole_item, [str(uid)])
         region_label = item['meta']['region_label']
         del whole_item['meta']['regions'][region_label]["user"]
@@ -266,8 +266,7 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, content_d
             'item_id': item_id
         }
     if done:
-        add_meta = {'done': 'true',
-                    'completed_by': f'{uname} at {datetime.now().strftime("%m/%d/%Y %H:%M")}'}
+        add_meta = {'done': 'true'}
         Item().setMetadata(item, add_meta)
     else:
         add_meta = {'done': 'false'}
@@ -303,8 +302,6 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, content_d
 
     if done:
         # check if all regions for the partition is done, and if so add done metadata to whole item
-        whole_item = Item().findOne({'folderId': ObjectId(item['folderId']),
-                                     'name': 'whole'})
         del whole_item['meta'][str(uid)]
         whole_item = Item().save(whole_item)
         partition_done = True
@@ -315,6 +312,8 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, content_d
                 break
             if 'item_id' in val and str(val['item_id']) == item_id:
                 whole_item['meta']['regions'][key]['done'] = 'true'
+                whole_item['meta']['regions'][key]['completed_by'] = \
+                    f'{uname} at {datetime.now().strftime("%m/%d/%Y %H:%M")}'
                 whole_item = Item().save(whole_item)
                 continue
             if 'done' not in val or val['done'] != 'true':
