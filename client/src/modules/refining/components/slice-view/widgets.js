@@ -58,11 +58,12 @@ export function Widgets(painter, onEdit) {
       });
 
       cropHandle.onStartInteractionEvent(() => {
-        console.log("SUP");
+        painter.startStroke();
       });
 
       cropHandle.onEndInteractionEvent(async () => {
-        console.log("YO");
+        console.log(cropHandle.getBounds());
+        console.log(cropHandle.getRepresentations()[0]);
       });
     },
     update: (position, spacing) => {
@@ -86,7 +87,7 @@ export function Widgets(painter, onEdit) {
     setImageData: imageData => {
       floodWidget.setImageData(imageData);
       eraseWidget.setImageData(imageData);
-//      cropWidget.setImageData(imageData);
+      cropWidget.setImageData(imageData);
     },
     setEditMode: editMode => {
       manager.grabFocus(
