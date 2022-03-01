@@ -6,10 +6,10 @@ import vtkImageSlice from '@kitware/vtk.js/Rendering/Core/ImageSlice';
 const sliceMode = vtkImageMapper.SlicingMode.K;
 
 export function Image() {
-  let mapper = vtkImageMapper.newInstance();
+  const mapper = vtkImageMapper.newInstance();
   mapper.setSlicingMode(sliceMode);
 
-  let actor = vtkImageSlice.newInstance();
+  const actor = vtkImageSlice.newInstance();
   actor.getProperty().setInterpolationTypeToNearest();
   actor.setMapper(mapper);
 
@@ -18,6 +18,10 @@ export function Image() {
     getMapper: () => mapper,
     setInputData: data => {
       mapper.setInputData(data);
+    },
+    toggleInterpolation: () => {
+      const type = actor.getProperty().getInterpolationType();
+      actor.getProperty().setInterpolationType(type === 0 ? 1 : 0);
     },
     cleanUp: () => {
       console.log("Clean up image");
