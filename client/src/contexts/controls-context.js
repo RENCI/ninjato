@@ -8,7 +8,8 @@ const getCursor = (file, x, y) => `url(/cursors/${ file }) ${ x } ${ y }, auto`;
 
 const editModes = [
   { value: 'paint', icon: 'paint brush', cursor: getCursor('paint-brush.png', 11, 23) },
-  { value: 'erase', icon: 'eraser', cursor: getCursor('eraser.png', 12, 22) }
+  { value: 'erase', icon: 'eraser', cursor: getCursor('eraser.png', 12, 22) },
+  { value: 'crop', icon: 'crop', cursor: getCursor('crop.png', 11, 21) }
 ];
 
 const brushes = [

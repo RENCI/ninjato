@@ -211,6 +211,26 @@ function vtkNinjatoPainter(publicAPI, model) {
     }
   };
 
+  publicAPI.crop = (p1, p2) => {
+    const ijk1 = [0, 0, 0];
+    vec3.transformMat4(ijk1, p1, model.maskWorldToIndex);
+    const ijk2 = [0, 0, 0];
+    vec3.transformMat4(ijk2, p2, model.maskWorldToIndex);
+
+    ijk1[0] = Math.ceil(ijk1[0]);
+    ijk1[1] = Math.ceil(ijk1[1]);
+    ijk1[2] = Math.ceil(ijk1[2]);
+
+    ijk2[0] = Math.floor(ijk2[0]);
+    ijk2[1] = Math.floor(ijk2[1]);
+    ijk2[2] = Math.floor(ijk2[2]);
+
+    workerPromise.exec('crop', {
+      p1: ijk1,
+      p2: ijk2
+    });
+  };
+
   // --------------------------------------------------------------------------
 
   publicAPI.applyLabelMap = (labelMap) => {

@@ -25,19 +25,31 @@ export const RefiningControls = ({ sliceView, canUndo, canRedo }) => {
     <ControlBar>
       <Group vertical>
         { editModes.map(({ value, icon }, i) => (
-          <Button             
-            as='div'
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flex: '1 1 auto' }}
-            key={ i }
-            toggle
-            icon
-            compact
-            color={ value === editMode ? 'grey' : null }
-            onClick={ () => onModeClick(value) } 
-          >
-            <div style={{ marginRight: '.5rem', marginLeft: '.5rem' }}><Icon name={ icon } fitted /></div>
-            <div><BrushOptions which={ value }/></div>
-          </Button>
+          value === 'paint' || value === 'erase' ?
+            <Button             
+              as='div'
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flex: '1 1 auto' }}
+              key={ i }
+              toggle
+              icon
+              compact
+              color={ value === editMode ? 'grey' : null }
+              onClick={ () => onModeClick(value) } 
+            >
+              <div style={{ marginRight: '.5rem', marginLeft: '.5rem' }}>
+                <Icon name={ icon } fitted />
+              </div>
+              <div>
+                <BrushOptions which={ value }/>
+              </div>
+            </Button>
+          :
+            <Button
+              key={ i }
+              icon={ icon }
+              color={ value === editMode ? 'grey' : null }
+              onClick={ () => onModeClick(value) }              
+            />
         ))}    
       </Group>
       <Group vertical>

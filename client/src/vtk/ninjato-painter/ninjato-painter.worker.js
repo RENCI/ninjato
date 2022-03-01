@@ -189,6 +189,24 @@ function handleErase({ pointList, brush }) {
   });
 }
 
+function handleCrop({ p1, p2 }) {
+  const xStart = p1[0];
+  const xStop = p2[0];
+  const yStart = p1[1];
+  const yStop = p2[1];
+  const z = p1[2];
+
+  const yStride = globals.dimensions[0];
+  const zStride = globals.dimensions[0] * globals.dimensions[1];
+
+  for (let i = xStart; i <= xStop; i++) {
+    for (let j = yStart; j <= yStop; j++) {
+      const index = i + j * yStride + z * zStride;
+      globals.buffer[index] = 1;
+    }
+  }
+};
+
 // --------------------------------------------------------------------------
 
 registerWebworker()
@@ -204,6 +222,7 @@ registerWebworker()
   })
   .operation('paintFloodFill', handlePaintFloodFill)
   .operation('erase', handleErase)
+  .operation('crop', handleCrop)
   .operation('end', () => {
     const response = new registerWebworker.TransferableResponse(
       globals.buffer.buffer,
