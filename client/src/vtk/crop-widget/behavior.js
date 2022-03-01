@@ -74,9 +74,12 @@ export default function widgetBehavior(publicAPI, model) {
             );
           }
 
+          const o = model.handle.getOrigin();
+          const c = model.handle.getCorner();
+
           model.handle.setCorner(
-            worldCoords[0] + dx, 
-            worldCoords[1] + dy, 
+            worldCoords[0] + (c[0] >= o[0] ? dx : -dx), 
+            worldCoords[1] + (c[1] >= o[1] ? dy : -dy), 
             worldCoords[2]
           );
         }

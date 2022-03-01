@@ -62,8 +62,19 @@ export function Widgets(painter, onEdit) {
       });
 
       cropHandle.onEndInteractionEvent(async () => {
-        console.log(cropHandle.getBounds());
-        console.log(cropHandle.getRepresentations()[0]);
+        const handle = cropHandle.getWidgetState().getState().handle;
+        const x = [handle.origin[0], handle.corner[0]].sort((a, b) => a - b);
+        const y = [handle.origin[1], handle.corner[1]].sort((a, b) => a - b);
+        const z = handle.origin[2];
+
+        painter.crop(
+          [x[0], y[0], z],
+          [x[1], y[1], z]
+        );
+
+        await painter.endStroke(true);
+
+        onEdit();
       });
     },
     update: (position, spacing) => {
