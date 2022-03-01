@@ -1,8 +1,8 @@
 .splitButton {
-  display: flex;
+  display: flex !important;
   align-items: center;
   justify-content: space-between;
-  flex: 1 1 auto;
+  flex: 1 1 auto !important;
 }
 
 .iconDiv {
