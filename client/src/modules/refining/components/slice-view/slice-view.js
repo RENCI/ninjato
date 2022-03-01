@@ -109,7 +109,9 @@ export function SliceView(onEdit, onSliceChange) {
 
       interactor.setInteractorStyle(interactorStyle);
 
-      interactor.onKeyDown(onKeyDown);
+      interactor.onKeyDown(evt => (
+        evt.key === 'i' ? image.toggleInterpolation() : onKeyDown(evt)
+      ));
       interactor.onKeyUp(onKeyUp);
 
       widgets.setRenderer(renderer);
