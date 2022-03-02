@@ -9,7 +9,7 @@ import { SliceControls } from 'modules/refining/components/slice-controls';
 import { SliceSlider } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
 
-const { Row, Column } = Grid;
+const { Column } = Grid;
 
 export const RefiningContainer = () => {
   const [{ imageData }] = useContext(DataContext);
