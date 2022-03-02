@@ -3,7 +3,7 @@ import { Button } from 'semantic-ui-react';
 import { ControlsContext, SET_SHOW_BACKGROUND } from 'contexts';
 import { ControlBar } from 'modules/common/components/control-bar';
 
-export const VolumeControls = ({  }) => {
+export const VolumeControls = () => {
   const [{ showBackground }, dispatch] = useContext(ControlsContext);
 
   const onShowBackgroundClick = () => {
