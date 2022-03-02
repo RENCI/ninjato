@@ -5,6 +5,16 @@
   align-items: stretch;
 }
 
+@media only screen and (max-width: 767px) {
+  .controlBar:last-child {
+    margin-top: 1rem;
+  }
+
+  .controlBar:first-child {
+    margin-bottom: 1rem;
+  }
+}
+
 @media only screen and (min-width: 768px) {
   .controlBar:last-child {
     padding-left: 0 !important;
