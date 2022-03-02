@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { Button, Icon} from 'semantic-ui-react';
+import { Button } from 'semantic-ui-react';
 import { ControlsContext, SET_EDIT_MODE } from 'contexts';
 import { ControlBar } from 'modules/common/components/control-bar';
 import { SplitButton } from 'modules/common/components/split-button';
@@ -7,7 +7,7 @@ import { BrushOptions } from './brush-options';
 
 const { Group } = Button;
 
-export const RefiningControls = ({ sliceView, canUndo, canRedo }) => {
+export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
   const [{ editModes, editMode }, dispatch] = useContext(ControlsContext);
 
   const onModeClick = value => {
