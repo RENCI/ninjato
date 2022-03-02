@@ -47,11 +47,13 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
       <Group vertical>
         <Button
           icon='undo alternate'
+          compact
           disabled={ !canUndo }
           onClick={ onUndoClick }
         />
         <Button
           icon='redo alternate'
+          compact
           disabled={ !canRedo }
           onClick={ onRedoClick }
         />

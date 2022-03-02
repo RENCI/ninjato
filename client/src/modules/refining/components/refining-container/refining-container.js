@@ -4,6 +4,7 @@ import { DataContext } from 'contexts/data-context';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
 import { VolumeViewWrapper, VolumeView } from 'modules/refining/components/volume-view';
 import { SliceViewWrapper, SliceView } from 'modules/refining/components/slice-view';
+import { VolumeControls } from 'modules/refining/components/volume-controls';
 import { SliceControls } from 'modules/refining/components/slice-controls';
 import { SliceSlider } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
@@ -48,6 +49,9 @@ export const RefiningContainer = () => {
     <div className='cursorTest' > 
       <VisualizationLoader loading={ loading } />
       <Grid columns='equal' verticalAlign='middle' padded stackable reversed='mobile'>
+        { !loading && 
+          <VolumeControls />
+        }
         <Column>
           <VisualizationSection>
             <Grid columns='equal' stackable reversed='mobile'>              

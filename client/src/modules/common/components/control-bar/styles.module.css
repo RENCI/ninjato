@@ -1,9 +1,16 @@
 .controlBar {
-  padding-left: 0 !important;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: stretch;
+}
+
+.controlBar:last-child {
+  padding-left: 0 !important;
+}
+
+.controlBar:first-child {
+  padding-right: 0 !important;
 }
 
 .controlBar > *:not(:last-child) {
