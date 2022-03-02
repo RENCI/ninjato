@@ -54,23 +54,21 @@ export const RefiningContainer = () => {
         }
         <Column>
           <VisualizationSection>
-            <Grid columns='equal' stackable reversed='mobile'>              
-              <Row>
-                <Column>
-                  <VolumeViewWrapper volumeView={ volumeView.current } onLoaded={ onLoaded } />
-                </Column>
-                <Column>
-                  <SliceViewWrapper sliceView={ sliceView.current } />
-                </Column>                  
-                  { !loading &&
-                    <SliceSlider 
-                      value={ slice } 
-                      min={ 0 }
-                      max={ numSlices - 1 }
-                      onChange={ onSliderChange } 
-                    />
-                  }
-              </Row>
+            <Grid columns='equal' stackable padded reversed='mobile'>
+              <Column>
+                <VolumeViewWrapper volumeView={ volumeView.current } onLoaded={ onLoaded } />
+              </Column>
+              <Column>
+                <SliceViewWrapper sliceView={ sliceView.current } />
+              </Column>                  
+                { !loading &&
+                  <SliceSlider 
+                    value={ slice } 
+                    min={ 0 }
+                    max={ numSlices - 1 }
+                    onChange={ onSliderChange } 
+                  />
+                }
             </Grid>            
           </VisualizationSection>
         </Column>
