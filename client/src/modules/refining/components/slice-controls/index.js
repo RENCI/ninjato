@@ -1,1 +1,1 @@
-export * from './refining-controls';
+export * from './slice-controls';
