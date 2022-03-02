@@ -1,12 +1,13 @@
 import { useContext } from 'react';
-import { Button, Icon} from 'semantic-ui-react';
+import { Button } from 'semantic-ui-react';
 import { ControlsContext, SET_EDIT_MODE } from 'contexts';
 import { ControlBar } from 'modules/common/components/control-bar';
+import { SplitButton } from 'modules/common/components/split-button';
 import { BrushOptions } from './brush-options';
 
 const { Group } = Button;
 
-export const RefiningControls = ({ sliceView, canUndo, canRedo }) => {
+export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
   const [{ editModes, editMode }, dispatch] = useContext(ControlsContext);
 
   const onModeClick = value => {
@@ -26,23 +27,14 @@ export const RefiningControls = ({ sliceView, canUndo, canRedo }) => {
       <Group vertical>
         { editModes.map(({ value, icon }, i) => (
           value === 'paint' || value === 'erase' ?
-            <Button             
-              as='div'
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flex: '1 1 auto' }}
+            <SplitButton
               key={ i }
-              toggle
-              icon
-              compact
-              color={ value === editMode ? 'grey' : null }
-              onClick={ () => onModeClick(value) } 
-            >
-              <div style={{ marginRight: '.5rem', marginLeft: '.5rem' }}>
-                <Icon name={ icon } fitted />
-              </div>
-              <div>
-                <BrushOptions which={ value }/>
-              </div>
-            </Button>
+              toggle={ true }
+              icon={ icon }
+              active={ value === editMode }
+              content={ <BrushOptions which={ value } /> }
+              onClick={ () => onModeClick(value )}
+            />
           :
             <Button
               key={ i }
@@ -55,11 +47,13 @@ export const RefiningControls = ({ sliceView, canUndo, canRedo }) => {
       <Group vertical>
         <Button
           icon='undo alternate'
+          compact
           disabled={ !canUndo }
           onClick={ onUndoClick }
         />
         <Button
           icon='redo alternate'
+          compact
           disabled={ !canRedo }
           onClick={ onRedoClick }
         />

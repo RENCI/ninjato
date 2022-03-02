@@ -82,6 +82,9 @@ export function VolumeView() {
     setSlice: slice => {
       region.setSlice(slice);
     },
+    setShowBackground: show => {
+      background.getActor().setVisibility(show);
+    },
     render: () => {
       render();
     },

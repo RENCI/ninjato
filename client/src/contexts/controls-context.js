@@ -1,7 +1,8 @@
 import { createContext, useReducer } from "react";
 
 export const SET_EDIT_MODE = 'controls/SET_EDIT_MODE';
-export const SET_BRUSH = 'controls/SET_BRUSH'
+export const SET_BRUSH = 'controls/SET_BRUSH';
+export const SET_SHOW_BACKGROUND = 'controls/SET_SHOW_BACKGROUND';
 export const RESET = 'controls/RESET';
 
 const getCursor = (file, x, y) => `url(/cursors/${ file }) ${ x } ${ y }, auto`;
@@ -47,7 +48,8 @@ const initialState = {
   editModes: editModes,
   brushes: brushes,
   paintBrush: 0,
-  eraseBrush: 2
+  eraseBrush: 2,
+  showBackground: true
 };
 
 const reducer = (state, action) => {
@@ -64,10 +66,17 @@ const reducer = (state, action) => {
         [`${ action.which }Brush`]: action.brush
       };
 
+    case SET_SHOW_BACKGROUND:
+      return {
+        ...state,
+        showBackground: action.show
+      }
+
     case RESET:
       return {
         ...state,
-        editMode: initialState.editMode
+        editMode: initialState.editMode,
+        showBackground: initialState.showBackground
       };
 
     default: 

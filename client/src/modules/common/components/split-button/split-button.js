@@ -12,7 +12,7 @@ export const SplitButton = ({ toggle, icon, active, content, onClick }) => {
       color={ active ? 'grey' : null }
       onClick={ onClick } 
     >
-      <div className={ styles.iconDiv}>
+      <div className={ styles.iconDiv }>
         <Icon name={ icon } fitted />
       </div>
       <div>
