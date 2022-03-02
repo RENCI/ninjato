@@ -8,4 +8,5 @@
 .iconDiv {
   margin-right: .5rem;
   margin-left: .5rem;
+  flex: 1 0 auto;
 }
