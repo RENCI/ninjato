@@ -71,7 +71,7 @@ const setWindowLevel = (actor, range) => {
   actor.getProperty().set({ colorLevel, colorWindow });
 };
 
-export function SliceView(onEdit, onMove, onSliceChange) {
+export function SliceView(onEdit, onSliceChange) {
   let fullScreenRenderWindow = null;
   let renderWindow = null;
   let renderer = null;
@@ -84,7 +84,7 @@ export function SliceView(onEdit, onMove, onSliceChange) {
 
   const image = Image();
   const mask = Mask();  
-  const widgets = Widgets(mask.getPainter(), onEdit, onMove);
+  const widgets = Widgets(mask.getPainter(), onEdit);
 
   return {
     initialize: (rootNode, onKeyDown, onKeyUp) => {

@@ -102,9 +102,7 @@ export function Widgets(painter, onEdit) {
       widgets.forEach(widget => widget.setImageData(imageData))    
     },
     setEditMode: editMode => {
-      widgets.forEach(widget => {
-        widget.setPosition(activeWidget.getPosition());
-      });
+      const position = activeWidget.getPosition();
 
       activeWidget = 
         editMode === 'erase' ? eraseWidget : 
@@ -113,11 +111,11 @@ export function Widgets(painter, onEdit) {
 
       manager.grabFocus(activeWidget);
 
+      activeWidget.setPosition(position);
+
       widgets.forEach(widget => {
         widget.setVisibility(widget === activeWidget);
       });
-
-      handles.forEach(handle => handle.updateRepresentationForRender());
     },
     setPaintBrush: brush => setBrush(floodHandle, brush),
     setEraseBrush: brush => setBrush(eraseHandle, brush),
