@@ -13,22 +13,33 @@ export function Widgets(painter, onEdit) {
   const floodWidget = vtkBrushWidget.newInstance();
   const eraseWidget = vtkBrushWidget.newInstance();
   const cropWidget = vtkCropWidget.newInstance();
+
+  const widgets = [
+    floodWidget,
+    eraseWidget,
+    cropWidget
+  ];
+
+  let activeWidget = null;
+  
   let floodHandle = null;
   let eraseHandle = null;
   let cropHandle = null;
+
+  let handles = [];
 
   return {
     setRenderer: renderer => {
       manager.setRenderer(renderer);
 
-      floodHandle = manager.addWidget(floodWidget, ViewTypes.SLICE);
-      eraseHandle = manager.addWidget(eraseWidget, ViewTypes.SLICE);
-      cropHandle = manager.addWidget(cropWidget, ViewTypes.SLICE);
+      handles = widgets.map(widget => manager.addWidget(widget, ViewTypes.SLICE));
+      [floodHandle, eraseHandle, cropHandle] = [...handles];
     
-      manager.grabFocus(floodWidget);
-    
-      floodHandle.onStartInteractionEvent(() => {
-        painter.startStroke();
+      activeWidget = floodWidget;
+      manager.grabFocus(activeWidget);
+
+      handles.forEach(handle => {
+        handle.onStartInteractionEvent(() => painter.startStroke());
       });
 
       floodHandle.onEndInteractionEvent(async () => {
@@ -42,10 +53,6 @@ export function Widgets(painter, onEdit) {
         onEdit();
       });
 
-      eraseHandle.onStartInteractionEvent(() => {
-        painter.startStroke();
-      });
-
       eraseHandle.onEndInteractionEvent(async () => {
         painter.erase(
           eraseHandle.getPoints(), 
@@ -55,10 +62,6 @@ export function Widgets(painter, onEdit) {
         await painter.endStroke(true);
 
         onEdit();
-      });
-
-      cropHandle.onStartInteractionEvent(() => {
-        painter.startStroke();
       });
 
       cropHandle.onEndInteractionEvent(async () => {
@@ -96,35 +99,25 @@ export function Widgets(painter, onEdit) {
       cropHandle.updateRepresentationForRender();
     },
     setImageData: imageData => {
-      floodWidget.setImageData(imageData);
-      eraseWidget.setImageData(imageData);
-      cropWidget.setImageData(imageData);
+      widgets.forEach(widget => widget.setImageData(imageData))    
     },
     setEditMode: editMode => {
-      manager.grabFocus(
+      widgets.forEach(widget => {
+        widget.setPosition(activeWidget.getPosition());
+      });
+
+      activeWidget = 
         editMode === 'erase' ? eraseWidget : 
         editMode === 'crop' ? cropWidget :
-        floodWidget
-      );
+        floodWidget;
 
-      floodHandle.setVisibility(editMode === 'paint');
-      eraseHandle.setVisibility(editMode === 'erase');
-      cropHandle.setVisibility(editMode === 'crop');
-      
-      // XXX: Need to set all to whatever the active widget is
-      if (editMode === 'erase') {
-        eraseWidget.setPosition(floodWidget.getPosition());
-      }
-      else if (editMode === 'crop') {
+      manager.grabFocus(activeWidget);
 
-      }
-      else {
-        floodWidget.setPosition(eraseWidget.getPosition());
-      }
+      widgets.forEach(widget => {
+        widget.setVisibility(widget === activeWidget);
+      });
 
-      floodHandle.updateRepresentationForRender();
-      eraseHandle.updateRepresentationForRender();
-      cropHandle.updateRepresentationForRender();
+      handles.forEach(handle => handle.updateRepresentationForRender());
     },
     setPaintBrush: brush => setBrush(floodHandle, brush),
     setEraseBrush: brush => setBrush(eraseHandle, brush),

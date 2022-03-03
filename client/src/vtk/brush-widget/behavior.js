@@ -71,7 +71,6 @@ export default function widgetBehavior(publicAPI, model) {
           worldCoords[0] = toPixelCenter(ijk[0], spacing[0], dims[0]);
           worldCoords[1] = toPixelCenter(ijk[1], spacing[1], dims[1]);
 
-          model.widgetState.setTrueOrigin(...worldCoords);
           model.activeState.setOrigin(...worldCoords);
 
           if (model.painting) {

@@ -41,6 +41,44 @@ function vtkCropWidget(publicAPI, model) {
   // Default manipulator
   model.manipulator = vtkPlanePointManipulator.newInstance();
   handle.setManipulator(model.manipulator);
+
+  publicAPI.setPosition = (position) => {  
+    if (!position) return;
+
+    if (model.imageData) {
+      const spacing = model.imageData.getSpacing();
+      handle.setOrigin([
+        position[0] - spacing[0] / 2,
+        position[1] - spacing[1] / 2,
+        position[2]
+      ]);
+      handle.setCorner([
+        position[0] + spacing[0] / 2,
+        position[1] + spacing[1] / 2,
+        position[2]
+      ]);
+    }
+    else {
+      handle.setOrigin(position);
+      handle.setCorner(position);
+    }
+  };
+
+  publicAPI.getPosition = () => {
+    if (model.imageData) {
+      const spacing = model.imageData.getSpacing();
+      const origin = handle.getOrigin();
+
+      return [
+        origin[0] + spacing[0] / 2,
+        origin[1] + spacing[1] / 2,
+        origin[2]
+      ];
+    }
+    else {
+      return handle.getOrigin();
+    }
+  };
 } 
 
 // ----------------------------------------------------------------------------

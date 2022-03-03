@@ -4,10 +4,6 @@ export default function generateState(radius) {
   return vtkStateBuilder
     .createBuilder()
     .addField({
-      name: 'trueOrigin',
-      initialValue: [0, 0, 0],
-    })
-    .addField({
       name: 'brush',
       initialValue: [[1, 1, 1, 1]],
     })
