@@ -1,17 +1,15 @@
-import '@kitware/vtk.js/Rendering/Profiles/All';
-
-import vtkFullScreenRenderWindow from '@kitware/vtk.js/Rendering/Misc/FullScreenRenderWindow';
 import vtkInteractorStyleManipulator from '@kitware/vtk.js/Interaction/Style/InteractorStyleManipulator';
 import vtkMouseRangeManipulator from '@kitware/vtk.js/Interaction/Manipulators/MouseRangeManipulator';
 import vtkImageMapper from '@kitware/vtk.js/Rendering/Core/ImageMapper';
 
+import { RenderWindow } from 'modules/view/components/render-window';
 import { Widgets } from './widgets';
 import { Image } from './image';
 import { Mask } from './mask';
 
 const slicingMode = vtkImageMapper.SlicingMode.K;
 
-const resetCamera = (renderer, imageData) => {
+const resetCamera = (camera, imageData) => {
   const [xMin, xMax, yMin, yMax] = imageData.getBounds();
 
   const x = (xMax - xMin) / 2;
@@ -22,7 +20,7 @@ const resetCamera = (renderer, imageData) => {
   const viewUp = [0, -1, 0];
   const parallelScale = Math.max(x, y) + 0.5; // Add fudge factor to make sure full image visible
 
-  renderer.getActiveCamera().set({ position, focalPoint, viewUp, parallelScale });
+  camera.set({ position, focalPoint, viewUp, parallelScale });
 };
 
 const getSliceRanges = imageData => {
@@ -72,10 +70,8 @@ const setWindowLevel = (actor, range) => {
 };
 
 export function SliceView(onEdit, onSliceChange) {
-  let fullScreenRenderWindow = null;
-  let renderWindow = null;
-  let renderer = null;
-  let camera = null;
+  const renderWindow = RenderWindow();
+  
   let sliceRanges = null;
 
   const manipulator = vtkMouseRangeManipulator.newInstance({
@@ -88,33 +84,22 @@ export function SliceView(onEdit, onSliceChange) {
 
   return {
     initialize: (rootNode, onKeyDown, onKeyUp) => {
-      if (fullScreenRenderWindow) return;
+      if (renderWindow.initialized()) return;
 
-      fullScreenRenderWindow = vtkFullScreenRenderWindow.newInstance({
-        rootContainer: rootNode,
-        background: [0, 0, 0, 0],
-        listenWindowResize: false
-      });
-
-      renderWindow = fullScreenRenderWindow.getRenderWindow();
-      renderer = fullScreenRenderWindow.getRenderer();
-      
-      camera = renderer.getActiveCamera();
-      camera.setParallelProjection(true);
+      renderWindow.initialize(rootNode);      
+      renderWindow.getCamera().setParallelProjection(true);
 
       const interactorStyle = vtkInteractorStyleManipulator.newInstance();
       interactorStyle.addMouseManipulator(manipulator);
 
       const interactor = renderWindow.getInteractor();
-
       interactor.setInteractorStyle(interactorStyle);
-
       interactor.onKeyDown(evt => (
         evt.key === 'i' ? image.toggleInterpolation() : onKeyDown(evt)
       ));
       interactor.onKeyUp(onKeyUp);
 
-      widgets.setRenderer(renderer);
+      widgets.setRenderer(renderWindow.getRenderer());
     },
     setData: (imageData, maskData) => {
       image.setInputData(imageData);    
@@ -122,10 +107,11 @@ export function SliceView(onEdit, onSliceChange) {
 
       sliceRanges = getSliceRanges(imageData);
 
+      const renderer = renderWindow.getRenderer();
       renderer.addViewProp(image.getActor());
       renderer.addViewProp(mask.getActor());
     
-      resetCamera(renderer, imageData);
+      resetCamera(renderWindow.getCamera(), imageData);
 
       const extent = imageData.getExtent(); 
 
@@ -185,12 +171,8 @@ export function SliceView(onEdit, onSliceChange) {
       console.log("Clean up slice view");
 
       // Clean up anything we instantiated
-      if (fullScreenRenderWindow) {
-        if (fullScreenRenderWindow.getInteractor()) fullScreenRenderWindow.getInteractor().delete();
-        fullScreenRenderWindow.delete();
-      }
+      renderWindow.cleanUp();
       manipulator.delete();
-
       image.cleanUp();
       mask.cleanUp();
       widgets.cleanUp();

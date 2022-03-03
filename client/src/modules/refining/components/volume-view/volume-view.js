@@ -1,6 +1,4 @@
-import '@kitware/vtk.js/Rendering/Profiles/Geometry';
-import vtkFullScreenRenderWindow from '@kitware/vtk.js/Rendering/Misc/FullScreenRenderWindow';
-
+import { RenderWindow } from 'modules/view/components/render-window';
 import { Surface } from './surface';
 import { BoundingBox } from './bounding-box';
 
@@ -25,32 +23,25 @@ const resetCamera = (renderer, surface) => {
 
   cam.azimuth(-15);
   cam.elevation(20);
+
+  renderer.resetCameraClippingRange();
 };
 
 export function VolumeView() {
-  let fullScreenRenderWindow = null;
-  let renderWindow = null;
-  let renderer = null;
+  const renderWindow = RenderWindow();
 
   const region = Surface('region');  
   const background = Surface();
 
   const boundingBox = BoundingBox();
 
-  const render = () => renderWindow && renderWindow.render();
+  const render = renderWindow.render;
 
   return {
     initialize: rootNode => {
-      if (fullScreenRenderWindow) return;
+      if (renderWindow.initialized()) return;
 
-      fullScreenRenderWindow = vtkFullScreenRenderWindow.newInstance({
-        rootContainer: rootNode,
-        background: [0, 0, 0, 0],
-        listenWindowResize: false
-      });
-  
-      renderWindow = fullScreenRenderWindow.getRenderWindow();
-      renderer = fullScreenRenderWindow.getRenderer();
+      renderWindow.initialize(rootNode);      
     },
     setData: (maskData, onRendered) => {
       if (maskData) {
@@ -58,17 +49,18 @@ export function VolumeView() {
         background.setInputData(maskData);
         boundingBox.setData(maskData);
 
+        const renderer = renderWindow.getRenderer();
         renderer.addActor(region.getActor());
         renderer.addActor(background.getActor());
         renderer.addActor(boundingBox.getActor());
 
         resetCamera(renderer, region.getOutput());
-        renderer.resetCameraClippingRange();
         render();
 
         onRendered();
       } 
       else {
+        const renderer = renderWindow.getRenderer();
         renderer.removeActor(region.getActor());
         renderer.removeActor(background.getActor());
       }
@@ -90,8 +82,7 @@ export function VolumeView() {
       console.log('Clean up volume view');
 
       // Clean up anything we instantiated
-      if (fullScreenRenderWindow) fullScreenRenderWindow.delete();
-      
+      renderWindow.cleanUp();      
       region.cleanUp();
       background.cleanUp();
       boundingBox.cleanUp();
