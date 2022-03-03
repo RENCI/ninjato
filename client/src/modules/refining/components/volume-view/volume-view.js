@@ -37,9 +37,7 @@ export function VolumeView() {
 
   const boundingBox = BoundingBox();
 
-  function render() {
-    renderWindow.render();
-  };
+  const render = () => renderWindow && renderWindow.render();
 
   return {
     initialize: rootNode => {
