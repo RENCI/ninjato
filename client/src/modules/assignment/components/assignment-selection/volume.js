@@ -15,9 +15,14 @@ export const Volume = ({ volume }) => {
   const completed = assignments.filter(({ status }) => status === 'completed');
   const active = assignments.filter(({ status }) => status === 'active');
   const available = assignments.filter(({ status }) => status === 'available');
+  const enabled = available.length > 0;
 
   return (
-    <Segment>
+    <Segment 
+      color={ enabled ? 'blue' : null } 
+      secondary={ !enabled } 
+      circular
+    >
       <List divided relaxed>
         <List.Item>
           Volume name: 
@@ -61,11 +66,11 @@ export const Volume = ({ volume }) => {
           <div style={{ marginBottom: 5}}><span style={{ fontWeight: 'bold'}}>{ available.length }</span> available</div>
           <Button 
             primary 
-            fluid 
-            disabled={ available.length === 0 }
+            circular
+            disabled={ !enabled }
             onClick={ onLoadClick }
           >
-            Load assignment
+            Load Assignment
           </Button>
         </List.Item>
       </List>
