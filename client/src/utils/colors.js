@@ -9,6 +9,8 @@ const hex2rgb = h => {
   return [+r / 255, +g / 255, +b / 255];
 };
 
+export const cssString = color => `rgb(${ color.map(d => d * 255).join(',') })`
+
 export const Reds = [
   '#fff5f0', '#fee0d2', '#fcbba1', '#fc9272', '#fb6a4a', '#ef3b2c', '#cb181d', '#a50f15', '#67000d'
 ].map(hex2rgb);

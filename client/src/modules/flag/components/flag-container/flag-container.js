@@ -1,19 +1,17 @@
 import { useContext, useRef, useCallback, useState } from 'react';
 import { Grid } from 'semantic-ui-react';
 import { DataContext } from 'contexts/data-context';
-import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
-import { VolumeViewWrapper, VolumeView } from 'modules/refine/components/volume-view';
-import { SliceViewWrapper, SliceView } from 'modules/refine/components/slice-view';
-import { VolumeControls } from 'modules/refine/components/volume-controls';
-import { SliceControls } from 'modules/refine/components/slice-controls';
+import { VolumeViewWrapper, VolumeView } from 'modules/flag/components/volume-view';
+import { SliceViewWrapper, SliceView } from 'modules/flag/components/slice-view';
+import { VolumeControls } from 'modules/flag/components/volume-controls';
+import { SliceControls } from 'modules/flag/components/slice-controls';
 import { SliceSlider } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
-import { Reds, cssString } from 'utils/colors';
 
 const { Column } = Grid;
 
-export const RefineContainer = () => {
+export const FlagContainer = () => {
   const [{ imageData }] = useContext(DataContext);
   const volumeView = useRef(VolumeView());
   const sliceView = useRef(SliceView(onEdit, onSliceChange));
@@ -46,17 +44,13 @@ export const RefineContainer = () => {
     setSlice(value);
   }, [sliceView]);
 
-  const numSlices = imageData ? imageData.getDimensions()[2] : 0; 
-
-  const color = cssString(Reds[5]);
-
-  console.log(color);
+  const numSlices = imageData ? imageData.getDimensions()[2] : 0;  
 
   return (
     <> 
       <VisualizationLoader loading={ loading } />
       <AssignmentMessage>
-        Refine <span style={{ color: color, fontWeight: 'bold' }}>red  region boundary</span>
+        Flag problems with <span style={{ color: color, fontWeight: 'bold' }}>red  region</span>
       </AssignmentMessage>
       <Grid columns='equal' verticalAlign='middle' padded stackable reversed='mobile'>
         { !loading && 

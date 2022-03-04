@@ -1,3 +1,5 @@
+import '@kitware/vtk.js/Rendering/Profiles/All';
+
 import vtkImageMapper from '@kitware/vtk.js/Rendering/Core/ImageMapper';
 import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
 import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
