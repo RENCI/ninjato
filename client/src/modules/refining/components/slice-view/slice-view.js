@@ -1,83 +1,11 @@
-import vtkInteractorStyleManipulator from '@kitware/vtk.js/Interaction/Style/InteractorStyleManipulator';
-import vtkMouseRangeManipulator from '@kitware/vtk.js/Interaction/Manipulators/MouseRangeManipulator';
-import vtkImageMapper from '@kitware/vtk.js/Rendering/Core/ImageMapper';
-
-import { RenderWindow } from 'modules/view/components/render-window';
+import { RenderWindow, Slice } from 'modules/view/components';
 import { Widgets } from './widgets';
 import { Image } from './image';
 import { Mask } from './mask';
 
-const slicingMode = vtkImageMapper.SlicingMode.K;
-
-const resetCamera = (camera, imageData) => {
-  const [xMin, xMax, yMin, yMax] = imageData.getBounds();
-
-  const x = (xMax - xMin) / 2;
-  const y = (yMax - yMin) / 2;
-  
-  const position = [x, y, -1];
-  const focalPoint = [x, y, 0];
-  const viewUp = [0, -1, 0];
-  const parallelScale = Math.max(x, y) + 0.5; // Add fudge factor to make sure full image visible
-
-  camera.set({ position, focalPoint, viewUp, parallelScale });
-};
-
-const getSliceRanges = imageData => {
-  const [w, h, d] = imageData.getDimensions();
-  const data = imageData.getPointData().getScalars().getData();
-
-  const ranges = [];
-  for (let z = 0; z < d; z++) {
-    let max = -Infinity;
-    let min = Infinity;
-
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const value = data[z * w * h + x * h + y];
-
-        if (value > max) max = value;
-        if (value < min) min = value;
-      }
-    }
-
-    ranges.push([min, max]);
-  }
-
-  return ranges;
-};
-
-const findFirstSlice = (maskData, label) => {
-  const [w, h, d] = maskData.getDimensions();
-  const data = maskData.getPointData().getScalars().getData();
-
-  for (let z = 0; z < d; z++) {
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        if (data[z * w * h + x * h + y] === label) return z;
-      }
-    }
-  }
-
-  return 0;
-};
-
-const setWindowLevel = (actor, range) => {
-  const colorLevel = (range[1] + range[0]) / 2;
-  const colorWindow = range[1] - range[0];
-
-  actor.getProperty().set({ colorLevel, colorWindow });
-};
-
 export function SliceView(onEdit, onSliceChange) {
   const renderWindow = RenderWindow();
-  
-  let sliceRanges = null;
-
-  const manipulator = vtkMouseRangeManipulator.newInstance({
-    scrollEnabled: true,
-  });
-
+  const slice = Slice();
   const image = Image();
   const mask = Mask();  
   const widgets = Widgets(mask.getPainter(), onEdit);
@@ -87,13 +15,9 @@ export function SliceView(onEdit, onSliceChange) {
       if (renderWindow.initialized()) return;
 
       renderWindow.initialize(rootNode);      
-      renderWindow.getCamera().setParallelProjection(true);
-
-      const interactorStyle = vtkInteractorStyleManipulator.newInstance();
-      interactorStyle.addMouseManipulator(manipulator);
+      slice.initialize(renderWindow);
 
       const interactor = renderWindow.getInteractor();
-      interactor.setInteractorStyle(interactorStyle);
       interactor.onKeyDown(evt => (
         evt.key === 'i' ? image.toggleInterpolation() : onKeyDown(evt)
       ));
@@ -105,49 +29,25 @@ export function SliceView(onEdit, onSliceChange) {
       image.setInputData(imageData);    
       mask.setInputData(maskData);
 
-      sliceRanges = getSliceRanges(imageData);
-
       const renderer = renderWindow.getRenderer();
       renderer.addViewProp(image.getActor());
       renderer.addViewProp(mask.getActor());
-    
-      resetCamera(renderWindow.getCamera(), imageData);
-
-      const extent = imageData.getExtent(); 
-
-      const kMin = extent[4];
-      const kMax = extent[5];
-      const kGet = image.getMapper().getSlice;
-      const kSet = k => image.getMapper().setSlice(k);
-
-      manipulator.setScrollListener(kMin, kMax, -1, kGet, kSet, 1);
 
       widgets.setImageData(maskData);
-    
-      const update = () => {  
-        // Get slice position
-        const ijk = [0, 0, 0];
-        const position = [0, 0, 0];
-  
-        ijk[slicingMode] = image.getMapper().getSlice();
-        imageData.indexToWorld(ijk, position);
 
-        // Update window/level
-        const z = Math.floor(ijk[slicingMode]);
-        setWindowLevel(image.getActor(), sliceRanges[z]);
-  
-        // Update widget position
-        widgets.update(position, imageData.getSpacing());
-  
+      const onUpdateSlice = (z, position) => {
         // Update mask slice
         mask.setSlice(z);
 
-        onSliceChange(z);
-      };
+        // Update widget position
+        widgets.update(position, imageData.getSpacing());
 
-      image.getMapper().onModified(update); 
-      image.getMapper().setSlice(findFirstSlice(maskData, mask.getLabel()));
-      update();
+        // Callback
+        onSliceChange(z);
+      }
+
+      slice.setImage(image.getActor(), renderWindow.getCamera(), onUpdateSlice);
+      slice.setSliceByLabel(image.getMapper(), maskData, mask.getLabel());
     },
     setLabel: label => mask.setLabel(label),
     setEditMode: (editMode, cursor) => {
@@ -172,7 +72,7 @@ export function SliceView(onEdit, onSliceChange) {
 
       // Clean up anything we instantiated
       renderWindow.cleanUp();
-      manipulator.delete();
+      slice.cleanUp();
       image.cleanUp();
       mask.cleanUp();
       widgets.cleanUp();
