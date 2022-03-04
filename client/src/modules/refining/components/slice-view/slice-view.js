@@ -1,13 +1,12 @@
-import { RenderWindow, Slice } from 'modules/view/components';
+import { RenderWindow, Slice, Image } from 'modules/view/components';
 import { Widgets } from './widgets';
-import { Image } from './image';
-import { Mask } from './mask';
+import { MaskPainter } from './mask-painter';
 
 export function SliceView(onEdit, onSliceChange) {
   const renderWindow = RenderWindow();
   const slice = Slice();
   const image = Image();
-  const mask = Mask();  
+  const mask = MaskPainter();  
   const widgets = Widgets(mask.getPainter(), onEdit);
 
   return {

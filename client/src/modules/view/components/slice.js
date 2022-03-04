@@ -65,6 +65,7 @@ const setWindowLevel = (actor, range) => {
 };
 
 export function Slice() { 
+  let imageMapper = null;
   let sliceRanges = null;
 
   const manipulator = vtkMouseRangeManipulator.newInstance({
@@ -80,7 +81,7 @@ export function Slice() {
       renderWindow.getInteractor().setInteractorStyle(interactorStyle);
     },
     setImage: (imageActor, camera, onSliceChange) => {
-      const imageMapper = imageActor.getMapper();
+      imageMapper = imageActor.getMapper();
       const imageData = imageMapper.getInputData();
 
       sliceRanges = getSliceRanges(imageData);

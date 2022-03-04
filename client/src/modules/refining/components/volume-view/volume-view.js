@@ -1,6 +1,4 @@
-import { RenderWindow } from 'modules/view/components/render-window';
-import { Surface } from './surface';
-import { BoundingBox } from './bounding-box';
+import { RenderWindow, Surface, BoundingBox } from 'modules/view/components';
 
 const resetCamera = (renderer, surface) => {
   const [x1, x2, y1, y2, z1, z2] = surface.getPoints().getBounds();
