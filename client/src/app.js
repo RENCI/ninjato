@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { UserProvider, DataProvider, ControlsProvider, ErrorProvider } from "contexts"; 
+import { UserProvider, DataProvider, RefineProvider, ErrorProvider } from "contexts"; 
 import { MainMenu } from 'modules/menu/components/main-menu';
 import { ErrorMessage } from 'modules/common/components/error-message';
 import { Home } from 'pages';
@@ -8,7 +8,7 @@ export const App = () => {
   return (
     <UserProvider>
     <DataProvider>
-    <ControlsProvider>
+    <RefineProvider>
     <ErrorProvider>
       <Router>        
         <MainMenu />
@@ -18,7 +18,7 @@ export const App = () => {
         <ErrorMessage />
       </Router>
     </ErrorProvider>
-    </ControlsProvider>
+    </RefineProvider>
     </DataProvider>
     </UserProvider>
   );

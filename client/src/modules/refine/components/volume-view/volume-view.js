@@ -1,6 +1,4 @@
-import { RenderWindow } from 'modules/view/components/render-window';
-import { Surface } from './surface';
-import { BoundingBox } from './bounding-box';
+import { RenderWindow, Surface, BoundingBox } from 'modules/view/components';
 
 const resetCamera = (renderer, surface) => {
   const [x1, x2, y1, y2, z1, z2] = surface.getPoints().getBounds();
@@ -25,6 +23,19 @@ const resetCamera = (renderer, surface) => {
   cam.elevation(20);
 
   renderer.resetCameraClippingRange();
+};
+
+const centerCamera = (renderer, surface) => {
+  if (surface.getPoints().getNumberOfPoints() > 0) {
+    const [x1, x2, y1, y2, z1, z2] = surface.getPoints().getBounds();
+
+    const x = (x2 + x1) / 2;
+    const y = (y2 + y1) / 2;
+    const z = (z2 + z1) / 2;
+
+    renderer.getActiveCamera().setFocalPoint(x, y, z);
+    renderer.resetCameraClippingRange();
+  }
 };
 
 export function VolumeView() {
@@ -74,6 +85,9 @@ export function VolumeView() {
     },
     setShowBackground: show => {
       background.getActor().setVisibility(show);
+    },
+    centerCamera: () => {
+      centerCamera(renderWindow.getRenderer(), region.getOutput());
     },
     render: () => {
       render();

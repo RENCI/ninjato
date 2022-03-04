@@ -2,16 +2,16 @@ import { useContext, useRef, useCallback, useState } from 'react';
 import { Grid } from 'semantic-ui-react';
 import { DataContext } from 'contexts/data-context';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
-import { VolumeViewWrapper, VolumeView } from 'modules/refining/components/volume-view';
-import { SliceViewWrapper, SliceView } from 'modules/refining/components/slice-view';
-import { VolumeControls } from 'modules/refining/components/volume-controls';
-import { SliceControls } from 'modules/refining/components/slice-controls';
+import { VolumeViewWrapper, VolumeView } from 'modules/refine/components/volume-view';
+import { SliceViewWrapper, SliceView } from 'modules/refine/components/slice-view';
+import { VolumeControls } from 'modules/refine/components/volume-controls';
+import { SliceControls } from 'modules/refine/components/slice-controls';
 import { SliceSlider } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
 
 const { Column } = Grid;
 
-export const RefiningContainer = () => {
+export const RefineContainer = () => {
   const [{ imageData }] = useContext(DataContext);
   const volumeView = useRef(VolumeView());
   const sliceView = useRef(SliceView(onEdit, onSliceChange));
@@ -21,6 +21,7 @@ export const RefiningContainer = () => {
   const [canRedo, setCanRedo] = useState(false);
   
   function onEdit() {
+    volumeView.current.centerCamera();
     volumeView.current.render();
 
     setCanUndo(sliceView.current.canUndo());
@@ -46,7 +47,7 @@ export const RefiningContainer = () => {
   const numSlices = imageData ? imageData.getDimensions()[2] : 0;  
 
   return (
-    <div className='cursorTest' > 
+    <> 
       <VisualizationLoader loading={ loading } />
       <Grid columns='equal' verticalAlign='middle' padded stackable reversed='mobile'>
         { !loading && 
@@ -81,6 +82,6 @@ export const RefiningContainer = () => {
         }
       </Grid>
       { !loading && <SaveButtons /> }
-    </div>
+    </>
   );
 };

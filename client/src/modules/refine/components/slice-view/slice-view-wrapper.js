@@ -1,5 +1,5 @@
 import { useContext, useState, useRef, useEffect, useCallback } from 'react';
-import { DataContext, ControlsContext, SET_EDIT_MODE } from 'contexts';
+import { DataContext, RefineContext, SET_EDIT_MODE } from 'contexts';
 import { useResize } from 'hooks';
 
 export const SliceViewWrapper = ({ sliceView }) => {
@@ -7,7 +7,7 @@ export const SliceViewWrapper = ({ sliceView }) => {
   const [
     { editMode, editModes, brushes, paintBrush, eraseBrush }, 
     controlsDispatch
-  ] = useContext(ControlsContext);
+  ] = useContext(RefineContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);
   const { width } = useResize(div);

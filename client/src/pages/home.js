@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { DataContext } from 'contexts';
 import { AssignmentSelection } from 'modules/assignment/components/assignment-selection';
-import { RefiningContainer } from 'modules/refining/components/refining-container/refining-container';
+import { RefineContainer } from 'modules/refine/components/refine-container';
 
 export const Home = () => {
   const [{ imageData }] = useContext(DataContext);
@@ -9,7 +9,7 @@ export const Home = () => {
   return (
     <>
       { imageData ? 
-        <RefiningContainer />        
+        <RefineContainer />        
       : 
         <AssignmentSelection />
       }

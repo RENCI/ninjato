@@ -84,14 +84,14 @@ const reducer = (state, action) => {
   }
 }
 
-export const ControlsContext = createContext(initialState);
+export const RefineContext = createContext(initialState);
 
-export const ControlsProvider = ({ children }) => {
+export const RefineProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
  
   return (
-    <ControlsContext.Provider value={ [state, dispatch] }>
+    <RefineContext.Provider value={ [state, dispatch] }>
       { children }
-    </ControlsContext.Provider>
+    </RefineContext.Provider>
   )
 } 

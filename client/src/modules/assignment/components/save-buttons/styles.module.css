@@ -1,0 +1,7 @@
+.saveButtons {
+  margin-top: 0 !important;
+}
+
+.saveButtons > *:not(:last-child) {
+  margin-right: 1rem;
+}
