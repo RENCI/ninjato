@@ -21,6 +21,7 @@ export const RefineContainer = () => {
   const [canRedo, setCanRedo] = useState(false);
   
   function onEdit() {
+    volumeView.current.centerCamera();
     volumeView.current.render();
 
     setCanUndo(sliceView.current.canUndo());
