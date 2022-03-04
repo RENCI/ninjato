@@ -26,13 +26,16 @@ const resetCamera = (renderer, surface) => {
 };
 
 const centerCamera = (renderer, surface) => {
-  const [x1, x2, y1, y2, z1, z2] = surface.getPoints().getBounds();
-  const x = (x2 + x1) / 2;
-  const y = (y2 + y1) / 2;
-  const z = (z2 + z1) / 2;
+  if (surface.getPoints().getNumberOfPoints() > 0) {
+    const [x1, x2, y1, y2, z1, z2] = surface.getPoints().getBounds();
 
-  renderer.getActiveCamera().setFocalPoint(x, y, z);
-  renderer.resetCameraClippingRange();
+    const x = (x2 + x1) / 2;
+    const y = (y2 + y1) / 2;
+    const z = (z2 + z1) / 2;
+
+    renderer.getActiveCamera().setFocalPoint(x, y, z);
+    renderer.resetCameraClippingRange();
+  }
 };
 
 export function VolumeView() {
