@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import { Popup, Icon, Button } from 'semantic-ui-react';
-import { ControlsContext, SET_BRUSH } from 'contexts';
+import { RefineContext, SET_BRUSH } from 'contexts';
 
 const { Group } = Button;
 
@@ -15,7 +15,7 @@ const iconSize = brush => (
 );
 
 export const BrushOptions = ({ which }) => {
-  const [{ brushes, paintBrush, eraseBrush }, dispatch] = useContext(ControlsContext);
+  const [{ brushes, paintBrush, eraseBrush }, dispatch] = useContext(RefineContext);
 
   const onClick = (brush, which) => {
     dispatch({ type: SET_BRUSH, brush: brush, which: which });

@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { 
   DataContext, SET_DATA,
-  ControlsContext, RESET,
+  RefineContext, RESET,
   ErrorContext, SET_ERROR 
 } from 'contexts';
 import { api } from 'utils/api';
@@ -9,7 +9,7 @@ import { decodeTIFF } from 'utils/data-conversion';
 
 export const useLoadData = ()  => {
   const [, dataDispatch] = useContext(DataContext);
-  const [, controlsDispatch] = useContext(ControlsContext);
+  const [, controlsDispatch] = useContext(RefineContext);
   const [, errorDispatch] = useContext(ErrorContext);
 
   return async ({ imageId, maskId, label }) => {
