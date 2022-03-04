@@ -47,7 +47,7 @@ export const RefineContainer = () => {
   const numSlices = imageData ? imageData.getDimensions()[2] : 0;  
 
   return (
-    <div className='cursorTest' > 
+    <> 
       <VisualizationLoader loading={ loading } />
       <Grid columns='equal' verticalAlign='middle' padded stackable reversed='mobile'>
         { !loading && 
@@ -82,6 +82,6 @@ export const RefineContainer = () => {
         }
       </Grid>
       { !loading && <SaveButtons /> }
-    </div>
+    </>
   );
 };
