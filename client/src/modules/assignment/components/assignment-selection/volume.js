@@ -20,8 +20,7 @@ export const Volume = ({ volume }) => {
   return (
     <Segment 
       color={ enabled ? 'blue' : null } 
-      secondary={ !enabled } 
-      circular
+      secondary={ !enabled }
     >
       <List divided relaxed>
         <List.Item>
@@ -66,7 +65,6 @@ export const Volume = ({ volume }) => {
           <div style={{ marginBottom: 5}}><span style={{ fontWeight: 'bold'}}>{ available.length }</span> available</div>
           <Button 
             primary 
-            circular
             disabled={ !enabled }
             onClick={ onLoadClick }
           >
