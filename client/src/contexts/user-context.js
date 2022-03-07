@@ -3,6 +3,7 @@ import { createContext, useReducer } from "react";
 export const LOGIN = 'user/LOGIN';
 export const LOGOUT = 'user/LOGOUT';
 export const SET_ASSIGNMENT = 'user/SET_ASSIGNMENT';
+export const SET_ASSIGNMENT_TYPE = 'user/SET_ASSIGNMENT_TYPE';
 
 
 const stages =[
@@ -121,7 +122,7 @@ const initialState = {
   login: null,
   stages: stages,
   volumes: volumes, 
-  assigment: null
+  assignment: null
 };
 
 const reducer = (state, action) => {
@@ -146,6 +147,15 @@ const reducer = (state, action) => {
       return {
         ...state,
         assignment: action.assignment
+      };
+
+    case SET_ASSIGNMENT_TYPE:
+      return {
+        ...state,
+        assignment: {
+          ...state.assignment,
+          type: action.assignmentType
+        }
       };
 
     default: 

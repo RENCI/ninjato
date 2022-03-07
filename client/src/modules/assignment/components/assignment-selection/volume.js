@@ -1,15 +1,16 @@
 import { useContext, Fragment } from 'react';
 import { Segment, List, Button } from 'semantic-ui-react';
-import { UserContext } from 'contexts';
+import { SET_ASSIGNMENT_TYPE, UserContext } from 'contexts';
 import { useLoadData } from 'hooks';
 import styles from './styles.module.css';
 
 export const Volume = ({ volume }) => {
-  const [{ stages, assignment }] = useContext(UserContext);
+  const [{ stages, assignment }, userDispatch] = useContext(UserContext);
   const loadData = useLoadData();
 
   const onLoadClick = () => {
-    loadData(assignment);
+    userDispatch({ type: SET_ASSIGNMENT_TYPE, assignmentType: volume.stage });
+    loadData(assignment, volume.stage);
   };
 
   const assignments = volume.assignments.filter(({ type }) => type === volume.stage);

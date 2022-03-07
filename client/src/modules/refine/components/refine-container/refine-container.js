@@ -50,8 +50,6 @@ export const RefineContainer = () => {
 
   const color = cssString(Reds[5]);
 
-  console.log(color);
-
   return (
     <> 
       <VisualizationLoader loading={ loading } />
