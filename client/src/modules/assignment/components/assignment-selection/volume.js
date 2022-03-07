@@ -2,6 +2,7 @@ import { useContext, Fragment } from 'react';
 import { Segment, List, Button } from 'semantic-ui-react';
 import { UserContext } from 'contexts';
 import { useLoadData } from 'hooks';
+import styles from './styles.module.css';
 
 export const Volume = ({ volume }) => {
   const [{ stages, assignment }] = useContext(UserContext);
@@ -21,37 +22,27 @@ export const Volume = ({ volume }) => {
     <Segment 
       color={ enabled ? 'blue' : null } 
       secondary={ !enabled }
+      raised={ enabled }
     >
       <List divided relaxed>
         <List.Item>
           Volume name: 
-          <div style={{ fontWeight: 'bold', textAlign: 'center' }}>{ volume.name }</div>
+          <div className={ styles.volumename }>
+            { volume.name }
+          </div>
         </List.Item>
         <List.Item>
           Progress:
-          <div 
-            style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}
-          >
+          <div className={ styles.progress }>
             { stages.map((stage, i, a) => {
               const active = stage === volume.stage;
               return (
                 <Fragment key={ i }>
-                  <div 
-                    style={{ 
-                      flex: '1 0 auto',
-                      textAlign: 'center',
-                      fontWeight: active ? 'bold' : null ,
-                      color: active ? '#000' : '#999'
-                    }}              
-                  > 
+                  <div className={ `${ styles.stage} ${ active ? styles.active : null }` }> 
                     { stage }
                   </div>
                   { i < a.length - 1 && 
-                    <span style={{ color: '#999' }}>/</span>
+                    <span className={ styles.divider }>/</span>
                   }
                 </Fragment>
               );            
@@ -60,9 +51,21 @@ export const Volume = ({ volume }) => {
         </List.Item>
         <List.Item>
           Assignments:
-          <div style={{ marginTop: 5, marginBottom: 5}}><span style={{ fontWeight: 'bold'}}>{ completed.length }</span> completed:</div>
-          <div style={{ marginBottom: 5}}><span style={{ fontWeight: 'bold'}}>{ active.length }</span> active</div>
-          <div style={{ marginBottom: 5}}><span style={{ fontWeight: 'bold'}}>{ available.length }</span> available</div>
+          <div className={ styles.assignment }>
+            <span className={ styles.number }>
+              { completed.length }
+            </span> completed:
+          </div>
+          <div className={ styles.assignment }>
+            <span className={ styles.number }>
+              { active.length }
+            </span> active
+          </div>
+          <div className={ styles.assignment }>
+            <span className={ styles.number }>
+              { available.length }
+            </span> available
+          </div>
           <Button 
             primary 
             disabled={ !enabled }
