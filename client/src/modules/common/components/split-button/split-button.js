@@ -1,7 +1,7 @@
 import { Button, Icon} from 'semantic-ui-react';
 import styles from './styles.module.css';
 
-export const SplitButton = ({ toggle, icon, active, content, onClick }) => {
+export const SplitButton = ({ toggle = false, icon, active = true, content, onClick }) => {
   return (
     <Button             
       as='div'

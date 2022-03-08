@@ -1,61 +1,62 @@
 import { useContext } from 'react';
-import { Button } from 'semantic-ui-react';
-import { RefineContext, SET_EDIT_MODE } from 'contexts';
+import { Popup, Button } from 'semantic-ui-react';
+//import { FlagContext, SET_EDIT_MODE, SET_COMMENT } from 'contexts';
 import { ControlBar } from 'modules/common/components/control-bar';
-import { SplitButton } from 'modules/common/components/split-button';
-import { BrushOptions } from './brush-options';
+import { AutoFocusForm } from 'modules/common/components/auto-focus-form';
+import { CommentInput } from 'modules/common/components/comment-input';
 
 const { Group } = Button;
 
 export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
-  const [{ editModes, editMode }, dispatch] = useContext(RefineContext);
+  //const [{ editModes, editMode }, dispatch] = useContext(FlagContext);
 
-  const onModeClick = value => {
-    dispatch({ type: SET_EDIT_MODE, mode: value });
+  const onLinkClick = value => {
   };
 
-  const onUndoClick = () => {
-    sliceView.undo();
-  };
-
-  const onRedoClick = () => {
-    sliceView.redo();
+  const onCommentChange = evt => {
+    console.log(evt.target.value);
   };
 
   return (
     <ControlBar>
       <Group vertical>
-        { editModes.map(({ value, icon }, i) => (
-          value === 'paint' || value === 'erase' ?
-            <SplitButton
-              key={ i }
-              toggle={ true }
-              icon={ icon }
-              active={ value === editMode }
-              content={ <BrushOptions which={ value } /> }
-              onClick={ () => onModeClick(value )}
+        <Popup
+          trigger={ 
+            <Button           
+              icon='flag'
+              compact
             />
-          :
-            <Button
-              key={ i }
-              icon={ icon }
-              color={ value === editMode ? 'grey' : null }
-              onClick={ () => onModeClick(value) }              
-            />
-        ))}    
+          }
+          on='click'
+          position='top right'
+          content={ 
+          <AutoFocusForm>
+            <CommentInput 
+              label='Describe problems with region'
+              options={[
+                'Merge',
+                'Split',
+                'Remove'
+              ]}
+              onChange={ onCommentChange }
+            /></AutoFocusForm>
+          }
+        />
       </Group>
       <Group vertical>
         <Button
-          icon='undo alternate'
+          icon='chain'
+          toggle
+          color='grey'
           compact
-          disabled={ !canUndo }
-          onClick={ onUndoClick }
+          onClick={ onLinkClick }
         />
         <Button
-          icon='redo alternate'
+          icon='broken chain'
+          toggle
+          color='grey'
           compact
-          disabled={ !canRedo }
-          onClick={ onRedoClick }
+          onClick={ onLinkClick }
         />
       </Group>
     </ControlBar>

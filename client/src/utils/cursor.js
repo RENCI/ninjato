@@ -1,0 +1,1 @@
+export const getCursor = (file, x, y) => `url(/cursors/${ file }) ${ x } ${ y }, auto`;
