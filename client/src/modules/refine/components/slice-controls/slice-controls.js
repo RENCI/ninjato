@@ -38,6 +38,7 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
           :
             <Button
               key={ i }
+              toggle
               icon={ icon }
               color={ value === editMode ? 'grey' : null }
               onClick={ () => onModeClick(value) }              

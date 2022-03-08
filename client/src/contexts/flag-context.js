@@ -9,7 +9,7 @@ export const REMOVE_LINK = 'flat/REMOVE_LINK';
 export const SET_SHOW_BACKGROUND = 'flag/SET_SHOW_BACKGROUND';
 export const RESET = 'flag/RESET';
 
-const editModes = [
+const linkModes = [
   { value: 'add', icon: 'chain', cursor: getCursor('chain.png', 12, 23) },
   { value: 'remove', icon: 'broken chain', cursor: getCursor('broken-chain.png', 11, 23) }
 ];
@@ -47,7 +47,7 @@ const reducer = (state, action) => {
       return {
         ...state,
         links: [
-          ...links,
+          ...state.links,
           action.id
         ]
       };
@@ -70,18 +70,18 @@ const reducer = (state, action) => {
       };
 
     default: 
-      throw new Error('Invalid Controls context action: ' + action.type);
+      throw new Error('Invalid flag context action: ' + action.type);
   }
 }
 
-export const RefineContext = createContext(initialState);
+export const FlagContext = createContext(initialState);
 
-export const RefineProvider = ({ children }) => {
+export const FlagProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
  
   return (
-    <RefineContext.Provider value={ [state, dispatch] }>
+    <FlagContext.Provider value={ [state, dispatch] }>
       { children }
-    </RefineContext.Provider>
+    </FlagContext.Provider>
   )
 } 
