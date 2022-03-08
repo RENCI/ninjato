@@ -69,7 +69,7 @@ def get_buffered_extent(minx, maxx, miny, maxy, minz, maxz, xrange, yrange, zran
     return minx, maxx, miny, maxy, minz, maxz
 
 
-def get_item_assignment(user):
+def get_item_assignment(user, flag):
     if user['login'] == 'admin':
         return {
             'user_id': user['_id'],
@@ -112,6 +112,7 @@ def get_item_assignment(user):
                         'item_id': it_id,
                         'region_label': it['meta']['region_label']
                     }
+
     # no region has been assigned to the user yet, look into the whole partition
     # item to find a region for assignment
     vol_folders = Folder().find({
@@ -146,6 +147,9 @@ def get_item_assignment(user):
                         continue
                     if 'rejected_by' in val and val['rejected_by'].split()[0] == str(user['login']):
                         continue
+                    if flag and val['flag'] == flag:
+                        # request a flagged region and this flagged region
+                        pass
                     if 'user' not in val:
                         # this region can be assigned to a user
                         val['user'] = user['_id']
@@ -249,6 +253,7 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, content_d
         Item().deleteMetadata(item, ['user'])
         Item().deleteMetadata(whole_item, [str(uid)])
         region_label = item['meta']['region_label']
+        # remove the user's assignment
         del whole_item['meta']['regions'][region_label]["user"]
         files = File().find({'itemId': ObjectId(item_id)})
         for file in files:
@@ -361,17 +366,51 @@ def get_subvolume_item_info(item):
     total_regions = len(region_dict)
     total_regions_done = 0
     total_regions_at_work = 0
+    regions_rejected = []
     for key, val in region_dict.items():
-        total_regions += 1
+        if 'rejected_by' in val:
+            region_item = Item().findOne({'folderId': item['folderId'],
+                                          'name': f'region{key}'})
+            regions_rejected.append({
+                'user': val['rejected_by'].split()[0],
+                'id': region_item['_id']
+            })
         if 'user' in val:
             if 'done' in val and val['done'] == 'true':
                 total_regions_done += 1
             else:
                 total_regions_at_work += 1
     return {
-        'item_id': item_id,
-        'item_description': item['description'],
+        'id': item_id,
+        'name': Folder().findOne({'_id': item['folderId']})['name'],
+        'description': item['description'],
+        'location': item['meta']['coordinates'],
+        'rejected_regions': regions_rejected,
         'total_regions': total_regions,
-        'total_regions_done': total_regions_done,
-        'total_regions_at_work': total_regions_at_work
+        'total_completed_regions': total_regions_done,
+        'total_active_regions': total_regions_at_work,
+        'rejected_regions': regions_rejected,
+        'total_available_regions': total_regions - total_regions_done - total_regions_at_work
+    }
+
+
+def save_region_flag(user, item_id, flag_str, comment):
+    uid = user['_id']
+    item = Item().findOne({'_id': ObjectId(item_id)})
+    region_label = item['meta']['region_label']
+    whole_item = Item().findOne({'folderId': ObjectId(item['folderId']),
+                                 'name': 'whole'})
+    whole_item['meta']['regions'][region_label]['flag'] = flag_str
+    # remove the user's assignment
+    del whole_item['meta']['regions'][region_label]["user"]
+    Item().save(whole_item)
+
+    if comment:
+        add_meta = {'flag_comment': comment}
+        Item().setMetadata(item, add_meta)
+
+    return {
+        'user_id': uid,
+        'item_id': item_id,
+        'flag': flag_str
     }

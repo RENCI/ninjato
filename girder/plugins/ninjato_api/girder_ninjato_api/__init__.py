@@ -3,18 +3,20 @@ from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.constants import AccessType
 from .utils import get_item_assignment, save_user_annotation_as_item, get_subvolume_item_ids, \
-    get_subvolume_item_info
+    get_subvolume_item_info, save_region_flag
 
 
 @access.public
 @autoDescribeRoute(
     Description('Get region assignment info for a given user.')
     .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
+    .param('subvolume_id', 'subvolume id from which to get assignment', default='', required=False)
+    .param('task_type', 'task type of regions to get assignment for', default='', required=True)
     .errorResponse()
     .errorResponse('Read access was denied on the user.', 403)
 )
-def get_user_assign_info(user):
-    return get_item_assignment(user)
+def get_user_assign_info(user, subvolume_id, task_type):
+    return get_item_assignment(user, subvolume_id, task_type)
 
 
 @access.public
@@ -63,6 +65,21 @@ def get_subvolume_info(item):
     return get_subvolume_item_info(item)
 
 
+@access.public
+@autoDescribeRoute(
+    Description('Save a flag for a region from a given user.')
+    .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
+    .param('item_id', 'The item ID to save flag for', required=True)
+    .param('flag', 'a flag string added by the user', required=True)
+    .param('comment', 'a comment associated with the flag', default='', required=False)
+    .errorResponse()
+    .errorResponse('Save action was denied on the user.', 403)
+    .errorResponse('Failed to save the flag for the region', 500)
+)
+def save_user_region_flag(user, item_id, flag, comment):
+    return save_region_flag(user, item_id, flag, comment)
+
+
 class NinjatoPlugin(GirderPlugin):
     DISPLAY_NAME = 'Girder Ninjato API'
     CLIENT_SOURCE_PATH = 'web_client'
@@ -73,5 +90,6 @@ class NinjatoPlugin(GirderPlugin):
         # attach API route to Girder
         info['apiRoot'].user.route('GET', (':id', 'assignment'), get_user_assign_info)
         info['apiRoot'].user.route('POST', (':id', 'annotation'), save_user_annotation)
+        info['apiRoot'].user.route('PUT', (':id', 'flag'), save_user_region_flag)
         info['apiRoot'].system.route('GET', ('subvolume_ids',), get_subvolume_ids)
         info['apiRoot'].item.route('GET', (':id', 'subvolume_info'), get_subvolume_info)
