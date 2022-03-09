@@ -19,7 +19,7 @@ export function BoundingBox() {
     getActor: () => actor,
     setData: data => outline.setInputData(data),
     cleanUp: () => {
-      console.log("Clean up bounding box");
+      console.log('Clean up bounding box');
 
       // Clean up anything we instantiated
       outline.delete();

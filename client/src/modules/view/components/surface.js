@@ -108,7 +108,7 @@ export function Surface(type = 'background') {
       return mapper.getInputData();
     },
     cleanUp: () => {
-      console.log("Clean up surface");
+      console.log('Clean up surface');
 
       // Clean up anything we instantiated
       maskCalculator.delete();
