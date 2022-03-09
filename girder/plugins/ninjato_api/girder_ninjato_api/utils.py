@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from enum import Enum
 from libtiff import TIFF
 import numpy as np
 from girder.models.item import Item
@@ -13,6 +14,13 @@ from girder.exceptions import RestException
 from girder.utility import assetstore_utilities
 from girder.utility import path as path_util
 from .constants import COLLECTION_NAME, BUFFER_FACTOR, DATA_PATH
+
+
+class TaskType(Enum):
+    FLAG = 'flag'
+    REVIEW = 'review'
+    SPLIT = 'split'
+    REFINE = 'refine'
 
 
 def save_file(as_id, item, path, user, file_name):
@@ -145,8 +153,10 @@ def get_item_assignment(user, flag):
                 for key, val in whole_item['meta']['regions'].items():
                     if 'done' in val and val['done'] == 'true':
                         continue
-                    if 'rejected_by' in val and val['rejected_by'].split()[0] == str(user['login']):
-                        continue
+                    if 'rejected_by' in val:
+                        for reject_str in val['rejected_by']:
+                            if reject_str.split()[0] == str(user['login']):
+                                continue
                     if flag and val['flag'] == flag:
                         # request a flagged region and this flagged region
                         pass
@@ -260,8 +270,13 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, content_d
             if file['name'].endswith(f'{uname}.tif'):
                 File().remove(file)
                 break
-        whole_item['meta']['regions'][region_label]['rejected_by'] = \
-            f'{uname} at {datetime.now().strftime("%m/%d/%Y %H:%M")}'
+        reject_str = f'{uname} for {TaskType.REFINE.value} task at ' \
+                     f'{datetime.now().strftime("%m/%d/%Y %H:%M")}'
+        if not 'rejected_by' in whole_item['meta']['regions'][region_label]:
+            whole_item['meta']['regions'][region_label]['rejected_by'] = [reject_str]
+        else:
+            whole_item['meta']['regions'][region_label]['rejected_by'].append(reject_str)
+
         if comment:
             whole_item['meta']['regions'][region_label]['rejected_comment'] = comment
 
@@ -367,12 +382,18 @@ def get_subvolume_item_info(item):
     total_regions_done = 0
     total_regions_at_work = 0
     regions_rejected = []
+
+    if not 'progress' in item['meta']:
+        # starting with flag task
+        add_meta = {'progress': [TaskType.FLAG.value]}
+        Item().setMetadata(item, add_meta)
+
     for key, val in region_dict.items():
         if 'rejected_by' in val:
             region_item = Item().findOne({'folderId': item['folderId'],
                                           'name': f'region{key}'})
             regions_rejected.append({
-                'user': val['rejected_by'].split()[0],
+                'info': val['rejected_by'],
                 'id': region_item['_id']
             })
         if 'user' in val:
