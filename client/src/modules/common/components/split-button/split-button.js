@@ -28,7 +28,7 @@ export const SplitButton = ({
         onClick={ cancelEvent }
         onKeyDown={ cancelEvent }
         onKeyUp={ cancelEvent }
-        onKeyPres={ cancelEvent }
+        onKeyPress={ cancelEvent }
       >
         <Popup
           trigger={ 

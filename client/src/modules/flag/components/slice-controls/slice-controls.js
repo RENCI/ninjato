@@ -1,13 +1,9 @@
 import { useContext } from 'react';
-import { Popup, Button, Icon } from 'semantic-ui-react';
+import { Button } from 'semantic-ui-react';
 import { FlagContext, SET_LINK_MODE, SET_COMMENT, SET_FLAG } from 'contexts';
 import { ControlBar } from 'modules/common/components/control-bar';
 import { SplitButton } from 'modules/common/components/split-button';
-import { AutoFocusForm } from 'modules/common/components/auto-focus-form';
-import { CommentInput } from 'modules/common/components/comment-input';
 import { FlagInfo } from 'modules/flag/components/slice-controls/flag-info';
-
-import { BrushOptions } from 'modules/refine/components/slice-controls/brush-options';
 
 const { Group } = Button;
 
@@ -20,10 +16,6 @@ export const SliceControls = ({ sliceView }) => {
 
   const onModeClick = value => {
     dispatch({ type: SET_LINK_MODE, mode: value });
-  };
-
-  const onCommentChange = evt => {
-    dispatch({ type: SET_COMMENT, comment: evt.target.value });
   };
 
   return (
