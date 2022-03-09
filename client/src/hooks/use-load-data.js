@@ -1,7 +1,8 @@
 import { useContext } from 'react';
 import { 
   DataContext, SET_DATA,
-  RefineContext, RESET,
+  RefineContext, REFINE_RESET,
+  FlagContext, FLAG_RESET,
   ErrorContext, SET_ERROR 
 } from 'contexts';
 import { api } from 'utils/api';
@@ -9,7 +10,8 @@ import { decodeTIFF } from 'utils/data-conversion';
 
 export const useLoadData = ()  => {
   const [, dataDispatch] = useContext(DataContext);
-  const [, controlsDispatch] = useContext(RefineContext);
+  const [, refineDispatch] = useContext(RefineContext);
+  const [, flagDispatch] = useContext(FlagContext);
   const [, errorDispatch] = useContext(ErrorContext);
 
   return async ({ imageId, maskId, label }) => {
@@ -39,8 +41,12 @@ export const useLoadData = ()  => {
         label: label
       });
 
-      controlsDispatch({
-        type: RESET
+      refineDispatch({
+        type: REFINE_RESET
+      });
+
+      flagDispatch({
+        type: FLAG_RESET
       });
     }
     catch (error) {

@@ -1,5 +1,5 @@
 import { useContext, useState, useRef, useEffect, useCallback } from 'react';
-import { DataContext, RefineContext, SET_EDIT_MODE } from 'contexts';
+import { DataContext, RefineContext, REFINE_SET_EDIT_MODE } from 'contexts';
 import { useResize } from 'hooks';
 
 export const SliceViewWrapper = ({ sliceView }) => {
@@ -14,13 +14,13 @@ export const SliceViewWrapper = ({ sliceView }) => {
 
   const onKeyDown = useCallback(evt => {
     if (evt.key === 'Control') {
-      controlsDispatch({ type: SET_EDIT_MODE, mode: 'erase' });
+      controlsDispatch({ type: REFINE_SET_EDIT_MODE, mode: 'erase' });
     }
   }, [controlsDispatch]);
 
   const onKeyUp = useCallback(evt => {
     if (evt.key === 'Control') {
-      controlsDispatch({ type: SET_EDIT_MODE, mode: 'paint' });
+      controlsDispatch({ type: REFINE_SET_EDIT_MODE, mode: 'paint' });
     }
   }, [controlsDispatch]);
   

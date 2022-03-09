@@ -1,13 +1,13 @@
 import { useContext } from 'react';
 import { Button } from 'semantic-ui-react';
-import { RefineContext, SET_SHOW_BACKGROUND } from 'contexts';
+import { FlagContext, FLAG_SET_SHOW_BACKGROUND } from 'contexts';
 import { ControlBar } from 'modules/common/components/control-bar';
 
 export const VolumeControls = () => {
-  const [{ showBackground }, dispatch] = useContext(RefineContext);
+  const [{ showBackground }, dispatch] = useContext(FlagContext);
 
   const onShowBackgroundClick = () => {
-    dispatch({ type: SET_SHOW_BACKGROUND, show: !showBackground });
+    dispatch({ type: FLAG_SET_SHOW_BACKGROUND, show: !showBackground });
   };
 
   return (

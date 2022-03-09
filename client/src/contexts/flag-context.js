@@ -1,13 +1,13 @@
 import { createContext, useReducer } from 'react';
 import { getCursor } from 'utils/cursor';
 
-export const SET_FLAG = 'flag/SET_FLAG';
-export const SET_COMMENT = 'flag/SET_COMMENT';
-export const SET_LINK_MODE = 'flag/SET_LINK_MODE';
-export const ADD_LINK = 'flag/ADD_LINK';
-export const REMOVE_LINK = 'flat/REMOVE_LINK';
-export const SET_SHOW_BACKGROUND = 'flag/SET_SHOW_BACKGROUND';
-export const RESET = 'flag/RESET';
+export const FLAG_SET_FLAG = 'flag/SET_FLAG';
+export const FLAG_SET_COMMENT = 'flag/SET_COMMENT';
+export const FLAG_SET_EDIT_MODE = 'flag/SET_LINK_MODE';
+export const FLAG_ADD_LINK = 'flag/ADD_LINK';
+export const FLAG_REMOVE_LINK = 'flat/REMOVE_LINK';
+export const FLAG_SET_SHOW_BACKGROUND = 'flag/SET_SHOW_BACKGROUND';
+export const FLAG_RESET = 'flag/RESET';
 
 const editModes = [
   { value: 'addLink', icon: 'chain', cursor: getCursor('chain.png', 12, 23) },
@@ -25,25 +25,25 @@ const initialState = {
 
 const reducer = (state, action) => {
   switch (action.type) {
-    case SET_FLAG:
+    case FLAG_SET_FLAG:
       return {
         ...state,
         flag: action.flag
       };
 
-    case SET_COMMENT:
+    case FLAG_SET_COMMENT:
       return {
         ...state,
         comment: action.comment
       };
 
-    case SET_LINK_MODE:
+    case FLAG_SET_EDIT_MODE:
       return {
         ...state,
         editMode: action.mode
       };
 
-    case ADD_LINK:
+    case FLAG_ADD_LINK:
       return {
         ...state,
         links: [
@@ -52,19 +52,19 @@ const reducer = (state, action) => {
         ]
       };
 
-    case REMOVE_LINK:
+    case FLAG_REMOVE_LINK:
       return {
         ...state,
         links: state.links.filter(id => id !== action.id)
       };
 
-    case SET_SHOW_BACKGROUND:
+    case FLAG_SET_SHOW_BACKGROUND:
       return {
         ...state,
         showBackground: action.show
       }
 
-    case RESET:
+    case FLAG_RESET:
       return {
         ...initialState
       };

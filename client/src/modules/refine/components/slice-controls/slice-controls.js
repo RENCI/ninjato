@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import { Button } from 'semantic-ui-react';
-import { RefineContext, SET_EDIT_MODE } from 'contexts';
+import { RefineContext, REFINE_SET_EDIT_MODE } from 'contexts';
 import { ControlBar } from 'modules/common/components/control-bar';
 import { SplitButton } from 'modules/common/components/split-button';
 import { BrushOptions } from './brush-options';
@@ -11,7 +11,7 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
   const [{ editModes, editMode }, dispatch] = useContext(RefineContext);
 
   const onModeClick = value => {
-    dispatch({ type: SET_EDIT_MODE, mode: value });
+    dispatch({ type: REFINE_SET_EDIT_MODE, mode: value });
   };
 
   const onUndoClick = () => {

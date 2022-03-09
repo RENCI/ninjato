@@ -1,5 +1,5 @@
 import { useContext, useRef } from 'react';
-import { FlagContext, SET_COMMENT } from 'contexts';
+import { FlagContext, FLAG_SET_COMMENT } from 'contexts';
 import { AutoFocusForm } from 'modules/common/components/auto-focus-form';
 import { CommentInput } from 'modules/common/components/comment-input';
 
@@ -8,7 +8,7 @@ export const FlagInfo = () => {
   const ref = useRef();
 
   const onCommentChange = evt => {
-    dispatch({ type: SET_COMMENT, comment: evt.target.value });
+    dispatch({ type: FLAG_SET_COMMENT, comment: evt.target.value });
   };
 
   const onKeyPress = evt => {
