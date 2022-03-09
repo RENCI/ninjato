@@ -1,25 +1,28 @@
 import { useContext, useState, useRef, useEffect, useCallback } from 'react';
-import { DataContext, FlagContext, SET_LINK_MODE } from 'contexts';
+import { DataContext, RefineContext, SET_EDIT_MODE } from 'contexts';
 import { useResize } from 'hooks';
 
 export const SliceViewWrapper = ({ sliceView }) => {
   const [{ imageData, maskData, label }] = useContext(DataContext);
-  const [{ linkMode, linkModes }, flagDispatch] = useContext(FlagContext);
+  const [
+    { editMode, editModes, brushes, paintBrush, eraseBrush }, 
+    controlsDispatch
+  ] = useContext(RefineContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);
   const { width } = useResize(div);
 
   const onKeyDown = useCallback(evt => {
     if (evt.key === 'Control') {
-      flagDispatch({ type: SET_LINK_MODE, mode: 'unlink' });
+      controlsDispatch({ type: SET_EDIT_MODE, mode: 'erase' });
     }
-  }, [flagDispatch]);
+  }, [controlsDispatch]);
 
   const onKeyUp = useCallback(evt => {
     if (evt.key === 'Control') {
-      flagDispatch({ type: SET_LINK_MODE, mode: 'link' });
+      controlsDispatch({ type: SET_EDIT_MODE, mode: 'paint' });
     }
-  }, [flagDispatch]);
+  }, [controlsDispatch]);
   
   // Initialize
   useEffect(() => {
@@ -37,13 +40,23 @@ export const SliceViewWrapper = ({ sliceView }) => {
     }
   }, [initialized, sliceView, imageData, maskData, label]);   
 
-  // Link mode
+  // Edit mode
   useEffect(() => {
     if (initialized) {
-      const mode = linkModes.find(({ value }) => value === linkMode);
-      sliceView.setLinkMode(linkMode, mode.cursor);
+      const mode = editModes.find(({ value }) => value === editMode);
+      sliceView.setEditMode(editMode, mode.cursor);
     }
-  }, [initialized, sliceView, linkMode, linkModes]);
+  }, [initialized, sliceView, editMode, editModes]);
+
+  // Paint brush
+  useEffect(() => {
+    if (initialized) sliceView.setPaintBrush(brushes[paintBrush]);
+  }, [initialized, sliceView, brushes, paintBrush]);
+
+  // Erase brush
+  useEffect(() => {
+    if (initialized) sliceView.setEraseBrush(brushes[eraseBrush]);
+  }, [initialized, sliceView, brushes, eraseBrush]);
 
   // Clean up
   useEffect(() => {

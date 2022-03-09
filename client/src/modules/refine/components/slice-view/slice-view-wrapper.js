@@ -6,7 +6,7 @@ export const SliceViewWrapper = ({ sliceView }) => {
   const [{ imageData, maskData, label }] = useContext(DataContext);
   const [
     { editMode, editModes, brushes, paintBrush, eraseBrush }, 
-    refineDispatch
+    controlsDispatch
   ] = useContext(RefineContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);
@@ -14,15 +14,15 @@ export const SliceViewWrapper = ({ sliceView }) => {
 
   const onKeyDown = useCallback(evt => {
     if (evt.key === 'Control') {
-      refineDispatch({ type: SET_EDIT_MODE, mode: 'erase' });
+      controlsDispatch({ type: SET_EDIT_MODE, mode: 'erase' });
     }
-  }, [refineDispatch]);
+  }, [controlsDispatch]);
 
   const onKeyUp = useCallback(evt => {
     if (evt.key === 'Control') {
-      refineDispatch({ type: SET_EDIT_MODE, mode: 'paint' });
+      controlsDispatch({ type: SET_EDIT_MODE, mode: 'paint' });
     }
-  }, [refineDispatch]);
+  }, [controlsDispatch]);
   
   // Initialize
   useEffect(() => {

@@ -1,3 +1,5 @@
+import '@kitware/vtk.js/Rendering/Profiles/All';
+
 import vtkImageMapper from '@kitware/vtk.js/Rendering/Core/ImageMapper';
 import vtkImageSlice from '@kitware/vtk.js/Rendering/Core/ImageSlice';
 
@@ -22,7 +24,7 @@ export function Image() {
       actor.getProperty().setInterpolationType(type === 0 ? 1 : 0);
     },
     cleanUp: () => {
-      console.log('Clean up image');
+      console.log("Clean up image");
 
       // Clean up anything we instantiated
       actor.delete();

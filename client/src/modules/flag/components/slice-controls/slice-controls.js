@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import { Button } from 'semantic-ui-react';
-import { FlagContext, SET_LINK_MODE, SET_FLAG } from 'contexts';
+import { FlagContext, SET_LINK_MODE, SET_COMMENT, SET_FLAG } from 'contexts';
 import { ControlBar } from 'modules/common/components/control-bar';
 import { SplitButton } from 'modules/common/components/split-button';
 import { FlagInfo } from 'modules/flag/components/slice-controls/flag-info';
