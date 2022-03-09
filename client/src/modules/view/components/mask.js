@@ -11,7 +11,7 @@ import { Reds, Blues } from 'utils/colors';
 
 const sliceMode = vtkImageMapper.SlicingMode.K;
 
-export function MaskPainter() {      
+export function Mask() {      
   let label = null;
 
   const backgroundColor = Blues[7];
