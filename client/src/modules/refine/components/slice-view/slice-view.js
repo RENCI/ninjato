@@ -1,6 +1,6 @@
 import { RenderWindow, Slice, Image } from 'modules/view/components';
-import { Widgets } from './widgets';
-import { MaskPainter } from './mask-painter';
+import { Widgets } from 'modules/refine/components/slice-view/widgets';
+import { MaskPainter } from 'modules/refine/components/slice-view/mask-painter';
 
 export function SliceView(onEdit, onSliceChange) {
   const renderWindow = RenderWindow();

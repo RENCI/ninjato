@@ -28,7 +28,7 @@ export const Volume = ({ volume }) => {
       <List divided relaxed>
         <List.Item>
           Volume name: 
-          <div className={ styles.volumename }>
+          <div className={ styles.volumeName }>
             { volume.name }
           </div>
         </List.Item>
