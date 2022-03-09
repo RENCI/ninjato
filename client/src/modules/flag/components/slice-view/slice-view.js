@@ -25,6 +25,7 @@ export function SliceView(onEdit, onSliceChange) {
     },
     setData: (imageData, maskData) => {
       image.setInputData(imageData);
+      mask.setInputData(maskData);
 
       const renderer = renderWindow.getRenderer();
       renderer.addViewProp(image.getActor());
