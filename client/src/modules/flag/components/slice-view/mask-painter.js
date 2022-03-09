@@ -65,7 +65,7 @@ export function MaskPainter() {
     getLabel: () => label,
     setSlice: slice => contour.setSliceRange([slice, slice]),
     cleanUp: () => {
-      console.log("Clean up mask");
+      console.log('Clean up mask');
 
       // Clean up anything we instantiated
       painter.delete();

@@ -67,7 +67,7 @@ export function SliceView(onEdit, onSliceChange) {
     canUndo: () => mask.getPainter().canUndo(),
     canRedo: () => mask.getPainter().canRedo(),
     cleanUp: () => {
-      console.log("Clean up slice view");
+      console.log('Clean up slice view');
 
       // Clean up anything we instantiated
       renderWindow.cleanUp();

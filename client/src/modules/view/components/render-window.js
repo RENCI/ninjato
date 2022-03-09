@@ -24,7 +24,7 @@ export function RenderWindow() {
     getInteractor: () => renderWindow.getInteractor(),
     render: () => renderWindow.render(),
     cleanUp: () => {
-      console.log("Clean up slice view");
+      console.log('Clean up slice view');
 
       // Clean up anything we instantiated
       if (fullScreenRenderWindow) {

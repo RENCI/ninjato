@@ -119,7 +119,7 @@ export function Slice() {
       imageMapper.modified();
     },
     cleanUp: () => {
-      console.log("Clean up slice");
+      console.log('Clean up slice');
 
       // Clean up anything we instantiated
       manipulator.delete();
