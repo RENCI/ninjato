@@ -40,28 +40,37 @@ export const BrushOptions = ({ which }) => {
       />
     </Button> 
   );
+  
+  const cancelEvent = evt => evt.stopPropagation();
 
-  return (     
-    <Popup
-      trigger={ 
-        <Button           
-          icon 
-          basic 
-          compact
-        >
-          <Icon name='caret down' fitted />
-        </Button>
-      }
-      on='click'
-      position='bottom left'
-      content={ 
-        <>
-          { which === 'erase' ? 'Eraser' : 'Paint brush' }
-          <Group>
-            { brushes.map((d, i) => brush(d, i)) }
-          </Group>
-        </>
-      }
-    />
+  return (         
+    <div 
+      onClick={ cancelEvent }
+      onKeyDown={ cancelEvent }
+      onKeyUp={ cancelEvent }
+      onKeyPres={ cancelEvent }
+    >
+      <Popup
+        trigger={ 
+          <Button           
+            icon 
+            basic 
+            compact
+          >
+            <Icon name='caret down' fitted />
+          </Button>
+        }
+        on='click'
+        position='bottom left'
+        content={ 
+          <>
+            { which === 'erase' ? 'Eraser' : 'Paint brush' }
+            <Group>
+              { brushes.map((d, i) => brush(d, i)) }
+            </Group>
+          </>
+        }
+      />
+    </div>
   );
 };

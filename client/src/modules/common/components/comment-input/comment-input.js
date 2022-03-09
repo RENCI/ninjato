@@ -1,25 +1,26 @@
 import { Form, Input } from 'semantic-ui-react';
 
-const Field = { Form };
+const { Field } = Form;
 
-export const CommentInput = ({ label, options = [], onChange }) => {
+export const CommentInput = ({ label, comment, options = [], onChange }) => {
   return (      
-      <Form.Field>
-        { label }
-        <Input 
-          list='options'         
-          onChange={ onChange }
-        />
-        <datalist id='options'>
-          { options.map((option, i) => (
-            <option 
-              key={ i }  
-              value={ option }
-            >
-              { option }
-            </option>
-          ))}
-        </datalist>
-      </Form.Field>
+    <Field>
+      { label }
+      <Input 
+        value={ comment }
+        list='options'         
+        onChange={ onChange }
+      />
+      <datalist id='options'>
+        { options.map((option, i) => (
+          <option 
+            key={ i }  
+            value={ option }
+          >
+            { option }
+          </option>
+        ))}
+      </datalist>
+    </Field>
   );
 };
