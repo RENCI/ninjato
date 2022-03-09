@@ -20,7 +20,8 @@ export default function widgetBehavior(publicAPI, model) {
       return macro.VOID;
     }   
 
-    const label = getLabel(model, callData);
+    model.selecting = true;
+    model.startLabel = getLabel(model, callData);
     
     publicAPI.invokeStartInteractionEvent();
     return macro.EVENT_ABORT;
@@ -28,8 +29,8 @@ export default function widgetBehavior(publicAPI, model) {
 
   publicAPI.handleMouseMove = (callData) => publicAPI.handleEvent(callData);
 
-  publicAPI.handleLeftButtonRelease = () => {
-    if (model.painting) {      
+  publicAPI.handleLeftButtonRelease = (callData) => {
+    if (model.selecting) {      
       publicAPI.invokeEndInteractionEvent();
     }
 

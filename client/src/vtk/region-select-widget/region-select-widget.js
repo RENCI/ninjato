@@ -55,6 +55,9 @@ function vtkRegionSelectWidget(publicAPI, model) {
 
 const DEFAULT_VALUES = {
   manipulator: null,
+  selecting: false,
+  startLabel: null,
+  label: null,
   imageData: null
 };
 
@@ -65,6 +68,7 @@ export function extend(publicAPI, model, initialValues = {}) {
 
   vtkAbstractWidgetFactory.extend(publicAPI, model, initialValues);
 
+  macro.get(publicAPI, model, ['selecting']);
   macro.setGet(publicAPI, model, ['manipulator', 'imageData']);
 
   vtkRegionSelectWidget(publicAPI, model);
