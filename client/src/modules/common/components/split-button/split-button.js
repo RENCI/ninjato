@@ -1,7 +1,16 @@
-import { Button, Icon} from 'semantic-ui-react';
+import { Button, Icon, Popup } from 'semantic-ui-react';
 import styles from './styles.module.css';
+  
+const cancelEvent = evt => evt.stopPropagation();
 
-export const SplitButton = ({ toggle = false, icon, active = true, content, onClick }) => {
+export const SplitButton = ({ 
+  toggle = false, 
+  icon, 
+  active = true, 
+  position = 'top right',
+  content,
+  onClick 
+}) => {
   return (
     <Button             
       as='div'
@@ -15,8 +24,26 @@ export const SplitButton = ({ toggle = false, icon, active = true, content, onCl
       <div className={ styles.iconDiv }>
         <Icon name={ icon } fitted />
       </div>
-      <div>
-        { content }
+      <div 
+        onClick={ cancelEvent }
+        onKeyDown={ cancelEvent }
+        onKeyUp={ cancelEvent }
+        onKeyPres={ cancelEvent }
+      >
+        <Popup
+          trigger={ 
+            <Button           
+              icon 
+              basic 
+              compact
+            >
+              <Icon name='caret down' fitted />
+            </Button>
+          }
+          on='click'
+          position={ position }
+          content={ content }
+        />
       </div>
     </Button>
   );
