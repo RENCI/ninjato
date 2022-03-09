@@ -7,7 +7,7 @@ export function SliceView(onEdit, onSliceChange) {
   const slice = Slice();
   const image = Image();
   const mask = Mask();  
-  const widgets = Widgets(mask.getPainter(), onEdit);
+  const widgets = Widgets(onEdit);
 
   return {
     initialize: (rootNode, onKeyDown, onKeyUp) => {
@@ -53,19 +53,7 @@ export function SliceView(onEdit, onSliceChange) {
       widgets.setEditMode(editMode)
       renderWindow.getInteractor().getView().setCursor(cursor);
     },
-    setPaintBrush: brush => widgets.setPaintBrush(brush),
-    setEraseBrush: brush => widgets.setEraseBrush(brush),
     setSlice: slice => image.getMapper().setSlice(slice),
-    undo: () => {
-      mask.getPainter().undo();
-      onEdit()
-    },
-    redo: () => {
-      mask.getPainter().redo();
-      onEdit();
-    },
-    canUndo: () => mask.getPainter().canUndo(),
-    canRedo: () => mask.getPainter().canRedo(),
     cleanUp: () => {
       console.log('Clean up slice view');
 

@@ -8,7 +8,7 @@ const setBrush = (handle, brush) => {
   handle.getRepresentations()[0].setBrush(brush);
 };
 
-export function Widgets(painter, onEdit) {
+export function Widgets(onEdit) {
   const manager = vtkWidgetManager.newInstance();
   const floodWidget = vtkBrushWidget.newInstance();
   const eraseWidget = vtkBrushWidget.newInstance();
@@ -39,27 +39,27 @@ export function Widgets(painter, onEdit) {
       manager.grabFocus(activeWidget);
 
       handles.forEach(handle => {
-        handle.onStartInteractionEvent(() => painter.startStroke());
+        //handle.onStartInteractionEvent(() => painter.startStroke());
       });
 
       floodHandle.onEndInteractionEvent(async () => {
-        painter.paintFloodFill(
-          floodHandle.getPoints(), 
-          floodHandle.getRepresentations()[0].getBrush()
-        );
+        //painter.paintFloodFill(
+        //  floodHandle.getPoints(), 
+        //  floodHandle.getRepresentations()[0].getBrush()
+        //);
 
-        await painter.endStroke();
+        //await painter.endStroke();
   
         onEdit();
       });
 
       eraseHandle.onEndInteractionEvent(async () => {
-        painter.erase(
-          eraseHandle.getPoints(), 
-          eraseHandle.getRepresentations()[0].getBrush()
-        );
+        //painter.erase(
+        //  eraseHandle.getPoints(), 
+        //  eraseHandle.getRepresentations()[0].getBrush()
+        //);
 
-        await painter.endStroke(true);
+        //await painter.endStroke(true);
 
         onEdit();
       });
@@ -70,12 +70,12 @@ export function Widgets(painter, onEdit) {
         const y = [handle.origin[1], handle.corner[1]].sort((a, b) => a - b);
         const z = handle.origin[2];
 
-        painter.crop(
-          [x[0], y[0], z],
-          [x[1], y[1], z]
-        );
+        //painter.crop(
+        //  [x[0], y[0], z],
+        //  [x[1], y[1], z]
+        //);
 
-        await painter.endStroke(true);
+        //await painter.endStroke(true);
 
         onEdit();
       });

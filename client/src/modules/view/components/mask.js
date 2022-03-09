@@ -1,11 +1,8 @@
-import '@kitware/vtk.js/Rendering/Profiles/All';
-
 import vtkImageMapper from '@kitware/vtk.js/Rendering/Core/ImageMapper';
 import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
 import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 
-import vtkNinjatoPainter from 'vtk/ninjato-painter';
 import vtkImageContour from 'vtk/image-contour';
 import { Reds, Blues } from 'utils/colors';
 
@@ -17,11 +14,7 @@ export function Mask() {
   const backgroundColor = Blues[7];
   const regionColor = Reds[5];
 
-  const painter = vtkNinjatoPainter.newInstance();
-  painter.setSlicingMode(sliceMode);
-
   const contour = vtkImageContour.newInstance();
-  contour.setInputConnection(painter.getOutputPort());
 
   const color = vtkColorTransferFunction.newInstance();
   
@@ -35,20 +28,16 @@ export function Mask() {
   actor.getProperty().setLighting(false);
 
   return {
-    getPainter: () => painter,
     getActor: () => actor,
     getMapper: () => mapper,
     setInputData: maskData => {
-      painter.setBackgroundImage(maskData);
-      painter.setLabelMap(maskData);
+      contour.setInputData(maskData);
 
       const [w, h] = maskData.getDimensions();
       contour.setWidth(Math.max(w, h) / 200);
     },
     setLabel: regionLabel => {
       label = regionLabel;
-      
-      painter.setLabel(label);
 
       color.removeAllPoints();
       color.addRGBPoint(0, 0, 0, 0);
@@ -68,7 +57,6 @@ export function Mask() {
       console.log('Clean up mask');
 
       // Clean up anything we instantiated
-      painter.delete();
       contour.delete();
       color.delete();
       mapper.delete();

@@ -19,15 +19,9 @@ export const FlagContainer = () => {
   const sliceView = useRef(SliceView(onEdit, onSliceChange));
   const [loading, setLoading] = useState(true);
   const [slice, setSlice] = useState(0);
-  const [canUndo, setCanUndo] = useState(false);
-  const [canRedo, setCanRedo] = useState(false);
   
   function onEdit() {
-    volumeView.current.centerCamera();
     volumeView.current.render();
-
-    setCanUndo(sliceView.current.canUndo());
-    setCanRedo(sliceView.current.canRedo());
   }
 
   function onSliceChange(slice) {
@@ -81,11 +75,7 @@ export const FlagContainer = () => {
           </VisualizationSection>
         </Column>
         { !loading && 
-          <SliceControls 
-            sliceView={ sliceView.current }
-            canUndo={ canUndo }
-            canRedo={ canRedo }
-          />
+          <SliceControls sliceView={ sliceView.current } />
         }
       </Grid>
       { !loading && <SaveButtons /> }

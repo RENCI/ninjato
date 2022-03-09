@@ -48,16 +48,6 @@ export const SliceViewWrapper = ({ sliceView }) => {
     }
   }, [initialized, sliceView, editMode, editModes]);
 
-  // Paint brush
-  useEffect(() => {
-    if (initialized) sliceView.setPaintBrush(brushes[paintBrush]);
-  }, [initialized, sliceView, brushes, paintBrush]);
-
-  // Erase brush
-  useEffect(() => {
-    if (initialized) sliceView.setEraseBrush(brushes[eraseBrush]);
-  }, [initialized, sliceView, brushes, eraseBrush]);
-
   // Clean up
   useEffect(() => {
     return () => sliceView.cleanUp();
