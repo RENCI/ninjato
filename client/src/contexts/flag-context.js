@@ -9,16 +9,16 @@ export const REMOVE_LINK = 'flat/REMOVE_LINK';
 export const SET_SHOW_BACKGROUND = 'flag/SET_SHOW_BACKGROUND';
 export const RESET = 'flag/RESET';
 
-const linkModes = [
-  { value: 'add', icon: 'chain', cursor: getCursor('chain.png', 12, 23) },
-  { value: 'remove', icon: 'broken chain', cursor: getCursor('broken-chain.png', 11, 23) }
+const editModes = [
+  { value: 'addLink', icon: 'chain', cursor: getCursor('chain.png', 12, 23) },
+  { value: 'removeLink', icon: 'broken chain', cursor: getCursor('broken-chain.png', 11, 23) }
 ];
 
 const initialState = {
   flag: false,
   comment: '',
-  linkMode: 'add',
-  linkModes: linkModes,
+  editMode: 'addLink',
+  editModes: editModes,
   links: [],  
   showBackground: true
 };
@@ -40,7 +40,7 @@ const reducer = (state, action) => {
     case SET_LINK_MODE:
       return {
         ...state,
-        linkMode: action.mode
+        editMode: action.mode
       };
 
     case ADD_LINK:

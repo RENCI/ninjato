@@ -8,7 +8,7 @@ import { FlagInfo } from 'modules/flag/components/slice-controls/flag-info';
 const { Group } = Button;
 
 export const SliceControls = ({ sliceView }) => {
-  const [{ flag, linkModes, linkMode }, dispatch] = useContext(FlagContext);
+  const [{ flag, editModes, editMode }, dispatch] = useContext(FlagContext);
 
   const onFlagClick = () => {
     dispatch({ type: SET_FLAG, flag: !flag });
@@ -30,12 +30,12 @@ export const SliceControls = ({ sliceView }) => {
         />
       </Group>
       <Group vertical>
-        { linkModes.map(({ value, icon }, i) => (
+        { editModes.map(({ value, icon }, i) => (
           <Button
             key={ i }
             toggle
             icon={ icon }
-            color={ value === linkMode ? 'grey' : null }
+            color={ value === editMode ? 'grey' : null }
             onClick={ () => onModeClick(value) }
           />
         ))}

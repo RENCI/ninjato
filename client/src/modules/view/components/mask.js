@@ -1,12 +1,9 @@
-import vtkImageMapper from '@kitware/vtk.js/Rendering/Core/ImageMapper';
 import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
 import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 
 import vtkImageContour from 'vtk/image-contour';
 import { Reds, Blues } from 'utils/colors';
-
-const sliceMode = vtkImageMapper.SlicingMode.K;
 
 export function Mask() {      
   let label = null;
