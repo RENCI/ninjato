@@ -3,7 +3,8 @@ import vtkAbstractWidgetFactory from '@kitware/vtk.js/Widgets/Core/AbstractWidge
 import vtkPlaneManipulator from '@kitware/vtk.js/Widgets/Manipulators/PlaneManipulator';
 import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
-import vtkBrushRepresentation from 'vtk/brush-representation';
+import vtkRegionSelectRepresentation from 'vtk/region-select-representation';
+
 import widgetBehavior from './behavior';
 import stateGenerator from './state';
 
@@ -11,12 +12,12 @@ import stateGenerator from './state';
 // Factory
 // ----------------------------------------------------------------------------
 
-function vtkBrushWidget(publicAPI, model) {
-  model.classHierarchy.push('vtkBrushWidget');
+function vtkRegionSelectWidget(publicAPI, model) {
+  model.classHierarchy.push('vtkRegionSelectWidget');
 
   // --- Widget Requirement ---------------------------------------------------
   model.behavior = widgetBehavior;
-  model.widgetState = stateGenerator(model.radius);
+  model.widgetState = stateGenerator();
 
   publicAPI.getRepresentationsForViewType = (viewType) => {
     switch (viewType) {
@@ -27,8 +28,8 @@ function vtkBrushWidget(publicAPI, model) {
       default:
         return [
           {
-            builder: vtkBrushRepresentation,
-            labels: ['handle', 'trail']
+            builder: vtkRegionSelectRepresentation,
+            labels: ['handle']
           },
         ];
     }
@@ -40,14 +41,6 @@ function vtkBrushWidget(publicAPI, model) {
   // Default manipulator
   model.manipulator = vtkPlaneManipulator.newInstance();
   handle.setManipulator(model.manipulator);
-
-  // override
-  const superSetRadius = publicAPI.setRadius;
-  publicAPI.setRadius = (r) => {
-    if (superSetRadius(r)) {
-      handle.setScale1(r);
-    }
-  };
 
   publicAPI.setPosition = (position) => {
     handle.setOrigin(position);
@@ -62,10 +55,7 @@ function vtkBrushWidget(publicAPI, model) {
 
 const DEFAULT_VALUES = {
   manipulator: null,
-  radius: 1,
-  painting: false,
-  color: [1],
-  imageData: null,
+  imageData: null
 };
 
 // ----------------------------------------------------------------------------
@@ -75,15 +65,14 @@ export function extend(publicAPI, model, initialValues = {}) {
 
   vtkAbstractWidgetFactory.extend(publicAPI, model, initialValues);
 
-  macro.get(publicAPI, model, ['painting']);
-  macro.setGet(publicAPI, model, ['manipulator', 'radius', 'color', 'imageData']);
+  macro.setGet(publicAPI, model, ['manipulator', 'imageData']);
 
-  vtkBrushWidget(publicAPI, model);
+  vtkRegionSelectWidget(publicAPI, model);
 }
 
 // ----------------------------------------------------------------------------
 
-export const newInstance = macro.newInstance(extend, 'vtkBrushWidget');
+export const newInstance = macro.newInstance(extend, 'vtkLinkWidget');
 
 // ----------------------------------------------------------------------------
 

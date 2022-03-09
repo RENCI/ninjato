@@ -11,13 +11,13 @@ export const SliceViewWrapper = ({ sliceView }) => {
 
   const onKeyDown = useCallback(evt => {
     if (evt.key === 'Control') {
-      flagDispatch({ type: FLAG_SET_EDIT_MODE, mode: 'addLink' });
+      flagDispatch({ type: FLAG_SET_EDIT_MODE, mode: 'removeLink' });
     }
   }, [flagDispatch]);
 
   const onKeyUp = useCallback(evt => {
     if (evt.key === 'Control') {
-      flagDispatch({ type: FLAG_SET_EDIT_MODE, mode: 'removeLink' });
+      flagDispatch({ type: FLAG_SET_EDIT_MODE, mode: 'addLink' });
     }
   }, [flagDispatch]);
   

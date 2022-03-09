@@ -1,11 +1,11 @@
 import vtkWidgetManager from '@kitware/vtk.js/Widgets/Core/WidgetManager';
 import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
-import vtkLinkWidget from 'vtk/link-widget';
+import vtkRegionSelectWidget from 'vtk/region-select-widget';
 
 export function Widgets(onEdit) {
   const manager = vtkWidgetManager.newInstance();
-  const linkWidget = vtkLinkWidget.newInstance();
+  const linkWidget = vtkRegionSelectWidget.newInstance();
 
   const widgets = [
     linkWidget
