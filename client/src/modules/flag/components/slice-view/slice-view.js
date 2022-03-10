@@ -9,7 +9,7 @@ const cursors = {
   invalid: 'default'
 };
 
-export function SliceView(onLink, onHighlight, onSliceChange) {
+export function SliceView(onAddLink, onRemoveLink, onHighlight, onSliceChange) {
   const renderWindow = RenderWindow();
   const slice = Slice();
   const image = Image();
@@ -19,8 +19,21 @@ export function SliceView(onLink, onHighlight, onSliceChange) {
 
   const setCursor = cursor => renderWindow.getInteractor().getView().setCursor(cursor);
 
+  const isValid = label => label !== null && label !== 0 && label !== mask.getLabel();
+
+  const onSelect = label => {
+    if (!isValid(label)) return;
+
+    if (links.includes(label)) {
+      onRemoveLink(label);
+    }
+    else {
+      onAddLink(label);
+    }
+  };
+
   const onHover = label => {
-    if (label === null || label === 0 || label === mask.getLabel()) {
+    if (!isValid(label)) {
       setCursor(cursors.invalid);
       onHighlight(null);
     }
@@ -34,7 +47,7 @@ export function SliceView(onLink, onHighlight, onSliceChange) {
     }
   };
 
-  const widgets = Widgets(onLink, onHover);
+  const widgets = Widgets(onSelect, onHover);
 
   return {
     initialize: (rootNode) => {
