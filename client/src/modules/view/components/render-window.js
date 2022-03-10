@@ -22,6 +22,8 @@ export function RenderWindow() {
     getRenderer: () => renderer,
     getCamera: () => renderer.getActiveCamera(),
     getInteractor: () => renderWindow.getInteractor(),
+    setCursor: cursor => renderWindow.getInteractor().getView().setCursor(cursor),
+    updateView: () => renderWindow.getInteractor().getView().invokeEvent(),
     render: () => renderWindow.render(),
     cleanUp: () => {
       console.log('Clean up slice view');

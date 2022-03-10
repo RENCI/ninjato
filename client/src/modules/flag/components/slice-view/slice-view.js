@@ -17,32 +17,36 @@ export function SliceView(onAddLink, onRemoveLink, onHighlight, onSliceChange) {
 
   let links = [];
 
-  const setCursor = cursor => renderWindow.getInteractor().getView().setCursor(cursor);
-
   const isValid = label => label !== null && label !== 0 && label !== mask.getLabel();
 
   const onSelect = label => {
     if (!isValid(label)) return;
 
     if (links.includes(label)) {
+      renderWindow.setCursor(cursors.link);
+      renderWindow.updateView();
       onRemoveLink(label);
+      onHighlight(null);
     }
     else {
+      renderWindow.setCursor(cursors.unlink);
+      renderWindow.updateView();
       onAddLink(label);
+      onHighlight(null);
     }
   };
 
   const onHover = label => {
     if (!isValid(label)) {
-      setCursor(cursors.invalid);
+      renderWindow.setCursor(cursors.invalid);
       onHighlight(null);
     }
     else if (links.includes(label)) {
-      setCursor(cursors.unlink);
+      renderWindow.setCursor(cursors.unlink);
       onHighlight(label);
     }
     else {
-      setCursor(cursors.link);
+      renderWindow.setCursor(cursors.link);
       onHighlight(label);
     }
   };
@@ -86,6 +90,7 @@ export function SliceView(onAddLink, onRemoveLink, onHighlight, onSliceChange) {
     setSlice: slice => image.getMapper().setSlice(slice),
     setLinks: linkLabels => {
       links = linkLabels;
+      mask.setActiveLabels(linkLabels);
     },
     setHighlightLabel: label => {
       mask.setHighlightLabel(label);

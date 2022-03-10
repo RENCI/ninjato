@@ -60,7 +60,7 @@ export const FlagContainer = () => {
       <VisualizationLoader loading={ loading } />
       <AssignmentMessage>
         Flag problems with <span style={{ color: red, fontWeight: 'bold' }}>red  region</span>,
-        link associated <span style={{ color: blue, fontWeight: 'bold' }}>blue regions</span>
+        link any associated <span style={{ color: blue, fontWeight: 'bold' }}>blue regions</span>
       </AssignmentMessage>
       <Grid columns='equal' verticalAlign='middle' padded stackable reversed='mobile'>
         { !loading && 

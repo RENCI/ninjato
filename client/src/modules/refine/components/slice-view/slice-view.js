@@ -51,7 +51,7 @@ export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
     setLabel: label => mask.setLabel(label),
     setEditMode: (editMode, cursor) => {
       widgets.setEditMode(editMode)
-      renderWindow.getInteractor().getView().setCursor(cursor);
+      renderWindow.setCursor(cursor);
     },
     setPaintBrush: brush => widgets.setPaintBrush(brush),
     setEraseBrush: brush => widgets.setEraseBrush(brush),
