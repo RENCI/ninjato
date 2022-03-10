@@ -3,6 +3,8 @@ import { Button } from 'semantic-ui-react';
 import { RefineContext, REFINE_SET_SHOW_BACKGROUND } from 'contexts';
 import { ControlBar } from 'modules/common/components/control-bar';
 
+const { Group } = Button;
+
 export const VolumeControls = () => {
   const [{ showBackground }, dispatch] = useContext(RefineContext);
 
@@ -12,13 +14,14 @@ export const VolumeControls = () => {
 
   return (
     <ControlBar>
-      <Button
-        icon='cubes'
-        compact
-        toggle
-        color={ showBackground ? 'grey' : null }
-        onClick={ onShowBackgroundClick }
-      />
+      <Group vertical>
+        <Button
+          icon='cubes'
+          toggle
+          color={ showBackground ? 'grey' : null }
+          onClick={ onShowBackgroundClick }
+        />
+      </Group>
     </ControlBar>
   );
 };

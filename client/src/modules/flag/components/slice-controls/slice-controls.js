@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { Button } from 'semantic-ui-react';
+import { Button, Popup, Icon } from 'semantic-ui-react';
 import { FlagContext, FLAG_SET_FLAG } from 'contexts';
 import { ControlBar } from 'modules/common/components/control-bar';
 import { SplitButton } from 'modules/common/components/split-button';
@@ -10,19 +10,21 @@ const { Group } = Button;
 export const SliceControls = () => {
   const [{ flag }, dispatch] = useContext(FlagContext);
 
-  const onFlagClick = () => {
-    dispatch({ type: FLAG_SET_FLAG, flag: !flag });
-  };
-
   return (
     <ControlBar>
       <Group vertical>
-        <SplitButton
-          toggle={ true }
-          icon={ 'flag' }
-          active={ flag }
+        <Popup
+          trigger={ 
+            <Button           
+              toggle
+              icon='flag'
+              color={ flag ? 'grey' : null }
+            >
+            </Button>
+          }
+          on='click'
+          position={ 'top left' }
           content={ <FlagInfo /> }
-          onClick={ () => onFlagClick() }
         />
       </Group>
     </ControlBar>

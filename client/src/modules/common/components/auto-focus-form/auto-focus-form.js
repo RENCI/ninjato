@@ -12,7 +12,7 @@ export const AutoFocusForm = props => {
       firstInput.focus();
       
       const length = firstInput.value.length;
-      firstInput.setSelectionRange(length, length);
+      firstInput.setSelectionRange(0, length);
     }
   }, []);
 

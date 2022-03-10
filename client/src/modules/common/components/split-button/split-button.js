@@ -37,7 +37,7 @@ export const SplitButton = ({
               basic 
               compact
             >
-              <Icon name='caret down' fitted />
+              <Icon name='ellipsis vertical' fitted />
             </Button>
           }
           on='click'
