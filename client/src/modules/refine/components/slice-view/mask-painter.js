@@ -50,7 +50,6 @@ export function MaskPainter() {
 
       color.removeAllPoints();
       color.addRGBPoint(0, 0, 0, 0);
-      color.addRGBPoint(0, 0, 1, 0);
       if (label > 1) {
         color.addRGBPoint(1, ...backgroundColor);
         color.addRGBPoint(label - 1, ...backgroundColor);

@@ -1,13 +1,40 @@
 import { RenderWindow, Slice, Image } from 'modules/view/components';
 import { Mask } from 'modules/view/components/mask';
 import { Widgets } from 'modules/flag/components/slice-view/widgets';
+import { getCursor } from 'utils/cursor';
 
-export function SliceView(onLink, onSliceChange, onKeyDown, onKeyUp) {
+const cursors = {
+  link: getCursor('chain.png', 12, 23),
+  unlink: getCursor('broken-chain.png', 11, 23),
+  invalid: 'default'
+};
+
+export function SliceView(onLink, onHighlight, onSliceChange) {
   const renderWindow = RenderWindow();
   const slice = Slice();
   const image = Image();
   const mask = Mask();  
-  const widgets = Widgets(onLink);
+
+  let links = [];
+
+  const setCursor = cursor => renderWindow.getInteractor().getView().setCursor(cursor);
+
+  const onHover = label => {
+    if (label === null || label === 0 || label === mask.getLabel()) {
+      setCursor(cursors.invalid);
+      onHighlight(null);
+    }
+    else if (links.includes(label)) {
+      setCursor(cursors.unlink);
+      onHighlight(label);
+    }
+    else {
+      setCursor(cursors.link);
+      onHighlight(label);
+    }
+  };
+
+  const widgets = Widgets(onLink, onHover);
 
   return {
     initialize: (rootNode) => {
@@ -15,12 +42,6 @@ export function SliceView(onLink, onSliceChange, onKeyDown, onKeyUp) {
 
       renderWindow.initialize(rootNode);      
       slice.initialize(renderWindow);
-
-      const interactor = renderWindow.getInteractor();
-      interactor.onKeyDown(evt => (
-        evt.key === 'i' ? image.toggleInterpolation() : onKeyDown(evt)
-      ));
-      interactor.onKeyUp(onKeyUp);
 
       widgets.setRenderer(renderWindow.getRenderer());
     },
@@ -49,11 +70,13 @@ export function SliceView(onLink, onSliceChange, onKeyDown, onKeyUp) {
       slice.setSliceByLabel(image.getMapper(), maskData, mask.getLabel());
     },
     setLabel: label => mask.setLabel(label),
-    setEditMode: (editMode, cursor) => {
-      widgets.setEditMode(editMode)
-      renderWindow.getInteractor().getView().setCursor(cursor);
-    },
     setSlice: slice => image.getMapper().setSlice(slice),
+    setLinks: linkLabels => {
+      links = linkLabels;
+    },
+    setHighlightLabel: label => {
+      mask.setHighlightLabel(label);
+    },
     cleanUp: () => {
       console.log('Clean up slice view');
 

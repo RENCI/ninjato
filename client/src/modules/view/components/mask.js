@@ -3,13 +3,15 @@ import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 
 import vtkImageContour from 'vtk/image-contour';
-import { Reds, Blues } from 'utils/colors';
+import { Reds, Blues, Purples } from 'utils/colors';
 
 export function Mask() {      
   let label = null;
+  let highlightLabel = null;
 
   const backgroundColor = Blues[7];
   const regionColor = Reds[5];
+  const highlightColor = Blues[4];
 
   const contour = vtkImageContour.newInstance();
 
@@ -24,6 +26,32 @@ export function Mask() {
   actor.setMapper(mapper);
   actor.getProperty().setLighting(false);
 
+  const updateColors = () => {
+    color.removeAllPoints();
+    color.addRGBPoint(0, 0, 0, 0);
+    color.addRGBPoint(1, ...backgroundColor);
+    if (label > 1) color.addRGBPoint(label - 1, ...backgroundColor);
+    color.addRGBPoint(label + 1, ...backgroundColor);
+    if (highlightLabel !== null) {
+      if (highlightLabel > 1) color.addRGBPoint(highlightLabel - 1, ...backgroundColor);
+      color.addRGBPoint(highlightLabel + 1, ...backgroundColor);
+    }
+    color.addRGBPoint(label, ...regionColor);
+    if (highlightLabel) color.addRGBPoint(highlightLabel, ...highlightColor);
+/*
+    if (label > 1) {
+      color.addRGBPoint(1, ...backgroundColor);
+      color.addRGBPoint(label - 1, ...backgroundColor);
+    }
+    color.addRGBPoint(label, ...regionColor);
+    color.addRGBPoint(label + 1, ...backgroundColor);
+
+    if (highlightLabel !== null) {
+      color.addRGBPoint(highlightLabel, 1, 0, 1);
+    }
+*/    
+  };
+
   return {
     getActor: () => actor,
     getMapper: () => mapper,
@@ -35,20 +63,17 @@ export function Mask() {
     },
     setLabel: regionLabel => {
       label = regionLabel;
-
-      color.removeAllPoints();
-      color.addRGBPoint(0, 0, 0, 0);
-      color.addRGBPoint(0, 0, 1, 0);
-      if (label > 1) {
-        color.addRGBPoint(1, ...backgroundColor);
-        color.addRGBPoint(label - 1, ...backgroundColor);
-      }
-      color.addRGBPoint(label, ...regionColor);
-      color.addRGBPoint(label + 1, ...backgroundColor);
+      
+      updateColors();    
 
       contour.setLabelOffsets({[label]: -0.01 });
     },
     getLabel: () => label,
+    setHighlightLabel: label => {
+      highlightLabel = label;
+      
+      updateColors();
+    },
     setSlice: slice => contour.setSliceRange([slice, slice]),
     cleanUp: () => {
       console.log('Clean up mask');

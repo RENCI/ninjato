@@ -55,7 +55,6 @@ function vtkRegionSelectWidget(publicAPI, model) {
 
 const DEFAULT_VALUES = {
   manipulator: null,
-  selecting: false,
   startLabel: null,
   label: null,
   imageData: null

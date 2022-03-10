@@ -1,11 +1,10 @@
 import { createContext, useReducer } from "react";
+import { getCursor } from 'utils/cursor';
 
 export const REFINE_SET_EDIT_MODE = 'refine/SET_EDIT_MODE';
 export const REFINE_SET_BRUSH = 'refine/REFINE_SET_BRUSH';
 export const REFINE_SET_SHOW_BACKGROUND = 'refine/SET_SHOW_BACKGROUND';
 export const REFINE_RESET = 'refine/RESET';
-
-const getCursor = (file, x, y) => `url(/cursors/${ file }) ${ x } ${ y }, auto`;
 
 const editModes = [
   { value: 'paint', icon: 'paint brush', cursor: getCursor('paint-brush.png', 11, 23) },

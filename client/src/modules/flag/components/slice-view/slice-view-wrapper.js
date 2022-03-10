@@ -4,7 +4,7 @@ import { useResize } from 'hooks';
 
 export const SliceViewWrapper = ({ sliceView }) => {
   const [{ imageData, maskData, label }] = useContext(DataContext);
-  const [{ editMode, editModes }] = useContext(FlagContext);
+  const [{ links }] = useContext(FlagContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);
   const { width } = useResize(div);
@@ -25,13 +25,12 @@ export const SliceViewWrapper = ({ sliceView }) => {
     }
   }, [initialized, sliceView, imageData, maskData, label]);   
 
-  // Edit mode
+  // Links
   useEffect(() => {
     if (initialized) {
-      const mode = editModes.find(({ value }) => value === editMode);
-      sliceView.setEditMode(editMode, mode.cursor);
+      sliceView.setLinks(links);
     }
-  }, [initialized, sliceView, editMode, editModes]);
+  }, [initialized, sliceView, links]);
 
   // Clean up
   useEffect(() => {

@@ -1,6 +1,6 @@
 import { useContext, useRef, useCallback, useState } from 'react';
 import { Grid } from 'semantic-ui-react';
-import { DataContext, FlagContext, FLAG_SET_EDIT_MODE, FLAG_ADD_LINK } from 'contexts';
+import { DataContext, FlagContext, FLAG_ADD_LINK } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
 import { VolumeViewWrapper, VolumeView } from 'modules/flag/components/volume-view';
@@ -9,15 +9,15 @@ import { VolumeControls } from 'modules/flag/components/volume-controls';
 import { SliceControls } from 'modules/flag/components/slice-controls';
 import { SliceSlider } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
-import { Reds, cssString } from 'utils/colors';
+import { Reds, Blues, cssString } from 'utils/colors';
 
 const { Column } = Grid;
 
 export const FlagContainer = () => {
   const [{ imageData }] = useContext(DataContext);
-  const [, flagDispatch] = useContext(FlagContext);
+  const [,flagDispatch] = useContext(FlagContext);
   const volumeView = useRef(VolumeView());
-  const sliceView = useRef(SliceView(onLink, onSliceChange, onKeyDown, onKeyUp));
+  const sliceView = useRef(SliceView(onLink, onHighlight, onSliceChange));
   const [loading, setLoading] = useState(true);
   const [slice, setSlice] = useState(0);
   
@@ -28,22 +28,14 @@ export const FlagContainer = () => {
     //volumeView.current.render();
   }
 
+  function onHighlight(label) {
+    sliceView.current.setHighlightLabel(label);
+  }
+
   function onSliceChange(slice) {
     volumeView.current.setSlice(slice);
     volumeView.current.render();
     setSlice(slice);
-  }
-
-  function onKeyDown(evt) {
-    if (evt.key === 'Control') {
-      flagDispatch({ type: FLAG_SET_EDIT_MODE, mode: 'removeLink' });
-    }
-  }
-
-  function onKeyUp(evt) {
-    if (evt.key === 'Control') {
-      flagDispatch({ type: FLAG_SET_EDIT_MODE, mode: 'addLink' });
-    }
   }
 
   const onLoaded = useCallback(() => {
@@ -58,13 +50,15 @@ export const FlagContainer = () => {
 
   const numSlices = imageData ? imageData.getDimensions()[2] : 0;  
 
-  const color = cssString(Reds[5]);
+  const red = cssString(Reds[5]);
+  const blue = cssString(Blues[5]);
 
   return (
     <> 
       <VisualizationLoader loading={ loading } />
       <AssignmentMessage>
-        Flag problems with <span style={{ color: color, fontWeight: 'bold' }}>red  region</span>
+        Flag problems with <span style={{ color: red, fontWeight: 'bold' }}>red  region</span>,
+        link associated <span style={{ color: blue, fontWeight: 'bold' }}>blue regions</span>
       </AssignmentMessage>
       <Grid columns='equal' verticalAlign='middle' padded stackable reversed='mobile'>
         { !loading && 

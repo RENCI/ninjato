@@ -3,61 +3,54 @@ import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants'
 
 import vtkRegionSelectWidget from 'vtk/region-select-widget';
 
-export function Widgets(onLink) {
+export function Widgets(onLink, onHover) {
   const manager = vtkWidgetManager.newInstance();
   const linkWidget = vtkRegionSelectWidget.newInstance();
-
-  const widgets = [
-    linkWidget
-  ];
-
-  let activeWidget = null;
   
   let linkHandle = null;
-
-  let handles = [];
 
   return {
     setRenderer: renderer => {
       manager.setRenderer(renderer);
 
-      handles = widgets.map(widget => manager.addWidget(widget, ViewTypes.SLICE));
-      [linkHandle] = [...handles];
+      linkHandle = manager.addWidget(linkWidget, ViewTypes.SLICE);
     
-      activeWidget = linkWidget;
-      manager.grabFocus(activeWidget);
+      manager.grabFocus(linkWidget);
 
-      handles.forEach(handle => {
-        //handle.onStartInteractionEvent(() => painter.startStroke());
+      linkHandle.onStartInteractionEvent(() => {
+        const label = linkWidget.getLabel();
+
+        onHover(label);
       });
 
-      linkHandle.onEndInteractionEvent(async () => {
+      linkHandle.onInteractionEvent(() => {
+        const startLabel = linkWidget.getStartLabel();
+        const label = linkWidget.getLabel();        
+
+        if (startLabel === null || (startLabel !== null && startLabel === label)) {
+          onHover(label);
+        }
+        else {
+          onHover(null);
+        }
+      });
+
+      linkHandle.onEndInteractionEvent(() => {
+        const startLabel = linkWidget.getStartLabel();
         const label = linkWidget.getLabel();
-        if (label === linkWidget.getStartLabel()) {
+
+        if (startLabel !== null && label === startLabel) {
           onLink(label);
         }
       });
     },
-    update: (position, spacing) => { 
+    update: position => { 
       linkWidget.getManipulator().setOrigin(position);
       
       linkHandle.updateRepresentationForRender();
     },
     setImageData: imageData => {
-      widgets.forEach(widget => widget.setImageData(imageData))    
-    },
-    setEditMode: editMode => {
-      const position = activeWidget.getPosition();
-
-      activeWidget = linkWidget;
-
-      manager.grabFocus(activeWidget);
-
-      activeWidget.setPosition(position);
-
-      widgets.forEach(widget => {
-        widget.setVisibility(widget === activeWidget);
-      });
+      linkWidget.setImageData(imageData);    
     },
     cleanUp: () => {
       console.log('Clean up widgets');

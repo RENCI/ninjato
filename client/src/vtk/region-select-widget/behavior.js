@@ -11,7 +11,9 @@ const getLabel = (model, callData) => {
     model.apiSpecificRenderWindow
   );
 
-  return imageData.getScalarValueFromWorld(worldCoords);
+  const value = imageData.getScalarValueFromWorld(worldCoords);
+
+  return isNaN(value) ? null : value;
 };
 
 export default function widgetBehavior(publicAPI, model) {
@@ -20,7 +22,6 @@ export default function widgetBehavior(publicAPI, model) {
       return macro.VOID;
     }   
 
-    model.selecting = true;
     const label = getLabel(model, callData);
     model.factory.setStartLabel(label);
     model.factory.setLabel(label);
@@ -32,10 +33,11 @@ export default function widgetBehavior(publicAPI, model) {
   publicAPI.handleMouseMove = (callData) => publicAPI.handleEvent(callData);
 
   publicAPI.handleLeftButtonRelease = () => {
-    if (model.selecting) {      
+    if (model.factory.getStartLabel() !== null) {      
       publicAPI.invokeEndInteractionEvent();
     }
-    model.selecting = false;
+    model.factory.setStartLabel(null);
+    model.factory.setLabel(null);
     return model.hasFocus ? macro.EVENT_ABORT : macro.VOID;
   };
 
@@ -54,9 +56,7 @@ export default function widgetBehavior(publicAPI, model) {
       model.activeState.setDirection(...normal);
       model.manipulator.setNormal(normal);
 
-      if (model.selecting) {
-        model.factory.setLabel(getLabel(model, callData)); 
-      }
+      model.factory.setLabel(getLabel(model, callData));       
 
       publicAPI.invokeInteractionEvent();
       return macro.EVENT_ABORT;
