@@ -2,7 +2,7 @@ import { RenderWindow, Slice, Image } from 'modules/view/components';
 import { Mask } from 'modules/view/components/mask';
 import { Widgets } from 'modules/flag/components/slice-view/widgets';
 
-export function SliceView(onLink, onSliceChange) {
+export function SliceView(onLink, onSliceChange, onKeyDown, onKeyUp) {
   const renderWindow = RenderWindow();
   const slice = Slice();
   const image = Image();
@@ -10,7 +10,7 @@ export function SliceView(onLink, onSliceChange) {
   const widgets = Widgets(onLink);
 
   return {
-    initialize: (rootNode, onKeyDown, onKeyUp) => {
+    initialize: (rootNode) => {
       if (renderWindow.initialized()) return;
 
       renderWindow.initialize(rootNode);      

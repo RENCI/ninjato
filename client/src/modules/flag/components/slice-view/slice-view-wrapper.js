@@ -1,35 +1,21 @@
-import { useContext, useState, useRef, useEffect, useCallback } from 'react';
-import { DataContext, FlagContext, FLAG_SET_EDIT_MODE } from 'contexts';
+import { useContext, useState, useRef, useEffect } from 'react';
+import { DataContext, FlagContext } from 'contexts';
 import { useResize } from 'hooks';
 
 export const SliceViewWrapper = ({ sliceView }) => {
   const [{ imageData, maskData, label }] = useContext(DataContext);
-  const [{ editMode, editModes }, flagDispatch] = useContext(FlagContext);
+  const [{ editMode, editModes }] = useContext(FlagContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);
   const { width } = useResize(div);
-
-  // XXX: Move all callbacks up to container?
-
-  const onKeyDown = useCallback(evt => {
-    if (evt.key === 'Control') {
-      flagDispatch({ type: FLAG_SET_EDIT_MODE, mode: 'removeLink' });
-    }
-  }, [flagDispatch]);
-
-  const onKeyUp = useCallback(evt => {
-    if (evt.key === 'Control') {
-      flagDispatch({ type: FLAG_SET_EDIT_MODE, mode: 'addLink' });
-    }
-  }, [flagDispatch]);
   
   // Initialize
   useEffect(() => {
     if (!initialized && div.current && width) { 
-      sliceView.initialize(div.current, onKeyDown, onKeyUp);
+      sliceView.initialize(div.current);
       setInitialized(true);
     }
-  }, [initialized, div, width, sliceView, onKeyDown, onKeyUp]);
+  }, [initialized, div, width, sliceView]);
 
   // Update data
   useEffect(() => {

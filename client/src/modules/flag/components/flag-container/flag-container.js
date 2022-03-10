@@ -1,6 +1,6 @@
 import { useContext, useRef, useCallback, useState } from 'react';
 import { Grid } from 'semantic-ui-react';
-import { DataContext, FlagContext, FLAG_ADD_LINK } from 'contexts';
+import { DataContext, FlagContext, FLAG_SET_EDIT_MODE, FLAG_ADD_LINK } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
 import { VolumeViewWrapper, VolumeView } from 'modules/flag/components/volume-view';
@@ -17,10 +17,11 @@ export const FlagContainer = () => {
   const [{ imageData }] = useContext(DataContext);
   const [, flagDispatch] = useContext(FlagContext);
   const volumeView = useRef(VolumeView());
-  const sliceView = useRef(SliceView(onLink, onSliceChange));
+  const sliceView = useRef(SliceView(onLink, onSliceChange, onKeyDown, onKeyUp));
   const [loading, setLoading] = useState(true);
   const [slice, setSlice] = useState(0);
   
+  // Slice view callbacks
   function onLink(label) {
     flagDispatch({ type: FLAG_ADD_LINK, label: label });
 
@@ -31,6 +32,18 @@ export const FlagContainer = () => {
     volumeView.current.setSlice(slice);
     volumeView.current.render();
     setSlice(slice);
+  }
+
+  function onKeyDown(evt) {
+    if (evt.key === 'Control') {
+      flagDispatch({ type: FLAG_SET_EDIT_MODE, mode: 'removeLink' });
+    }
+  }
+
+  function onKeyUp(evt) {
+    if (evt.key === 'Control') {
+      flagDispatch({ type: FLAG_SET_EDIT_MODE, mode: 'addLink' });
+    }
   }
 
   const onLoaded = useCallback(() => {
