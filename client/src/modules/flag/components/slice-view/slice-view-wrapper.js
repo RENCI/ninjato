@@ -23,7 +23,7 @@ export const SliceViewWrapper = ({ sliceView }) => {
       sliceView.setLabel(label);
       sliceView.setData(imageData, maskData);
     }
-  }, [initialized, sliceView, imageData, maskData, label]);   
+  }, [initialized, sliceView, imageData, maskData, label]);
 
   // Flag
   useEffect(() => {

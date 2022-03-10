@@ -83,6 +83,8 @@ export function VolumeView() {
     setSlice: slice => {
       region.setSlice(slice);
     },
+    setLinks: linkLabels => background.setActiveLabels(linkLabels),
+    setHighlightLabel: label => background.setHighlightLabel(label),    
     setShowBackground: show => {
       background.getActor().setVisibility(show);
     },

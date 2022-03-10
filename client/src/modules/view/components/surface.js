@@ -1,5 +1,6 @@
 import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
+import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
 import { FieldDataTypes } from '@kitware/vtk.js/Common/DataModel/DataSet/Constants';
 
 import vtkCalculator from 'vtk/calculator';
@@ -7,14 +8,13 @@ import vtkDiscreteFlyingEdges3D from 'vtk/discrete-flying-edges-3D';
 import { SliceHighlightVP, SliceHighlightFP } from 'vtk/shaders';
 import { Reds, Blues } from 'utils/colors';
 
-const regionFormula = label => (v => v === label ? 1 : 0);
-const backgroundFormula = label => (v => v !== label && v !== 0 ? 1 : 0);
+const regionFormula = label => (v => v === label ? v : 0);
+const backgroundFormula = label => (v => v !== label && v !== 0 ? v : 0);
 
 export function Surface(type = 'background') {
   const maskCalculator = vtkCalculator.newInstance();
 
   const flyingEdges = vtkDiscreteFlyingEdges3D.newInstance({
-    values: [1],
     computeNormals: true,
     computeCoordinates: true
   });
@@ -70,7 +70,53 @@ export function Surface(type = 'background') {
         ['scalars'],
         'mask',
         value => formula(value)
-      )
+      );
+
+      flyingEdges.setValues(type === 'region' ? [label] : [4]);
+    },
+    setActiveLabels: labels => {
+      console.log(labels);
+
+      if (labels.length > 0) {
+        actor.getProperty().setAmbient(0);
+        actor.getProperty().setOpacity(1);
+
+        const baseColor = [1, 0, 0];
+        const activeColor = [1, 0, 1];
+
+        const color = vtkColorTransferFunction.newInstance();
+        color.addRGBPoint(0, 0, 0, 0);
+        color.addRGBPoint(1, ...baseColor);
+
+        // Set base start and end points between special labels
+        labels.forEach(label => {
+          if (label > 1) color.addRGBPoint(label - 1, ...baseColor);
+          color.addRGBPoint(label + 1, ...baseColor);
+        });
+
+        // Set active labels
+        labels.forEach(label => color.addRGBPoint(label, ...activeColor));
+
+        
+
+        mapper.setScalarVisibility(true);
+        mapper.setColorModeToMapScalars();
+        mapper.setScalarModeToUsePointData();
+        mapper.setUseLookupTableScalarRange();
+        mapper.setLookupTable(color);
+
+        
+        color.build();
+        const rgb = [0, 0, 0];
+        color.getColor(4, rgb);
+        console.log(rgb);
+      }
+      else {
+        mapper.setScalarVisibility(false);        
+      }
+    },
+    setHighlightLabel: label => {
+
     },
     setSlice: slice => {      
       const input = maskCalculator.getInputData();

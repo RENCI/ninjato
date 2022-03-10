@@ -4,7 +4,7 @@ import { useResize } from 'hooks';
 
 export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
   const [{ maskData, label }] = useContext(DataContext);
-  const [{ showBackground }] = useContext(FlagContext);
+  const [{ flag, links, showBackground }] = useContext(FlagContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);
   const { width } = useResize(div);
@@ -24,6 +24,29 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
       volumeView.setData(maskData, onLoaded);
     }
   }, [initialized, volumeView, maskData, label, onLoaded]);   
+
+  // Flag
+  useEffect(() => {
+    if (initialized) {
+      if (flag) {
+        volumeView.setLinks(links);
+        volumeView.render();
+      }
+      else {
+        volumeView.setHighlightLabel(null);
+        volumeView.setLinks([]);
+        volumeView.render();
+      }
+    }
+  }, [initialized, volumeView, flag]);
+
+  // Links
+  useEffect(() => {
+    if (initialized) {
+      volumeView.setLinks(links);
+      volumeView.render();
+    }
+  }, [initialized, volumeView, links]);
 
   // Show background
   useEffect(() => {

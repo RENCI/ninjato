@@ -95,9 +95,7 @@ export function SliceView(onAddLink, onRemoveLink, onHighlight, onSliceChange) {
       links = linkLabels;
       mask.setActiveLabels(linkLabels);
     },
-    setHighlightLabel: label => {
-      mask.setHighlightLabel(label);
-    },
+    setHighlightLabel: label => mask.setHighlightLabel(label),
     render: () => {
       render();
     },
