@@ -17,12 +17,6 @@ export function Widgets(onLink, onHover) {
     
       manager.grabFocus(linkWidget);
 
-      linkHandle.onStartInteractionEvent(() => {
-        const label = linkWidget.getLabel();
-
-        onHover(label);
-      });
-
       linkHandle.onInteractionEvent(() => {
         const startLabel = linkWidget.getStartLabel();
         const label = linkWidget.getLabel();        
