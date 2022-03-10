@@ -104,6 +104,8 @@ def check_subvolume_done(whole_item, task_type):
     if vol_done:
         add_meta = {f'{task_type}_done': 'true'}
         Item().setMetadata(whole_item, add_meta)
+        whole_item['meta']['progress'].append(TaskType.REVIEW.value)
+        Item().save(whole_item)
     return vol_done
 
 
@@ -339,9 +341,8 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, content_d
             'timestamp': datetime.now().strftime("%m/%d/%Y %H:%M")
         }
         add_meta_to_region(whole_item, region_key, 'completed_by', info)
-        vol_done = check_subvolume_done(whole_item, TaskType.REFINE.value)
-        if vol_done:
-            whole_item['meta']['progress'].append(TaskType.REVIEW.value)
+        check_subvolume_done(whole_item, TaskType.REFINE.value)
+
     return {
         'user_id': uid,
         'item_id': item_id,
@@ -449,10 +450,29 @@ def save_region_flag(user, item_id, flagged, comment, region_ids, reject, done):
             'timestamp': datetime.now().strftime("%m/%d/%Y %H:%M")
         }
         add_meta_to_region(whole_item, region_key, 'completed_by', info)
-        vol_done = check_subvolume_done(whole_item, TaskType.REFINE.value)
-        if vol_done:
-            # also need to merge region ids for review
-            whole_item['meta']['progress'].append(TaskType.REVIEW.value)
+        # group region ids for review
+        if 'flag_review' not in whole_item['meta']:
+            add_meta = {'flag_review': [{
+                'flagged_regions': [item_id],
+                'linked_regions': region_ids
+            }]}
+            Item().setMetadata(whole_item, add_meta)
+        else:
+            intersected = False
+            for fr in whole_item['flag_review']:
+                if set.intersection(set(fr['linked_regions']), set(region_ids)):
+                    fr['linked_regions'] = list(set(fr['linked_regions'] + region_ids))
+                    fr['flagged_regions'].append(item_id)
+                    intersected = True
+                    break
+            if not intersected:
+                whole_item['flag_review'].append({
+                    'flagged_regions': [item_id],
+                    'linked_regions': region_ids
+                })
+            Item().save(whole_item)
+        check_subvolume_done(whole_item, TaskType.REFINE.value)
+
     return {
         'user_id': uid,
         'item_id': item_id
