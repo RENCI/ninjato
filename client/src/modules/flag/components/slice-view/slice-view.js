@@ -53,6 +53,8 @@ export function SliceView(onAddLink, onRemoveLink, onHighlight, onSliceChange) {
 
   const widgets = Widgets(onSelect, onHover);
 
+  const render = renderWindow.render;
+
   return {
     initialize: (rootNode) => {
       if (renderWindow.initialized()) return;
@@ -88,12 +90,16 @@ export function SliceView(onAddLink, onRemoveLink, onHighlight, onSliceChange) {
     },
     setLabel: label => mask.setLabel(label),
     setSlice: slice => image.getMapper().setSlice(slice),
+    setFlag: flag => widgets.setActive(flag),
     setLinks: linkLabels => {
       links = linkLabels;
       mask.setActiveLabels(linkLabels);
     },
     setHighlightLabel: label => {
       mask.setHighlightLabel(label);
+    },
+    render: () => {
+      render();
     },
     cleanUp: () => {
       console.log('Clean up slice view');

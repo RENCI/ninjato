@@ -4,7 +4,7 @@ import { useResize } from 'hooks';
 
 export const SliceViewWrapper = ({ sliceView }) => {
   const [{ imageData, maskData, label }] = useContext(DataContext);
-  const [{ links }] = useContext(FlagContext);
+  const [{ flag, links }] = useContext(FlagContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);
   const { width } = useResize(div);
@@ -24,6 +24,23 @@ export const SliceViewWrapper = ({ sliceView }) => {
       sliceView.setData(imageData, maskData);
     }
   }, [initialized, sliceView, imageData, maskData, label]);   
+
+  // Flag
+  useEffect(() => {
+    if (initialized) {
+      sliceView.setFlag(flag);
+
+      if (flag) {
+        sliceView.setLinks(links);
+        sliceView.render();
+      }
+      else {
+        sliceView.setHighlightLabel(null);
+        sliceView.setLinks([]);
+        sliceView.render();
+      }
+    }
+  }, [initialized, sliceView, flag]);
 
   // Links
   useEffect(() => {

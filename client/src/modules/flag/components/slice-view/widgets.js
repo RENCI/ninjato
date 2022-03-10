@@ -46,6 +46,7 @@ export function Widgets(onLink, onHover) {
     setImageData: imageData => {
       linkWidget.setImageData(imageData);    
     },
+    setActive: active => active ? manager.grabFocus(linkWidget) : manager.grabFocus(null),
     cleanUp: () => {
       console.log('Clean up widgets');
 
