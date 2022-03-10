@@ -72,16 +72,19 @@ export function Surface(type = 'background') {
         value => formula(value)
       );
 
-      flyingEdges.setValues(type === 'region' ? [label] : [4]);
+      flyingEdges.setValues(type === 'region' ? [label] : [4, 28, 31]);
     },
     setActiveLabels: labels => {
       console.log(labels);
 
-      if (labels.length > 0) {
-        actor.getProperty().setAmbient(0);
-        actor.getProperty().setOpacity(1);
+      // XXX: Look into issue with multiple contours in flying edges
+      // Use separate surfaces for active (and highlight)?
 
-        const baseColor = [1, 0, 0];
+      if (labels.length > 0) {
+        //actor.getProperty().setAmbient(0);
+        //actor.getProperty().setOpacity(1);
+
+        const baseColor = actor.getProperty().getDiffuseColor();
         const activeColor = [1, 0, 1];
 
         const color = vtkColorTransferFunction.newInstance();
@@ -95,21 +98,11 @@ export function Surface(type = 'background') {
         });
 
         // Set active labels
-        labels.forEach(label => color.addRGBPoint(label, ...activeColor));
-
-        
+        labels.forEach(label => color.addRGBPoint(label, ...activeColor));        
 
         mapper.setScalarVisibility(true);
-        mapper.setColorModeToMapScalars();
-        mapper.setScalarModeToUsePointData();
-        mapper.setUseLookupTableScalarRange();
+        mapper.setUseLookupTableScalarRange(true);
         mapper.setLookupTable(color);
-
-        
-        color.build();
-        const rgb = [0, 0, 0];
-        color.getColor(4, rgb);
-        console.log(rgb);
       }
       else {
         mapper.setScalarVisibility(false);        
