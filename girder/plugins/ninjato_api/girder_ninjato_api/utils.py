@@ -18,9 +18,24 @@ from .constants import COLLECTION_NAME, BUFFER_FACTOR, DATA_PATH
 
 class TaskType(Enum):
     FLAG = 'flag'
-    REVIEW = 'review'
+    FLAG_REVIEW = 'flag_review'
     SPLIT = 'split'
+    SPLIT_REVIEW = 'split_review'
     REFINE = 'refine'
+    REFINE_REVIEW = 'refine_review'
+
+    def next_task(self, task_value):
+        if task_value == self.FLAG.value:
+            return self.FLAG_REVIEW
+        if task_value == self.FLAG_REVIEW.value:
+            return self.SPLIT
+        if task_value == self.SPLIT.value:
+            return self.SPLIT_REVIEW
+        if task_value == self.SPLIT_REVIEW.value:
+            return self.REFINE
+        if task_value == self.REFINE.value:
+            return self.REFINE_REVIEW
+        return None
 
 
 def save_file(as_id, item, path, user, file_name):
@@ -40,6 +55,36 @@ def get_items(item_id):
     whole_item = Item().findOne({'folderId': ObjectId(item['folderId']),
                                  'name': 'whole'})
     return item, whole_item
+
+
+def get_max_region_id(whole_item):
+    return whole_item['meta']['whole_region_id']
+
+
+def set_max_region_id(whole_item):
+    if 'max_region_id' not in whole_item['meta']:
+        max_level = len(whole_item['meta']['regions'])
+        add_meta = {
+            'max_region_id': max_level
+        }
+        Item().setMetadata(whole_item, add_meta)
+
+
+def get_tif_file_content_and_path(item_file, output_file_id, region_key):
+    file_res_path = path_util.getResourcePath('file', item_file, force=True)
+    file = File().load(item_file['_id'], force=True)
+    file_path = File().getLocalFilePath(file)
+    tif = TIFF.open(file_path, mode="r")
+    file_name = os.path.basename(file_res_path)
+    file_base_name, file_ext = os.path.splitext(file_name)
+    out_dir_path = os.path.join(DATA_PATH, str(output_file_id))
+    out_path = os.path.join(out_dir_path,
+                            f'{file_base_name}_region_{region_key}{file_ext}')
+    if not os.path.isdir(out_dir_path):
+        os.makedirs(out_dir_path)
+    output_file = f'{file_base_name}_region_{region_key}{file_ext}'
+    output_tif = TIFF.open(out_path, mode="w")
+    return tif, out_path, output_file, output_tif
 
 
 def get_buffered_extent(minx, maxx, miny, maxy, minz, maxz, xrange, yrange, zrange):
@@ -89,6 +134,62 @@ def get_buffered_extent(minx, maxx, miny, maxy, minz, maxz, xrange, yrange, zran
     return minx, maxx, miny, maxy, minz, maxz
 
 
+def merge_regions(region_list):
+    first_region_item = Item().findOne({'_id': ObjectId(region_list[0])})
+    item_list = [Item().findOne({'_id': ObjectId(rid)}) for rid in region_list]
+    x_max = max([item['coordinates']["x_max"] for item in item_list])
+    x_min = min([item['coordinates']["x_min"] for item in item_list])
+    y_max = max([item['coordinates']["y_max"] for item in item_list])
+    y_min = min([item['coordinates']["y_min"] for item in item_list])
+    z_max = max([item['coordinates']["z_max"] for item in item_list])
+    z_min = min([item['coordinates']["z_min"] for item in item_list])
+    whole_item = Item().findOne({'folderId': item_list[0]['folderId'],
+                                 'name': 'whole'})
+    # delete file from the first region in region_list and use it for the merged region and
+    # delete all the other regions in region_list to be merged
+    for i, rid in enumerate(region_list):
+        if i == 0:
+            files = File().find({'itemId': region_list[0]})
+            for file in files:
+                File().remove(file)
+        else:
+            Item().remove(item_list[i])
+
+    item_files = File().find({'itemId': whole_item['_id']})
+    for item_file in item_files:
+        tif, out_path, output_file_name, output_tif = get_tif_file_content_and_path(
+            item_file, item_list[0]['_id'], region_list[0])
+        counter = 0
+        for image in tif.iter_images():
+            if counter >= z_min and counter <= z_max:
+                img = np.copy(image[y_min:y_max + 1, x_min:x_max + 1])
+                output_tif.write_image(img)
+            if counter > z_max:
+                break
+            counter += 1
+        save_file(item_file['assetstoreId'], first_region_item, out_path, User().getAdmins()[0],
+                  output_file_name)
+
+    first_region_item['meta']['coordinates'] = {
+        "x_max": x_max,
+        "x_min": x_min,
+        "y_max": y_max,
+        "y_min": y_min,
+        "z_max": z_max,
+        "z_min": z_min
+    }
+    Item().save(first_region_item)
+
+    # update whole item coordinates metadata
+    for i, rid in enumerate(region_list):
+        if i == 0:
+            # merged region to be kept
+            whole_item['meta']['regions'][str(rid)]['merged_regions'] = region_list[1:]
+        else:
+            del whole_item['meta']['regions'][str(rid)]
+    return first_region_item
+
+
 def check_subvolume_done(whole_item, task_type):
     vol_done = True
     for key, val in whole_item['meta']['regions'].items():
@@ -104,7 +205,9 @@ def check_subvolume_done(whole_item, task_type):
     if vol_done:
         add_meta = {f'{task_type}_done': 'true'}
         Item().setMetadata(whole_item, add_meta)
-        whole_item['meta']['progress'].append(TaskType.REVIEW.value)
+        next_task = TaskType.next_task(task_type)
+        if next_task:
+            whole_item['meta']['progress'].append(next_task.value)
         Item().save(whole_item)
     return vol_done
 
@@ -217,21 +320,8 @@ def get_item_assignment(user, subvolume_id, task_type):
                 val['item_id'] = region_item['_id']
                 item_files = File().find({'itemId': whole_item['_id']})
                 for item_file in item_files:
-                    file_res_path = path_util.getResourcePath('file',
-                                                              item_file,
-                                                              force=True)
-                    file = File().load(item_file['_id'], force=True)
-                    file_path = File().getLocalFilePath(file)
-                    assetstore_id = item_file['assetstoreId']
-                    tif = TIFF.open(file_path, mode="r")
-                    file_name = os.path.basename(file_res_path)
-                    file_base_name, file_ext = os.path.splitext(file_name)
-                    out_dir_path = os.path.join(DATA_PATH, str(region_item['_id']))
-                    out_path = os.path.join(out_dir_path,
-                                            f'{file_base_name}_region_{key}{file_ext}')
-                    if not os.path.isdir(out_dir_path):
-                        os.makedirs(out_dir_path)
-
+                    tif, out_path, output_file_name = get_tif_file_content_and_path(
+                        item_file, region_item['_id'], key)
                     output_tif = TIFF.open(out_path, mode="w")
                     counter = 0
                     for image in tif.iter_images():
@@ -241,8 +331,8 @@ def get_item_assignment(user, subvolume_id, task_type):
                         if counter > max_z:
                             break
                         counter += 1
-                    save_file(assetstore_id, region_item, out_path, admin_user,
-                              f'{file_base_name}_region_{key}{file_ext}')
+                    assetstore_id = item_file['assetstoreId']
+                    save_file(assetstore_id, region_item, out_path, admin_user, output_file_name)
                     add_meta = {
                         'coordinates': {
                             "x_max": max_x,
@@ -290,8 +380,7 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, content_d
         # reject the annotation
         reject_assignment(user, item, whole_item, TaskType.REFINE.value, True, comment)
         return {
-            'user_id': uid,
-            'item_id': item_id
+            "status": "success"
         }
 
     done_key = f'{TaskType.REFINE.value}_done'
@@ -344,9 +433,8 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, content_d
         check_subvolume_done(whole_item, TaskType.REFINE.value)
 
     return {
-        'user_id': uid,
-        'item_id': item_id,
-        'annotation_file_id': file['_id']
+        'annotation_file_id': file['_id'],
+        'status': 'success'
     }
 
 
@@ -370,6 +458,7 @@ def get_subvolume_item_ids():
             for folder in folders:
                 whole_item = Item().findOne({'folderId': ObjectId(folder['_id']),
                                              'name': 'whole'})
+                set_max_region_id(whole_item)
                 ret_data.append({
                     'id': whole_item['_id'],
                     'parent_id': folder['_id']
@@ -421,70 +510,109 @@ def get_subvolume_item_info(item):
     }
 
 
-def save_region_flag(user, item_id, flagged, comment, region_ids, reject, done):
+def save_region_flag(user, item_id, flagged, comment, region_ids, reject):
     uid = user['_id']
     uname = user['login']
     item, whole_item = get_items(item_id)
     if reject:
         reject_assignment(user, item, whole_item, TaskType.FLAG.value, False, comment)
-    done_key = f'{TaskType.FLAG.value}_done'
-    if done:
-        add_meta = {done_key: 'true'}
-        Item().setMetadata(item, add_meta)
-    else:
-        add_meta = {done_key: 'false'}
-        Item().setMetadata(item, add_meta)
+        return {
+            "status": "success"
+        }
+
+    add_meta = {f'{TaskType.FLAG.value}_done': 'true'}
+    Item().setMetadata(item, add_meta)
 
     if comment:
-        add_meta = {f'{TaskType.REFINE.value}_comment': comment}
+        add_meta = {f'{TaskType.FLAG.value}_comment': comment}
         Item().setMetadata(item, add_meta)
     region_key = item['meta']['region_label']
     whole_item['meta']['regions'][region_key]['flagged'] = flagged
     whole_item['meta']['regions'][region_key]['flagged_regions'] = region_ids
-    if done:
+    del whole_item['meta'][str(uid)]
+    whole_item = Item().save(whole_item)
+    info = {
+        'user': uname,
+        'task_type': TaskType.FLAG.value,
+        'timestamp': datetime.now().strftime("%m/%d/%Y %H:%M")
+    }
+    add_meta_to_region(whole_item, region_key, 'completed_by', info)
+    # group region ids for review
+    if 'flag_review' not in whole_item['meta']:
+        add_meta = {'flag_review': [{
+            'flagged_regions': [item_id],
+            'linked_regions': region_ids
+        }]}
+        Item().setMetadata(whole_item, add_meta)
+    else:
+        intersected = False
+        for fr in whole_item['flag_review']:
+            if set.intersection(set(fr['linked_regions']), set(region_ids)):
+                fr['linked_regions'] = list(set(fr['linked_regions'] + region_ids))
+                fr['flagged_regions'].append(item_id)
+                intersected = True
+                break
+        if not intersected:
+            whole_item['flag_review'].append({
+                'flagged_regions': [item_id],
+                'linked_regions': region_ids
+            })
+        Item().save(whole_item)
+    check_subvolume_done(whole_item, TaskType.FLAG.value)
+
+    return {
+        'status': 'success'
+    }
+
+
+def save_region_flag_review(user, flagged_region_id_list, reject, result, comment):
+    uid = user['_id']
+    uname = user['login']
+    if reject:
+        whole_item = None
+        for rid in flagged_region_id_list:
+            if not whole_item:
+                item, whole_item = get_items(rid)
+            else:
+                item = Item().findOne({'_id': ObjectId(rid)})
+            reject_assignment(user, item, whole_item, TaskType.FLAG_REVIEW.value, False, comment)
+        return {
+            "status": "success"
+        }
+
+    for result_item in result:
+        if len(result_item['regions']) == 1:
+            item = Item().findOne({'_id': ObjectId(result_item['regions'][0])})
+        else:
+            # merge multiple regions
+            item = merge_regions(result_item['regions'])
+
+        add_meta = {f'{TaskType.FLAG_REVIEW.value}_done': 'true'}
+        if comment:
+            add_meta[f'{TaskType.FLAG_REVIEW.value}_comment'] = comment
+        if result_item['split']:
+            # split the merged region
+            add_meta['task'] = TaskType.SPLIT.value
+        else:
+            # refine the merged region
+            add_meta['task'] = TaskType.REFINE.value
+        Item().setMetadata(item, add_meta)
+
+        region_key = item['meta']['region_label']
         del whole_item['meta'][str(uid)]
         whole_item = Item().save(whole_item)
         info = {
             'user': uname,
-            'task_type': TaskType.FLAG.value,
+            'task_type': TaskType.FLAG_REVIEW.value,
             'timestamp': datetime.now().strftime("%m/%d/%Y %H:%M")
         }
         add_meta_to_region(whole_item, region_key, 'completed_by', info)
-        # group region ids for review
-        if 'flag_review' not in whole_item['meta']:
-            add_meta = {'flag_review': [{
-                'flagged_regions': [item_id],
-                'linked_regions': region_ids
-            }]}
-            Item().setMetadata(whole_item, add_meta)
-        else:
-            intersected = False
-            for fr in whole_item['flag_review']:
-                if set.intersection(set(fr['linked_regions']), set(region_ids)):
-                    fr['linked_regions'] = list(set(fr['linked_regions'] + region_ids))
-                    fr['flagged_regions'].append(item_id)
-                    intersected = True
-                    break
-            if not intersected:
-                whole_item['flag_review'].append({
-                    'flagged_regions': [item_id],
-                    'linked_regions': region_ids
-                })
-            Item().save(whole_item)
-        check_subvolume_done(whole_item, TaskType.REFINE.value)
+        check_subvolume_done(whole_item, TaskType.FLAG_REVIEW.value)
 
     return {
-        'user_id': uid,
-        'item_id': item_id
-    }
-
-
-def save_region_flag_review(user, item_id, result, comment):
-    uid = user['_id']
-    item, whole_item = get_items(item_id)
-
-    return {
-        'user_id': uid,
-        'item_id': item_id,
         'status': 'success'
     }
+
+
+def save_user_split_result(user, item_id, done, reject, comment, content_data):
+    pass
