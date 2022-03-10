@@ -1,32 +1,29 @@
 import { useContext } from 'react';
-import { Button, Popup, Icon } from 'semantic-ui-react';
-import { FlagContext, FLAG_SET_FLAG } from 'contexts';
-import { ControlBar } from 'modules/common/components/control-bar';
-import { SplitButton } from 'modules/common/components/split-button';
+import { Popup } from 'semantic-ui-react';
+import { FlagContext } from 'contexts';
+import { ControlBar, ControlGroup, ControlButton } from 'modules/common/components/control-bar';
 import { FlagInfo } from 'modules/flag/components/slice-controls/flag-info';
-
-const { Group } = Button;
 
 export const SliceControls = () => {
   const [{ flag }, dispatch] = useContext(FlagContext);
 
   return (
     <ControlBar>
-      <Group vertical>
+      <ControlGroup>
         <Popup
           trigger={ 
-            <Button           
-              toggle
+            <ControlButton           
+              toggle={ true }
               icon='flag'
-              color={ flag ? 'grey' : null }
+              active={ flag }
             >
-            </Button>
+            </ControlButton>
           }
           on='click'
           position={ 'top left' }
           content={ <FlagInfo /> }
         />
-      </Group>
+      </ControlGroup>
     </ControlBar>
   );
 };

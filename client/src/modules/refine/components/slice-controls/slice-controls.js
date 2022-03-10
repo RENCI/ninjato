@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { Button } from 'semantic-ui-react';
 import { RefineContext, REFINE_SET_EDIT_MODE } from 'contexts';
-import { ControlBar } from 'modules/common/components/control-bar';
+import { ControlBar, ControlGroup, ControlButton } from 'modules/common/components/control-bar';
 import { SplitButton } from 'modules/common/components/split-button';
 import { BrushOptions } from './brush-options';
 
@@ -24,7 +24,7 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
 
   return (
     <ControlBar>
-      <Group vertical>
+      <ControlGroup>
         { editModes.map(({ value, icon }, i) => (
           value === 'paint' || value === 'erase' ?
             <SplitButton
@@ -36,27 +36,27 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
               onClick={ () => onModeClick(value )}
             />
           :
-            <Button
+            <ControlButton
               key={ i }
-              toggle
+              toggle={ true }
               icon={ icon }
-              color={ value === editMode ? 'grey' : null }
+              active={ value === editMode  }
               onClick={ () => onModeClick(value) }              
             />
         ))}    
-      </Group>
-      <Group vertical>
-        <Button
+      </ControlGroup>
+      <ControlGroup>
+        <ControlButton
           icon='undo alternate'        
           disabled={ !canUndo }
           onClick={ onUndoClick }
         />
-        <Button
+        <ControlButton
           icon='redo alternate'          
           disabled={ !canRedo }
           onClick={ onRedoClick }
         />
-      </Group>
+      </ControlGroup>
     </ControlBar>
   );
 };
