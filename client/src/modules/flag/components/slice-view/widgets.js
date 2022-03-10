@@ -3,7 +3,7 @@ import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants'
 
 import vtkRegionSelectWidget from 'vtk/region-select-widget';
 
-export function Widgets(onEdit) {
+export function Widgets(onLink) {
   const manager = vtkWidgetManager.newInstance();
   const linkWidget = vtkRegionSelectWidget.newInstance();
 
@@ -32,14 +32,10 @@ export function Widgets(onEdit) {
       });
 
       linkHandle.onEndInteractionEvent(async () => {
-        //painter.paintFloodFill(
-        //  floodHandle.getPoints(), 
-        //  floodHandle.getRepresentations()[0].getBrush()
-        //);
-
-        //await painter.endStroke();
-  
-        onEdit();
+        const label = linkWidget.getLabel();
+        if (label === linkWidget.getStartLabel()) {
+          onLink(label);
+        }
       });
     },
     update: (position, spacing) => { 

@@ -69,7 +69,7 @@ export function extend(publicAPI, model, initialValues = {}) {
   vtkAbstractWidgetFactory.extend(publicAPI, model, initialValues);
 
   macro.get(publicAPI, model, ['selecting']);
-  macro.setGet(publicAPI, model, ['manipulator', 'imageData']);
+  macro.setGet(publicAPI, model, ['manipulator', 'imageData', 'startLabel', 'label']);
 
   vtkRegionSelectWidget(publicAPI, model);
 }

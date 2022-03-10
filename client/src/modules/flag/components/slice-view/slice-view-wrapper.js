@@ -9,6 +9,8 @@ export const SliceViewWrapper = ({ sliceView }) => {
   const div = useRef(null);
   const { width } = useResize(div);
 
+  // XXX: Move all callbacks up to container?
+
   const onKeyDown = useCallback(evt => {
     if (evt.key === 'Control') {
       flagDispatch({ type: FLAG_SET_EDIT_MODE, mode: 'removeLink' });

@@ -21,7 +21,9 @@ export default function widgetBehavior(publicAPI, model) {
     }   
 
     model.selecting = true;
-    model.startLabel = getLabel(model, callData);
+    const label = getLabel(model, callData);
+    model.factory.setStartLabel(label);
+    model.factory.setLabel(label);
     
     publicAPI.invokeStartInteractionEvent();
     return macro.EVENT_ABORT;
@@ -29,11 +31,11 @@ export default function widgetBehavior(publicAPI, model) {
 
   publicAPI.handleMouseMove = (callData) => publicAPI.handleEvent(callData);
 
-  publicAPI.handleLeftButtonRelease = (callData) => {
+  publicAPI.handleLeftButtonRelease = () => {
     if (model.selecting) {      
       publicAPI.invokeEndInteractionEvent();
     }
-
+    model.selecting = false;
     return model.hasFocus ? macro.EVENT_ABORT : macro.VOID;
   };
 
@@ -52,7 +54,9 @@ export default function widgetBehavior(publicAPI, model) {
       model.activeState.setDirection(...normal);
       model.manipulator.setNormal(normal);
 
-      const label = getLabel(model, callData); 
+      if (model.selecting) {
+        model.factory.setLabel(getLabel(model, callData)); 
+      }
 
       publicAPI.invokeInteractionEvent();
       return macro.EVENT_ABORT;

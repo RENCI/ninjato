@@ -2,12 +2,12 @@ import { RenderWindow, Slice, Image } from 'modules/view/components';
 import { Mask } from 'modules/view/components/mask';
 import { Widgets } from 'modules/flag/components/slice-view/widgets';
 
-export function SliceView(onEdit, onSliceChange) {
+export function SliceView(onLink, onSliceChange) {
   const renderWindow = RenderWindow();
   const slice = Slice();
   const image = Image();
   const mask = Mask();  
-  const widgets = Widgets(onEdit);
+  const widgets = Widgets(onLink);
 
   return {
     initialize: (rootNode, onKeyDown, onKeyUp) => {

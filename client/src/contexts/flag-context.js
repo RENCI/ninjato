@@ -46,16 +46,15 @@ const reducer = (state, action) => {
     case FLAG_ADD_LINK:
       return {
         ...state,
-        links: [
-          ...state.links,
-          action.id
-        ]
+        links: state.links.includes(action.label) ? 
+          [...state.links] :
+          [...state.links, action.label]        
       };
 
     case FLAG_REMOVE_LINK:
       return {
         ...state,
-        links: state.links.filter(id => id !== action.id)
+        links: state.links.filter(label => label !== action.label)
       };
 
     case FLAG_SET_SHOW_BACKGROUND:

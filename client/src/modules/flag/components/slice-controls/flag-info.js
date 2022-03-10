@@ -22,6 +22,7 @@ export const FlagInfo = () => {
         ]}
         onChange={ onCommentChange }
       />
+      { links.join(',') }
     </AutoFocusForm>
   );
 };

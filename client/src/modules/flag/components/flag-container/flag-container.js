@@ -1,6 +1,6 @@
 import { useContext, useRef, useCallback, useState } from 'react';
 import { Grid } from 'semantic-ui-react';
-import { DataContext } from 'contexts/data-context';
+import { DataContext, FlagContext, FLAG_ADD_LINK } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
 import { VolumeViewWrapper, VolumeView } from 'modules/flag/components/volume-view';
@@ -15,13 +15,16 @@ const { Column } = Grid;
 
 export const FlagContainer = () => {
   const [{ imageData }] = useContext(DataContext);
+  const [, flagDispatch] = useContext(FlagContext);
   const volumeView = useRef(VolumeView());
-  const sliceView = useRef(SliceView(onEdit, onSliceChange));
+  const sliceView = useRef(SliceView(onLink, onSliceChange));
   const [loading, setLoading] = useState(true);
   const [slice, setSlice] = useState(0);
   
-  function onEdit() {
-    volumeView.current.render();
+  function onLink(label) {
+    flagDispatch({ type: FLAG_ADD_LINK, label: label });
+
+    //volumeView.current.render();
   }
 
   function onSliceChange(slice) {
