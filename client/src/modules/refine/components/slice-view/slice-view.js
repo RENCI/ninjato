@@ -2,7 +2,7 @@ import { RenderWindow, Slice, Image } from 'modules/view/components';
 import { Widgets } from 'modules/refine/components/slice-view/widgets';
 import { MaskPainter } from 'modules/refine/components/slice-view/mask-painter';
 
-export function SliceView(onEdit, onSliceChange) {
+export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
   const renderWindow = RenderWindow();
   const slice = Slice();
   const image = Image();
@@ -10,7 +10,7 @@ export function SliceView(onEdit, onSliceChange) {
   const widgets = Widgets(mask.getPainter(), onEdit);
 
   return {
-    initialize: (rootNode, onKeyDown, onKeyUp) => {
+    initialize: rootNode => {
       if (renderWindow.initialized()) return;
 
       renderWindow.initialize(rootNode);      

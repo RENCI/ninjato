@@ -1,6 +1,6 @@
 import { useContext, useRef, useCallback, useState } from 'react';
 import { Grid } from 'semantic-ui-react';
-import { DataContext } from 'contexts/data-context';
+import { DataContext, RefineContext, REFINE_SET_EDIT_MODE } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
 import { VolumeViewWrapper, VolumeView } from 'modules/refine/components/volume-view';
@@ -15,13 +15,15 @@ const { Column } = Grid;
 
 export const RefineContainer = () => {
   const [{ imageData }] = useContext(DataContext);
+  const [, refineDispatch] = useContext(RefineContext);
   const volumeView = useRef(VolumeView());
-  const sliceView = useRef(SliceView(onEdit, onSliceChange));
+  const sliceView = useRef(SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp));
   const [loading, setLoading] = useState(true);
   const [slice, setSlice] = useState(0);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
   
+  // Slice view callbacks
   function onEdit() {
     volumeView.current.centerCamera();
     volumeView.current.render();
@@ -36,6 +38,19 @@ export const RefineContainer = () => {
     setSlice(slice);
   }
 
+  function onKeyDown(evt) {
+    if (evt.key === 'Control') {
+      refineDispatch({ type: REFINE_SET_EDIT_MODE, mode: 'erase' });
+    }
+  }
+
+  function onKeyUp(evt) {
+    if (evt.key === 'Control') {
+      refineDispatch({ type: REFINE_SET_EDIT_MODE, mode: 'paint' });
+    }
+  }
+
+  // Other callbacks
   const onLoaded = useCallback(() => {
     setLoading(false);
   }, []);
