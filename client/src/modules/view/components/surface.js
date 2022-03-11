@@ -8,9 +8,6 @@ import vtkDiscreteFlyingEdges3D from 'vtk/discrete-flying-edges-3D';
 import { SliceHighlightVP, SliceHighlightFP } from 'vtk/shaders';
 import { Reds, Blues } from 'utils/colors';
 
-const regionFormula = label => (v => v === label ? v : 0);
-const backgroundFormula = label => (v => v !== label ? v : 0);
-
 export function Surface(type = 'background') {
   const maskCalculator = vtkCalculator.newInstance();
 
@@ -26,6 +23,7 @@ export function Surface(type = 'background') {
   
   const actor = vtkActor.newInstance();
   actor.setMapper(mapper); 
+    mapper.setScalarVisibility(false);
 
   if (type === 'region') {
     sliceCalculator = vtkCalculator.newInstance();
@@ -37,7 +35,6 @@ export function Surface(type = 'background') {
     );
     sliceCalculator.setInputConnection(flyingEdges.getOutputPort());
 
-    mapper.setScalarVisibility(false);
     mapper.setInputConnection(sliceCalculator.getOutputPort());
 
     const mapperSpecificProp = mapper.getViewSpecificProperties();
@@ -62,9 +59,11 @@ export function Surface(type = 'background') {
   return {
     getActor: () => actor,
     setInputData: data => maskCalculator.setInputData(data),
-    setLabel: label => {
-      const formula = type === 'region' ? regionFormula(label) : backgroundFormula(label)
+    setLabels: labels => {
+      const formula = label => labels.includes(label) ? label : 0;
 
+      // XXX: Shouldn't need mask calculator any more, but it is causing some issues with the slice highlighting
+      // when removed. Investigate more at some point...
       maskCalculator.setFormulaSimple(
         FieldDataTypes.POINT,
         ['scalars'],
@@ -72,44 +71,7 @@ export function Surface(type = 'background') {
         value => formula(value)
       );
 
-      flyingEdges.setValues(type === 'region' ? [label] : new Array(100).fill().map((d, i) => i + 1));
-    },
-    setActiveLabels: labels => {
-      console.log(labels);
-
-      // XXX: Look into issue with multiple contours in flying edges
-      // Use separate surfaces for active (and highlight)?
-
-      if (labels.length > 0) {
-        //actor.getProperty().setAmbient(0);
-        //actor.getProperty().setOpacity(1);
-
-        const baseColor = actor.getProperty().getDiffuseColor();
-        const activeColor = [1, 0, 1];
-
-        const color = vtkColorTransferFunction.newInstance();
-        color.addRGBPoint(0, 0, 0, 0);
-        color.addRGBPoint(1, ...baseColor);
-
-        // Set base start and end points between special labels
-        labels.forEach(label => {
-          if (label > 1) color.addRGBPoint(label - 1, ...baseColor);
-          color.addRGBPoint(label + 1, ...baseColor);
-        });
-
-        // Set active labels
-        labels.forEach(label => color.addRGBPoint(label, ...activeColor));        
-
-        mapper.setScalarVisibility(true);
-        mapper.setUseLookupTableScalarRange(true);
-        mapper.setLookupTable(color);
-      }
-      else {
-        mapper.setScalarVisibility(false);        
-      }
-    },
-    setHighlightLabel: label => {
-
+      flyingEdges.setValues(labels);
     },
     setSlice: slice => {      
       const input = maskCalculator.getInputData();

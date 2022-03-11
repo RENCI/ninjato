@@ -1,4 +1,5 @@
 import { RenderWindow, Surface, BoundingBox } from 'modules/view/components';
+import { getUniqueLabels } from 'utils/data';
 
 const resetCamera = (renderer, surface) => {
   const [x1, x2, y1, y2, z1, z2] = surface.getPoints().getBounds();
@@ -48,14 +49,18 @@ export function VolumeView() {
 
   const render = renderWindow.render;
 
+  let labels = [];
+
   return {
     initialize: rootNode => {
       if (renderWindow.initialized()) return;
 
       renderWindow.initialize(rootNode);      
     },
-    setData: (maskData, onRendered) => {
+    setData: maskData => {
       if (maskData) {
+        labels = getUniqueLabels(maskData);
+
         region.setInputData(maskData);
         background.setInputData(maskData);
         boundingBox.setData(maskData);
@@ -64,11 +69,6 @@ export function VolumeView() {
         renderer.addActor(region.getActor());
         renderer.addActor(background.getActor());
         renderer.addActor(boundingBox.getActor());
-
-        resetCamera(renderer, region.getOutput());
-        render();
-
-        onRendered();
       } 
       else {
         const renderer = renderWindow.getRenderer();
@@ -77,22 +77,25 @@ export function VolumeView() {
       }
     },
     setLabel: label => {
-      region.setLabel(label);
-      background.setLabel(label);
+      region.setLabels([label]);
+      background.setLabels(labels.filter(value => value !== label));
+
+      resetCamera(renderWindow.getRenderer(), region.getOutput());
     },
     setSlice: slice => {
       region.setSlice(slice);
     },
-    setLinks: linkLabels => background.setActiveLabels(linkLabels),
-    setHighlightLabel: label => background.setHighlightLabel(label),    
+    setLinks: linkLabels => linkLabels,//background.setActiveLabels(linkLabels),
+    setHighlightLabel: label => label,//background.setHighlightLabel(label),    
     setShowBackground: show => {
       background.getActor().setVisibility(show);
     },
     centerCamera: () => {
       centerCamera(renderWindow.getRenderer(), region.getOutput());
     },
-    render: () => {
+    render: onRendered => {
       render();
+      if (onRendered) onRendered();
     },
     cleanUp: () => {
       console.log('Clean up volume view');
