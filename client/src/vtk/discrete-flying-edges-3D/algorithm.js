@@ -137,7 +137,7 @@ export default function algorithm() {
 
     // run along the entire x-edge computing edge cases
     edgeMetaDataIndex = (slice * Dims[1] + row) * 6;
-    EdgeMetaData.fill(edgeMetaDataIndex, edgeMetaDataIndex + 6, 0);
+    EdgeMetaData.fill(0, edgeMetaDataIndex, edgeMetaDataIndex + 6);
 
     // pull this out help reduce false sharing
     const inc0 = Inc0;
@@ -903,7 +903,7 @@ export default function algorithm() {
       let value;
       const values = model.values;
       const numContours = values.length;
-      let vidx, row, slice, eMD, zInc;
+      let vidx, row, slice, eMDIndex, zInc;
       let numOutXPts, numOutYPts, numOutZPts, numOutTris;
       let numXPts = 0, numYPts = 0, numZPts = 0, numTris = 0;
       let startXPts = 0, startYPts = 0, startZPts = 0, startTris = 0;
@@ -945,7 +945,7 @@ export default function algorithm() {
       NeedGradients = (newGradients || newNormals);
 
       // Loop across each contour value. This encompasses all three passes.
-      for (vidx = 0; vidx < numContours; vidx++) {        
+      for (vidx = 0; vidx < numContours; vidx++) {       
         value = values[vidx];
 
         console.log(value);
@@ -979,15 +979,15 @@ export default function algorithm() {
         for (slice = 0; slice < Dims[2]; ++slice) {
           zInc = slice * Dims[1];
           for (row = 0; row < Dims[1]; ++row) {
-            eMD = (zInc + row) * 6;
-            numXPts = EdgeMetaData[eMD];
-            numYPts = EdgeMetaData[eMD + 1];
-            numZPts = EdgeMetaData[eMD + 2];
-            numTris = EdgeMetaData[eMD + 3];
-            EdgeMetaData[eMD] = numOutXPts + numOutYPts + numOutZPts;
-            EdgeMetaData[eMD + 1] = EdgeMetaData[eMD] + numXPts;
-            EdgeMetaData[eMD + 2] = EdgeMetaData[eMD + 1] + numYPts;
-            EdgeMetaData[eMD + 3] = numOutTris;
+            eMDIndex = (zInc + row) * 6;
+            numXPts = EdgeMetaData[eMDIndex];
+            numYPts = EdgeMetaData[eMDIndex + 1];
+            numZPts = EdgeMetaData[eMDIndex + 2];
+            numTris = EdgeMetaData[eMDIndex + 3];
+            EdgeMetaData[eMDIndex] = numOutXPts + numOutYPts + numOutZPts;
+            EdgeMetaData[eMDIndex + 1] = EdgeMetaData[eMDIndex] + numXPts;
+            EdgeMetaData[eMDIndex + 2] = EdgeMetaData[eMDIndex + 1] + numYPts;
+            EdgeMetaData[eMDIndex + 3] = numOutTris;
             numOutXPts += numXPts;
             numOutYPts += numYPts;
             numOutZPts += numZPts;
@@ -999,25 +999,26 @@ export default function algorithm() {
         const totalPts = numOutXPts + numOutYPts + numOutZPts;
 
         if (totalPts > 0) {
-          newPts.length = 3 * totalPts;
+          newPts.length += 3 * totalPts;
           NewPoints = newPts;
-          newTris.length = 4 * numOutTris;
+          newTris.length += 4 * numOutTris;
           NewTris = newTris;
           if (newScalars) {
-            newScalars.length = totalPts;
+            const numPrevPts = newScalars.length;
+            newScalars.length += totalPts;
             NewScalars = newScalars;
-            NewScalars.fill(value);
+            NewScalars.fill(value, numPrevPts);
           }              
           if (newGradients) {
-            newGradients.length = 3 * totalPts;
+            newGradients.length += 3 * totalPts;
             NewGradients = newGradients;
           }
           if (newNormals) {
-            newNormals.length = 3 * totalPts;
+            newNormals.length += 3 * totalPts;
             NewNormals = newNormals;
           }
           if (newCoordinates) {
-            newCoordinates.length = 3 * numOutTris;
+            newCoordinates.length += 3 * numOutTris;
             NewCoordinates = newCoordinates;
           }       
 

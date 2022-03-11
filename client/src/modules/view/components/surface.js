@@ -9,7 +9,7 @@ import { SliceHighlightVP, SliceHighlightFP } from 'vtk/shaders';
 import { Reds, Blues } from 'utils/colors';
 
 const regionFormula = label => (v => v === label ? v : 0);
-const backgroundFormula = label => (v => v !== label && v !== 0 ? v : 0);
+const backgroundFormula = label => (v => v !== label ? v : 0);
 
 export function Surface(type = 'background') {
   const maskCalculator = vtkCalculator.newInstance();
@@ -72,7 +72,7 @@ export function Surface(type = 'background') {
         value => formula(value)
       );
 
-      flyingEdges.setValues(type === 'region' ? [label] : [4, 28, 31]);
+      flyingEdges.setValues(type === 'region' ? [label] : new Array(100).fill().map((d, i) => i + 1));
     },
     setActiveLabels: labels => {
       console.log(labels);
