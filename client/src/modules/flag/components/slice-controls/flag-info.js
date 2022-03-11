@@ -20,17 +20,6 @@ export const FlagInfo = () => {
 
   return (
     <List relaxed>
-      <Item>
-        <Button          
-          toggle={ true }
-          content='Flag region'
-          icon='flag'
-          compact
-          color={ flag ? 'grey' : null }
-          labelPosition='left'
-          onClick={ onFlagClick }
-        />
-      </Item>
       { flag &&
       <>
         <Item>
@@ -59,6 +48,17 @@ export const FlagInfo = () => {
         </Item>
       </>
       }
+      <Item>
+        <Button          
+          toggle={ true }
+          content='Flag region'
+          icon='flag'
+          compact
+          color={ flag ? 'grey' : null }
+          labelPosition='left'
+          onClick={ onFlagClick }
+        />
+      </Item>
     </List>
   );
 };

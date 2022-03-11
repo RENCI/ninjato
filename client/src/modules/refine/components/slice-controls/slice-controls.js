@@ -1,11 +1,8 @@
 import { useContext } from 'react';
-import { Button } from 'semantic-ui-react';
 import { RefineContext, REFINE_SET_EDIT_MODE } from 'contexts';
 import { ControlBar, ControlGroup, ControlButton } from 'modules/common/components/control-bar';
 import { SplitButton } from 'modules/common/components/split-button';
 import { BrushOptions } from './brush-options';
-
-const { Group } = Button;
 
 export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
   const [{ editModes, editMode }, dispatch] = useContext(RefineContext);

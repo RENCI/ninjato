@@ -948,9 +948,6 @@ export default function algorithm() {
       for (vidx = 0; vidx < numContours; vidx++) {       
         value = values[vidx];
 
-        console.log(value);
-        EdgeMetaData.fill(0);
-
         // PASS 1: Traverse all x-rows building edge cases and counting number of
         // intersections (i.e., accumulate information necessary for later output
         // memory allocation, e.g., the number of output points along the x-rows

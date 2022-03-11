@@ -4,7 +4,7 @@ import vtkContextRepresentation from '@kitware/vtk.js/Widgets/Representations/Co
 import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkPolyData from '@kitware/vtk.js/Common/DataModel/PolyData';
 
-import { vec3 } from 'gl-matrix';
+//import { vec3 } from 'gl-matrix';
 
 // ----------------------------------------------------------------------------
 // vtkRegionSelectRepresentation methods
@@ -34,8 +34,8 @@ function vtkRegionSelectRepresentation(publicAPI, model) {
       return;
     }
 
-    const list = publicAPI.getRepresentationStates(inData[0]);
-    const state = list[0];
+//    const list = publicAPI.getRepresentationStates(inData[0]);
+//    const state = list[0];
 
     const dataset = vtkPolyData.newInstance();
 /*

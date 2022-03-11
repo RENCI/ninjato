@@ -30,15 +30,9 @@ export const SliceViewWrapper = ({ sliceView }) => {
     if (initialized) {
       sliceView.setFlag(flag);
 
-      if (flag) {
-        sliceView.setLinks(links);
-        sliceView.render();
-      }
-      else {
-        sliceView.setHighlightLabel(null);
-        sliceView.setLinks([]);
-        sliceView.render();
-      }
+      if (!flag) sliceView.setHighlightLabel(null);      
+
+      sliceView.render();
     }
   }, [initialized, sliceView, flag]);
 

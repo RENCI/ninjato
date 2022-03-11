@@ -5,7 +5,7 @@ import { ControlBar, ControlGroup, ControlButton } from 'modules/common/componen
 import { FlagInfo } from 'modules/flag/components/slice-controls/flag-info';
 
 export const SliceControls = () => {
-  const [{ flag }, dispatch] = useContext(FlagContext);
+  const [{ flag }] = useContext(FlagContext);
 
   return (
     <ControlBar>

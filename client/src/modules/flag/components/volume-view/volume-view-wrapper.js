@@ -20,7 +20,7 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
   // Update data
   useEffect(() => {
     if (initialized && maskData) {
-      volumeView.setData(maskData, onLoaded);
+      volumeView.setData(maskData);
       volumeView.setLabel(label);
       volumeView.render(onLoaded);
     }
@@ -29,15 +29,11 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
   // Flag
   useEffect(() => {
     if (initialized) {
-      if (flag) {
-        volumeView.setLinks(links);
-        volumeView.render();
-      }
-      else {
-        volumeView.setHighlightLabel(null);
-        volumeView.setLinks([]);
-        volumeView.render();
-      }
+      volumeView.setFlag(flag);
+
+      if (!flag) volumeView.setHighlightLabel(null);
+
+      volumeView.render();
     }
   }, [initialized, volumeView, flag]);
 

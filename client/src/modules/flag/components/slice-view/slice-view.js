@@ -15,6 +15,7 @@ export function SliceView(onAddLink, onRemoveLink, onHighlight, onSliceChange) {
   const image = Image();
   const mask = Mask();  
 
+  let flag = false;
   let links = [];
 
   const isValid = label => label !== null && label !== 0 && label !== mask.getLabel();
@@ -90,10 +91,14 @@ export function SliceView(onAddLink, onRemoveLink, onHighlight, onSliceChange) {
     },
     setLabel: label => mask.setLabel(label),
     setSlice: slice => image.getMapper().setSlice(slice),
-    setFlag: flag => widgets.setActive(flag),
+    setFlag: flagActive => {
+      flag = flagActive;
+      widgets.setActive(flag);
+      mask.setActiveLabels(flag ? links : []);
+    },
     setLinks: linkLabels => {
       links = linkLabels;
-      mask.setActiveLabels(linkLabels);
+      mask.setActiveLabels(flag ? links : []);
     },
     setHighlightLabel: label => mask.setHighlightLabel(label),
     render: () => {

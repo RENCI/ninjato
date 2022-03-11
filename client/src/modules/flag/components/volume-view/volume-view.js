@@ -1,5 +1,10 @@
 import { RenderWindow, Surface, BoundingBox } from 'modules/view/components';
 import { getUniqueLabels } from 'utils/data';
+import { 
+  regionSurfaceColor, 
+  backgroundSurfaceColor1, 
+  backgroundSurfaceColor2 
+} from 'utils/colors';
 
 const resetCamera = (renderer, surface) => {
   const [x1, x2, y1, y2, z1, z2] = surface.getPoints().getBounds();
@@ -42,8 +47,12 @@ const centerCamera = (renderer, surface) => {
 export function VolumeView() {
   const renderWindow = RenderWindow();
 
-  const region = Surface('region');  
+  const region = Surface();  
+  region.setOpaqueColor(regionSurfaceColor);
+  region.setSliceHighlight(true);
+
   const background = Surface();
+  background.setTranslucentColors(backgroundSurfaceColor1, backgroundSurfaceColor2);
 
   const boundingBox = BoundingBox();
 
@@ -85,6 +94,8 @@ export function VolumeView() {
     setSlice: slice => {
       region.setSlice(slice);
     },
+    // XXX: Need to impolement flagging and linking
+    setFlag: flagActive => flagActive,
     setLinks: linkLabels => linkLabels,//background.setActiveLabels(linkLabels),
     setHighlightLabel: label => label,//background.setHighlightLabel(label),    
     setShowBackground: show => {
