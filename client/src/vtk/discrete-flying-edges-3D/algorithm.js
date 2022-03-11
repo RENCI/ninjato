@@ -949,6 +949,7 @@ export default function algorithm() {
         value = values[vidx];
 
         console.log(value);
+        EdgeMetaData.fill(0);
 
         // PASS 1: Traverse all x-rows building edge cases and counting number of
         // intersections (i.e., accumulate information necessary for later output
@@ -999,26 +1000,26 @@ export default function algorithm() {
         const totalPts = numOutXPts + numOutYPts + numOutZPts;
 
         if (totalPts > 0) {
-          newPts.length += 3 * totalPts;
+          newPts.length = 3 * totalPts;
           NewPoints = newPts;
-          newTris.length += 4 * numOutTris;
+          newTris.length = 4 * numOutTris;
           NewTris = newTris;
           if (newScalars) {
             const numPrevPts = newScalars.length;
-            newScalars.length += totalPts;
+            newScalars.length = totalPts;
             NewScalars = newScalars;
             NewScalars.fill(value, numPrevPts);
           }              
           if (newGradients) {
-            newGradients.length += 3 * totalPts;
+            newGradients.length = 3 * totalPts;
             NewGradients = newGradients;
           }
           if (newNormals) {
-            newNormals.length += 3 * totalPts;
+            newNormals.length = 3 * totalPts;
             NewNormals = newNormals;
           }
           if (newCoordinates) {
-            newCoordinates.length += 3 * numOutTris;
+            newCoordinates.length = 3 * numOutTris;
             NewCoordinates = newCoordinates;
           }       
 
