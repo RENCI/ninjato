@@ -53,6 +53,8 @@ def save_user_annotation(user, item_id, done, reject, comment, content_data):
                      'rejected. If set to False, split result will be saved. The default is False.',
            dataType='boolean', default=False, required=False)
     .param('comment', 'split comment added by the user', default='', required=False)
+    .param('region_ids', 'a list of split region ids encoded in the content_data',
+           dataType=list, default=[], required=False)
     .param('content_data', 'split content blob data to be saved on server. If reject is False '
                            'the content_data needs to be saved, this parameter is required.',
            required=False, paramType='formData')
@@ -60,8 +62,8 @@ def save_user_annotation(user, item_id, done, reject, comment, content_data):
     .errorResponse('Save action was denied on the user.', 403)
     .errorResponse('Failed to save user split', 500)
 )
-def save_user_split(user, item_id, done, reject, comment, content_data):
-    return save_user_split_result(user, item_id, done, reject, comment, content_data)
+def save_user_split(user, item_id, done, reject, comment, region_ids, content_data):
+    return save_user_split_result(user, item_id, done, reject, comment, region_ids, content_data)
 
 
 @access.public

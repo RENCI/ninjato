@@ -61,13 +61,13 @@ def get_max_region_id(whole_item):
     return whole_item['meta']['whole_region_id']
 
 
-def set_max_region_id(whole_item):
-    if 'max_region_id' not in whole_item['meta']:
+def set_max_region_id(whole_item, max_level = None):
+    if not max_level:
         max_level = len(whole_item['meta']['regions'])
-        add_meta = {
-            'max_region_id': max_level
-        }
-        Item().setMetadata(whole_item, add_meta)
+    add_meta = {
+        'max_region_id': max_level
+    }
+    Item().setMetadata(whole_item, add_meta)
 
 
 def get_tif_file_content_and_path(item_file, output_file_id, region_key):
@@ -134,6 +134,23 @@ def get_buffered_extent(minx, maxx, miny, maxy, minz, maxz, xrange, yrange, zran
     return minx, maxx, miny, maxy, minz, maxz
 
 
+def split_data_by_ids_and_update_with_new_ids(content_path, old_ids, new_ids):
+    # split content based on region_ids
+    tif = TIFF.open(content_path, mode="r")
+
+    output_tif = TIFF.open(out_path, mode="w")
+    counter = 0
+    for image in tif.iter_images():
+        if counter >= min_z and counter <= max_z:
+            img = np.copy(image[min_y:max_y + 1, min_x:max_x + 1])
+            output_tif.write_image(img)
+        if counter > max_z:
+            break
+        counter += 1
+    assetstore_id = item_file['assetstoreId']
+    save_file(assetstore_id, region_item, out_path, admin_user, output_file_name)
+
+
 def merge_regions(region_list):
     first_region_item = Item().findOne({'_id': ObjectId(region_list[0])})
     item_list = [Item().findOne({'_id': ObjectId(rid)}) for rid in region_list]
@@ -189,6 +206,79 @@ def merge_regions(region_list):
             del whole_item['meta']['regions'][str(rid)]
     return first_region_item
 
+
+def create_region(uid, region_key, folder_id, whole_item, min_x, max_x, min_y, max_y, min_z,
+                  max_z):
+    admin_user = User().getAdmins()[0]
+    coords = whole_item['meta']['coordinates']
+    x_range = coords["x_max"] - coords["x_min"]
+    y_range = coords["y_max"] - coords["y_min"]
+    z_range = coords["z_max"] - coords["z_min"]
+    min_x, max_x, min_y, max_y, min_z, max_z = get_buffered_extent(
+        min_x, max_x, min_y, max_y, min_z, max_z, x_range, y_range, z_range)
+    region_item = Item().createItem(
+        f'region{region_key}',
+        creator=admin_user,
+        folder=Folder().findOne({'_id': ObjectId(folder_id)}),
+        description=f'region{region_key} of the partition')
+
+    item_files = File().find({'itemId': whole_item['_id']})
+    for item_file in item_files:
+        tif, out_path, output_file_name = get_tif_file_content_and_path(
+            item_file, region_item['_id'], region_key)
+        output_tif = TIFF.open(out_path, mode="w")
+        counter = 0
+        for image in tif.iter_images():
+            if counter >= min_z and counter <= max_z:
+                img = np.copy(image[min_y:max_y + 1, min_x:max_x + 1])
+                output_tif.write_image(img)
+            if counter > max_z:
+                break
+            counter += 1
+        assetstore_id = item_file['assetstoreId']
+        save_file(assetstore_id, region_item, out_path, admin_user, output_file_name)
+
+    add_meta = {
+        'coordinates': {
+            "x_max": max_x,
+            "x_min": min_x,
+            "y_max": max_y,
+            "y_min": min_y,
+            "z_max": max_z,
+            "z_min": min_z
+        },
+        'user': uid,
+        'region_label': region_key
+    }
+    Item().setMetadata(region_item, add_meta)
+    return region_item
+
+
+def split_region(item, region_ids, content_path, whole_item):
+    max_id = get_max_region_id(whole_item)
+    # split content based on region_ids
+    tif = TIFF.open(content_path, mode="r")
+    new_region_ids = [int(max_id) + i for i, rid in enumerate(region_ids)]
+    # replace the last region with the current item
+    new_region_ids[-1] = item['meta']['region_label']
+    set_max_region_id(whole_item, new_region_ids[-2])
+    images = []
+    for image in tif.iter_images():
+        images.append(image)
+    # imarray should be in order of ZYX
+    imarray = np.array(images)
+    region_coords = []
+    for i, lev in enumerate(region_ids):
+        level_indices = np.where(imarray == lev)
+        region_coords.append({'z_min': item['meta']['coordinates']['z_min'] + min(level_indices[0]),
+                              'z_max': item['meta']['coordinates']['z_min'] + max(level_indices[0]),
+                              'y_min': item['meta']['coordinates']['y_min'] + min(level_indices[1]),
+                              'y_max': item['meta']['coordinates']['y_min'] + max(level_indices[1]),
+                              'x_min': item['meta']['coordinates']['x_min'] + min(level_indices[2]),
+                              'x_max': item['meta']['coordinates']['x_min'] + max(level_indices[2])
+                              })
+        # replace region_id with new_region_ids in tif image
+        imarray[imarray == lev] = new_region_ids[i]
 
 def check_subvolume_done(whole_item, task_type):
     vol_done = True
@@ -280,10 +370,6 @@ def get_item_assignment(user, subvolume_id, task_type):
     # no region has been assigned to the user yet, look into the whole partition
     # item to find a region for assignment
 
-    coords = whole_item['meta']['coordinates']
-    x_range = coords["x_max"] - coords["x_min"]
-    y_range = coords["y_max"] - coords["y_min"]
-    z_range = coords["z_max"] - coords["z_min"]
     # look into regions of this whole item for assignment
     for key, val in whole_item['meta']['regions'].items():
         if 'done' in val and val['done'] == 'true':
@@ -307,45 +393,10 @@ def get_item_assignment(user, subvolume_id, task_type):
                 Item().setMetadata(region_item, add_meta)
             else:
                 # create an item for this selected region
-                min_x, max_x, min_y, max_y, min_z, max_z = get_buffered_extent(
-                    val['x_min'], val['x_max'], val['y_min'], val['y_max'],
-                    val['z_min'], val['z_max'], x_range, y_range, z_range
-                )
-                admin_user = User().getAdmins()[0]
-                region_item = Item().createItem(
-                    f'region{key}',
-                    creator=admin_user,
-                    folder=Folder().findOne({'_id': ObjectId(subvolume_id)}),
-                    description=f'region{key} of the partition')
+                region_item = create_region(user['_id'], key, subvolume_id, whole_item,
+                                            val['x_min'], val['x_max'], val['y_min'], val['y_max'],
+                                            val['z_min'], val['z_max'])
                 val['item_id'] = region_item['_id']
-                item_files = File().find({'itemId': whole_item['_id']})
-                for item_file in item_files:
-                    tif, out_path, output_file_name = get_tif_file_content_and_path(
-                        item_file, region_item['_id'], key)
-                    output_tif = TIFF.open(out_path, mode="w")
-                    counter = 0
-                    for image in tif.iter_images():
-                        if counter >= min_z and counter <= max_z:
-                            img = np.copy(image[min_y:max_y + 1, min_x:max_x + 1])
-                            output_tif.write_image(img)
-                        if counter > max_z:
-                            break
-                        counter += 1
-                    assetstore_id = item_file['assetstoreId']
-                    save_file(assetstore_id, region_item, out_path, admin_user, output_file_name)
-                    add_meta = {
-                        'coordinates': {
-                            "x_max": max_x,
-                            "x_min": min_x,
-                            "y_max": max_y,
-                            "y_min": min_y,
-                            "z_max": max_z,
-                            "z_min": min_z
-                        },
-                        'user': user['_id'],
-                        'region_label': key
-                    }
-                    Item().setMetadata(region_item, add_meta)
 
             add_meta = {str(user['_id']): str(region_item['_id'])}
             Item().setMetadata(whole_item, add_meta)
@@ -614,5 +665,73 @@ def save_region_flag_review(user, flagged_region_id_list, reject, result, commen
     }
 
 
-def save_user_split_result(user, item_id, done, reject, comment, content_data):
-    pass
+def save_user_split_result(user, item_id, done, reject, comment, region_ids, content_data):
+    uid = user['_id']
+    uname = user['login']
+    item, whole_item = get_items(item_id)
+    if reject:
+        # reject the annotation
+        reject_assignment(user, item, whole_item, TaskType.SPLIT.value, True, comment)
+        if item['meta']['split_region_ids']:
+            del item['meta']['split_region_ids']
+            Item().save(item)
+        return {
+            "status": "success"
+        }
+
+    add_meta = {'split_region_ids': region_ids}
+    done_key = f'{TaskType.SPLIT.value}_done'
+    if done:
+        add_meta[done_key] = 'true'
+        Item().setMetadata(item, add_meta)
+    else:
+        add_meta[done_key] = 'false'
+        Item().setMetadata(item, add_meta)
+
+    if comment:
+        add_meta = {f'{TaskType.SPLIT.value}_comment': comment}
+        Item().setMetadata(item, add_meta)
+
+    files = File().find({'itemId': ObjectId(item_id)})
+    annot_file_name = ''
+    assetstore_id = ''
+
+    for file in files:
+        if '_masks' in file['name']:
+            mask_file_name = file['name']
+            annot_file_name = f'{os.path.splitext(mask_file_name)[0]}_{uname}.tif'
+            assetstore_id = file['assetstoreId']
+            break
+    if not annot_file_name or not assetstore_id:
+        raise RestException('failure: cannot find the mask file for the split region item', 500)
+    content = content_data.file.read()
+    try:
+        # save file to local file system before adding it to asset store
+        out_dir_path = os.path.join(DATA_PATH, str(item_id))
+        out_path = os.path.join(out_dir_path, annot_file_name)
+        if not os.path.isdir(out_dir_path):
+            os.makedirs(out_dir_path)
+        with open(out_path, "wb") as f:
+            f.write(content)
+        file = save_file(assetstore_id, item, out_path, user, annot_file_name)
+    except Exception as e:
+        raise RestException(f'failure: {e}', 500)
+
+    if done:
+        region_item_ids = split_region(item, region_ids, out_path, whole_item)
+        # check if all regions for the partition is done, and if so add done metadata to whole item
+        del whole_item['meta'][str(uid)]
+        whole_item = Item().save(whole_item)
+        region_key = item['meta']['region_label']
+        info = {
+            'user': uname,
+            'task_type': TaskType.REFINE.value,
+            'timestamp': datetime.now().strftime("%m/%d/%Y %H:%M")
+        }
+        add_meta_to_region(whole_item, region_key, 'completed_by', info)
+        check_subvolume_done(whole_item, TaskType.REFINE.value)
+
+    return {
+        'annotation_file_id': file['_id'],
+        'status': 'success'
+    }
