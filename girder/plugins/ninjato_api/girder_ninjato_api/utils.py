@@ -1,4 +1,5 @@
 import os
+import shutil
 from datetime import datetime
 from enum import Enum
 from libtiff import TIFF
@@ -70,11 +71,16 @@ def set_max_region_id(whole_item, max_level = None):
     Item().setMetadata(whole_item, add_meta)
 
 
-def get_tif_file_content_and_path(item_file, output_file_id, region_key):
-    file_res_path = path_util.getResourcePath('file', item_file, force=True)
+def get_tif_file_content_and_path(item_file):
     file = File().load(item_file['_id'], force=True)
     file_path = File().getLocalFilePath(file)
     tif = TIFF.open(file_path, mode="r")
+    return tif, file_path
+
+
+def get_tif_file_content_and_region_output_path(item_file, output_file_id, region_key):
+    file_res_path = path_util.getResourcePath('file', item_file, force=True)
+    tif, _ = get_tif_file_content_and_path(item_file)
     file_name = os.path.basename(file_res_path)
     file_base_name, file_ext = os.path.splitext(file_name)
     out_dir_path = os.path.join(DATA_PATH, str(output_file_id))
@@ -174,7 +180,7 @@ def merge_regions(region_list):
 
     item_files = File().find({'itemId': whole_item['_id']})
     for item_file in item_files:
-        tif, out_path, output_file_name, output_tif = get_tif_file_content_and_path(
+        tif, out_path, output_file_name, output_tif = get_tif_file_content_and_region_output_path(
             item_file, item_list[0]['_id'], region_list[0])
         counter = 0
         for image in tif.iter_images():
@@ -207,8 +213,13 @@ def merge_regions(region_list):
     return first_region_item
 
 
-def create_region(uid, region_key, folder_id, whole_item, min_x, max_x, min_y, max_y, min_z,
-                  max_z):
+def create_region(uid, region_key, folder_id, whole_item, extent_dict):
+    min_x = extent_dict['x_min']
+    max_x = extent_dict['x_max']
+    min_y = extent_dict['y_min']
+    max_y = extent_dict['y_max']
+    min_z = extent_dict['z_min']
+    max_z = extent_dict['z_max']
     admin_user = User().getAdmins()[0]
     coords = whole_item['meta']['coordinates']
     x_range = coords["x_max"] - coords["x_min"]
@@ -224,7 +235,7 @@ def create_region(uid, region_key, folder_id, whole_item, min_x, max_x, min_y, m
 
     item_files = File().find({'itemId': whole_item['_id']})
     for item_file in item_files:
-        tif, out_path, output_file_name = get_tif_file_content_and_path(
+        tif, out_path, output_file_name = get_tif_file_content_and_region_output_path(
             item_file, region_item['_id'], region_key)
         output_tif = TIFF.open(out_path, mode="w")
         counter = 0
@@ -259,7 +270,9 @@ def split_region(item, region_ids, content_path, whole_item):
     # split content based on region_ids
     tif = TIFF.open(content_path, mode="r")
     new_region_ids = [int(max_id) + i for i, rid in enumerate(region_ids)]
-    # replace the last region with the current item
+    # replace the last region with the current item, so the split regions will start from
+    # max_id, max_id+1, .., max_id+len(region_ids)-2, current_item_id with len(region_ids)-1 new
+    # regions added
     new_region_ids[-1] = item['meta']['region_label']
     set_max_region_id(whole_item, new_region_ids[-2])
     images = []
@@ -268,17 +281,52 @@ def split_region(item, region_ids, content_path, whole_item):
     # imarray should be in order of ZYX
     imarray = np.array(images)
     region_coords = []
+    item_coords = {
+        'z_min': int(item['meta']['coordinates']['z_min']),
+        'z_max': int(item['meta']['coordinates']['z_min']),
+        'y_min': int(item['meta']['coordinates']['y_min']),
+        'y_max': int(item['meta']['coordinates']['y_min']),
+        'x_min': int(item['meta']['coordinates']['x_min']),
+        'x_max': int(item['meta']['coordinates']['x_min'])
+    }
     for i, lev in enumerate(region_ids):
         level_indices = np.where(imarray == lev)
-        region_coords.append({'z_min': item['meta']['coordinates']['z_min'] + min(level_indices[0]),
-                              'z_max': item['meta']['coordinates']['z_min'] + max(level_indices[0]),
-                              'y_min': item['meta']['coordinates']['y_min'] + min(level_indices[1]),
-                              'y_max': item['meta']['coordinates']['y_min'] + max(level_indices[1]),
-                              'x_min': item['meta']['coordinates']['x_min'] + min(level_indices[2]),
-                              'x_max': item['meta']['coordinates']['x_min'] + max(level_indices[2])
+        region_coords.append({'z_min': item_coords['z_min'] + min(level_indices[0]),
+                              'z_max': item_coords['z_max'] + max(level_indices[0]),
+                              'y_min': item_coords['y_min'] + min(level_indices[1]),
+                              'y_max': item_coords['y_min'] + max(level_indices[1]),
+                              'x_min': item_coords['x_min'] + min(level_indices[2]),
+                              'x_max': item_coords['x_min'] + max(level_indices[2])
                               })
         # replace region_id with new_region_ids in tif image
         imarray[imarray == lev] = new_region_ids[i]
+    # replace the region in the whole item with updated split regions
+    item_files = File().find({'itemId': whole_item['_id']})
+
+    for item_file in item_files:
+        if '_masks' not in item_file['name']:
+            continue
+        whole_tif, whole_path = get_tif_file_content_and_path(item_file)
+        whole_out_tif = TIFF.open(f'output_{whole_path}', mode = 'w')
+        counter = 0
+        # imarray should be in order of ZYX
+        for image in whole_tif.iter_images():
+            if counter >= item_coords['z_min'] and counter <= item_coords['z_max']:
+                image[item_coords['y_min']: item_coords['y_max'],
+                      item_coords['x_min']: item_coords['x_max']] = imarray[counter::]
+            whole_out_tif.write_image(image)
+            counter += 1
+        break
+
+    # update mask file by copying new tiff file to the old one, then delete the new tiff file
+    shutil.move(f'output_{whole_path}', whole_path)
+
+    # add/update meta data for split regions
+    for i, rid in enumerate(new_region_ids):
+        whole_item['meta']['regions'][rid] = region_coords[i]
+    Item().save(whole_item)
+    return new_region_ids
+
 
 def check_subvolume_done(whole_item, task_type):
     vol_done = True
@@ -394,8 +442,13 @@ def get_item_assignment(user, subvolume_id, task_type):
             else:
                 # create an item for this selected region
                 region_item = create_region(user['_id'], key, subvolume_id, whole_item,
-                                            val['x_min'], val['x_max'], val['y_min'], val['y_max'],
-                                            val['z_min'], val['z_max'])
+                                            {'x_min': val['x_min'],
+                                             'x_max': val['x_max'],
+                                             'y_min': val['y_min'],
+                                             'y_max': val['y_max'],
+                                             'z_min': val['z_min'],
+                                             'z_max': val['z_max']
+                                             })
                 val['item_id'] = region_item['_id']
 
             add_meta = {str(user['_id']): str(region_item['_id'])}
