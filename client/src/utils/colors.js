@@ -9,6 +9,8 @@ const hex2rgb = h => {
   return [+r / 255, +g / 255, +b / 255];
 };
 
+export const cssString = color => `rgb(${ color.map(d => d * 255).join(',') })`;
+
 export const Reds = [
   '#fff5f0', '#fee0d2', '#fcbba1', '#fc9272', '#fb6a4a', '#ef3b2c', '#cb181d', '#a50f15', '#67000d'
 ].map(hex2rgb);
@@ -16,3 +18,11 @@ export const Reds = [
 export const Blues = [
   '#f7fbff', '#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5', '#08519c', '#08306b'
 ].map(hex2rgb);
+
+export const Purples = [
+  '#fcfbfd', '#efedf5', '#dadaeb', '#bcbddc', '#9e9ac8', '#807dba', '#6a51a3', '#54278f', '#3f007d'
+].map(hex2rgb);
+
+export const regionSurfaceColor = Reds[3];
+export const backgroundSurfaceColor1 = Blues[2];
+export const backgroundSurfaceColor2 = Blues[8];

@@ -1,36 +1,21 @@
-import { useContext, useState, useRef, useEffect, useCallback } from 'react';
-import { DataContext, RefineContext, SET_EDIT_MODE } from 'contexts';
+import { useContext, useState, useRef, useEffect } from 'react';
+import { DataContext, RefineContext } from 'contexts';
 import { useResize } from 'hooks';
 
 export const SliceViewWrapper = ({ sliceView }) => {
   const [{ imageData, maskData, label }] = useContext(DataContext);
-  const [
-    { editMode, editModes, brushes, paintBrush, eraseBrush }, 
-    controlsDispatch
-  ] = useContext(RefineContext);
+  const [{ editMode, editModes, brushes, paintBrush, eraseBrush }] = useContext(RefineContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);
   const { width } = useResize(div);
-
-  const onKeyDown = useCallback(evt => {
-    if (evt.key === 'Control') {
-      controlsDispatch({ type: SET_EDIT_MODE, mode: 'erase' });
-    }
-  }, [controlsDispatch]);
-
-  const onKeyUp = useCallback(evt => {
-    if (evt.key === 'Control') {
-      controlsDispatch({ type: SET_EDIT_MODE, mode: 'paint' });
-    }
-  }, [controlsDispatch]);
   
   // Initialize
   useEffect(() => {
     if (!initialized && div.current && width) { 
-      sliceView.initialize(div.current, onKeyDown, onKeyUp);
+      sliceView.initialize(div.current);
       setInitialized(true);
     }
-  }, [initialized, div, width, sliceView, onKeyDown, onKeyUp]);
+  }, [initialized, div, width, sliceView]);
 
   // Update data
   useEffect(() => {

@@ -1,5 +1,11 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { UserProvider, DataProvider, RefineProvider, ErrorProvider } from "contexts"; 
+import { 
+  UserProvider, 
+  DataProvider, 
+  RefineProvider, 
+  FlagProvider, 
+  ErrorProvider 
+} from "contexts"; 
 import { MainMenu } from 'modules/menu/components/main-menu';
 import { ErrorMessage } from 'modules/common/components/error-message';
 import { Home } from 'pages';
@@ -9,6 +15,7 @@ export const App = () => {
     <UserProvider>
     <DataProvider>
     <RefineProvider>
+    <FlagProvider>
     <ErrorProvider>
       <Router>        
         <MainMenu />
@@ -18,6 +25,7 @@ export const App = () => {
         <ErrorMessage />
       </Router>
     </ErrorProvider>
+    </FlagProvider>
     </RefineProvider>
     </DataProvider>
     </UserProvider>

@@ -1,5 +1,3 @@
-import '@kitware/vtk.js/Rendering/Profiles/All';
-
 import vtkImageMapper from '@kitware/vtk.js/Rendering/Core/ImageMapper';
 import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
 import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
@@ -52,7 +50,6 @@ export function MaskPainter() {
 
       color.removeAllPoints();
       color.addRGBPoint(0, 0, 0, 0);
-      color.addRGBPoint(0, 0, 1, 0);
       if (label > 1) {
         color.addRGBPoint(1, ...backgroundColor);
         color.addRGBPoint(label - 1, ...backgroundColor);
@@ -65,7 +62,7 @@ export function MaskPainter() {
     getLabel: () => label,
     setSlice: slice => contour.setSliceRange([slice, slice]),
     cleanUp: () => {
-      console.log("Clean up mask");
+      console.log('Clean up mask');
 
       // Clean up anything we instantiated
       painter.delete();

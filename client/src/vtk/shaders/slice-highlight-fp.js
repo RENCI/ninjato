@@ -41,8 +41,7 @@ export const SliceHighlightFP =
   
   // handle coincident offsets
   uniform float cfactor;
-  // XXX: HAD TO REMOVE THIS
-  //uniform float coffset;
+  uniform float coffset;
   
   void main()
   {
@@ -50,13 +49,12 @@ export const SliceHighlightFP =
     vec4 vertexVC = vertexVCVSOutput;
   
     // Place any calls that require uniform flow (e.g. dFdx) here.
-      vec3 fdx = dFdx(vertexVC.xyz);
+    vec3 fdx = dFdx(vertexVC.xyz);
     vec3 fdy = dFdy(vertexVC.xyz);
     float cscale = length(vec2(dFdx(gl_FragCoord.z),dFdy(gl_FragCoord.z)));
   
     // Set gl_FragDepth here (gl_FragCoord.z by default)
-    // XXX: HAD TO REMOVE coffset
-    //gl_FragDepth = gl_FragCoord.z + cfactor*cscale + 0.000016*coffset;
+    gl_FragDepth = gl_FragCoord.z + cfactor*cscale + 0.000016*coffset;
     gl_FragDepth = gl_FragCoord.z + cfactor*cscale + 0.000016;
   
     vec3 ambientColor;

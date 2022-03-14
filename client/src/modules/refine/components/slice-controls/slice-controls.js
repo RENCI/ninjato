@@ -1,17 +1,14 @@
 import { useContext } from 'react';
-import { Button } from 'semantic-ui-react';
-import { RefineContext, SET_EDIT_MODE } from 'contexts';
-import { ControlBar } from 'modules/common/components/control-bar';
+import { RefineContext, REFINE_SET_EDIT_MODE } from 'contexts';
+import { ControlBar, ControlGroup, ControlButton } from 'modules/common/components/control-bar';
 import { SplitButton } from 'modules/common/components/split-button';
 import { BrushOptions } from './brush-options';
-
-const { Group } = Button;
 
 export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
   const [{ editModes, editMode }, dispatch] = useContext(RefineContext);
 
   const onModeClick = value => {
-    dispatch({ type: SET_EDIT_MODE, mode: value });
+    dispatch({ type: REFINE_SET_EDIT_MODE, mode: value });
   };
 
   const onUndoClick = () => {
@@ -24,7 +21,7 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
 
   return (
     <ControlBar>
-      <Group vertical>
+      <ControlGroup>
         { editModes.map(({ value, icon }, i) => (
           value === 'paint' || value === 'erase' ?
             <SplitButton
@@ -36,28 +33,27 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
               onClick={ () => onModeClick(value )}
             />
           :
-            <Button
+            <ControlButton
               key={ i }
+              toggle={ true }
               icon={ icon }
-              color={ value === editMode ? 'grey' : null }
+              active={ value === editMode  }
               onClick={ () => onModeClick(value) }              
             />
         ))}    
-      </Group>
-      <Group vertical>
-        <Button
-          icon='undo alternate'
-          compact
+      </ControlGroup>
+      <ControlGroup>
+        <ControlButton
+          icon='undo alternate'        
           disabled={ !canUndo }
           onClick={ onUndoClick }
         />
-        <Button
-          icon='redo alternate'
-          compact
+        <ControlButton
+          icon='redo alternate'          
           disabled={ !canRedo }
           onClick={ onRedoClick }
         />
-      </Group>
+      </ControlGroup>
     </ControlBar>
   );
 };

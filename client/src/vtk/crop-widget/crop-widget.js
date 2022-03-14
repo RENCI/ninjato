@@ -1,6 +1,6 @@
 import macro from '@kitware/vtk.js/macros';
 import vtkAbstractWidgetFactory from '@kitware/vtk.js/Widgets/Core/AbstractWidgetFactory';
-import vtkPlanePointManipulator from '@kitware/vtk.js/Widgets/Manipulators/PlaneManipulator';
+import vtkPlaneManipulator from '@kitware/vtk.js/Widgets/Manipulators/PlaneManipulator';
 import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
 import vtkCropRepresentation from 'vtk/crop-representation';
@@ -39,7 +39,7 @@ function vtkCropWidget(publicAPI, model) {
   const handle = model.widgetState.getHandle();
 
   // Default manipulator
-  model.manipulator = vtkPlanePointManipulator.newInstance();
+  model.manipulator = vtkPlaneManipulator.newInstance();
   handle.setManipulator(model.manipulator);
 
   publicAPI.setPosition = (position) => {  

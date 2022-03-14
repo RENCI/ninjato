@@ -1,15 +1,19 @@
 import { useContext } from 'react';
-import { DataContext } from 'contexts';
+import { DataContext, UserContext } from 'contexts';
 import { AssignmentSelection } from 'modules/assignment/components/assignment-selection';
 import { RefineContainer } from 'modules/refine/components/refine-container';
+import { FlagContainer } from 'modules/flag/components/flag-container';
 
 export const Home = () => {
+  const [{ assignment }] = useContext(UserContext);
   const [{ imageData }] = useContext(DataContext);
 
   return (
     <>
       { imageData ? 
-        <RefineContainer />        
+          assignment.type === 'flag' ? 
+            <FlagContainer /> :
+            <RefineContainer />        
       : 
         <AssignmentSelection />
       }
