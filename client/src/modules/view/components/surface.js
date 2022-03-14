@@ -5,16 +5,12 @@ import { FieldDataTypes } from '@kitware/vtk.js/Common/DataModel/DataSet/Constan
 import vtkCalculator from 'vtk/calculator';
 import vtkDiscreteFlyingEdges3D from 'vtk/discrete-flying-edges-3D';
 import { SliceHighlightVP, SliceHighlightFP } from 'vtk/shaders';
-import { Reds, Blues } from 'utils/colors';
+import { Reds } from 'utils/colors';
 
-const regionFormula = label => (v => v === label ? 1 : 0);
-const backgroundFormula = label => (v => v !== label && v !== 0 ? 1 : 0);
-
-export function Surface(type = 'background') {
+export function Surface() {
   const maskCalculator = vtkCalculator.newInstance();
 
   const flyingEdges = vtkDiscreteFlyingEdges3D.newInstance({
-    values: [1],
     computeNormals: true,
     computeCoordinates: true
   });
@@ -23,56 +19,73 @@ export function Surface(type = 'background') {
   let sliceCalculator = null;
   
   const mapper = vtkMapper.newInstance();
+  mapper.setScalarVisibility(false);
+  mapper.setInputConnection(flyingEdges.getOutputPort()); 
   
   const actor = vtkActor.newInstance();
   actor.setMapper(mapper); 
 
-  if (type === 'region') {
-    sliceCalculator = vtkCalculator.newInstance();
-    sliceCalculator.setFormulaSimple(
-      FieldDataTypes.CELL,
-      ['Coordinates'],
-      'slice',
-      coordinate => coordinate[2]
-    );
-    sliceCalculator.setInputConnection(flyingEdges.getOutputPort());
-
-    mapper.setScalarVisibility(false);
-    mapper.setInputConnection(sliceCalculator.getOutputPort());
-
-    const mapperSpecificProp = mapper.getViewSpecificProperties();
-    mapperSpecificProp.OpenGL = {
-      VertexShaderCode: SliceHighlightVP,
-      FragmentShaderCode: SliceHighlightFP
-    };
-
-    actor.getProperty().setColor(Reds[3]);
-  }
-  else {
-    mapper.setInputConnection(flyingEdges.getOutputPort());
-    mapper.setScalarVisibility(false);
-
-    actor.getProperty().setDiffuseColor(Blues[2]);
-    actor.getProperty().setAmbientColor(Blues[8]);
-    actor.getProperty().setAmbient(0.8);
-    actor.getProperty().setOpacity(0.4);
-    actor.getProperty().setBackfaceCulling(true);
-  }
-
   return {
     getActor: () => actor,
     setInputData: data => maskCalculator.setInputData(data),
-    setLabel: label => {
-      const formula = type === 'region' ? regionFormula(label) : backgroundFormula(label)
+    setOpaqueColor: color => {
+      const property = actor.getProperty();
+      property.setColor(color);
+      property.setAmbient(0);
+      property.setOpacity(1);
+      property.setBackfaceCulling(false);
+    },
+    setTranslucentColors: (color1, color2) => {
+      const property = actor.getProperty();
+      property.setDiffuseColor(color1);
+      property.setAmbientColor(color2);
+      property.setAmbient(0.8);
+      property.setOpacity(0.4);
+      property.setBackfaceCulling(true); 
+    },
+    setSliceHighlight: highlight => {
+      if (highlight) {
+        if (!sliceCalculator) sliceCalculator = vtkCalculator.newInstance();
 
+        sliceCalculator.setFormulaSimple(
+          FieldDataTypes.CELL,
+          ['Coordinates'],
+          'slice',
+          coordinate => coordinate[2]
+        );
+        sliceCalculator.setInputConnection(flyingEdges.getOutputPort());
+
+        mapper.setInputConnection(sliceCalculator.getOutputPort());
+
+        const mapperSpecificProp = mapper.getViewSpecificProperties();
+        mapperSpecificProp.OpenGL = {
+          VertexShaderCode: SliceHighlightVP,
+          FragmentShaderCode: SliceHighlightFP
+        };
+      }
+      else {
+        mapper.setInputConnection(flyingEdges.getOutputPort());
+        
+        if (sliceCalculator) sliceCalculator.delete();
+      }
+    },
+    setLabels: labels => {
+      const formula = label => labels.includes(label) ? label : 0;
+
+      // XXX: Shouldn't need mask calculator any more, but it is causing some issues with the slice highlighting
+      // when removed. Investigate more at some point...
       maskCalculator.setFormulaSimple(
         FieldDataTypes.POINT,
         ['scalars'],
         'mask',
         value => formula(value)
-      )
+      );
+
+      flyingEdges.setValues(labels);
     },
     setSlice: slice => {      
+      if (!sliceCalculator) return;
+
       const input = maskCalculator.getInputData();
       const z = input.indexToWorld([0, 0, slice])[2]; 
       const sliceWidth = input.getSpacing()[2];
@@ -80,6 +93,7 @@ export function Surface(type = 'background') {
 
       mapper.getViewSpecificProperties().ShadersCallbacks = [
         {
+          // XXX: Should pass in colors, or compute from diffuse color
           userData: [z, sliceWidth / 2, borderWidth, Reds[5], Reds[7]],
           callback: ([z, halfWidth, borderWidth, color, borderColor], cellBO) => {
             const cabo = cellBO.getCABO();
@@ -108,7 +122,7 @@ export function Surface(type = 'background') {
       return mapper.getInputData();
     },
     cleanUp: () => {
-      console.log("Clean up surface");
+      console.log('Clean up surface');
 
       // Clean up anything we instantiated
       maskCalculator.delete();

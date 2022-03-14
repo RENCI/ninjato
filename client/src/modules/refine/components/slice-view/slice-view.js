@@ -1,8 +1,8 @@
 import { RenderWindow, Slice, Image } from 'modules/view/components';
-import { Widgets } from './widgets';
-import { MaskPainter } from './mask-painter';
+import { Widgets } from 'modules/refine/components/slice-view/widgets';
+import { MaskPainter } from 'modules/refine/components/slice-view/mask-painter';
 
-export function SliceView(onEdit, onSliceChange) {
+export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
   const renderWindow = RenderWindow();
   const slice = Slice();
   const image = Image();
@@ -10,7 +10,7 @@ export function SliceView(onEdit, onSliceChange) {
   const widgets = Widgets(mask.getPainter(), onEdit);
 
   return {
-    initialize: (rootNode, onKeyDown, onKeyUp) => {
+    initialize: rootNode => {
       if (renderWindow.initialized()) return;
 
       renderWindow.initialize(rootNode);      
@@ -51,7 +51,7 @@ export function SliceView(onEdit, onSliceChange) {
     setLabel: label => mask.setLabel(label),
     setEditMode: (editMode, cursor) => {
       widgets.setEditMode(editMode)
-      renderWindow.getInteractor().getView().setCursor(cursor);
+      renderWindow.setCursor(cursor);
     },
     setPaintBrush: brush => widgets.setPaintBrush(brush),
     setEraseBrush: brush => widgets.setEraseBrush(brush),
@@ -67,7 +67,7 @@ export function SliceView(onEdit, onSliceChange) {
     canUndo: () => mask.getPainter().canUndo(),
     canRedo: () => mask.getPainter().canRedo(),
     cleanUp: () => {
-      console.log("Clean up slice view");
+      console.log('Clean up slice view');
 
       // Clean up anything we instantiated
       renderWindow.cleanUp();

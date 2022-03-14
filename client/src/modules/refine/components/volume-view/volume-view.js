@@ -1,4 +1,10 @@
 import { RenderWindow, Surface, BoundingBox } from 'modules/view/components';
+import { getUniqueLabels } from 'utils/data';
+import { 
+  regionSurfaceColor, 
+  backgroundSurfaceColor1, 
+  backgroundSurfaceColor2 
+} from 'utils/colors';
 
 const resetCamera = (renderer, surface) => {
   const [x1, x2, y1, y2, z1, z2] = surface.getPoints().getBounds();
@@ -41,12 +47,18 @@ const centerCamera = (renderer, surface) => {
 export function VolumeView() {
   const renderWindow = RenderWindow();
 
-  const region = Surface('region');  
+  const region = Surface();  
+  region.setOpaqueColor(regionSurfaceColor);
+  region.setSliceHighlight(true);
+
   const background = Surface();
+  background.setTranslucentColors(backgroundSurfaceColor1, backgroundSurfaceColor2);
 
   const boundingBox = BoundingBox();
 
   const render = renderWindow.render;
+
+  let labels = [];
 
   return {
     initialize: rootNode => {
@@ -56,6 +68,8 @@ export function VolumeView() {
     },
     setData: (maskData, onRendered) => {
       if (maskData) {
+        labels = getUniqueLabels(maskData);
+
         region.setInputData(maskData);
         background.setInputData(maskData);
         boundingBox.setData(maskData);
@@ -64,11 +78,6 @@ export function VolumeView() {
         renderer.addActor(region.getActor());
         renderer.addActor(background.getActor());
         renderer.addActor(boundingBox.getActor());
-
-        resetCamera(renderer, region.getOutput());
-        render();
-
-        onRendered();
       } 
       else {
         const renderer = renderWindow.getRenderer();
@@ -77,8 +86,10 @@ export function VolumeView() {
       }
     },
     setLabel: label => {
-      region.setLabel(label);
-      background.setLabel(label);
+      region.setLabels([label]);
+      background.setLabels(labels.filter(value => value !== label));
+
+      resetCamera(renderWindow.getRenderer(), region.getOutput());
     },
     setSlice: slice => {
       region.setSlice(slice);
@@ -89,8 +100,9 @@ export function VolumeView() {
     centerCamera: () => {
       centerCamera(renderWindow.getRenderer(), region.getOutput());
     },
-    render: () => {
+    render: onRendered => {
       render();
+      if (onRendered) onRendered();
     },
     cleanUp: () => {
       console.log('Clean up volume view');

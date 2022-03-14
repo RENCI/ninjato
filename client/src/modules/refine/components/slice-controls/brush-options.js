@@ -1,6 +1,6 @@
 import { useContext } from 'react';
-import { Popup, Icon, Button } from 'semantic-ui-react';
-import { RefineContext, SET_BRUSH } from 'contexts';
+import { Icon, Button } from 'semantic-ui-react';
+import { RefineContext, REFINE_SET_BRUSH } from 'contexts';
 
 const { Group } = Button;
 
@@ -18,7 +18,7 @@ export const BrushOptions = ({ which }) => {
   const [{ brushes, paintBrush, eraseBrush }, dispatch] = useContext(RefineContext);
 
   const onClick = (brush, which) => {
-    dispatch({ type: SET_BRUSH, brush: brush, which: which });
+    dispatch({ type: REFINE_SET_BRUSH, brush: brush, which: which });
   };
 
   const brush = (brush, i) => (
@@ -41,27 +41,12 @@ export const BrushOptions = ({ which }) => {
     </Button> 
   );
 
-  return (     
-    <Popup
-      trigger={ 
-        <Button           
-          icon 
-          basic 
-          compact
-        >
-          <Icon name='caret down' fitted />
-        </Button>
-      }
-      on='click'
-      position='bottom left'
-      content={ 
-        <>
-          { which === 'erase' ? 'Eraser' : 'Paint brush' }
-          <Group>
-            { brushes.map((d, i) => brush(d, i)) }
-          </Group>
-        </>
-      }
-    />
+  return (        
+    <>
+      { which === 'erase' ? 'Eraser' : 'Paint brush' }
+      <Group>
+        { brushes.map((d, i) => brush(d, i)) }
+      </Group>
+    </>
   );
 };

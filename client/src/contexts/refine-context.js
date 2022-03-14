@@ -1,11 +1,10 @@
 import { createContext, useReducer } from "react";
+import { getCursor } from 'utils/cursor';
 
-export const SET_EDIT_MODE = 'controls/SET_EDIT_MODE';
-export const SET_BRUSH = 'controls/SET_BRUSH';
-export const SET_SHOW_BACKGROUND = 'controls/SET_SHOW_BACKGROUND';
-export const RESET = 'controls/RESET';
-
-const getCursor = (file, x, y) => `url(/cursors/${ file }) ${ x } ${ y }, auto`;
+export const REFINE_SET_EDIT_MODE = 'refine/SET_EDIT_MODE';
+export const REFINE_SET_BRUSH = 'refine/REFINE_SET_BRUSH';
+export const REFINE_SET_SHOW_BACKGROUND = 'refine/SET_SHOW_BACKGROUND';
+export const REFINE_RESET = 'refine/RESET';
 
 const editModes = [
   { value: 'paint', icon: 'paint brush', cursor: getCursor('paint-brush.png', 11, 23) },
@@ -54,29 +53,29 @@ const initialState = {
 
 const reducer = (state, action) => {
   switch (action.type) {
-    case SET_EDIT_MODE:
+    case REFINE_SET_EDIT_MODE:
       return {
         ...state,
         editMode: action.mode
       };
 
-    case SET_BRUSH:
+    case REFINE_SET_BRUSH:
       return {
         ...state,
         [`${ action.which }Brush`]: action.brush
       };
 
-    case SET_SHOW_BACKGROUND:
+    case REFINE_SET_SHOW_BACKGROUND:
       return {
         ...state,
         showBackground: action.show
       }
 
-    case RESET:
+    case REFINE_RESET:
       return {
-        ...state,
-        editMode: initialState.editMode,
-        showBackground: initialState.showBackground
+        ...initialState,
+        paintBrush: state.paintBrush,
+        eraseBrush: state.eraseBrush
       };
 
     default: 
