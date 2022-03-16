@@ -3,7 +3,8 @@ from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.constants import AccessType
 from .utils import get_item_assignment, save_user_annotation_as_item, get_subvolume_item_ids, \
-    get_subvolume_item_info, save_region_flag, save_region_flag_review, save_user_split_result
+    get_subvolume_item_info, get_subvolume_next_available_region, get_subvolume_claimed_regions, \
+    save_region_flag, save_region_flag_review, save_user_split_result
 
 
 @access.public
@@ -91,6 +92,30 @@ def get_subvolume_info(item):
 
 @access.public
 @autoDescribeRoute(
+    Description('Get the next available region id for assignment.')
+    .modelParam('id', 'The item ID', model='item', level=AccessType.READ)
+    .errorResponse()
+    .errorResponse('Get action was denied on the user.', 403)
+    .errorResponse('Failed to get subvolume next available region', 500)
+)
+def get_next_avaiable_region(item):
+    return get_subvolume_next_available_region(item)
+
+
+@access.public
+@autoDescribeRoute(
+    Description('Get info about which users claimed which regions.')
+    .modelParam('id', 'The item ID', model='item', level=AccessType.READ)
+    .errorResponse()
+    .errorResponse('Get action was denied on the user.', 403)
+    .errorResponse('Failed to get region claim info', 500)
+)
+def get_claimed_regions(item):
+    return get_subvolume_claimed_regions(item)
+
+
+@access.public
+@autoDescribeRoute(
     Description('Save a flag for a region from a given user.')
     .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
     .param('item_id', 'The item ID to save flag for', required=True)
@@ -150,3 +175,6 @@ class NinjatoPlugin(GirderPlugin):
         info['apiRoot'].user.route('POST', (':id', 'split'), save_user_split)
         info['apiRoot'].system.route('GET', ('subvolume_ids',), get_subvolume_ids)
         info['apiRoot'].item.route('GET', (':id', 'subvolume_info'), get_subvolume_info)
+        info['apiRoot'].item.route('GET', (':id', 'next_available_region'),
+                                   get_next_avaiable_region)
+        info['apiRoot'].item.route('GET', (':id', 'claimed_regions'), get_claimed_regions)

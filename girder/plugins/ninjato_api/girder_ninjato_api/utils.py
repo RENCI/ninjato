@@ -213,7 +213,7 @@ def merge_regions(region_list):
     return first_region_item
 
 
-def create_region(uid, region_key, folder_id, whole_item, extent_dict):
+def create_region(region_key, whole_item, extent_dict):
     min_x = extent_dict['x_min']
     max_x = extent_dict['x_max']
     min_y = extent_dict['y_min']
@@ -227,17 +227,17 @@ def create_region(uid, region_key, folder_id, whole_item, extent_dict):
     z_range = coords["z_max"] - coords["z_min"]
     min_x, max_x, min_y, max_y, min_z, max_z = get_buffered_extent(
         min_x, max_x, min_y, max_y, min_z, max_z, x_range, y_range, z_range)
+    folder_id = whole_item['folderId']
     region_item = Item().createItem(
         f'region{region_key}',
         creator=admin_user,
-        folder=Folder().findOne({'_id': ObjectId(folder_id)}),
+        folder=Folder().findOne({'_id': folder_id}),
         description=f'region{region_key} of the partition')
 
     item_files = File().find({'itemId': whole_item['_id']})
     for item_file in item_files:
-        tif, out_path, output_file_name = get_tif_file_content_and_region_output_path(
+        tif, out_path, output_file_name, output_tif = get_tif_file_content_and_region_output_path(
             item_file, region_item['_id'], region_key)
-        output_tif = TIFF.open(out_path, mode="w")
         counter = 0
         for image in tif.iter_images():
             if counter >= min_z and counter <= max_z:
@@ -258,7 +258,6 @@ def create_region(uid, region_key, folder_id, whole_item, extent_dict):
             "z_max": max_z,
             "z_min": min_z
         },
-        'user': uid,
         'region_label': region_key
     }
     Item().setMetadata(region_item, add_meta)
@@ -391,19 +390,20 @@ def get_item_assignment(user, subvolume_id, task_type):
             'user_id': user['_id'],
             'item_id': ''
             }
-
-    # when a region is selected, the user id is added to whole item meta specific region values
-    # with a user key, and the user id is added to whole item meta as a key with a value of item id
-    # for easy check whether a region is checked out by the user
-    # check whether a region has already been assigned to the user
-    whole_item = Item().findOne({'folderId': ObjectId(subvolume_id),
-                                 'name': 'whole'})
+    if not subvolume_id:
+        subvolume_ids = get_subvolume_item_ids()
+        subvolume_id = subvolume_ids['ids'][0]
+    whole_item = Item().findOne({'_id': ObjectId(subvolume_id)})
     if 'done' in whole_item['meta'] and whole_item['meta']['done'] == 'true':
         # if the subvolume is done, return empty assignment
         return {
             'user_id': user['_id'],
             'item_id': ''
         }
+
+    # when a region is selected, the user id is added to whole item meta as a key with a value of
+    # item id for easy check whether a region is checked out by the user
+    # check whether a region has already been assigned to the user
     if str(user['_id']) in whole_item['meta']:
         # there is already a region checked out by this user, return it
         it_id = whole_item['meta'][str(user['_id'])]
@@ -415,13 +415,22 @@ def get_item_assignment(user, subvolume_id, task_type):
             'region_label': it['meta']['region_label']
         }
 
+    assigned_region_id = None
+    next_region_id = None
+    if 'next_available_region' in whole_item['meta'] and \
+        whole_item['meta']['next_available_region']:
+        assigned_region_id = whole_item['meta']['next_available_region']
+        # clear next_available_region key
+        add_meta = {'next_available_region': ''}
+        Item().setMetadata(whole_item, add_meta)
+
     # no region has been assigned to the user yet, look into the whole partition
     # item to find a region for assignment
-
-    # look into regions of this whole item for assignment
     for key, val in whole_item['meta']['regions'].items():
         if 'done' in val and val['done'] == 'true':
+            # if a region is done, continue to check another region
             continue
+        # if a region is rejected by the user, continue to check another region
         if 'rejected_by' in val:
             for reject_dict in val['rejected_by']:
                 if reject_dict['user'] == str(user['login']):
@@ -429,41 +438,55 @@ def get_item_assignment(user, subvolume_id, task_type):
 
         if 'user' not in val:
             # this region can be assigned to a user
-            val['user'] = user['_id']
-            val['assigned_to'] = f'{user["login"]} at ' \
-                                 f'{datetime.now().strftime("%m/%d/%Y %H:%M")}'
+            if next_region_id:
+                # find both assigned region and next region
+                break
             if 'rejected_by' in val:
                 # no need to create an item for this selected region since it already
                 # exists
                 region_item = Item().findOne({'folderId': ObjectId(subvolume_id),
                                               'name': f'region{key}'})
-                add_meta = {'user': user['_id']}
-                Item().setMetadata(region_item, add_meta)
             else:
-                # create an item for this selected region
-                region_item = create_region(user['_id'], key, subvolume_id, whole_item,
-                                            {'x_min': val['x_min'],
-                                             'x_max': val['x_max'],
-                                             'y_min': val['y_min'],
-                                             'y_max': val['y_max'],
-                                             'z_min': val['z_min'],
-                                             'z_max': val['z_max']
-                                             })
-                val['item_id'] = region_item['_id']
+                region_item = create_region(key, whole_item,
+                                            {
+                                                'x_min': val['x_min'],
+                                                'x_max': val['x_max'],
+                                                'y_min': val['y_min'],
+                                                'y_max': val['y_max'],
+                                                'z_min': val['z_min'],
+                                                'z_max': val['z_max']
+                                            })
+            if not assigned_region_id:
+                assigned_region_id = region_item['_id']
+            else:
+                next_region_id = region_item['_id']
+                add_meta = {'next_available_region': str(next_region_id)}
+                Item().setMetadata(whole_item, add_meta)
 
-            add_meta = {str(user['_id']): str(region_item['_id'])}
-            Item().setMetadata(whole_item, add_meta)
-            return {
-                'user_id': user['_id'],
-                'item_id': region_item['_id'],
-                'region_label': key
-            }
+    if assigned_region_id:
+        # assign assigned_region_id to this user
+        region_item = Item().findOne({'_id': ObjectId(assigned_region_id)})
+        val = whole_item['meta']['regions'][region_item['meta']['region_label']]
+        val['user'] = user['_id']
+        val['assigned_to'] = f'{user["login"]} at ' \
+                             f'{datetime.now().strftime("%m/%d/%Y %H:%M")}'
+        val['item_id'] = region_item['_id']
+        add_meta = {str(user['_id']): str(region_item['_id'])}
+        Item().setMetadata(whole_item, add_meta)
+        add_meta = {'user': user['_id']}
+        Item().setMetadata(region_item, add_meta)
 
-    # there is no item left to assign to this user
-    return {
-        'user_id': user['_id'],
-        'item_id': ''
-    }
+        return {
+            'user_id': user['_id'],
+            'item_id': assigned_region_id,
+            'region_label': region_item['meta']['region_label']
+        }
+    else:
+        # there is no item left to assign to this user
+        return {
+            'user_id': user['_id'],
+            'item_id': ''
+        }
 
 
 def save_user_annotation_as_item(user, item_id, done, reject, comment, content_data):
@@ -575,6 +598,14 @@ def get_subvolume_item_info(item):
     item_id = item['_id']
     region_dict = item['meta']['regions']
     total_regions = len(region_dict)
+    if 'done' in item['meta'] and item['meta']['done'] == 'true':
+        return {
+            'item_id': item_id,
+            'item_description': item['description'],
+            'total_regions': total_regions,
+            'total_regions_done': total_regions,
+            'total_regions_at_work': 0
+        }
     total_regions_done = 0
     total_regions_at_work = 0
     regions_rejected = []
@@ -788,3 +819,29 @@ def save_user_split_result(user, item_id, done, reject, comment, region_ids, con
         'annotation_file_id': file['_id'],
         'status': 'success'
     }
+
+
+def get_subvolume_next_available_region(item):
+    if 'next_available_region' in item['meta']:
+        return {
+          'region_id': item['meta']['next_available_region']
+        }
+    else:
+        return {'region_id': ''}
+
+
+def get_subvolume_claimed_regions(item):
+    claimed_regions = []
+    for key, val in item['meta'].items():
+        if key == 'coordinates' or key == 'regions':
+            continue
+        claim_user = User().findOne({'_id': ObjectId(key)})
+        claim_reg = Item().findOne({'_id': ObjectId(val)})
+        if claim_user and claim_reg:
+            claimed_regions.append({
+                'region_id': val,
+                'region_label': claim_reg['meta']['region_label'],
+                'user_id': key,
+                'username': claim_user['login']
+            })
+    return claimed_regions
