@@ -3,18 +3,19 @@ from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.constants import AccessType
 from .utils import get_item_assignment, save_user_annotation_as_item, get_subvolume_item_ids, \
-    get_subvolume_item_info
+    get_subvolume_item_info, get_subvolume_next_available_region, get_subvolume_claimed_regions
 
 
 @access.public
 @autoDescribeRoute(
     Description('Get region assignment info for a given user.')
     .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
+    .param('subvolume_id', 'subvolume id from which to get assignment', default='', required=False)
     .errorResponse()
     .errorResponse('Read access was denied on the user.', 403)
 )
-def get_user_assign_info(user):
-    return get_item_assignment(user)
+def get_user_assign_info(user, subvolume_id):
+    return get_item_assignment(user, subvolume_id)
 
 
 @access.public
@@ -63,6 +64,30 @@ def get_subvolume_info(item):
     return get_subvolume_item_info(item)
 
 
+@access.public
+@autoDescribeRoute(
+    Description('Get the next available region id for assignment.')
+    .modelParam('id', 'The item ID', model='item', level=AccessType.READ)
+    .errorResponse()
+    .errorResponse('Get action was denied on the user.', 403)
+    .errorResponse('Failed to get subvolume next available region', 500)
+)
+def get_next_avaiable_region(item):
+    return get_subvolume_next_available_region(item)
+
+
+@access.public
+@autoDescribeRoute(
+    Description('Get info about which users claimed which regions.')
+    .modelParam('id', 'The item ID', model='item', level=AccessType.READ)
+    .errorResponse()
+    .errorResponse('Get action was denied on the user.', 403)
+    .errorResponse('Failed to get region claim info', 500)
+)
+def get_claimed_regions(item):
+    return get_subvolume_claimed_regions(item)
+
+
 class NinjatoPlugin(GirderPlugin):
     DISPLAY_NAME = 'Girder Ninjato API'
     CLIENT_SOURCE_PATH = 'web_client'
@@ -75,3 +100,6 @@ class NinjatoPlugin(GirderPlugin):
         info['apiRoot'].user.route('POST', (':id', 'annotation'), save_user_annotation)
         info['apiRoot'].system.route('GET', ('subvolume_ids',), get_subvolume_ids)
         info['apiRoot'].item.route('GET', (':id', 'subvolume_info'), get_subvolume_info)
+        info['apiRoot'].item.route('GET', (':id', 'next_available_region'),
+                                   get_next_avaiable_region)
+        info['apiRoot'].item.route('GET', (':id', 'claimed_regions'), get_claimed_regions)
