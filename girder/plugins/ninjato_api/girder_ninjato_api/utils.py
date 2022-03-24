@@ -1,7 +1,5 @@
 import os
-import shutil
 from datetime import datetime
-from enum import Enum
 from libtiff import TIFF
 import numpy as np
 from girder.models.item import Item
@@ -15,28 +13,6 @@ from girder.exceptions import RestException
 from girder.utility import assetstore_utilities
 from girder.utility import path as path_util
 from .constants import COLLECTION_NAME, BUFFER_FACTOR, DATA_PATH
-
-
-class TaskType(Enum):
-    FLAG = 'flag'
-    FLAG_REVIEW = 'flag_review'
-    SPLIT = 'split'
-    SPLIT_REVIEW = 'split_review'
-    REFINE = 'refine'
-    REFINE_REVIEW = 'refine_review'
-
-    def next_task(self, task_value):
-        if task_value == self.FLAG.value:
-            return self.FLAG_REVIEW
-        if task_value == self.FLAG_REVIEW.value:
-            return self.SPLIT
-        if task_value == self.SPLIT.value:
-            return self.SPLIT_REVIEW
-        if task_value == self.SPLIT_REVIEW.value:
-            return self.REFINE
-        if task_value == self.REFINE.value:
-            return self.REFINE_REVIEW
-        return None
 
 
 def save_file(as_id, item, path, user, file_name):
@@ -140,79 +116,6 @@ def get_buffered_extent(minx, maxx, miny, maxy, minz, maxz, xrange, yrange, zran
     return minx, maxx, miny, maxy, minz, maxz
 
 
-def split_data_by_ids_and_update_with_new_ids(content_path, old_ids, new_ids):
-    # split content based on region_ids
-    tif = TIFF.open(content_path, mode="r")
-
-    output_tif = TIFF.open(out_path, mode="w")
-    counter = 0
-    for image in tif.iter_images():
-        if counter >= min_z and counter <= max_z:
-            img = np.copy(image[min_y:max_y + 1, min_x:max_x + 1])
-            output_tif.write_image(img)
-        if counter > max_z:
-            break
-        counter += 1
-    assetstore_id = item_file['assetstoreId']
-    save_file(assetstore_id, region_item, out_path, admin_user, output_file_name)
-
-
-def merge_regions(region_list):
-    first_region_item = Item().findOne({'_id': ObjectId(region_list[0])})
-    item_list = [Item().findOne({'_id': ObjectId(rid)}) for rid in region_list]
-    x_max = max([item['coordinates']["x_max"] for item in item_list])
-    x_min = min([item['coordinates']["x_min"] for item in item_list])
-    y_max = max([item['coordinates']["y_max"] for item in item_list])
-    y_min = min([item['coordinates']["y_min"] for item in item_list])
-    z_max = max([item['coordinates']["z_max"] for item in item_list])
-    z_min = min([item['coordinates']["z_min"] for item in item_list])
-    whole_item = Item().findOne({'folderId': item_list[0]['folderId'],
-                                 'name': 'whole'})
-    # delete file from the first region in region_list and use it for the merged region and
-    # delete all the other regions in region_list to be merged
-    for i, rid in enumerate(region_list):
-        if i == 0:
-            files = File().find({'itemId': region_list[0]})
-            for file in files:
-                File().remove(file)
-        else:
-            Item().remove(item_list[i])
-
-    item_files = File().find({'itemId': whole_item['_id']})
-    for item_file in item_files:
-        tif, out_path, output_file_name, output_tif = get_tif_file_content_and_region_output_path(
-            item_file, item_list[0]['_id'], region_list[0])
-        counter = 0
-        for image in tif.iter_images():
-            if counter >= z_min and counter <= z_max:
-                img = np.copy(image[y_min:y_max + 1, x_min:x_max + 1])
-                output_tif.write_image(img)
-            if counter > z_max:
-                break
-            counter += 1
-        save_file(item_file['assetstoreId'], first_region_item, out_path, User().getAdmins()[0],
-                  output_file_name)
-
-    first_region_item['meta']['coordinates'] = {
-        "x_max": x_max,
-        "x_min": x_min,
-        "y_max": y_max,
-        "y_min": y_min,
-        "z_max": z_max,
-        "z_min": z_min
-    }
-    Item().save(first_region_item)
-
-    # update whole item coordinates metadata
-    for i, rid in enumerate(region_list):
-        if i == 0:
-            # merged region to be kept
-            whole_item['meta']['regions'][str(rid)]['merged_regions'] = region_list[1:]
-        else:
-            del whole_item['meta']['regions'][str(rid)]
-    return first_region_item
-
-
 def create_region(region_key, whole_item, extent_dict):
     min_x = extent_dict['x_min']
     max_x = extent_dict['x_max']
@@ -264,87 +167,16 @@ def create_region(region_key, whole_item, extent_dict):
     return region_item
 
 
-def split_region(item, region_ids, content_path, whole_item):
-    max_id = get_max_region_id(whole_item)
-    # split content based on region_ids
-    tif = TIFF.open(content_path, mode="r")
-    new_region_ids = [int(max_id) + i for i, rid in enumerate(region_ids)]
-    # replace the last region with the current item, so the split regions will start from
-    # max_id, max_id+1, .., max_id+len(region_ids)-2, current_item_id with len(region_ids)-1 new
-    # regions added
-    new_region_ids[-1] = item['meta']['region_label']
-    set_max_region_id(whole_item, new_region_ids[-2])
-    images = []
-    for image in tif.iter_images():
-        images.append(image)
-    # imarray should be in order of ZYX
-    imarray = np.array(images)
-    region_coords = []
-    item_coords = {
-        'z_min': int(item['meta']['coordinates']['z_min']),
-        'z_max': int(item['meta']['coordinates']['z_min']),
-        'y_min': int(item['meta']['coordinates']['y_min']),
-        'y_max': int(item['meta']['coordinates']['y_min']),
-        'x_min': int(item['meta']['coordinates']['x_min']),
-        'x_max': int(item['meta']['coordinates']['x_min'])
-    }
-    for i, lev in enumerate(region_ids):
-        level_indices = np.where(imarray == lev)
-        region_coords.append({'z_min': item_coords['z_min'] + min(level_indices[0]),
-                              'z_max': item_coords['z_max'] + max(level_indices[0]),
-                              'y_min': item_coords['y_min'] + min(level_indices[1]),
-                              'y_max': item_coords['y_min'] + max(level_indices[1]),
-                              'x_min': item_coords['x_min'] + min(level_indices[2]),
-                              'x_max': item_coords['x_min'] + max(level_indices[2])
-                              })
-        # replace region_id with new_region_ids in tif image
-        imarray[imarray == lev] = new_region_ids[i]
-    # replace the region in the whole item with updated split regions
-    item_files = File().find({'itemId': whole_item['_id']})
-
-    for item_file in item_files:
-        if '_masks' not in item_file['name']:
-            continue
-        whole_tif, whole_path = get_tif_file_content_and_path(item_file)
-        whole_out_tif = TIFF.open(f'output_{whole_path}', mode = 'w')
-        counter = 0
-        # imarray should be in order of ZYX
-        for image in whole_tif.iter_images():
-            if counter >= item_coords['z_min'] and counter <= item_coords['z_max']:
-                image[item_coords['y_min']: item_coords['y_max'],
-                      item_coords['x_min']: item_coords['x_max']] = imarray[counter::]
-            whole_out_tif.write_image(image)
-            counter += 1
-        break
-
-    # update mask file by copying new tiff file to the old one, then delete the new tiff file
-    shutil.move(f'output_{whole_path}', whole_path)
-
-    # add/update meta data for split regions
-    for i, rid in enumerate(new_region_ids):
-        whole_item['meta']['regions'][rid] = region_coords[i]
-    Item().save(whole_item)
-    return new_region_ids
-
-
-def check_subvolume_done(whole_item, task_type):
+def check_subvolume_done(whole_item, task='annotation'):
     vol_done = True
     for key, val in whole_item['meta']['regions'].items():
-        if 'completed_by' not in val:
+        if f'{task}_completed_by' not in val:
             vol_done = False
             break
-        else:
-            for li in val['completed_by']:
-                if task_type in li:
-                    continue
-            vol_done = False
-            break
+
     if vol_done:
-        add_meta = {f'{task_type}_done': 'true'}
+        add_meta = {f'{task}_done': 'true'}
         Item().setMetadata(whole_item, add_meta)
-        next_task = TaskType.next_task(task_type)
-        if next_task:
-            whole_item['meta']['progress'].append(next_task.value)
         Item().save(whole_item)
     return vol_done
 
@@ -358,7 +190,7 @@ def add_meta_to_region(item, label, key, val):
     return
 
 
-def reject_assignment(user, item, whole_item, task_type, has_files, comment):
+def reject_assignment(user, item, whole_item, has_files, comment):
     # reject the annotation
     Item().deleteMetadata(item, ['user'])
     Item().deleteMetadata(whole_item, [str(user['_id'])])
@@ -375,26 +207,26 @@ def reject_assignment(user, item, whole_item, task_type, has_files, comment):
 
     reject_info = {
         'user': uname,
-        'task_type': task_type,
         'timestamp': datetime.now().strftime("%m/%d/%Y %H:%M")
     }
     if comment:
         reject_info['comment'] = comment
-    add_meta_to_region(whole_item, region_label, 'rejected_by', reject_info)
+    add_meta_to_region(whole_item, region_label, 'annotation_rejected_by', reject_info)
     return
 
 
-def get_item_assignment(user, subvolume_id, task_type):
+def get_item_assignment(user, subvolume_id):
     if user['login'] == 'admin':
         return {
             'user_id': user['_id'],
             'item_id': ''
             }
+    done_key = 'annotation_done'
     if not subvolume_id:
         subvolume_ids = get_subvolume_item_ids()
         subvolume_id = subvolume_ids['ids'][0]
     whole_item = Item().findOne({'_id': ObjectId(subvolume_id)})
-    if 'done' in whole_item['meta'] and whole_item['meta']['done'] == 'true':
+    if done_key in whole_item['meta'] and whole_item['meta'][done_key] == 'true':
         # if the subvolume is done, return empty assignment
         return {
             'user_id': user['_id'],
@@ -427,7 +259,7 @@ def get_item_assignment(user, subvolume_id, task_type):
     # no region has been assigned to the user yet, look into the whole partition
     # item to find a region for assignment
     for key, val in whole_item['meta']['regions'].items():
-        if 'done' in val and val['done'] == 'true':
+        if done_key in val and val[done_key] == 'true':
             # if a region is done, continue to check another region
             continue
         # if a region is rejected by the user, continue to check another region
@@ -439,7 +271,7 @@ def get_item_assignment(user, subvolume_id, task_type):
         if 'user' not in val:
             # this region can be assigned to a user
             if next_region_id:
-                # find both assigned region and next region
+                # already find both assigned region and next region
                 break
             if 'rejected_by' in val:
                 # no need to create an item for this selected region since it already
@@ -489,14 +321,15 @@ def get_item_assignment(user, subvolume_id, task_type):
         }
 
 
-def save_user_annotation_as_item(user, item_id, done, reject, comment, content_data):
+def save_user_annotation_as_item(user, item_id, done, reject, comment, action_list, content_data):
     """
-    Save user annotation to item with item_id for refine task
+    Save user annotation to item item_id
     :param user: user object who saves annotation
     :param item_id: item the annotation is saved to
     :param done: whether annotation is done or only an intermediate save
     :param reject: whether to reject the annotation rather than save it.
     :param comment: annotation comment from the user
+    :param action_list: list of regions indicating annotation actions
     :param content_data: annotation content blob to be saved on server
     :return: success or failure
     """
@@ -505,12 +338,12 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, content_d
     item, whole_item = get_items(item_id)
     if reject:
         # reject the annotation
-        reject_assignment(user, item, whole_item, TaskType.REFINE.value, True, comment)
+        reject_assignment(user, item, whole_item, True, comment)
         return {
             "status": "success"
         }
 
-    done_key = f'{TaskType.REFINE.value}_done'
+    done_key = f'annotation_done'
     if done:
         add_meta = {done_key: 'true'}
         Item().setMetadata(item, add_meta)
@@ -519,7 +352,7 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, content_d
         Item().setMetadata(item, add_meta)
 
     if comment:
-        add_meta = {f'{TaskType.REFINE.value}_comment': comment}
+        add_meta = {f'annotation_comment': comment}
         Item().setMetadata(item, add_meta)
 
     files = File().find({'itemId': ObjectId(item_id)})
@@ -553,11 +386,10 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, content_d
         region_key = item['meta']['region_label']
         info = {
             'user': uname,
-            'task_type': TaskType.REFINE.value,
             'timestamp': datetime.now().strftime("%m/%d/%Y %H:%M")
         }
-        add_meta_to_region(whole_item, region_key, 'completed_by', info)
-        check_subvolume_done(whole_item, TaskType.REFINE.value)
+        add_meta_to_region(whole_item, region_key, 'annotation_completed_by', info)
+        check_subvolume_done(whole_item)
 
     return {
         'annotation_file_id': file['_id'],
@@ -603,221 +435,58 @@ def get_subvolume_item_info(item):
             'item_id': item_id,
             'item_description': item['description'],
             'total_regions': total_regions,
-            'total_regions_done': total_regions,
-            'total_regions_at_work': 0
+            'total_annotation_completed_regions': total_regions,
+            'total_annotation_active_regions': 0,
+            'total_review_completed_regions': total_regions,
+            'total_review_active_regions': 0,
+            'total_annotation_available_regions': 0,
+            'total_review_available_regions': 0
         }
     total_regions_done = 0
     total_regions_at_work = 0
     regions_rejected = []
-
-    if 'progress' not in item['meta']:
-        # starting with flag task
-        add_meta = {'progress': [TaskType.FLAG.value]}
-        Item().setMetadata(item, add_meta)
-
+    done_key = 'annotation_completed_by'
+    review_done_key = 'review_completed_by'
+    total_reviewed_regions_done = 0
+    total_reviewed_regions_at_work = 0
     for key, val in region_dict.items():
-        if 'rejected_by' in val:
+        if 'annotation_rejected_by' in val:
             region_item = Item().findOne({'folderId': item['folderId'],
                                           'name': f'region{key}'})
             regions_rejected.append({
                 'info': val['rejected_by'],
                 'id': region_item['_id']
             })
-        if 'user' in val:
-            if 'done' in val and val['done'] == 'true':
-                total_regions_done += 1
-            else:
-                total_regions_at_work += 1
+
+        if done_key in val and val[done_key] == 'true':
+            total_regions_done += 1
+        elif 'user' in val:
+            total_regions_at_work += 1
+
+        if review_done_key in val and val[review_done_key] == 'true':
+            total_reviewed_regions_done += 1
+        elif done_key in val and val[done_key] == 'true' and 'user' in val:
+            # annotation is done but review is not done and a user is reviewing currently
+            total_reviewed_regions_at_work += 1
+
     return {
         'id': item_id,
         'name': Folder().findOne({'_id': item['folderId']})['name'],
         'description': item['description'],
         'location': item['meta']['coordinates'],
         'assignment': {
-            'task_type': item['meta']['progress'][-1],
             'rejected_regions': regions_rejected,
             'total_regions': total_regions,
-            'total_completed_regions': total_regions_done,
-            'total_active_regions': total_regions_at_work,
-            'rejected_regions': regions_rejected,
-            'total_available_regions': total_regions - total_regions_done - total_regions_at_work
+            'total_annotation_completed_regions': total_regions_done,
+            'total_annotation_active_regions': total_regions_at_work,
+            'annotation_rejected_regions': regions_rejected,
+            'total_review_completed_regions': total_reviewed_regions_done,
+            'total_review_active_regions': total_reviewed_regions_at_work,
+            'total_annotation_available_regions': total_regions - total_regions_done -
+                                                  total_regions_at_work,
+            'total_review_available_regions': total_regions - total_reviewed_regions_done -
+                                              total_reviewed_regions_at_work
         }
-    }
-
-
-def save_region_flag(user, item_id, flagged, comment, region_ids, reject):
-    uid = user['_id']
-    uname = user['login']
-    item, whole_item = get_items(item_id)
-    if reject:
-        reject_assignment(user, item, whole_item, TaskType.FLAG.value, False, comment)
-        return {
-            "status": "success"
-        }
-
-    add_meta = {f'{TaskType.FLAG.value}_done': 'true'}
-    Item().setMetadata(item, add_meta)
-
-    if comment:
-        add_meta = {f'{TaskType.FLAG.value}_comment': comment}
-        Item().setMetadata(item, add_meta)
-    region_key = item['meta']['region_label']
-    whole_item['meta']['regions'][region_key]['flagged'] = flagged
-    whole_item['meta']['regions'][region_key]['flagged_regions'] = region_ids
-    del whole_item['meta'][str(uid)]
-    whole_item = Item().save(whole_item)
-    info = {
-        'user': uname,
-        'task_type': TaskType.FLAG.value,
-        'timestamp': datetime.now().strftime("%m/%d/%Y %H:%M")
-    }
-    add_meta_to_region(whole_item, region_key, 'completed_by', info)
-    # group region ids for review
-    if 'flag_review' not in whole_item['meta']:
-        add_meta = {'flag_review': [{
-            'flagged_regions': [item_id],
-            'linked_regions': region_ids
-        }]}
-        Item().setMetadata(whole_item, add_meta)
-    else:
-        intersected = False
-        for fr in whole_item['flag_review']:
-            if set.intersection(set(fr['linked_regions']), set(region_ids)):
-                fr['linked_regions'] = list(set(fr['linked_regions'] + region_ids))
-                fr['flagged_regions'].append(item_id)
-                intersected = True
-                break
-        if not intersected:
-            whole_item['flag_review'].append({
-                'flagged_regions': [item_id],
-                'linked_regions': region_ids
-            })
-        Item().save(whole_item)
-    check_subvolume_done(whole_item, TaskType.FLAG.value)
-
-    return {
-        'status': 'success'
-    }
-
-
-def save_region_flag_review(user, flagged_region_id_list, reject, result, comment):
-    uid = user['_id']
-    uname = user['login']
-    if reject:
-        whole_item = None
-        for rid in flagged_region_id_list:
-            if not whole_item:
-                item, whole_item = get_items(rid)
-            else:
-                item = Item().findOne({'_id': ObjectId(rid)})
-            reject_assignment(user, item, whole_item, TaskType.FLAG_REVIEW.value, False, comment)
-        return {
-            "status": "success"
-        }
-
-    for result_item in result:
-        if len(result_item['regions']) == 1:
-            item = Item().findOne({'_id': ObjectId(result_item['regions'][0])})
-        else:
-            # merge multiple regions
-            item = merge_regions(result_item['regions'])
-
-        add_meta = {f'{TaskType.FLAG_REVIEW.value}_done': 'true'}
-        if comment:
-            add_meta[f'{TaskType.FLAG_REVIEW.value}_comment'] = comment
-        if result_item['split']:
-            # split the merged region
-            add_meta['task'] = TaskType.SPLIT.value
-        else:
-            # refine the merged region
-            add_meta['task'] = TaskType.REFINE.value
-        Item().setMetadata(item, add_meta)
-
-        region_key = item['meta']['region_label']
-        del whole_item['meta'][str(uid)]
-        whole_item = Item().save(whole_item)
-        info = {
-            'user': uname,
-            'task_type': TaskType.FLAG_REVIEW.value,
-            'timestamp': datetime.now().strftime("%m/%d/%Y %H:%M")
-        }
-        add_meta_to_region(whole_item, region_key, 'completed_by', info)
-        check_subvolume_done(whole_item, TaskType.FLAG_REVIEW.value)
-
-    return {
-        'status': 'success'
-    }
-
-
-def save_user_split_result(user, item_id, done, reject, comment, region_ids, content_data):
-    uid = user['_id']
-    uname = user['login']
-    item, whole_item = get_items(item_id)
-    if reject:
-        # reject the annotation
-        reject_assignment(user, item, whole_item, TaskType.SPLIT.value, True, comment)
-        if item['meta']['split_region_ids']:
-            del item['meta']['split_region_ids']
-            Item().save(item)
-        return {
-            "status": "success"
-        }
-
-    add_meta = {'split_region_ids': region_ids}
-    done_key = f'{TaskType.SPLIT.value}_done'
-    if done:
-        add_meta[done_key] = 'true'
-        Item().setMetadata(item, add_meta)
-    else:
-        add_meta[done_key] = 'false'
-        Item().setMetadata(item, add_meta)
-
-    if comment:
-        add_meta = {f'{TaskType.SPLIT.value}_comment': comment}
-        Item().setMetadata(item, add_meta)
-
-    files = File().find({'itemId': ObjectId(item_id)})
-    annot_file_name = ''
-    assetstore_id = ''
-
-    for file in files:
-        if '_masks' in file['name']:
-            mask_file_name = file['name']
-            annot_file_name = f'{os.path.splitext(mask_file_name)[0]}_{uname}.tif'
-            assetstore_id = file['assetstoreId']
-            break
-    if not annot_file_name or not assetstore_id:
-        raise RestException('failure: cannot find the mask file for the split region item', 500)
-    content = content_data.file.read()
-    try:
-        # save file to local file system before adding it to asset store
-        out_dir_path = os.path.join(DATA_PATH, str(item_id))
-        out_path = os.path.join(out_dir_path, annot_file_name)
-        if not os.path.isdir(out_dir_path):
-            os.makedirs(out_dir_path)
-        with open(out_path, "wb") as f:
-            f.write(content)
-        file = save_file(assetstore_id, item, out_path, user, annot_file_name)
-    except Exception as e:
-        raise RestException(f'failure: {e}', 500)
-
-    if done:
-        region_item_ids = split_region(item, region_ids, out_path, whole_item)
-        # check if all regions for the partition is done, and if so add done metadata to whole item
-        del whole_item['meta'][str(uid)]
-        whole_item = Item().save(whole_item)
-        region_key = item['meta']['region_label']
-        info = {
-            'user': uname,
-            'task_type': TaskType.REFINE.value,
-            'timestamp': datetime.now().strftime("%m/%d/%Y %H:%M")
-        }
-        add_meta_to_region(whole_item, region_key, 'completed_by', info)
-        check_subvolume_done(whole_item, TaskType.REFINE.value)
-
-    return {
-        'annotation_file_id': file['_id'],
-        'status': 'success'
     }
 
 
