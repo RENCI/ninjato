@@ -3,8 +3,8 @@ from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.constants import AccessType
 from .utils import get_item_assignment, save_user_annotation_as_item, get_subvolume_item_ids, \
-    get_subvolume_item_info, get_subvolume_next_available_region, get_subvolume_claimed_regions, \
-    get_max_region_id
+    get_subvolume_item_info, get_subvolume_claimed_and_done_regions, get_max_region_id, \
+    claim_assignment
 
 
 @access.public
@@ -21,6 +21,22 @@ def get_user_assign_info(user, subvolume_id):
 
 @access.public
 @autoDescribeRoute(
+    Description('Request to claim a region assignment checked out by another user.')
+    .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
+    .param('subvolume_id', 'subvolume id that includes the region to be claimed from another owner',
+           required=True)
+    .param('region_id', 'region id or label trying to claim from another user owner',
+           required=True)
+    .errorResponse()
+    .errorResponse('Request action was denied on the user.', 403)
+    .errorResponse('Failed to claim the requested region', 500)
+)
+def claim_region_assignment(user, subvolume_id, region_id):
+    return claim_assignment(user, subvolume_id, region_id)
+
+
+@access.public
+@autoDescribeRoute(
     Description('Save annotation for a given user.')
     .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
     .param('item_id', 'The item ID to save user annotation for', required=True)
@@ -30,13 +46,10 @@ def get_user_assign_info(user, subvolume_id):
                      'rejected. If set to False, annotation will be saved. The default is False.',
            dataType='boolean', default=False, required=False)
     .param('comment', 'annotation comment added by the user', default='', required=False)
-    .param('action_list', 'a JSON list of regions indicating annotation actions, e.g., split, '
-                          'merge & split, or merge & refine, e.g., [{[region1_id], split: false}, '
-                          '{[region1_id, region2_id], split: true}, {[region1_id, region2_id]}, '
-                          'split: false}] where the first item indicates refine region1, the '
-                          'second item indicates merge region1 and region2, then split the '
-                          'merged region, the third item indicates merge region1 and region2, '
-                          'then refine the merged region', dataType=list, required=False)
+    .param('added_region_ids', 'list of region ids to be added', dataType=list, default=[],
+           required=False)
+    .param('removed_region_ids', 'list of region ids to be removed', dataType=list, default=[],
+           required=False)
     .param('content_data', 'annotation content blob data to be saved on server. If reject is False'
                            ' this content_data needs to be saved',
            required=False, paramType='formData')
@@ -44,9 +57,10 @@ def get_user_assign_info(user, subvolume_id):
     .errorResponse('Save action was denied on the user.', 403)
     .errorResponse('Failed to save user annotations', 500)
 )
-def save_user_annotation(user, item_id, done, reject, comment, action_list, content_data):
-    return save_user_annotation_as_item(user, item_id, done, reject, comment, action_list,
-                                        content_data)
+def save_user_annotation(user, item_id, done, reject, comment, added_region_ids, removed_region_ids,
+                         content_data):
+    return save_user_annotation_as_item(user, item_id, done, reject, comment, added_region_ids,
+                                        removed_region_ids, content_data)
 
 
 @access.public
@@ -74,26 +88,15 @@ def get_subvolume_info(item):
 
 @access.public
 @autoDescribeRoute(
-    Description('Get the next available region id for assignment.')
-    .modelParam('id', 'The item ID', model='item', level=AccessType.READ)
-    .errorResponse()
-    .errorResponse('Get action was denied on the user.', 403)
-    .errorResponse('Failed to get subvolume next available region', 500)
-)
-def get_next_avaiable_region(item):
-    return get_subvolume_next_available_region(item)
-
-
-@access.public
-@autoDescribeRoute(
-    Description('Get info about which users claimed which regions.')
+    Description('Get info about which users claimed which regions and what regions are completed '
+                'by which user.')
     .modelParam('id', 'The item ID', model='item', level=AccessType.READ)
     .errorResponse()
     .errorResponse('Get action was denied on the user.', 403)
     .errorResponse('Failed to get region claim info', 500)
 )
-def get_claimed_regions(item):
-    return get_subvolume_claimed_regions(item)
+def get_claimed_and_done_regions(item):
+    return get_subvolume_claimed_and_done_regions(item)
 
 
 @access.public
@@ -109,8 +112,10 @@ def get_claimed_regions(item):
     .errorResponse('Get action was denied on the user.', 403)
     .errorResponse('Failed to get max region id', 500)
 )
-def get_volume_max_region_id(item, split_region_count):
-    return get_max_region_id(item, split_region_count)
+def get_new_region_ids(item, split_region_count):
+    max_id = get_max_region_id(item, split_region_count)
+    id_list = [max_id + i for i in range(split_region_count)]
+    return id_list
 
 
 class NinjatoPlugin(GirderPlugin):
@@ -123,9 +128,10 @@ class NinjatoPlugin(GirderPlugin):
         # attach API route to Girder
         info['apiRoot'].user.route('GET', (':id', 'assignment'), get_user_assign_info)
         info['apiRoot'].user.route('POST', (':id', 'annotation'), save_user_annotation)
+        info['apiRoot'].user.route('POST', (':id', 'claim_region_assignment'),
+                                   claim_region_assignment)
         info['apiRoot'].system.route('GET', ('subvolume_ids',), get_subvolume_ids)
         info['apiRoot'].item.route('GET', (':id', 'subvolume_info'), get_subvolume_info)
-        info['apiRoot'].item.route('GET', (':id', 'next_available_region'),
-                                   get_next_avaiable_region)
-        info['apiRoot'].item.route('GET', (':id', 'claimed_regions'), get_claimed_regions)
-        info['apiRoot'].item.route('GET', (':id', 'max_region_id'), get_volume_max_region_id)
+        info['apiRoot'].item.route('GET', (':id', 'claimed_and_done_regions'),
+                                   get_claimed_and_done_regions)
+        info['apiRoot'].item.route('GET', (':id', 'new_region_ids'), get_new_region_ids)

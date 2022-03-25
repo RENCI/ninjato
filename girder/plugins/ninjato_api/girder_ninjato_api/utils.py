@@ -213,71 +213,47 @@ def update_region_in_whole_item(whole_item, region_imarray, region_item_coords):
     return
 
 
-def split_region(item, region_ids, content_path, whole_item):
+def split_region(user_id, item, region_ids, content_path, whole_item):
     # split content based on region_ids
     # replace the current item with the first region with other regions added
     imarray = get_image_array(content_path)
-    region_coords = []
-    item_coords = {
-        'z_min': int(item['meta']['coordinates']['z_min']),
-        'z_max': int(item['meta']['coordinates']['z_min']),
-        'y_min': int(item['meta']['coordinates']['y_min']),
-        'y_max': int(item['meta']['coordinates']['y_min']),
-        'x_min': int(item['meta']['coordinates']['x_min']),
-        'x_max': int(item['meta']['coordinates']['x_min'])
-    }
-    for i, lev in enumerate(region_ids):
-        level_indices = np.where(imarray == lev)
-        region_coords.append({'z_min': item_coords['z_min'] + min(level_indices[0]),
-                              'z_max': item_coords['z_max'] + max(level_indices[0]),
-                              'y_min': item_coords['y_min'] + min(level_indices[1]),
-                              'y_max': item_coords['y_min'] + max(level_indices[1]),
-                              'x_min': item_coords['x_min'] + min(level_indices[2]),
-                              'x_max': item_coords['x_min'] + max(level_indices[2])
-                              })
+    max_z, max_y, max_x = imarray.shape
+    claimed_region_ids = whole_item['meta'][str(user_id)]
+    if len(claimed_region_ids) > 1:
+        # this user has claimed other regions, need to update bounding box
+        region_items = [Item().find({'_id': reg_id}) for reg_id in claimed_region_ids]
+        item_coords = {
+            'z_min': min(int(reg_item['meta']['coordinates']['z_min']) for reg_item in region_items),
+            'z_max': max(int(reg_item['meta']['coordinates']['z_max']) for reg_item in region_items),
+            'y_min': min(int(reg_item['meta']['coordinates']['y_min']) for reg_item in region_items),
+            'y_max': max(int(reg_item['meta']['coordinates']['y_max']) for reg_item in region_items),
+            'x_min': min(int(reg_item['meta']['coordinates']['x_min']) for reg_item in region_items),
+            'x_max': max(int(reg_item['meta']['coordinates']['x_max'])  for reg_item in region_items)
+        }
+    else:
+        item_coords = {
+            'z_min': int(item['meta']['coordinates']['z_min']),
+            'z_max': int(item['meta']['coordinates']['z_max']),
+            'y_min': int(item['meta']['coordinates']['y_min']),
+            'y_max': int(item['meta']['coordinates']['y_max']),
+            'x_min': int(item['meta']['coordinates']['x_min']),
+            'x_max': int(item['meta']['coordinates']['x_max'])
+        }
+
     # replace the region in the whole item with updated split regions
     update_region_in_whole_item(whole_item, imarray, item_coords)
+
     return
 
 
-def merge_regions(item_region_id, region_list, content_path, whole_item):
+def remove_regions(region_list, whole_item):
     item_list = [Item().findOne({'_id': ObjectId(rid)}) for rid in region_list]
-    item_coords = {
-        'z_min': min([int(item['coordinates']["z_min"]) for item in item_list]),
-        'z_max': max([int(item['coordinates']["z_max"]) for item in item_list]),
-        'y_min': min([int(item['coordinates']["y_min"]) for item in item_list]),
-        'y_max': max([int(item['coordinates']["y_max"]) for item in item_list]),
-        'x_min': min([int(item['coordinates']["x_min"]) for item in item_list]),
-        'x_max': max([int(item['coordinates']["x_max"]) for item in item_list])
-    }
-
-    imarray = get_image_array(content_path)
 
     # delete all the other regions in region_list to be merged
     for i, rid in enumerate(region_list):
-        if i != item_region_id:
-            Item().remove(item_list[i])
+        Item().remove(item_list[i])
+        del whole_item['meta']['regions'][str(rid)]
 
-    update_region_in_whole_item(whole_item, imarray, item_coords)
-
-    item = Item().findOne({'_id': ObjectId(item_region_id)})
-    item['meta']['coordinates'] = {
-        "x_max": item_coords['x_max'],
-        "x_min": item_coords['x_min'],
-        "y_max": item_coords['y_max'],
-        "y_min": item_coords['y_min'],
-        "z_max": item_coords['z_max'],
-        "z_min": item_coords['z_min']
-    }
-    Item().save(item)
-
-    # update whole item coordinates metadata
-    for i, rid in enumerate(region_list):
-        if rid == item_region_id:
-            # merged region to be kept
-            whole_item['meta']['regions'][str(rid)]['merged_regions'] = region_list
-        else:
-            del whole_item['meta']['regions'][str(rid)]
     return
 
 
@@ -329,6 +305,60 @@ def reject_assignment(user, item, whole_item, has_files, comment):
     return
 
 
+def assign_region_to_user(whole_item, user, region_key):
+    val = whole_item['meta']['regions'][region_key]
+    if 'annotation_rejected_by' in val:
+        # no need to create an item for this selected region since it already
+        # exists
+        region_item = Item().findOne({'folderId': whole_item['folderId'],
+                                      'name': f'region{region_key}'})
+    else:
+        region_item = create_region(region_key, whole_item,
+                                    {
+                                        'x_min': val['x_min'],
+                                        'x_max': val['x_max'],
+                                        'y_min': val['y_min'],
+                                        'y_max': val['y_max'],
+                                        'z_min': val['z_min'],
+                                        'z_max': val['z_max']
+                                    })
+    val['user'] = user['_id']
+    val['annotation_assigned_to'] = f'{user["login"]} at ' \
+                                    f'{datetime.now().strftime("%m/%d/%Y %H:%M")}'
+    val['item_id'] = region_item['_id']
+    if str(user['_id']) in whole_item['meta']:
+        add_meta = {str(user['_id']):
+                        whole_item['meta'][str(user['_id'])].append(str(region_item['_id']))}
+    else:
+        add_meta = {str(user['_id']): [str(region_item['_id'])]}
+    Item().setMetadata(whole_item, add_meta)
+    add_meta = {'user': user['_id']}
+    Item().setMetadata(region_item, add_meta)
+    return region_item
+
+
+def claim_assignment(user, subvolume_id, region_id):
+    ret_dict = {}
+    whole_item = Item().findOne({'_id': ObjectId(subvolume_id)})
+    if region_id in whole_item['meta']['regions']:
+        val = whole_item['meta']['regions'][region_id]
+        done_key = 'annotation_completed_by'
+        if done_key in val and val[done_key] == 'true':
+            ret_dict['status'] = 'failure'
+            ret_dict['assigned_user_info'] = val[done_key]
+            return ret_dict
+        if 'user' in val:
+            ret_dict['status'] = 'failure'
+            ret_dict['assigned_user_info'] = val['annotation_assigned_to']
+            return ret_dict
+
+        # available to be claimed, assign it to the user
+        region_item = assign_region_to_user(whole_item, user, region_id)
+        ret_dict['status'] = 'success'
+        ret_dict['assigned_user_info'] = val['annotation_assigned_to']
+        return ret_dict
+
+
 def get_item_assignment(user, subvolume_id):
     """
     get region assignment in a subvolume for annotation task
@@ -341,7 +371,7 @@ def get_item_assignment(user, subvolume_id):
             'user_id': user['_id'],
             'item_id': ''
             }
-    done_key = 'annotation_done'
+    done_key = 'annotation_completed_by'
     if not subvolume_id:
         subvolume_ids = get_subvolume_item_ids()
         subvolume_id = subvolume_ids['ids'][0]
@@ -360,8 +390,7 @@ def get_item_assignment(user, subvolume_id):
     if str(user['_id']) in whole_item['meta']:
         # there is already a region checked out by this user, return it
         it_id = whole_item['meta'][str(user['_id'])]
-        it = Item().findOne({'folderId': ObjectId(subvolume_id),
-                             '_id': ObjectId(it_id)})
+        it = Item().findOne({'_id': ObjectId(it_id)})
         return {
             'user_id': user['_id'],
             'item_id': it_id,
@@ -369,14 +398,6 @@ def get_item_assignment(user, subvolume_id):
         }
 
     assigned_region_id = None
-    next_region_id = None
-    if 'next_available_region' in whole_item['meta'] and \
-        whole_item['meta']['next_available_region']:
-        assigned_region_id = whole_item['meta']['next_available_region']
-        # clear next_available_region key
-        add_meta = {'next_available_region': ''}
-        Item().setMetadata(whole_item, add_meta)
-
     # no region has been assigned to the user yet, look into the whole partition
     # item to find a region for assignment
     for key, val in whole_item['meta']['regions'].items():
@@ -391,47 +412,16 @@ def get_item_assignment(user, subvolume_id):
 
         if 'user' not in val:
             # this region can be assigned to a user
-            if 'annotation_rejected_by' in val:
-                # no need to create an item for this selected region since it already
-                # exists
-                region_item = Item().findOne({'folderId': ObjectId(subvolume_id),
-                                              'name': f'region{key}'})
-            else:
-                region_item = create_region(key, whole_item,
-                                            {
-                                                'x_min': val['x_min'],
-                                                'x_max': val['x_max'],
-                                                'y_min': val['y_min'],
-                                                'y_max': val['y_max'],
-                                                'z_min': val['z_min'],
-                                                'z_max': val['z_max']
-                                            })
-            if not assigned_region_id:
-                assigned_region_id = region_item['_id']
-            else:
-                next_region_id = region_item['_id']
-                add_meta = {'next_available_region': str(next_region_id)}
-                Item().setMetadata(whole_item, add_meta)
-                # already find both assigned region and next region
-                break
+            region_item = assign_region_to_user(whole_item, user, key)
+            assigned_region_id = region_item['_id']
+            assigned_region_label = region_item['meta']['region_label']
+            break
 
     if assigned_region_id:
-        # assign assigned_region_id to this user
-        region_item = Item().findOne({'_id': ObjectId(assigned_region_id)})
-        val = whole_item['meta']['regions'][region_item['meta']['region_label']]
-        val['user'] = user['_id']
-        val['annotation_assigned_to'] = f'{user["login"]} at ' \
-                                        f'{datetime.now().strftime("%m/%d/%Y %H:%M")}'
-        val['item_id'] = region_item['_id']
-        add_meta = {str(user['_id']): str(region_item['_id'])}
-        Item().setMetadata(whole_item, add_meta)
-        add_meta = {'user': user['_id']}
-        Item().setMetadata(region_item, add_meta)
-
         return {
             'user_id': user['_id'],
             'item_id': assigned_region_id,
-            'region_label': region_item['meta']['region_label']
+            'region_label': assigned_region_label
         }
     else:
         # there is no item left to assign to this user
@@ -442,7 +432,8 @@ def get_item_assignment(user, subvolume_id):
         }
 
 
-def save_user_annotation_as_item(user, item_id, done, reject, comment, action_list, content_data):
+def save_user_annotation_as_item(user, item_id, done, reject, comment, added_region_ids,
+                                 removed_region_ids, content_data):
     """
     Save user annotation to item item_id
     :param user: user object who saves annotation
@@ -450,7 +441,8 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, action_li
     :param done: whether annotation is done or only an intermediate save
     :param reject: whether to reject the annotation rather than save it.
     :param comment: annotation comment from the user
-    :param action_list: list of regions indicating annotation actions
+    :param added_region_ids: list of region ids to be added as part of the save action
+    :param removed_region_ids: list of region ids to be removed as part of the save action
     :param content_data: annotation content blob to be saved on server
     :return: success or failure
     """
@@ -473,7 +465,11 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, action_li
     if comment:
         add_meta[f'annotation_comment'] = comment
 
-    add_meta['action_list'] = action_list
+    if added_region_ids or removed_region_ids:
+        add_meta['action_list'] = {
+            'added_region_ids': added_region_ids,
+            'removed_region_ids': removed_region_ids
+        }
     Item().setMetadata(item, add_meta)
 
     files = File().find({'itemId': ObjectId(item_id)})
@@ -501,19 +497,10 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, action_li
         raise RestException(f'failure: {e}', 500)
 
     if done:
-        item_reg_lbl = item['meta']['region_label']
-        for action in action_list:
-            if action['split']:
-                if len(action['region_ids']) > 1:
-                    # merge then split
-                    merge_regions(item_reg_lbl, action['region_ids'], out_path, whole_item)
-
-                else:
-                    split_region(item, action['region_ids'], out_path, whole_item)
-            else:
-                if len(action['region_ids']) > 1:
-                    # merge multiple regions
-                    merge_regions(item_reg_lbl, action['region_ids'], out_path, whole_item)
+        if added_region_ids:
+            split_region(uid, item, added_region_ids, out_path, whole_item)
+        if removed_region_ids:
+            remove_regions(removed_region_ids, whole_item)
 
         # check if all regions for the partition is done, and if so add done metadata to whole item
         del whole_item['meta'][str(uid)]
@@ -638,27 +625,31 @@ def get_subvolume_item_info(item):
     return ret_dict
 
 
-def get_subvolume_next_available_region(item):
-    if 'next_available_region' in item['meta']:
-        return {
-          'region_id': item['meta']['next_available_region']
-        }
-    else:
-        return {'region_id': ''}
-
-
-def get_subvolume_claimed_regions(item):
-    claimed_regions = []
+def get_subvolume_claimed_and_done_regions(item):
+    ret_dict = {
+        'claimed_regions': [],
+        'completed_regions': []
+    }
     for key, val in item['meta'].items():
         if key == 'coordinates' or key == 'regions':
             continue
         claim_user = User().findOne({'_id': ObjectId(key)})
         claim_reg = Item().findOne({'_id': ObjectId(val)})
         if claim_user and claim_reg:
-            claimed_regions.append({
-                'region_id': val,
+            ret_dict['claimed_regions'].append({
+                'region_item_id': val,
                 'region_label': claim_reg['meta']['region_label'],
                 'user_id': key,
                 'username': claim_user['login']
             })
-    return claimed_regions
+    for key, val in item['meta']['regions'].items():
+        if 'annotation_completed_by' in val:
+            region_item = Item().findOne({'_id': ObjectId(val['item_id'])})
+            done_user = User().findOne({'_id': ObjectId(region_item['user'])})
+            ret_dict['completed_regions'].append({
+                'region_item_id': val['item_id'],
+                'region_label': region_item['meta']['region_label'],
+                'user_id': region_item['user'],
+                'username': done_user['login']
+            })
+    return ret_dict
