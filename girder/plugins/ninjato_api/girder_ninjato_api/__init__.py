@@ -4,7 +4,7 @@ from girder.api.describe import Description, autoDescribeRoute
 from girder.constants import AccessType
 from .utils import get_item_assignment, save_user_annotation_as_item, get_subvolume_item_ids, \
     get_subvolume_item_info, get_subvolume_next_available_region, get_subvolume_claimed_regions, \
-    save_user_split_result
+    get_max_region_id
 
 
 @access.public
@@ -47,30 +47,6 @@ def get_user_assign_info(user, subvolume_id):
 def save_user_annotation(user, item_id, done, reject, comment, action_list, content_data):
     return save_user_annotation_as_item(user, item_id, done, reject, comment, action_list,
                                         content_data)
-
-
-@access.public
-@autoDescribeRoute(
-    Description('Save split result for a given user.')
-    .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
-    .param('item_id', 'The item ID to be split', required=True)
-    .param('done', 'A boolean True or False to indicate whether the split is done',
-           dataType='boolean', default=False, required=False)
-    .param('reject', 'A boolean True or False to indicate whether the split task should be '
-                     'rejected. If set to False, split result will be saved. The default is False.',
-           dataType='boolean', default=False, required=False)
-    .param('comment', 'split comment added by the user', default='', required=False)
-    .param('region_ids', 'a list of split region ids encoded in the content_data',
-           dataType=list, default=[], required=False)
-    .param('content_data', 'split content blob data to be saved on server. If reject is False '
-                           'the content_data needs to be saved, this parameter is required.',
-           required=False, paramType='formData')
-    .errorResponse()
-    .errorResponse('Save action was denied on the user.', 403)
-    .errorResponse('Failed to save user split', 500)
-)
-def save_user_split(user, item_id, done, reject, comment, region_ids, content_data):
-    return save_user_split_result(user, item_id, done, reject, comment, region_ids, content_data)
 
 
 @access.public
@@ -120,6 +96,23 @@ def get_claimed_regions(item):
     return get_subvolume_claimed_regions(item)
 
 
+@access.public
+@autoDescribeRoute(
+    Description('Get max region id from a subvolume. For region splitting, after getting max '
+                'region id, number of split regions needs to be passed in so that server can leave '
+                'enough region ids for use by split regions. Note this opeation has to be atomic '
+                'due to potential multiple split region requests at the same time')
+    .modelParam('id', 'The item ID', model='item', level=AccessType.READ)
+    .param('split_region_count', 'number of regions to split into',dataType='integer', default=0,
+           required=False)
+    .errorResponse()
+    .errorResponse('Get action was denied on the user.', 403)
+    .errorResponse('Failed to get max region id', 500)
+)
+def get_volume_max_region_id(item, split_region_count):
+    return get_max_region_id(item, split_region_count)
+
+
 class NinjatoPlugin(GirderPlugin):
     DISPLAY_NAME = 'Girder Ninjato API'
     CLIENT_SOURCE_PATH = 'web_client'
@@ -130,9 +123,9 @@ class NinjatoPlugin(GirderPlugin):
         # attach API route to Girder
         info['apiRoot'].user.route('GET', (':id', 'assignment'), get_user_assign_info)
         info['apiRoot'].user.route('POST', (':id', 'annotation'), save_user_annotation)
-        info['apiRoot'].user.route('POST', (':id', 'split'), save_user_split)
         info['apiRoot'].system.route('GET', ('subvolume_ids',), get_subvolume_ids)
         info['apiRoot'].item.route('GET', (':id', 'subvolume_info'), get_subvolume_info)
         info['apiRoot'].item.route('GET', (':id', 'next_available_region'),
                                    get_next_avaiable_region)
         info['apiRoot'].item.route('GET', (':id', 'claimed_regions'), get_claimed_regions)
+        info['apiRoot'].item.route('GET', (':id', 'max_region_id'), get_volume_max_region_id)

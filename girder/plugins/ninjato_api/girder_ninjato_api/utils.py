@@ -1,4 +1,5 @@
 import os
+import shutil
 from datetime import datetime
 from libtiff import TIFF
 import numpy as np
@@ -34,8 +35,18 @@ def get_items(item_id):
     return item, whole_item
 
 
-def get_max_region_id(whole_item):
-    return whole_item['meta']['whole_region_id']
+def get_max_region_id(whole_item, delta=0):
+    """
+    return max region id followed by increasing max region id by delta in an atomic operation
+    :param whole_item: whole item to get max region id
+    :param delta: number to increase max region id after getting it
+    :return: max region id before potentially increasing it
+    """
+    max_id = int(whole_item['meta']['max_region_id'])
+    if delta > 0:
+        new_max_id = max_id + delta
+        set_max_region_id(whole_item, new_max_id)
+    return max_id
 
 
 def set_max_region_id(whole_item, max_level = None):
@@ -67,6 +78,17 @@ def get_tif_file_content_and_region_output_path(item_file, output_file_id, regio
     output_file = f'{file_base_name}_region_{region_key}{file_ext}'
     output_tif = TIFF.open(out_path, mode="w")
     return tif, out_path, output_file, output_tif
+
+
+def get_image_array(content_path):
+    tif = TIFF.open(content_path, mode="r")
+
+    images = []
+    for image in tif.iter_images():
+        images.append(image)
+    # imarray should be in order of ZYX
+    imarray = np.array(images)
+    return imarray
 
 
 def get_buffered_extent(minx, maxx, miny, maxy, minz, maxz, xrange, yrange, zrange):
@@ -167,6 +189,98 @@ def create_region(region_key, whole_item, extent_dict):
     return region_item
 
 
+def update_region_in_whole_item(whole_item, region_imarray, region_item_coords):
+    item_files = File().find({'itemId': whole_item['_id']})
+
+    for item_file in item_files:
+        if '_masks' not in item_file['name']:
+            continue
+        whole_tif, whole_path = get_tif_file_content_and_path(item_file)
+        whole_out_tif = TIFF.open(f'output_{whole_path}', mode='w')
+        counter = 0
+        # region_imarray should be in order of ZYX
+        for image in whole_tif.iter_images():
+            if counter >= region_item_coords['z_min'] and counter <= region_item_coords['z_max']:
+                image[region_item_coords['y_min']: region_item_coords['y_max'],
+                region_item_coords['x_min']: region_item_coords['x_max']] = \
+                    region_imarray[counter::]
+            whole_out_tif.write_image(image)
+            counter += 1
+        break
+
+    # update mask file by copying new tiff file to the old one, then delete the new tiff file
+    shutil.move(f'output_{whole_path}', whole_path)
+    return
+
+
+def split_region(item, region_ids, content_path, whole_item):
+    # split content based on region_ids
+    # replace the current item with the first region with other regions added
+    imarray = get_image_array(content_path)
+    region_coords = []
+    item_coords = {
+        'z_min': int(item['meta']['coordinates']['z_min']),
+        'z_max': int(item['meta']['coordinates']['z_min']),
+        'y_min': int(item['meta']['coordinates']['y_min']),
+        'y_max': int(item['meta']['coordinates']['y_min']),
+        'x_min': int(item['meta']['coordinates']['x_min']),
+        'x_max': int(item['meta']['coordinates']['x_min'])
+    }
+    for i, lev in enumerate(region_ids):
+        level_indices = np.where(imarray == lev)
+        region_coords.append({'z_min': item_coords['z_min'] + min(level_indices[0]),
+                              'z_max': item_coords['z_max'] + max(level_indices[0]),
+                              'y_min': item_coords['y_min'] + min(level_indices[1]),
+                              'y_max': item_coords['y_min'] + max(level_indices[1]),
+                              'x_min': item_coords['x_min'] + min(level_indices[2]),
+                              'x_max': item_coords['x_min'] + max(level_indices[2])
+                              })
+    # replace the region in the whole item with updated split regions
+    update_region_in_whole_item(whole_item, imarray, item_coords)
+    return
+
+
+def merge_regions(item_region_id, region_list, content_path, whole_item):
+    item_list = [Item().findOne({'_id': ObjectId(rid)}) for rid in region_list]
+    item_coords = {
+        'z_min': min([int(item['coordinates']["z_min"]) for item in item_list]),
+        'z_max': max([int(item['coordinates']["z_max"]) for item in item_list]),
+        'y_min': min([int(item['coordinates']["y_min"]) for item in item_list]),
+        'y_max': max([int(item['coordinates']["y_max"]) for item in item_list]),
+        'x_min': min([int(item['coordinates']["x_min"]) for item in item_list]),
+        'x_max': max([int(item['coordinates']["x_max"]) for item in item_list])
+    }
+
+    imarray = get_image_array(content_path)
+
+    # delete all the other regions in region_list to be merged
+    for i, rid in enumerate(region_list):
+        if i != item_region_id:
+            Item().remove(item_list[i])
+
+    update_region_in_whole_item(whole_item, imarray, item_coords)
+
+    item = Item().findOne({'_id': ObjectId(item_region_id)})
+    item['meta']['coordinates'] = {
+        "x_max": item_coords['x_max'],
+        "x_min": item_coords['x_min'],
+        "y_max": item_coords['y_max'],
+        "y_min": item_coords['y_min'],
+        "z_max": item_coords['z_max'],
+        "z_min": item_coords['z_min']
+    }
+    Item().save(item)
+
+    # update whole item coordinates metadata
+    for i, rid in enumerate(region_list):
+        if rid == item_region_id:
+            # merged region to be kept
+            whole_item['meta']['regions'][str(rid)]['merged_regions'] = region_list
+        else:
+            del whole_item['meta']['regions'][str(rid)]
+    return
+
+
 def check_subvolume_done(whole_item, task='annotation'):
     vol_done = True
     for key, val in whole_item['meta']['regions'].items():
@@ -216,6 +330,12 @@ def reject_assignment(user, item, whole_item, has_files, comment):
 
 
 def get_item_assignment(user, subvolume_id):
+    """
+    get region assignment in a subvolume for annotation task
+    :param user: requesting user to get assignment for
+    :param subvolume_id: requesting subvolume id
+    :return: assigned region id and label or empty if no assignment is available
+    """
     if user['login'] == 'admin':
         return {
             'user_id': user['_id'],
@@ -230,7 +350,8 @@ def get_item_assignment(user, subvolume_id):
         # if the subvolume is done, return empty assignment
         return {
             'user_id': user['_id'],
-            'item_id': ''
+            'item_id': '',
+            'region_label': ''
         }
 
     # when a region is selected, the user id is added to whole item meta as a key with a value of
@@ -263,17 +384,14 @@ def get_item_assignment(user, subvolume_id):
             # if a region is done, continue to check another region
             continue
         # if a region is rejected by the user, continue to check another region
-        if 'rejected_by' in val:
-            for reject_dict in val['rejected_by']:
+        if 'annotation_rejected_by' in val:
+            for reject_dict in val['annotation_rejected_by']:
                 if reject_dict['user'] == str(user['login']):
                     continue
 
         if 'user' not in val:
             # this region can be assigned to a user
-            if next_region_id:
-                # already find both assigned region and next region
-                break
-            if 'rejected_by' in val:
+            if 'annotation_rejected_by' in val:
                 # no need to create an item for this selected region since it already
                 # exists
                 region_item = Item().findOne({'folderId': ObjectId(subvolume_id),
@@ -294,14 +412,16 @@ def get_item_assignment(user, subvolume_id):
                 next_region_id = region_item['_id']
                 add_meta = {'next_available_region': str(next_region_id)}
                 Item().setMetadata(whole_item, add_meta)
+                # already find both assigned region and next region
+                break
 
     if assigned_region_id:
         # assign assigned_region_id to this user
         region_item = Item().findOne({'_id': ObjectId(assigned_region_id)})
         val = whole_item['meta']['regions'][region_item['meta']['region_label']]
         val['user'] = user['_id']
-        val['assigned_to'] = f'{user["login"]} at ' \
-                             f'{datetime.now().strftime("%m/%d/%Y %H:%M")}'
+        val['annotation_assigned_to'] = f'{user["login"]} at ' \
+                                        f'{datetime.now().strftime("%m/%d/%Y %H:%M")}'
         val['item_id'] = region_item['_id']
         add_meta = {str(user['_id']): str(region_item['_id'])}
         Item().setMetadata(whole_item, add_meta)
@@ -317,7 +437,8 @@ def get_item_assignment(user, subvolume_id):
         # there is no item left to assign to this user
         return {
             'user_id': user['_id'],
-            'item_id': ''
+            'item_id': '',
+            'region_label': ''
         }
 
 
@@ -346,14 +467,14 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, action_li
     done_key = f'annotation_done'
     if done:
         add_meta = {done_key: 'true'}
-        Item().setMetadata(item, add_meta)
     else:
         add_meta = {done_key: 'false'}
-        Item().setMetadata(item, add_meta)
 
     if comment:
-        add_meta = {f'annotation_comment': comment}
-        Item().setMetadata(item, add_meta)
+        add_meta[f'annotation_comment'] = comment
+
+    add_meta['action_list'] = action_list
+    Item().setMetadata(item, add_meta)
 
     files = File().find({'itemId': ObjectId(item_id)})
     annot_file_name = ''
@@ -380,6 +501,20 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, action_li
         raise RestException(f'failure: {e}', 500)
 
     if done:
+        item_reg_lbl = item['meta']['region_label']
+        for action in action_list:
+            if action['split']:
+                if len(action['region_ids']) > 1:
+                    # merge then split
+                    merge_regions(item_reg_lbl, action['region_ids'], out_path, whole_item)
+
+                else:
+                    split_region(item, action['region_ids'], out_path, whole_item)
+            else:
+                if len(action['region_ids']) > 1:
+                    # merge multiple regions
+                    merge_regions(item_reg_lbl, action['region_ids'], out_path, whole_item)
+
         # check if all regions for the partition is done, and if so add done metadata to whole item
         del whole_item['meta'][str(uid)]
         whole_item = Item().save(whole_item)
@@ -430,23 +565,33 @@ def get_subvolume_item_info(item):
     item_id = item['_id']
     region_dict = item['meta']['regions']
     total_regions = len(region_dict)
-    if 'done' in item['meta'] and item['meta']['done'] == 'true':
-        return {
-            'item_id': item_id,
-            'item_description': item['description'],
-            'total_regions': total_regions,
-            'total_annotation_completed_regions': total_regions,
-            'total_annotation_active_regions': 0,
-            'total_review_completed_regions': total_regions,
-            'total_review_active_regions': 0,
-            'total_annotation_available_regions': 0,
-            'total_review_available_regions': 0
-        }
+    ret_dict = {
+        'id': item_id,
+        'name': Folder().findOne({'_id': item['folderId']})['name'],
+        'description': item['description'],
+        'location': item['meta']['coordinates'],
+        'total_regions': total_regions,
+    }
+    annot_done_key = 'annotation_done'
+    review_done_key = 'review_done'
+    annot_done = False
+    review_done = False
+    if annot_done_key in item['meta'] and item['meta'][annot_done_key] == 'true':
+        ret_dict['total_annotation_completed_regions'] = total_regions
+        ret_dict['total_annotation_active_regions'] = 0
+        ret_dict['total_annotation_available_regions'] = 0
+        annot_done = True
+    if review_done_key in item['meta'] and item['meta'][review_done_key] == 'true':
+            ret_dict['total_review_completed_regions'] = total_regions
+            ret_dict['total_review_active_regions'] = 0
+            ret_dict['total_review_available_regions'] = 0
+            review_done = True
+
     total_regions_done = 0
     total_regions_at_work = 0
     regions_rejected = []
-    done_key = 'annotation_completed_by'
-    review_done_key = 'review_completed_by'
+    annot_completed_key = 'annotation_completed_by'
+    review_completed_key = 'review_completed_by'
     total_reviewed_regions_done = 0
     total_reviewed_regions_at_work = 0
     for key, val in region_dict.items():
@@ -454,40 +599,43 @@ def get_subvolume_item_info(item):
             region_item = Item().findOne({'folderId': item['folderId'],
                                           'name': f'region{key}'})
             regions_rejected.append({
-                'info': val['rejected_by'],
+                'info': val['annotation_rejected_by'],
                 'id': region_item['_id']
             })
+        if not annot_done:
+            if annot_completed_key in val and val[annot_completed_key] == 'true':
+                total_regions_done += 1
+            elif 'user' in val:
+                total_regions_at_work += 1
+        if not review_done:
+            if review_completed_key in val and val[review_completed_key] == 'true':
+                total_reviewed_regions_done += 1
+            elif annot_completed_key in val and val[annot_completed_key] == 'true' and \
+                'user' in val:
+                # annotation is done but review is not done and a user is reviewing currently
+                total_reviewed_regions_at_work += 1
 
-        if done_key in val and val[done_key] == 'true':
-            total_regions_done += 1
-        elif 'user' in val:
-            total_regions_at_work += 1
+    ret_dict['rejected_regions'] = regions_rejected
+    if annot_done and review_done:
+        return ret_dict
+    if annot_done:
+        # annotation is done, but review is not done
+        ret_dict['total_review_completed_regions'] = total_reviewed_regions_done
+        ret_dict['total_review_active_regions'] = total_reviewed_regions_at_work
+        ret_dict['total_review_available_regions'] = total_regions - total_reviewed_regions_done - \
+                                                         total_reviewed_regions_at_work
+        return ret_dict
 
-        if review_done_key in val and val[review_done_key] == 'true':
-            total_reviewed_regions_done += 1
-        elif done_key in val and val[done_key] == 'true' and 'user' in val:
-            # annotation is done but review is not done and a user is reviewing currently
-            total_reviewed_regions_at_work += 1
-
-    return {
-        'id': item_id,
-        'name': Folder().findOne({'_id': item['folderId']})['name'],
-        'description': item['description'],
-        'location': item['meta']['coordinates'],
-        'assignment': {
-            'rejected_regions': regions_rejected,
-            'total_regions': total_regions,
-            'total_annotation_completed_regions': total_regions_done,
-            'total_annotation_active_regions': total_regions_at_work,
-            'annotation_rejected_regions': regions_rejected,
-            'total_review_completed_regions': total_reviewed_regions_done,
-            'total_review_active_regions': total_reviewed_regions_at_work,
-            'total_annotation_available_regions': total_regions - total_regions_done -
-                                                  total_regions_at_work,
-            'total_review_available_regions': total_regions - total_reviewed_regions_done -
-                                              total_reviewed_regions_at_work
-        }
-    }
+    # both annotation and review are not done
+    ret_dict['total_annotation_completed_regions'] = total_regions_done
+    ret_dict['total_annotation_active_regions'] = total_regions_at_work
+    ret_dict['total_annotation_available_regions'] = total_regions - total_regions_done - \
+                                                 total_regions_at_work
+    ret_dict['total_review_completed_regions'] = total_reviewed_regions_done
+    ret_dict['total_review_active_regions'] = total_reviewed_regions_at_work
+    ret_dict['total_review_available_regions'] = total_regions - total_reviewed_regions_done - \
+                                                 total_reviewed_regions_at_work
+    return ret_dict
 
 
 def get_subvolume_next_available_region(item):
