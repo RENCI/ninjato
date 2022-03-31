@@ -3,7 +3,7 @@ from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.constants import AccessType
 from .utils import get_item_assignment, save_user_annotation_as_item, get_subvolume_item_ids, \
-    get_subvolume_item_info, get_subvolume_claimed_and_done_regions, get_max_region_id, \
+    get_subvolume_item_info, get_subvolume_claimed_and_done_regions, get_available_region_ids, \
     claim_assignment
 
 
@@ -46,9 +46,12 @@ def claim_region_assignment(user, subvolume_id, region_id):
                      'rejected. If set to False, annotation will be saved. The default is False.',
            dataType='boolean', default=False, required=False)
     .param('comment', 'annotation comment added by the user', default='', required=False)
-    .param('added_region_ids', 'list of region ids to be added', dataType=list, default=[],
+    .param('added_region_ids', 'list of region ids to be added. Make sure the list does not '
+                               'include the ids of regions in the assignment', dataType=list,
+           default=[],
            required=False)
-    .param('removed_region_ids', 'list of region ids to be removed', dataType=list, default=[],
+    .param('removed_region_ids', 'list of region ids to be removed', dataType=list,
+           default=[],
            required=False)
     .param('content_data', 'annotation content blob data to be saved on server. If reject is False'
                            ' this content_data needs to be saved',
@@ -113,9 +116,7 @@ def get_claimed_and_done_regions(item):
     .errorResponse('Failed to get max region id', 500)
 )
 def get_new_region_ids(item, split_region_count):
-    max_id = get_max_region_id(item, split_region_count)
-    id_list = [max_id + i for i in range(split_region_count)]
-    return id_list
+    return get_available_region_ids(item, split_region_count)
 
 
 class NinjatoPlugin(GirderPlugin):
