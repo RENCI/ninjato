@@ -3,8 +3,8 @@ from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.constants import AccessType
 from .utils import get_item_assignment, save_user_annotation_as_item, get_subvolume_item_ids, \
-    get_subvolume_item_info, get_subvolume_claimed_and_done_regions, get_available_region_ids, \
-    claim_assignment
+    get_subvolume_item_info, get_region_or_assignment_info, get_available_region_ids, \
+    claim_assignment, request_assignment
 
 
 @access.public
@@ -33,6 +33,22 @@ def get_user_assign_info(user, subvolume_id):
 )
 def claim_region_assignment(user, subvolume_id, region_id):
     return claim_assignment(user, subvolume_id, region_id)
+
+
+@access.public
+@autoDescribeRoute(
+    Description('Request a region assignment.')
+    .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
+    .param('subvolume_id', 'subvolume id that includes the requesting region',
+           required=True)
+    .param('region_id', 'region id or label trying to request',
+           required=True)
+    .errorResponse()
+    .errorResponse('Request action was denied on the user.', 403)
+    .errorResponse('Failed to request the requested region', 500)
+)
+def request_region_assignment(user, subvolume_id, region_id):
+    return request_assignment(user, subvolume_id, region_id)
 
 
 @access.public
@@ -91,15 +107,16 @@ def get_subvolume_info(item):
 
 @access.public
 @autoDescribeRoute(
-    Description('Get info about which users claimed which regions and what regions are completed '
-                'by which user.')
+    Description('Get region info or assignment info if the region is part of the assignment.')
     .modelParam('id', 'The item ID', model='item', level=AccessType.READ)
+    .param('region_label', 'region label number such as 1, 2, etc.',dataType='integer',
+           required=True)
     .errorResponse()
     .errorResponse('Get action was denied on the user.', 403)
-    .errorResponse('Failed to get region claim info', 500)
+    .errorResponse('Failed to get region info', 500)
 )
-def get_claimed_and_done_regions(item):
-    return get_subvolume_claimed_and_done_regions(item)
+def get_region_info(item, region_label):
+    return get_region_or_assignment_info(item, region_label)
 
 
 @access.public
@@ -131,8 +148,9 @@ class NinjatoPlugin(GirderPlugin):
         info['apiRoot'].user.route('POST', (':id', 'annotation'), save_user_annotation)
         info['apiRoot'].user.route('POST', (':id', 'claim_region_assignment'),
                                    claim_region_assignment)
+        info['apiRoot'].user.route('POST', (':id', 'request_region_assignment'),
+                                   request_region_assignment)
         info['apiRoot'].system.route('GET', ('subvolume_ids',), get_subvolume_ids)
         info['apiRoot'].item.route('GET', (':id', 'subvolume_info'), get_subvolume_info)
-        info['apiRoot'].item.route('GET', (':id', 'claimed_and_done_regions'),
-                                   get_claimed_and_done_regions)
         info['apiRoot'].item.route('GET', (':id', 'new_region_ids'), get_new_region_ids)
+        info['apiRoot'].item.route('GET', (':id', 'subvolume_region_info'), get_region_info)
