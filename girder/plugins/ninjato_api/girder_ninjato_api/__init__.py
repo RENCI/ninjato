@@ -4,7 +4,7 @@ from girder.api.describe import Description, autoDescribeRoute
 from girder.constants import AccessType
 from .utils import get_item_assignment, save_user_annotation_as_item, get_subvolume_item_ids, \
     get_subvolume_item_info, get_region_or_assignment_info, get_available_region_ids, \
-    claim_assignment, request_assignment
+    claim_assignment, request_assignment, get_all_avail_items_for_review
 
 
 @access.public
@@ -37,12 +37,15 @@ def claim_region_assignment(user, subvolume_id, region_id):
 
 @access.public
 @autoDescribeRoute(
-    Description('Request a region assignment.')
+    Description('Request an assignment for annotation or reivew. If the requested item has already '
+                'been annotated, the requested item will be assigned for review; otherwise, '
+                'the requested item will be assigned for annotation')
     .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
-    .param('subvolume_id', 'subvolume id that includes the requesting region',
+    .param('subvolume_id', 'subvolume id that includes the requesting assignment',
            required=True)
-    .param('region_id', 'region id or label trying to request',
-           required=True)
+    .param('region_id', 'request assignment region id or label. Note a region id represents an '
+                        'assignment which could be a single region or multiple merge/split '
+                        'combined regions', required=True)
     .errorResponse()
     .errorResponse('Request action was denied on the user.', 403)
     .errorResponse('Failed to request the requested region', 500)
@@ -80,6 +83,18 @@ def save_user_annotation(user, item_id, done, reject, comment, added_region_ids,
                          content_data):
     return save_user_annotation_as_item(user, item_id, done, reject, comment, added_region_ids,
                                         removed_region_ids, content_data)
+
+
+@access.public
+@autoDescribeRoute(
+    Description('Get all finished annotation assignment items from a subvolume for review.')
+    .modelParam('id', 'The item ID', model='item', level=AccessType.READ)
+    .errorResponse()
+    .errorResponse('Read access was denied on the user.', 403)
+)
+def get_avail_items_for_review(item):
+    return get_all_avail_items_for_review(item)
+
 
 
 @access.public
@@ -146,11 +161,15 @@ class NinjatoPlugin(GirderPlugin):
         # attach API route to Girder
         info['apiRoot'].user.route('GET', (':id', 'assignment'), get_user_assign_info)
         info['apiRoot'].user.route('POST', (':id', 'annotation'), save_user_annotation)
-        info['apiRoot'].user.route('POST', (':id', 'claim_region_assignment'),
+
+        info['apiRoot'].user.route('POST', (':id', 'review_result'), save_user_review_result)
+        info['apiRoot'].user.route('POST', (':id', 'claim_assignment'),
                                    claim_region_assignment)
-        info['apiRoot'].user.route('POST', (':id', 'request_region_assignment'),
+        info['apiRoot'].user.route('POST', (':id', 'request_assignment'),
                                    request_region_assignment)
         info['apiRoot'].system.route('GET', ('subvolume_ids',), get_subvolume_ids)
         info['apiRoot'].item.route('GET', (':id', 'subvolume_info'), get_subvolume_info)
         info['apiRoot'].item.route('GET', (':id', 'new_region_ids'), get_new_region_ids)
         info['apiRoot'].item.route('GET', (':id', 'subvolume_region_info'), get_region_info)
+        info['apiRoot'].item.route('GET', (':id', 'available_items_for_review'),
+                                   get_avail_items_for_review)
