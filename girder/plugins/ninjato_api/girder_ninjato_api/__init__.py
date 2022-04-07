@@ -9,7 +9,7 @@ from .utils import get_item_assignment, save_user_annotation_as_item, get_subvol
 
 @access.public
 @autoDescribeRoute(
-    Description('Get region assignment info for a given user.')
+    Description('Get assignment info for a given user.')
     .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
     .param('subvolume_id', 'subvolume id from which to get assignment', default='', required=False)
     .errorResponse()
@@ -21,18 +21,18 @@ def get_user_assign_info(user, subvolume_id):
 
 @access.public
 @autoDescribeRoute(
-    Description('Request to claim a region assignment checked out by another user.')
+    Description('Request to claim an assignment checked out by another user.')
     .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
     .param('subvolume_id', 'subvolume id that includes the region to be claimed from another owner',
            required=True)
-    .param('region_id', 'region id or label trying to claim from another user owner',
+    .param('claim_region_id', 'region id or label to find the assignment to be claimed',
            required=True)
     .errorResponse()
     .errorResponse('Request action was denied on the user.', 403)
     .errorResponse('Failed to claim the requested region', 500)
 )
-def claim_region_assignment(user, subvolume_id, region_id):
-    return claim_assignment(user, subvolume_id, region_id)
+def claim_region_assignment(user, subvolume_id, claim_region_id):
+    return claim_assignment(user, subvolume_id, claim_region_id)
 
 
 @access.public
@@ -170,6 +170,6 @@ class NinjatoPlugin(GirderPlugin):
         info['apiRoot'].system.route('GET', ('subvolume_ids',), get_subvolume_ids)
         info['apiRoot'].item.route('GET', (':id', 'subvolume_info'), get_subvolume_info)
         info['apiRoot'].item.route('GET', (':id', 'new_region_ids'), get_new_region_ids)
-        info['apiRoot'].item.route('GET', (':id', 'subvolume_region_info'), get_region_info)
+        info['apiRoot'].item.route('GET', (':id', 'subvolume_assignment_info'), get_region_info)
         info['apiRoot'].item.route('GET', (':id', 'available_items_for_review'),
                                    get_avail_items_for_review)
