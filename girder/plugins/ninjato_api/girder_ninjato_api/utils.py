@@ -340,7 +340,13 @@ def reject_assignment(user, item, whole_item, has_files, comment, task='annotati
     :return:
     """
     # reject the task
-    Item().deleteMetadata(whole_item, [str(user['_id'])])
+    uid = str(user['_id'])
+    assign_count = len(whole_item['meta'][uid])
+    if assign_count <= 1:
+        Item().deleteMetadata(whole_item, [uid])
+    else:
+        whole_item['meta'][uid].remove(str(item['_id']))
+        Item().save(whole_item)
     region_label = str(item['meta']['region_label'])
     # remove the user's assignment
     del whole_item['meta']['regions'][region_label][f"{task}_assigned_to"]

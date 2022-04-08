@@ -22,7 +22,10 @@ def get_user_assign_info(user, subvolume_id):
 
 @access.public
 @autoDescribeRoute(
-    Description('Request to claim an assignment checked out by another user.')
+    Description('Request to claim an annotation assignment that includes the region id label to '
+                'be claimed. If the region to be claimed in an assignment is already done or '
+                'currently assigned to another user, the claim action will fail; otherwise, '
+                'the region to be claimed will be successfully assigned to the user')
     .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
     .param('subvolume_id', 'subvolume id that includes the region to be claimed from another owner',
            required=True)
