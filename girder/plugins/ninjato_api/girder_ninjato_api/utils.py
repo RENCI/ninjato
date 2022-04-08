@@ -334,7 +334,7 @@ def reject_assignment(user, item, whole_item, has_files, comment, task='annotati
     :param task: "annotation" or "review" which is optional with default being annotation.
     :return:
     """
-    # reject the annotation
+    # reject the task
     Item().deleteMetadata(whole_item, [str(user['_id'])])
     region_label = str(item['meta']['region_label'])
     # remove the user's assignment
@@ -701,6 +701,51 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, added_reg
 
     return {
         'annotation_file_id': file['_id'],
+        'status': 'success'
+    }
+
+
+def save_user_review_result_as_item(user, item_id, reject, comment, approve):
+    """
+    save user review result
+    :param user: the review user
+    :param item_id: assignment item id to save review result for
+    :param reject: whether to reject the review assignment rather than save it.
+    :param comment: review comment added by the user
+    :param approve: whether to approve the annotation or not
+    :return: JSON response to indicate success or not
+    """
+    uid = user['_id']
+    uname = user['login']
+    item = Item().findOne({'_id': ObjectId(item_id)})
+    whole_item = Item().findOne({'folderId': ObjectId(item['folderId']),
+                                 'name': 'whole'})
+    if reject:
+        # reject the review assignment
+        reject_assignment(user, item, whole_item, False, comment, task='review')
+        return {
+            "status": "success"
+        }
+
+    add_meta = {'review_done': 'true'}
+
+    if comment:
+        add_meta[f'review_comment'] = comment
+
+    Item().setMetadata(item, add_meta)
+
+    del whole_item['meta'][str(uid)]
+    whole_item = Item().save(whole_item)
+    region_key = item['meta']['region_label']
+    info = {
+        'user': uname,
+        'timestamp': datetime.now().strftime("%m/%d/%Y %H:%M")
+    }
+    add_meta_to_region(whole_item, region_key, 'review_completed_by', info)
+    # check if all regions for the partition is done, and if so add done metadata to whole item
+    check_subvolume_done(whole_item, task='review')
+
+    return {
         'status': 'success'
     }
 

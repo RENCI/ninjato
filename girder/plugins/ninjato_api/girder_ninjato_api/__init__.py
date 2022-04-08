@@ -4,7 +4,8 @@ from girder.api.describe import Description, autoDescribeRoute
 from girder.constants import AccessType
 from .utils import get_item_assignment, save_user_annotation_as_item, get_subvolume_item_ids, \
     get_subvolume_item_info, get_region_or_assignment_info, get_available_region_ids, \
-    claim_assignment, request_assignment, get_all_avail_items_for_review
+    claim_assignment, request_assignment, get_all_avail_items_for_review, \
+    save_user_review_result_as_item
 
 
 @access.public
@@ -61,9 +62,9 @@ def request_region_assignment(user, subvolume_id, region_id):
     .param('item_id', 'The item ID to save user annotation for', required=True)
     .param('done', 'A boolean True or False to indicate whether the annotation is done',
            dataType='boolean', default=False, required=False)
-    .param('reject', 'A boolean True or False to indicate whether the annotation should be '
-                     'rejected. If set to False, annotation will be saved. The default is False.',
-           dataType='boolean', default=False, required=False)
+    .param('reject', 'A boolean True or False to indicate whether the user wants to reject '
+                     'annotation assignment. If set to False, annotation will be saved. '
+                     'The default is False.', dataType='boolean', default=False, required=False)
     .param('comment', 'annotation comment added by the user', default='', required=False)
     .param('added_region_ids', 'list of region ids to be added. Make sure the list does not '
                                'include the ids of regions in the assignment', dataType=list,
@@ -83,6 +84,22 @@ def save_user_annotation(user, item_id, done, reject, comment, added_region_ids,
                          content_data):
     return save_user_annotation_as_item(user, item_id, done, reject, comment, added_region_ids,
                                         removed_region_ids, content_data)
+
+
+@access.public
+@autoDescribeRoute(
+    Description('Save user review result')
+    .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
+    .param('item_id', 'The assignment item ID to save user review result for', required=True)
+    .param('reject', 'A boolean True or False to indicate whether the user wants to reject review '
+                     'assignment. If set to False, review result will be saved. '
+                     'The default is False.', dataType='boolean', default=False, required=False)
+    .param('comment', 'review comment added by the user', default='', required=False)
+    .param('approve', 'A boolean True or False to indicate whether the review user approves '
+                      'the annotation', dataType='boolean', required=True)
+)
+def save_user_review_result(user, item_id, reject, comment, approve):
+    return save_user_review_result_as_item(user, item_id, reject, comment, approve)
 
 
 @access.public
