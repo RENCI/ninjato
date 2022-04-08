@@ -595,9 +595,12 @@ def get_item_assignment(user, subvolume_id):
             continue
         # if a region is rejected by the user, continue to check another region
         if 'annotation_rejected_by' in val:
+            is_rejected = False
             for reject_dict in val['annotation_rejected_by']:
                 if reject_dict['user'] == str(user['login']):
-                    continue
+                    is_rejected = True
+            if is_rejected:
+                continue
 
         if 'annotation_assigned_to' not in val:
             # this region can be assigned to a user
