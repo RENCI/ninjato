@@ -66,13 +66,11 @@ def request_region_assignment(user, subvolume_id, region_id):
                      'annotation assignment. If set to False, annotation will be saved. '
                      'The default is False.', dataType='boolean', default=False, required=False)
     .param('comment', 'annotation comment added by the user', default='', required=False)
-    .param('added_region_ids', 'list of region ids to be added. Make sure the list does not '
-                               'include the ids of regions in the assignment', dataType=list,
-           default=[],
-           required=False)
-    .param('removed_region_ids', 'list of region ids to be removed', dataType=list,
-           default=[],
-           required=False)
+    .jsonParam('added_region_ids', 'list of region ids to be added. Make sure the list does not '
+                               'include the ids of regions in the assignment', required=False,
+               requireArray=True, paramType='formData')
+    .jsonParam('removed_region_ids', 'list of region ids to be removed', required=False,
+               requireArray=True, paramType='formData')
     .param('content_data', 'annotation content blob data to be saved on server. If reject is False'
                            ' this content_data needs to be saved',
            required=False, paramType='formData')
@@ -82,6 +80,10 @@ def request_region_assignment(user, subvolume_id, region_id):
 )
 def save_user_annotation(user, item_id, done, reject, comment, added_region_ids, removed_region_ids,
                          content_data):
+    if added_region_ids is None:
+        added_region_ids = []
+    if removed_region_ids is None:
+        removed_region_ids = []
     return save_user_annotation_as_item(user, item_id, done, reject, comment, added_region_ids,
                                         removed_region_ids, content_data)
 

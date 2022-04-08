@@ -45,17 +45,20 @@ def get_available_region_ids(whole_item, count=1):
         id_list_cnt = len(id_list)
         if id_list_cnt == count:
             whole_item['meta']['removed_region_ids'] = []
+            Item().save(whole_item)
             return id_list
         if id_list_cnt > count:
             whole_item['meta']['removed_region_ids'] = id_list_cnt[count:]
+            Item().save(whole_item)
             return id_list[:count]
         # id_list_cnt < count, so append more available ids
         whole_item['meta']['removed_region_ids'] = []
-        id_list.extend([max_id + i for i in range(count - id_list_cnt)])
+        Item().save(whole_item)
+        id_list.extend([max_id + 1 + i for i in range(count - id_list_cnt)])
         _set_max_region_id(whole_item, max_id + count - id_list_cnt)
         return id_list
 
-    id_list = [max_id + i for i in range(count)]
+    id_list = [max_id + 1 + i for i in range(count)]
     _set_max_region_id(whole_item, max_id + count)
     return id_list
 
@@ -228,7 +231,7 @@ def _create_region(region_key, whole_item, extent_dict):
     }
     Item().setMetadata(region_item, add_meta)
 
-    _create_region_files(region_item, whole_item, extent_dict)
+    _create_region_files(region_item, whole_item)
 
     return region_item
 
@@ -307,9 +310,9 @@ def check_subvolume_done(whole_item, task='annotation'):
 
 def add_meta_to_region(item, label, key, val):
     """
-    add meta to region item with val added as a list so that if key already exists, val is
+    add meta to whole item metadata regions key with val added as a list so that if key already exists, val is
     appended to the existing value list
-    :param item: item to add metadata to
+    :param item: whole subvolume item to add metadata to
     :param label: region label
     :param key: key to add as metadata
     :param val: value to add corresponding to key as key-value metadata
@@ -318,7 +321,9 @@ def add_meta_to_region(item, label, key, val):
     if key not in item['meta']['regions'][label]:
         item['meta']['regions'][label][key] = [val]
     else:
-        item['meta']['regions'][label][key].append(val)
+        key_val = item['meta']['regions'][label][key]
+        key_val.append(val)
+        item['meta']['regions'][label][key] = key_val
     Item().save(item)
     return
 
@@ -367,7 +372,9 @@ def _set_assignment_meta(whole_item, user, region_key, region_item_id, review=Fa
     # since a user can claim another region, user id metadata on whole_item is a list
     user_id = str(user['_id'])
     if user_id in whole_item['meta']:
-        add_meta = {user_id: whole_item['meta'][str(user['_id'])].append(region_item_id)}
+        item_list = whole_item['meta'][str(user['_id'])]
+        item_list.append(region_item_id)
+        add_meta = {user_id: item_list}
     else:
         add_meta = {user_id: [region_item_id]}
     Item().setMetadata(whole_item, add_meta)
@@ -499,7 +506,7 @@ def request_assignment(user, subvolume_id, region_id):
             ret_dict['assigned_item_id'] = val['item_id']
             return ret_dict
 
-        if annot_done_key:
+        if annot_done_key in val:
             # annotation is done, ready for review
             # assign this item for review
             _set_assignment_meta(whole_item, user, region_id_str, val['item_id'], review=True)
@@ -905,7 +912,8 @@ def get_region_or_assignment_info(item, region_label):
             'review_rejected_by': ''
         }
 
-    if region_label_str in item['meta']['removed_region_ids']:
+    if 'removed_region_ids' in item['meta'] and \
+        region_label_str in item['meta']['removed_region_ids']:
         ret_dict['merged'] = True
         ret_dict['split'] = False
         return ret_dict
