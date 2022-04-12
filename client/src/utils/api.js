@@ -52,6 +52,25 @@ export const api = {
 
     return response.data;
   },
+  getVolumes: async () => {
+    const response = await axios.get('/system/subvolume_ids');
+
+    const volumes = [];
+    for (const id of response.data.ids) {
+      const infoResponse = await axios.get(`/item/${ id }/subvolume_info`);
+
+      // Copy info and rename to be more concise
+      volumes.push({
+        id: infoResponse.data.item_id,
+        description: infoResponse.data.item_description,
+        total: infoResponse.data.total_regions,
+        active: infoResponse.data.total_regions_at_work,
+        completed: infoResponse.data.total_regions_done,
+      });      
+    }
+
+    return volumes;
+  },
   getAssignment: async id => {
     const assignmentResponse = await axios.get(`/user/${ id }/assignment`);
 
