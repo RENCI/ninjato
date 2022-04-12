@@ -26,7 +26,7 @@ export const LoginForm = () => {
   const onSubmit = async () => {
     const { username, password } = values;
 
-    closeModal();
+    setErrorMessage();
 
     try {
       const user = await api.login(username, password);
@@ -41,6 +41,8 @@ export const LoginForm = () => {
       });
 
       getAssignment(id);
+
+      closeModal();
     }
     catch (error) {
       console.log(error);      
