@@ -13,8 +13,8 @@ export const LoginForm = () => {
   const [open, openModal, closeModal] = useModal();
   const getAssignment = useGetAssignment();
   const [values, setValues] = useState({
-    username: null,
-    password: null
+    username: '',
+    password: ''
   });
   const [errorMessage, setErrorMessage] = useState(null);
 
@@ -72,14 +72,25 @@ export const LoginForm = () => {
           error 
           onSubmit={ onSubmit }
         >
-          <Form.Input label='Login or email' name='username' onChange={ onChange } />
-          <Form.Input label='Password' type='password' name='password' onChange={ onChange } />
+          <Form.Input 
+            label='Login or email' 
+            name='username' 
+            onChange={ onChange } 
+          />
+          <Form.Input 
+            label='Password' 
+            type='password' 
+            name='password' 
+            onChange={ onChange } 
+          />
           <Message
             error
             content={ errorMessage }
           />
           <div className={ styles.hide }>
-            <Button content='Submit' />
+            <Button>
+              Submit
+            </Button>
           </div>
         </AutoFocusForm>
       </Content>
@@ -87,7 +98,11 @@ export const LoginForm = () => {
         <Button onClick={ closeModal }>
           Cancel
         </Button>
-        <Button primary onClick={ onSubmit }>
+        <Button 
+          primary 
+          disabled={ values.username === '' || values.password === ''}
+          onClick={ onSubmit }
+        >
           Log in
         </Button>
       </Actions>
