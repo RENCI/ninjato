@@ -12,6 +12,8 @@ export const Volume = ({ volume }) => {
   const available = total - active - completed;
 
   const onLoadClick = () => {
+    console.log(volume);
+
     userDispatch({ type: SET_ASSIGNMENT_TYPE, assignmentType: "refine" });
     loadData(assignment, volume.stage);
   };
@@ -24,39 +26,43 @@ export const Volume = ({ volume }) => {
       secondary={ !enabled }
       raised={ enabled }
     >
-      <List divided relaxed>
-        <List.Item>
-          Description: 
+      <List relaxed>
+        <List.Item> 
           <div className={ styles.volumeDescription }>
-            { description }
+            { description ? description : "No description" }
           </div>
         </List.Item>
         <List.Item>
-          Progress:
-          <Progress           
+          <Progress
+            className={ styles.progressBar }
             percent={ Math.round(completed / total * 100) } 
             progress="percent" 
             color="blue"
           />
         </List.Item>
+        <List.Item>          
+          <div>Assignments</div>
+          <Segment.Group piled className={ styles.assignmentList }>
+            <Segment color="teal">
+              <span className={ styles.number }>
+                { available }
+              </span> available
+            </Segment>
+            <Segment color="green">
+              <span className={ styles.number }>
+                { active }
+              </span> active
+            </Segment>
+            <Segment color="grey">
+              <span className={ styles.number }>
+                { completed }
+              </span> completed
+            </Segment>
+          </Segment.Group>
+        </List.Item>
         <List.Item>
-          Assignments:
-          <div className={ styles.assignment }>
-            <span className={ styles.number }>
-              { available }
-            </span> available
-          </div>
-          <div className={ styles.assignment }>
-            <span className={ styles.number }>
-              { active }
-            </span> active
-          </div>
-          <div className={ styles.assignment }>
-            <span className={ styles.number }>
-              { completed }
-            </span> completed
-          </div>
           <Button 
+            className={ styles.loadButton }
             primary 
             disabled={ !enabled }
             onClick={ onLoadClick }
