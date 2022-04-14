@@ -1,5 +1,5 @@
 import { useContext, useState } from 'react';
-import { Button, Form, Menu, Message, Modal } from 'semantic-ui-react';
+import { Modal, Button, Form, Menu, Message } from 'semantic-ui-react';
 import { LOGIN, UserContext } from 'contexts';
 import { AutoFocusForm } from 'modules/common/components/auto-focus-form';
 import { api } from 'utils/api';
@@ -7,6 +7,7 @@ import { useModal, useGetAssignment } from 'hooks';
 import styles from './styles.module.css';
 
 const { Header, Content, Actions } = Modal;
+const { Input } = Form;
 
 export const LoginForm = () => {
   const [, userDispatch] = useContext(UserContext);
@@ -72,17 +73,8 @@ export const LoginForm = () => {
           error 
           onSubmit={ onSubmit }
         >
-          <Form.Input 
-            label='Login or email' 
-            name='username' 
-            onChange={ onChange } 
-          />
-          <Form.Input 
-            label='Password' 
-            type='password' 
-            name='password' 
-            onChange={ onChange } 
-          />
+          <Input label='Login or email' name='username' onChange={ onChange } />
+          <Input label='Password' type='password' name='password' onChange={ onChange } />
           <Message
             error
             content={ errorMessage }
