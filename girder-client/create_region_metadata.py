@@ -63,7 +63,8 @@ if __name__ == '__main__':
             levels = imarray[np.nonzero(imarray)]
             min_level = min(levels)
             max_level = max(levels)
-            meta_dict = {'regions': {}}
+            meta_dict = {'regions': {},
+                         'max_region_id': max_level}
             for lev in range(min_level, max_level+1):
                 level_indices = np.where(imarray == lev)
                 z_min = min(level_indices[0])
