@@ -296,13 +296,23 @@ def check_subvolume_done(whole_item, task='annotation'):
     :return: True or False indicating whether all regions in the subvolume are all done or not
     """
     vol_done = True
+    if task == 'review':
+        vol_approved = True
     for key, val in whole_item['meta']['regions'].items():
         if f'{task}_completed_by' not in val:
             vol_done = False
+            if task == 'review':
+                vol_approved = False
             break
-
+        if task == 'review' and 'review_approved' in val and val['review_approved'] == 'false':
+            vol_approved = False
     if vol_done:
         add_meta = {f'{task}_done': 'true'}
+        if task == 'review':
+            if vol_approved:
+                add_meta['review_approved'] = 'true'
+            else:
+                add_meta['review_approved'] = 'false'
         Item().setMetadata(whole_item, add_meta)
         Item().save(whole_item)
     return vol_done
@@ -310,8 +320,8 @@ def check_subvolume_done(whole_item, task='annotation'):
 
 def add_meta_to_region(item, label, key, val):
     """
-    add meta to whole item metadata regions key with val added as a list so that if key already exists, val is
-    appended to the existing value list
+    add meta to whole item metadata regions key with val added as a list so that
+    if key already exists, val is appended to the existing value list
     :param item: whole subvolume item to add metadata to
     :param label: region label
     :param key: key to add as metadata
@@ -507,6 +517,11 @@ def request_assignment(user, subvolume_id, region_id):
         review_done_key = 'review_completed_by'
         if annot_done_key in val and review_done_key in val:
             ret_dict['status'] = 'failure'
+            if val['review_approved'] == 'false':
+                for annot_info in val[annot_done_key]:
+                    if user['login'] == annot_info['user']:
+                        ret_dict['status'] = 'success'
+                        break
             ret_dict['annotation_user_info'] = val[annot_done_key]
             ret_dict['review_user_info'] = val[review_done_key]
             ret_dict['assigned_item_id'] = val['item_id']
@@ -550,47 +565,59 @@ def request_assignment(user, subvolume_id, region_id):
 
 def get_item_assignment(user, subvolume_id):
     """
-    get region assignment in a subvolume for annotation task
+    get region assignment in a subvolume for annotation task. If user has multiple active
+    assignments, all active assignments will be returned. If subvolume_id is empty, all active
+    assignments across all subvolumes will be returned; otherwise, only active assignments in
+    the specified subvolume is returned.
     :param user: requesting user to get assignment for
-    :param subvolume_id: requesting subvolume id
-    :return: assigned region id and label or empty if no assignment is available
+    :param subvolume_id: requesting subvolume id if not empty; otherwise, all subvolumes will be
+    considered
+    :return: list of assigned region ids and labels or empty if no assignment is available
     """
+    ret_dict = {
+        'item_ids': []
+    }
     if user['login'] == 'admin':
-        return {
-            'user_id': user['_id'],
-            'item_id': ''
-            }
-    done_key = 'annotation_completed_by'
+        return ret_dict
+
+    id_list = []
+    filtered_id_list = []
     if not subvolume_id:
         subvolume_ids = get_subvolume_item_ids()
-        subvolume_id = subvolume_ids[0]['id']
-    whole_item = Item().findOne({'_id': ObjectId(subvolume_id)})
-    if done_key in whole_item['meta'] and whole_item['meta'][done_key] == 'true':
-        # if the subvolume is done, return empty assignment
-        return {
-            'user_id': user['_id'],
-            'item_id': '',
-            'region_label': ''
-        }
+        for id_item in subvolume_ids:
+            id_list.append(id_item['id'])
+    else:
+        id_list.append(subvolume_id)
 
-    # when a region is selected, the user id is added to whole item meta as a key with a value of
-    # item id for easy check whether a region is checked out by the user
-    # check whether a region has already been assigned to the user
-    if str(user['_id']) in whole_item['meta']:
-        # there is already a region checked out by this user, return it
-        it_id = whole_item['meta'][str(user['_id'])][0]
-        it = Item().findOne({'_id': ObjectId(it_id)})
-        return {
-            'user_id': user['_id'],
-            'item_id': it_id,
-            'region_label': it['meta']['region_label']
-        }
-    assigned_region_label = ''
+    uid = str(user['_id'])
+    annot_done_key = 'annotation_done'
+    review_approved_key = 'review_approved'
+    for sub_id in id_list:
+        whole_item = Item().findOne({'_id': ObjectId(sub_id)})
+        if uid in whole_item['meta']:
+            item_list = ret_dict['item_ids']
+            item_list.append(whole_item['meta'][uid])
+            ret_dict['item_ids'] = item_list
+            continue
+        if review_approved_key in whole_item['meta'] and \
+            whole_item['meta'][review_approved_key] == 'true':
+            continue
+        filtered_id_list.append(sub_id)
+
+    if ret_dict['item_ids']:
+        return ret_dict
+
+    # this user has no active assignment, assign a new region to the user
+    if not filtered_id_list:
+        return ret_dict
+
+    sub_id = filtered_id_list[0]
+    whole_item = Item().findOne({'_id': ObjectId(sub_id)})
     assigned_region_id = None
     # no region has been assigned to the user yet, look into the whole partition
     # item to find a region for assignment
     for key, val in whole_item['meta']['regions'].items():
-        if done_key in val:
+        if annot_done_key in val:
             # if a region is done, continue to check another region
             continue
         # if a region is rejected by the user, continue to check another region
@@ -610,18 +637,9 @@ def get_item_assignment(user, subvolume_id):
             break
 
     if assigned_region_id:
-        return {
-            'user_id': user['_id'],
-            'item_id': assigned_region_id,
-            'region_label': assigned_region_label
-        }
-    else:
-        # there is no item left to assign to this user
-        return {
-            'user_id': user['_id'],
-            'item_id': '',
-            'region_label': ''
-        }
+        ret_dict['item_ids'] = [assigned_region_id]
+
+    return ret_dict
 
 
 def save_user_annotation_as_item(user, item_id, done, reject, comment, added_region_ids,
@@ -746,7 +764,12 @@ def save_user_review_result_as_item(user, item_id, reject, comment, approve):
     add_meta = {'review_done': 'true'}
 
     if comment:
-        add_meta[f'review_comment'] = comment
+        add_meta['review_comment'] = comment
+
+    if approve:
+        add_meta['review_approved'] = 'true'
+    else:
+        add_meta['review_approved'] = 'false'
 
     Item().setMetadata(item, add_meta)
 
@@ -761,6 +784,18 @@ def save_user_review_result_as_item(user, item_id, reject, comment, approve):
     # check if all regions for the partition is done, and if so add done metadata to whole item
     check_subvolume_done(whole_item, task='review')
 
+    if not approve:
+        # update user key with annotation user to get disapproved assignment back to the user
+        uname = whole_item['meta']['regions'][region_key]['annotation_completed_by'][0]['user']
+        annot_user = User().findOne({'login': uname})
+        annot_uid = str(annot_user['_id'])
+        if annot_uid in whole_item['meta']:
+            item_list = whole_item['meta'][annot_uid]
+            item_list.append(item_id)
+            add_meta = {annot_uid: item_list}
+        else:
+            add_meta = {annot_uid: [item_id]}
+        Item().setMetadata(whole_item, add_meta)
     return {
         'status': 'success'
     }
@@ -821,8 +856,10 @@ def get_subvolume_item_info(item):
     }
     annot_done_key = 'annotation_done'
     review_done_key = 'review_done'
+    review_approved_key = 'review_approved'
     annot_done = False
     review_done = False
+    review_approved = False
     if annot_done_key in item['meta'] and item['meta'][annot_done_key] == 'true':
         ret_dict['total_annotation_completed_regions'] = total_regions
         ret_dict['total_annotation_active_regions'] = 0
@@ -833,9 +870,13 @@ def get_subvolume_item_info(item):
         ret_dict['total_review_active_regions'] = 0
         ret_dict['total_review_available_regions'] = 0
         review_done = True
+    if review_approved_key in item['meta'] and item['meta'][review_approved_key] == 'true':
+        ret_dict['total_review_approved_regions'] = total_regions
+        review_approved = True
 
     total_regions_done = 0
     total_regions_at_work = 0
+    total_regions_review_approved = 0
     regions_rejected = []
     annot_completed_key = 'annotation_completed_by'
     review_completed_key = 'review_completed_by'
@@ -861,14 +902,22 @@ def get_subvolume_item_info(item):
                     val[annot_completed_key] == 'true' and 'review_assigned_to' in val:
                 # annotation is done but review is not done and a user is reviewing currently
                 total_reviewed_regions_at_work += 1
+        if not review_approved:
+            if review_approved_key in val and val[review_approved_key] == 'true':
+                total_regions_review_approved += 1
 
     ret_dict['rejected_regions'] = regions_rejected
+    if annot_done and review_done and review_approved:
+        return ret_dict
     if annot_done and review_done:
+        # annotation and review are done but not all reviewed regions are approved
+        ret_dict['total_review_approved_regions'] = total_regions_review_approved
         return ret_dict
     if annot_done:
         # annotation is done, but review is not done
         ret_dict['total_review_completed_regions'] = total_reviewed_regions_done
         ret_dict['total_review_active_regions'] = total_reviewed_regions_at_work
+        ret_dict['total_review_approved_regions'] = total_regions_review_approved
         ret_dict['total_review_available_regions'] = total_regions - total_reviewed_regions_done - \
             total_reviewed_regions_at_work
         return ret_dict
@@ -879,6 +928,7 @@ def get_subvolume_item_info(item):
     ret_dict['total_annotation_available_regions'] = total_regions - total_regions_done - \
         total_regions_at_work
     ret_dict['total_review_completed_regions'] = total_reviewed_regions_done
+    ret_dict['total_review_approved_regions'] = total_regions_review_approved
     ret_dict['total_review_active_regions'] = total_reviewed_regions_at_work
     ret_dict['total_review_available_regions'] = total_regions - total_reviewed_regions_done - \
         total_reviewed_regions_at_work
