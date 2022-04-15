@@ -26,7 +26,7 @@ export const DeclineButton = ({ disabled }) => {
         setSuccess(false);
         openModal(false);
 
-        getAssignment(id);
+        //getAssignment(id);
         dataDispatch({ type: CLEAR_DATA });
       }, 1000);
     }

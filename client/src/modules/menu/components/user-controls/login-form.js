@@ -41,7 +41,7 @@ export const LoginForm = () => {
         admin: user.admin
       });
 
-      getAssignment(id);
+      //getAssignment(id);
 
       closeModal();
     }

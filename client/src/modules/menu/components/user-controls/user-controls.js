@@ -31,7 +31,7 @@ export const UserControls = () => {
             admin: user.admin
           });
 
-          getAssignment(id);
+          //getAssignment(id);
         }
       }
       catch (error) {

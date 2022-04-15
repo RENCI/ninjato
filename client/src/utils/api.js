@@ -55,9 +55,13 @@ export const api = {
   getVolumes: async () => {
     const response = await axios.get('/system/subvolume_ids');
 
+    console.log(response);
+
     const volumes = [];
-    for (const id of response.data.ids) {
-      const infoResponse = await axios.get(`/item/${ id }/subvolume_info`);
+    for (const volume of response.data) {
+      const infoResponse = await axios.get(`/item/${ volume.id }/subvolume_info`);
+
+      console.log(infoResponse);
 
       // Copy info and rename to be more concise
       volumes.push({
@@ -71,8 +75,12 @@ export const api = {
 
     return volumes;
   },
-  getAssignment: async id => {
-    const assignmentResponse = await axios.get(`/user/${ id }/assignment`);
+  getAssignments: async userId => {
+    const response = await axios.get(`/user/${ userId }/assignment`);
+
+    console.log(response);
+
+    /*
 
     const itemId = assignmentResponse.data.item_id;
     const label = +assignmentResponse.data.region_label;
@@ -92,6 +100,19 @@ export const api = {
       maskId: maskInfo._id,
       label: label
     };
+    */
+  },
+  getNewAssignment: async (userId, volumeId) => {
+    const response = await axios.get(`/user/${ userId }/assignment`,
+      null,
+      {
+        params: {
+          subvolume_id: volumeId
+        }
+      }
+    );
+
+    console.log(response);
   },
   declineAssignment: async (userId, itemId) => {
     await axios.post(`/user/${ userId }/annotation`,

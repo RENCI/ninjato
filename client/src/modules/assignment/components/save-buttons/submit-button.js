@@ -32,7 +32,7 @@ export const SubmitButton = ({ disabled }) => {
         dataDispatch({ type: CLEAR_DATA });
       }, 1000);
 
-      getAssignment(id);
+      //getAssignment(id);
     }
     catch (error) {
       console.log(error);        
