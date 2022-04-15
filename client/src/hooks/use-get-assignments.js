@@ -1,35 +1,35 @@
-import { useContext } from 'react';
+import { useContext, useCallback } from 'react';
 import { 
-  UserContext, SET_ASSIGNMENT,
-  ErrorContext, SET_ERROR 
+  UserContext, SET_ASSIGNMENTS, SET_VOLUMES,
+  ErrorContext, SET_ERROR
 } from 'contexts';
 import { api } from 'utils/api';
 
 export const useGetAssignments = () => {
   const [, userDispatch] = useContext(UserContext);
-  const [, errorDispatch] = useContext(ErrorContext);
+  const [{ error }, errorDispatch] = useContext(ErrorContext);
 
-  return async id => {
-    try {
-      const assignments = await api.getAssignments(id);      
+  return useCallback(async id => {
+    if (!error) {
+      try {
+        const assignments = await api.getAssignments(id);
+        const volumes = await api.getVolumes();
 
-      console.log(assignments);
+        userDispatch({
+          type: SET_ASSIGNMENTS,
+          assignments: assignments
+        });
 
-      const volumes = await api.getVolumes();
+        userDispatch({
+          type: SET_VOLUMES,
+          volumes: volumes
+        });      
+      }
+      catch (error) {
+        console.log(error);
 
-      console.log(volumes);
-
-      /*
-      userDispatch({
-        type: SET_ASSIGNMENT,
-        assignment: assignment
-      });
-      */
+        errorDispatch({ type: SET_ERROR, error: error });
+      }      
     }
-    catch (error) {
-      console.log(error);
-
-      errorDispatch({ type: SET_ERROR, error: error });
-    }      
-  };
+  }, [error, userDispatch, errorDispatch]);
 };

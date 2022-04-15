@@ -3,6 +3,7 @@ import { createContext, useReducer } from "react";
 export const LOGIN = 'user/LOGIN';
 export const LOGOUT = 'user/LOGOUT';
 export const SET_VOLUMES = 'user/SET_VOLUMES';
+export const SET_ASSIGNMENTS = 'user/SET_ASSIGNMENTS';
 export const SET_ASSIGNMENT = 'user/SET_ASSIGNMENT';
 export const SET_ASSIGNMENT_TYPE = 'user/SET_ASSIGNMENT_TYPE';
 
@@ -10,7 +11,8 @@ const initialState = {
   id: null,
   admin: false,
   login: null,
-  volumes: [], 
+  volumes: null,
+  assignments: null, 
   assignment: null
 };
 
@@ -37,6 +39,12 @@ const reducer = (state, action) => {
         ...state,
         volumes: action.volumes
       }
+
+    case SET_ASSIGNMENTS:
+      return {
+        ...state,
+        assignments: action.assignments
+      };
 
     case SET_ASSIGNMENT:
       return {

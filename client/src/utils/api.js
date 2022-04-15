@@ -11,7 +11,7 @@ const getCookie = name => {
 
 const fileUrl = id => `/file/${ id }/download`;
 
-const convertDate = date => date + "Z";
+const convertDate = date => new Date(date);
 
 // API
 
@@ -75,6 +75,7 @@ export const api = {
         name: data.name,
         description: data.description,
         location: {...data.location},
+        numRegions: data.total_regions,
         annotations: {
           active: data.total_annotation_active_regions,
           available: data.total_annotation_available_regions,

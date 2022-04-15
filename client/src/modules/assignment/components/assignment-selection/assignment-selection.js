@@ -1,55 +1,35 @@
 import { useContext, useEffect } from 'react';
-import { Grid } from 'semantic-ui-react';
-import { 
-  UserContext, SET_VOLUMES,
-  ErrorContext, SET_ERROR 
-} from 'contexts';
+import { Dimmer, Loader } from 'semantic-ui-react';
+import { UserContext } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
-import { Volume } from './volume';
+import { Assignments } from 'modules/assignment/components/assignments';
+import { Volumes } from 'modules/assignment/components/volumes';
 import { useGetAssignments } from 'hooks';
-import { api } from 'utils/api';
-
-const { Column } = Grid;
+import styles from './styles.module.css';
 
 export const AssignmentSelection = () => {
-  const [{ id, login, volumes }, userDispatch] = useContext(UserContext);
-  const [{ error }] = useContext(ErrorContext);
+  const [{ id, assignments, volumes }] = useContext(UserContext);
   const getAssignments = useGetAssignments();
 
   useEffect(() => {    
-    if (id && !error) getAssignments(id);
-/*    
-    const getVolumes = async () => {
-      try {
-        const volumes = await api.getVolumes();
-
-        userDispatch({ type: SET_VOLUMES, volumes: volumes });
-      }
-      catch (error) {
-        console.log(error);
-
-        errorDispatch({ type: SET_ERROR, error: error });
-      }
-    };
-
-    getVolumes();
-*/    
-  }, [id, error, getAssignments]);
+    if (id) getAssignments(id);    
+  }, [id, getAssignments]);
 
   return (
     <>
-      { login &&
+      { !(assignments && volumes) ?
+        <Dimmer active>
+          <Loader>Loading</Loader>
+        </Dimmer>  
+      :
         <>
           <AssignmentMessage>
             Select assignment
           </AssignmentMessage>
-          <Grid centered padded stretched doubling columns={ 4 }>
-            { volumes.map((volume, i) => (
-              <Column key={ i }>
-                <Volume volume={ volume } />
-              </Column>
-            ))}
-          </Grid>
+          <div className={ styles.container }>
+            <Assignments />
+            <Volumes />
+          </div>
         </>
       }
     </>

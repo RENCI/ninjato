@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { Segment, List, Button, Progress } from 'semantic-ui-react';
+import { Segment, Header, Button, Progress } from 'semantic-ui-react';
 import { SET_ASSIGNMENT_TYPE, UserContext } from 'contexts';
 import { useGetAssignments, useLoadData } from 'hooks';
 import styles from './styles.module.css';
@@ -9,8 +9,10 @@ export const Volume = ({ volume }) => {
   const loadData = useLoadData();
   const getAssignment = useGetAssignments();
 
-  const { description, total, active, completed } = volume;
-  const available = total - active - completed;
+  console.log(volume);
+
+  const { name, description, numRegions, annotations } = volume;
+  const { active, available, completed } = annotations;
 
   const onLoadClick = () => {
     console.log(volume);
@@ -29,42 +31,55 @@ export const Volume = ({ volume }) => {
       color={ enabled ? 'blue' : null } 
       secondary={ !enabled }
       raised={ enabled }
+      className={ styles.volume }
     >
-      <List relaxed>
-        <List.Item> 
-          <div className={ styles.volumeDescription }>
-            { description ? description : "No description" }
-          </div>
-        </List.Item>
-        <List.Item>
+      <div>
+        <div> 
+          <Header 
+            as='h5'
+            dividing
+            content={ name }
+            subheader={ description ? description : "No description" }
+          />
+        </div>
+        <div>
           <Progress
             className={ styles.progressBar }
-            percent={ Math.round(completed / total * 100) } 
+            percent={ Math.round(completed / numRegions * 100) } 
             progress="percent" 
             color="blue"
           />
-        </List.Item>
-        <List.Item>          
+        </div>
+        <div>          
           <div>Assignments</div>
           <Segment.Group piled className={ styles.assignmentList }>
-            <Segment color="teal">
+            <Segment 
+              color="teal"
+              secondary={ !enabled }
+            >
               <span className={ styles.number }>
                 { available }
               </span> available
             </Segment>
-            <Segment color="green">
+            <Segment 
+              color="green"
+              secondary={ !enabled }
+            >
               <span className={ styles.number }>
                 { active }
               </span> active
             </Segment>
-            <Segment color="grey">
+            <Segment 
+              color="grey"
+              secondary={ !enabled }
+            >
               <span className={ styles.number }>
                 { completed }
               </span> completed
             </Segment>
           </Segment.Group>
-        </List.Item>
-        <List.Item>
+        </div>
+        <div>
           <Button 
             className={ styles.loadButton }
             primary 
@@ -73,8 +88,8 @@ export const Volume = ({ volume }) => {
           >
             Load Assignment
           </Button>
-        </List.Item>
-      </List>
+        </div>
+      </div>
     </Segment>
   );  
 };
