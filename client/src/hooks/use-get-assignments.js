@@ -15,6 +15,10 @@ export const useGetAssignments = () => {
 
       console.log(assignments);
 
+      const volumes = await api.getVolumes();
+
+      console.log(volumes);
+
       /*
       userDispatch({
         type: SET_ASSIGNMENT,

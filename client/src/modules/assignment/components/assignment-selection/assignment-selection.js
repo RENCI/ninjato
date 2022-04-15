@@ -13,11 +13,11 @@ const { Column } = Grid;
 
 export const AssignmentSelection = () => {
   const [{ id, login, volumes }, userDispatch] = useContext(UserContext);
-  const [, errorDispatch] = useContext(ErrorContext);
+  const [{ error }] = useContext(ErrorContext);
   const getAssignments = useGetAssignments();
 
-  useEffect(() => {
-    if (id) getAssignments(id);
+  useEffect(() => {    
+    if (id && !error) getAssignments(id);
 /*    
     const getVolumes = async () => {
       try {
@@ -34,7 +34,7 @@ export const AssignmentSelection = () => {
 
     getVolumes();
 */    
-  }, [id, getAssignments]);
+  }, [id, error, getAssignments]);
 
   return (
     <>

@@ -1,5 +1,6 @@
 import axios from 'axios';
-import { AssignmentMessage } from 'modules/common/components/assignment-message';
+
+// API helper functions
 
 const getCookie = name => {
   const value = `; ${document.cookie}`;
@@ -9,6 +10,10 @@ const getCookie = name => {
 }
 
 const fileUrl = id => `/file/${ id }/download`;
+
+const convertDate = date => date + "Z";
+
+// API
 
 export const api = {
   checkLogin: async () => {
@@ -56,21 +61,32 @@ export const api = {
   getVolumes: async () => {
     const response = await axios.get('/system/subvolume_ids');
 
-    console.log(response);
-
     const volumes = [];
     for (const volume of response.data) {
       const infoResponse = await axios.get(`/item/${ volume.id }/subvolume_info`);
 
-      console.log(infoResponse);
+      const { data } = infoResponse;
+
+      console.log(data);
 
       // Copy info and rename to be more concise
       volumes.push({
-        id: infoResponse.data.item_id,
-        description: infoResponse.data.item_description,
-        total: infoResponse.data.total_regions,
-        active: infoResponse.data.total_regions_at_work,
-        completed: infoResponse.data.total_regions_done,
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        location: {...data.location},
+        annotations: {
+          active: data.total_annotation_active_regions,
+          available: data.total_annotation_available_regions,
+          completed: data.total_annotation_completed_regions
+        },
+        reviews: {
+          active: data.total_review_active_regions,
+          available: data.total_review_available_regions,
+          approved: data.total_review_approved_regions,
+          completed: data.total_review_completed_regions
+        },
+        rejected: data.rejected_regions
       });      
     }
 
@@ -79,35 +95,40 @@ export const api = {
   getAssignments: async userId => {
     const response = await axios.get(`/user/${ userId }/assignment`);
 
-    console.log(response);
-
+    const assignments = [];
     for (const itemId of response.data.item_ids) {
+      // Get assignment
       const itemResponse = await axios.get(`/item/${ itemId }/`);
 
-      console.log(itemResponse);
+      const { data } = itemResponse;
+
+      // Get files
+      const filesResponse = await axios.get(`/item/${ itemId }/files`);
+
+      const { imageInfo, maskInfo } = filesResponse.data.reduce((info, item) => {
+        item.name.includes('mask') ? info.maskInfo = item : info.imageInfo = item;
+        return info;
+      }, {});
+
+      const labels = [data.meta.region_label];
+      if (data.meta.added_region_ids) labels.concat(data.meta.added_region_ids);
+
+      // Copy info and rename to be more concise
+      assignments.push({
+        id: data._id,
+        name: data.name,
+        parentId: data.baseParentId,
+        description: data.description,
+        coordinates: {...data.meta.coordinates},
+        labels: labels.map(label => +label),
+        imageId: imageInfo._id,
+        maskId: maskInfo._id,
+        created: convertDate(data.created),
+        updated: convertDate(data.updated),
+      });
     }
 
-    /*
-
-    const itemId = assignmentResponse.data.item_id;
-    const label = +assignmentResponse.data.region_label;
-
-    if (!itemId) return null;
-
-    const filesResponse = await axios.get(`/item/${ itemId }/files`);
-
-    const { imageInfo, maskInfo } = filesResponse.data.reduce((info, item) => {
-      item.name.includes('mask') ? info.maskInfo = item : info.imageInfo = item;
-      return info;
-    }, {});
-
-    return {
-      itemId: itemId,
-      imageId: imageInfo._id,
-      maskId: maskInfo._id,
-      label: label
-    };
-    */
+    return assignments;
   },
   getNewAssignment: async (userId, volumeId) => {
     const response = await axios.get(`/user/${ userId }/assignment`,
