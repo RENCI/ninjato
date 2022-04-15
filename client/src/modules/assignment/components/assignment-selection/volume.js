@@ -1,13 +1,13 @@
 import { useContext } from 'react';
 import { Segment, List, Button, Progress } from 'semantic-ui-react';
 import { SET_ASSIGNMENT_TYPE, UserContext } from 'contexts';
-import { useGetAssignment, useLoadData } from 'hooks';
+import { useGetAssignments, useLoadData } from 'hooks';
 import styles from './styles.module.css';
 
 export const Volume = ({ volume }) => {
   const [{ assignment }, userDispatch] = useContext(UserContext);
   const loadData = useLoadData();
-  const getAssignment = useGetAssignment();
+  const getAssignment = useGetAssignments();
 
   const { description, total, active, completed } = volume;
   const available = total - active - completed;

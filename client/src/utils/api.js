@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { AssignmentMessage } from 'modules/common/components/assignment-message';
 
 const getCookie = name => {
   const value = `; ${document.cookie}`;
@@ -79,6 +80,12 @@ export const api = {
     const response = await axios.get(`/user/${ userId }/assignment`);
 
     console.log(response);
+
+    for (const itemId of response.data.item_ids) {
+      const itemResponse = await axios.get(`/item/${ itemId }/`);
+
+      console.log(itemResponse);
+    }
 
     /*
 

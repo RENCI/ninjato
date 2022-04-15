@@ -8,13 +8,13 @@ import {
 import { RegisterForm } from './register-form';
 import { LoginForm } from './login-form';
 import { api } from 'utils/api';
-import { useGetAssignment } from 'hooks';
+import { useGetAssignments } from 'hooks';
 
 export const UserControls = () => {
   const [{ login }, userDispatch] = useContext(UserContext);
   const [, dataDispatch] = useContext(DataContext);
   const navigate = useNavigate();
-  const getAssignment = useGetAssignment();
+  const getAssignment = useGetAssignments();
 
   useEffect(() => {
     const checkUserLogin = async () => {

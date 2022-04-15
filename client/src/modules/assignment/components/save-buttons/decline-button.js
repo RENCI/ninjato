@@ -1,7 +1,7 @@
 import { useContext, useState, useRef } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { UserContext, DataContext, CLEAR_DATA } from 'contexts';
-import { useModal, useGetAssignment } from 'hooks';
+import { useModal, useGetAssignments } from 'hooks';
 import { api } from 'utils/api';
 
 const { Header, Content, Actions } = Modal;
@@ -10,7 +10,7 @@ export const DeclineButton = ({ disabled }) => {
   const [{ id, assignment }] = useContext(UserContext);
   const [, dataDispatch] = useContext(DataContext);
   const [open, openModal, closeModal] = useModal();
-  const getAssignment = useGetAssignment();
+  const getAssignment = useGetAssignments();
   const [declining, setDeclining] = useState(false);
   const [success, setSuccess] = useState(false);
   const ref = useRef();

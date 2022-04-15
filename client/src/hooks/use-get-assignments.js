@@ -13,10 +13,14 @@ export const useGetAssignments = () => {
     try {
       const assignments = await api.getAssignments(id);      
 
+      console.log(assignments);
+
+      /*
       userDispatch({
         type: SET_ASSIGNMENT,
         assignment: assignment
       });
+      */
     }
     catch (error) {
       console.log(error);

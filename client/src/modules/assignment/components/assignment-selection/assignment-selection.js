@@ -4,17 +4,21 @@ import {
   UserContext, SET_VOLUMES,
   ErrorContext, SET_ERROR 
 } from 'contexts';
-import { AssignmentMessage } from 'modules/common/components/assignment-message'
+import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { Volume } from './volume';
+import { useGetAssignments } from 'hooks';
 import { api } from 'utils/api';
 
 const { Column } = Grid;
 
 export const AssignmentSelection = () => {
-  const [{ login, volumes }, userDispatch] = useContext(UserContext);
+  const [{ id, login, volumes }, userDispatch] = useContext(UserContext);
   const [, errorDispatch] = useContext(ErrorContext);
+  const getAssignments = useGetAssignments();
 
   useEffect(() => {
+    if (id) getAssignments(id);
+/*    
     const getVolumes = async () => {
       try {
         const volumes = await api.getVolumes();
@@ -29,7 +33,8 @@ export const AssignmentSelection = () => {
     };
 
     getVolumes();
-  }, [userDispatch, errorDispatch]);
+*/    
+  }, [id, getAssignments]);
 
   return (
     <>
