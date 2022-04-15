@@ -568,7 +568,11 @@ def get_item_assignment(user, subvolume_id):
     get region assignment in a subvolume for annotation task. If user has multiple active
     assignments, all active assignments will be returned. If subvolume_id is empty, all active
     assignments across all subvolumes will be returned; otherwise, only active assignments in
-    the specified subvolume is returned.
+    the specified subvolume is returned. If user does not have any active assignment. If
+    subvolume_id is empty and user does not have active assignment, empty list will be returned;
+    otherwise, if subvolume_id is set, active assignment for the user in the specified volume will
+    be returned or a new assignment in the specified volume will be returned if the user does not
+    have active assignment.
     :param user: requesting user to get assignment for
     :param subvolume_id: requesting subvolume id if not empty; otherwise, all subvolumes will be
     considered
@@ -605,12 +609,18 @@ def get_item_assignment(user, subvolume_id):
         filtered_id_list.append(sub_id)
 
     if ret_dict['item_ids']:
+        # return the user's active assignments
+        return ret_dict
+
+    if not ret_dict['item_ids'] and not subvolume_id:
+        # the user does not have active assignment, return empty list
+        return ret_dict
+
+    if not filtered_id_list:
+        # there is no available subvolumes to assign to the user, return empty list
         return ret_dict
 
     # this user has no active assignment, assign a new region to the user
-    if not filtered_id_list:
-        return ret_dict
-
     sub_id = filtered_id_list[0]
     whole_item = Item().findOne({'_id': ObjectId(sub_id)})
     assigned_region_id = None
