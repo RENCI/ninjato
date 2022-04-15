@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { Segment, Header, Button, Progress } from 'semantic-ui-react';
+import { Segment, Header, Button, Progress, Label } from 'semantic-ui-react';
 import { SET_ASSIGNMENT_TYPE, UserContext } from 'contexts';
 import { useGetAssignments, useLoadData } from 'hooks';
 import styles from './styles.module.css';
@@ -17,7 +17,7 @@ export const Volume = ({ volume }) => {
   const onLoadClick = () => {
     console.log(volume);
 
-    userDispatch({ type: SET_ASSIGNMENT_TYPE, assignmentType: "refine" });
+    userDispatch({ type: SET_ASSIGNMENT_TYPE, assignmentType: 'refine' });
 
     //loadData(volume);
 
@@ -37,47 +37,30 @@ export const Volume = ({ volume }) => {
         <div> 
           <Header 
             as='h5'
-            dividing
             content={ name }
-            subheader={ description ? description : "No description" }
+            subheader={ description ? description : 'No description' }
           />
         </div>
         <div>
           <Progress
             className={ styles.progressBar }
             percent={ Math.round(completed / numRegions * 100) } 
-            progress="percent" 
-            color="blue"
+            progress='percent' 
+            color='blue'
+            active={ active > 0 }
           />
         </div>
         <div>          
-          <div>Assignments</div>
-          <Segment.Group piled className={ styles.assignmentList }>
-            <Segment 
-              color="teal"
-              secondary={ !enabled }
-            >
-              <span className={ styles.number }>
-                { available }
-              </span> available
-            </Segment>
-            <Segment 
-              color="green"
-              secondary={ !enabled }
-            >
-              <span className={ styles.number }>
-                { active }
-              </span> active
-            </Segment>
-            <Segment 
-              color="grey"
-              secondary={ !enabled }
-            >
-              <span className={ styles.number }>
-                { completed }
-              </span> completed
-            </Segment>
-          </Segment.Group>
+          <Header 
+            as='h5' 
+            className={ styles.assignmentsHeader }
+            content='Assignments' 
+          />
+          <div className={ styles.labels }>
+            <Label basic color='blue' content='Available' detail={ available } />
+            <Label basic color='green' content='Active' detail={ active } />
+            <Label basic color='grey' content='Completed' detail={ completed } />
+          </div>
         </div>
         <div>
           <Button 
@@ -86,7 +69,7 @@ export const Volume = ({ volume }) => {
             disabled={ !enabled }
             onClick={ onLoadClick }
           >
-            Load Assignment
+            Load assignment
           </Button>
         </div>
       </div>

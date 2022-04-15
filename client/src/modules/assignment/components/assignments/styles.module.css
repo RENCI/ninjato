@@ -1,13 +1,15 @@
 .container {
   display: flex;
   flex-wrap: wrap;
-  margin: 2em;
   justify-content: flex-start;
   align-items: stretch;
   gap: 2em;
+  margin-left: 1em;
+  margin-right: 1em;
 }
 
 .assignment {
+  width: 320px;
   height: 100%;
 }
 

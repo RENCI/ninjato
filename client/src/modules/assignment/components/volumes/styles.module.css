@@ -9,7 +9,7 @@
 }
 
 .volume {
-  width: 300px;
+  width: 320px;
   height: 100%;
 }
 
@@ -24,20 +24,20 @@
   flex: 1 0 auto;
 }
 
-.volumeDescription {
-  font-weight: bold;
-}
-
 .progressBar:last-child {
   margin: 0 !important;
 }
 
-.assignmentList {
-  margin-top: 5px !important;
+.assignmentsHeader {
+  margin-bottom: .2em !important;
 }
 
-.number {
-  font-weight: bold;
+.labels {
+  display: flex;
+}
+
+.labels > * {
+  flex: 1 1 auto;
 }
 
 .loadButton {
