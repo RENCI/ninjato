@@ -31,7 +31,7 @@ export const Volume = ({ volume }) => {
       color={ enabled ? 'blue' : null } 
       secondary={ !enabled }
       raised={ enabled }
-      className={ styles.volume }
+      className={ `clickable ${ styles.volume }` }
     >
       <div>
         <div> 
@@ -61,16 +61,6 @@ export const Volume = ({ volume }) => {
             <Label basic color='green' content='Active' detail={ active } />
             <Label basic color='grey' content='Completed' detail={ completed } />
           </div>
-        </div>
-        <div>
-          <Button 
-            className={ styles.loadButton }
-            primary 
-            disabled={ !enabled }
-            onClick={ onLoadClick }
-          >
-            Load assignment
-          </Button>
         </div>
       </div>
     </Segment>

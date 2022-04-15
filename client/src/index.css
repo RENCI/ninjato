@@ -11,3 +11,15 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.segment.clickable {
+  cursor: pointer;
+}
+
+.segment.clickable:hover {
+  background-color: #fafafa;
+}
+
+.segment.clickable:active {
+  box-shadow: none;
+}
