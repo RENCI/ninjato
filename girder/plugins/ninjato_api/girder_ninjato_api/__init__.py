@@ -12,7 +12,13 @@ from .utils import get_item_assignment, save_user_annotation_as_item, get_subvol
 @autoDescribeRoute(
     Description('Get assignment info for a given user.')
     .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
-    .param('subvolume_id', 'subvolume id from which to get assignment', default='', required=False)
+    .param('subvolume_id', 'subvolume id from which to get assignment. If it is not set, all '
+                           'active assignment for the user across all subvolumes will be returned '
+                           'and an empty list will be returned if the user does not have any '
+                           'active assignment. If the subvolume_id is set, the active assignment '
+                           'for the user in the specified subvolume or a new available assignment '
+                           'if the user does not have any active assignment will be returned',
+           default='', required=False)
     .errorResponse()
     .errorResponse('Read access was denied on the user.', 403)
 )
@@ -43,9 +49,9 @@ def claim_region_assignment(user, subvolume_id, claim_region_id):
 @autoDescribeRoute(
     Description('Request an assignment for annotation or reivew. If the requested item has already '
                 'been annotated, the requested item will be assigned for review; otherwise, '
-                'the requested item will be assigned for annotation')
+                'the requested item will be assigned for annotation.')
     .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
-    .param('subvolume_id', 'subvolume id that includes the requesting assignment',
+    .param('subvolume_id', 'subvolume id that includes the requesting assignment.',
            required=True)
     .param('region_id', 'request assignment region id or label. Note a region id represents an '
                         'assignment which could be a single region or multiple merge/split '
