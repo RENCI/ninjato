@@ -17,7 +17,7 @@ code {
 }
 
 .segment.clickable:hover {
-  background-color: #fafafa;
+  filter: brightness(98%);
 }
 
 .segment.clickable:active {
