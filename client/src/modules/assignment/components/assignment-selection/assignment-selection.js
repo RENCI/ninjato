@@ -11,7 +11,7 @@ export const AssignmentSelection = () => {
   const [{ id, assignments, volumes }] = useContext(UserContext);
   const getAssignments = useGetAssignments();
 
-  useEffect(() => {    
+  useEffect(() => {  
     if (id) getAssignments(id);    
   }, [id, getAssignments]);
 

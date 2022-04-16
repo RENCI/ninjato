@@ -5,7 +5,6 @@ export const LOGOUT = 'user/LOGOUT';
 export const SET_VOLUMES = 'user/SET_VOLUMES';
 export const SET_ASSIGNMENTS = 'user/SET_ASSIGNMENTS';
 export const SET_ASSIGNMENT = 'user/SET_ASSIGNMENT';
-export const SET_ASSIGNMENT_TYPE = 'user/SET_ASSIGNMENT_TYPE';
 
 const initialState = {
   id: null,
@@ -49,15 +48,9 @@ const reducer = (state, action) => {
     case SET_ASSIGNMENT:
       return {
         ...state,
-        assignment: action.assignment
-      };
-
-    case SET_ASSIGNMENT_TYPE:
-      return {
-        ...state,
         assignment: {
-          ...state.assignment,
-          type: action.assignmentType
+          ...action.assignment,
+          assignmentType: action.type
         }
       };
 

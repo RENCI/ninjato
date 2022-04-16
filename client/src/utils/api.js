@@ -13,6 +13,38 @@ const fileUrl = id => `/file/${ id }/download`;
 
 const convertDate = date => new Date(date);
 
+const getAssignment = async id => {
+  // Get assignment
+  const itemResponse = await axios.get(`/item/${ id }/`);
+
+  const { data } = itemResponse;
+
+  // Get files
+  const filesResponse = await axios.get(`/item/${ id }/files`);
+
+  const { imageInfo, maskInfo } = filesResponse.data.reduce((info, item) => {
+    item.name.includes('mask') ? info.maskInfo = item : info.imageInfo = item;
+    return info;
+  }, {});
+
+  const labels = [data.meta.region_label];
+  if (data.meta.added_region_ids) labels.concat(data.meta.added_region_ids);
+
+  // Copy info and rename to be more concise
+  return {
+    id: data._id,
+    name: data.name,
+    parentId: data.baseParentId,
+    description: data.description,
+    coordinates: {...data.meta.coordinates},
+    labels: labels.map(label => +label),
+    imageId: imageInfo._id,
+    maskId: maskInfo._id,
+    created: convertDate(data.created),
+    updated: convertDate(data.updated),
+  };
+};
+
 // API
 
 export const api = {
@@ -67,8 +99,6 @@ export const api = {
 
       const { data } = infoResponse;
 
-      console.log(data);
-
       // Copy info and rename to be more concise
       volumes.push({
         id: data.id,
@@ -98,35 +128,9 @@ export const api = {
 
     const assignments = [];
     for (const itemId of response.data.item_ids) {
-      // Get assignment
-      const itemResponse = await axios.get(`/item/${ itemId }/`);
+      const assignment = await getAssignment(itemId);
 
-      const { data } = itemResponse;
-
-      // Get files
-      const filesResponse = await axios.get(`/item/${ itemId }/files`);
-
-      const { imageInfo, maskInfo } = filesResponse.data.reduce((info, item) => {
-        item.name.includes('mask') ? info.maskInfo = item : info.imageInfo = item;
-        return info;
-      }, {});
-
-      const labels = [data.meta.region_label];
-      if (data.meta.added_region_ids) labels.concat(data.meta.added_region_ids);
-
-      // Copy info and rename to be more concise
-      assignments.push({
-        id: data._id,
-        name: data.name,
-        parentId: data.baseParentId,
-        description: data.description,
-        coordinates: {...data.meta.coordinates},
-        labels: labels.map(label => +label),
-        imageId: imageInfo._id,
-        maskId: maskInfo._id,
-        created: convertDate(data.created),
-        updated: convertDate(data.updated),
-      });
+      assignments.push(assignment); 
     }
 
     return assignments;
@@ -141,7 +145,13 @@ export const api = {
       }
     );
 
-    console.log(response);
+    const ids = response.data.item_ids;
+
+    if (!ids || ids.length === 0) throw new Error('No item ids');
+
+    const assignment = await getAssignment(ids[0]);
+
+    return assignment;
   },
   declineAssignment: async (userId, itemId) => {
     await axios.post(`/user/${ userId }/annotation`,

@@ -1,24 +1,25 @@
 import { useContext } from 'react';
-import { Segment, Header, Label, Button } from 'semantic-ui-react';
-import { SET_ASSIGNMENT_TYPE, UserContext } from 'contexts';
-import { useGetAssignments, useLoadData } from 'hooks';
+import { Segment, Header, Label } from 'semantic-ui-react';
+import { UserContext, SET_ASSIGNMENT } from 'contexts';
+import { useLoadData } from 'hooks';
 import styles from './styles.module.css';
 
 export const Assignment = ({ assignment }) => {
-  console.log(assignment);
+  const [, userDispatch] = useContext(UserContext);
+  const loadData = useLoadData();
 
   const { name, description, updated, labels } = assignment;
 
   const enabled = true; // XXX: How to check if active or not?
 
   const onLoadClick = () => {
-    console.log(assignment);
+    userDispatch({ 
+      type: SET_ASSIGNMENT, 
+      assignment: assignment, 
+      assignmentType: 'refine' 
+    });
 
-    //userDispatch({ type: SET_ASSIGNMENT_TYPE, assignmentType: 'refine' });
-
-    //loadData(volume);
-
-    //getAssignment(volume);
+    loadData(assignment);
   };
 
   return (

@@ -14,7 +14,7 @@ export const useLoadData = ()  => {
   const [, flagDispatch] = useContext(FlagContext);
   const [, errorDispatch] = useContext(ErrorContext);
 
-  return async ({ imageId, maskId, label }) => {
+  return async ({ imageId, maskId, labels }) => {
     try {
       const data = await api.getData(imageId, maskId);
 
@@ -38,7 +38,7 @@ export const useLoadData = ()  => {
         type: SET_DATA,
         imageData: imageData,
         maskData: maskData,
-        label: label
+        label: labels[0] // XXX: Need to update this
       });
 
       refineDispatch({

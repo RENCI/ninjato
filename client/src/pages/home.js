@@ -5,12 +5,13 @@ import { RefineContainer } from 'modules/refine/components/refine-container';
 import { FlagContainer } from 'modules/flag/components/flag-container';
 
 export const Home = () => {
-  const [{ assignment }] = useContext(UserContext);
+  const [{ id, assignment }] = useContext(UserContext);
   const [{ imageData }] = useContext(DataContext);
 
   return (
     <>
-      { imageData ? 
+      { !id ? null
+      : imageData ? 
           assignment.type === 'flag' ? 
             <FlagContainer /> :
             <RefineContainer />        
