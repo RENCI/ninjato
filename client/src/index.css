@@ -21,5 +21,6 @@ code {
 }
 
 .segment.clickable:active {
+  filter: brightness(95%);
   box-shadow: none;
 }
