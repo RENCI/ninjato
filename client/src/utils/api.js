@@ -145,6 +145,8 @@ export const api = {
       }
     );
 
+    console.log(response);
+
     const ids = response.data.item_ids;
 
     if (!ids || ids.length === 0) throw new Error('No item ids');

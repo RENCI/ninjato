@@ -14,7 +14,7 @@ export const Assignments = () => {
         <Header 
           as='h4'
           content={ `No current assignments for ${ login }` }
-          subheader='Select a new assignment below'
+          subheader='Select a new assignment from an available volume below'
         />
       :  
         <>
