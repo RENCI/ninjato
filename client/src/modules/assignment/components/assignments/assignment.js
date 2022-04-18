@@ -1,6 +1,7 @@
 import { useContext } from 'react';
 import { Segment, Header, Label } from 'semantic-ui-react';
 import { UserContext, SET_ASSIGNMENT } from 'contexts';
+import { ButtonWrapper } from 'modules/common/components/button-wrapper';
 import { useLoadData } from 'hooks';
 import styles from './styles.module.css';
 
@@ -23,17 +24,13 @@ export const Assignment = ({ assignment }) => {
   };
 
   return (
-    <div
-      role='button'
-      tabIndex={ 0 }
-      onClick={ onLoadClick }
-    >
+    <ButtonWrapper onClick={ onLoadClick}>
       <Segment
         color={ enabled ? 'green' : null } 
         secondary={ !enabled }
         raised={ enabled }
         circular
-        className={ `clickable ${ styles.assignment }` }
+        className={ `${ styles.assignment }` }
       >  
         <div>
           <div> 
@@ -51,6 +48,6 @@ export const Assignment = ({ assignment }) => {
           </div>
         </div>
       </Segment>
-    </div>
+    </ButtonWrapper>
   );
 };

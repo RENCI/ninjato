@@ -1,0 +1,15 @@
+.wrapper {
+  cursor: pointer;
+}
+
+.wrapper:hover {
+  filter: brightness(96%);
+}
+
+.wrapper:active {
+  filter: brightness(92%);
+}
+
+.wrapper:active > *:active {
+  box-shadow: none;
+}

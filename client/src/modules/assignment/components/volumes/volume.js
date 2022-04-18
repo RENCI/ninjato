@@ -1,6 +1,7 @@
 import { useContext } from 'react';
 import { Segment, Header, Progress, Label } from 'semantic-ui-react';
 import { UserContext, SET_ASSIGNMENT } from 'contexts';
+import { ButtonWrapper } from 'modules/common/components/button-wrapper';
 import { useLoadData } from 'hooks';
 import { api } from 'utils/api';
 import styles from './styles.module.css';
@@ -28,12 +29,8 @@ export const Volume = ({ volume }) => {
 
   const enabled = available > 0;
 
-  return (
-    <div
-      role='button'
-      tabIndex={ 0 }
-      onClick={ onLoadClick }
-    >
+  return (    
+    <ButtonWrapper onClick={ onLoadClick}>
       <Segment 
         color={ enabled ? 'blue' : null } 
         secondary={ !enabled }
@@ -71,6 +68,6 @@ export const Volume = ({ volume }) => {
           </div>
         </div>
       </Segment>
-    </div>
+    </ButtonWrapper>
   );  
 };
