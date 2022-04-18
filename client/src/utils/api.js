@@ -137,15 +137,12 @@ export const api = {
   },
   getNewAssignment: async (userId, volumeId) => {
     const response = await axios.get(`/user/${ userId }/assignment`,
-      null,
       {
         params: {
           subvolume_id: volumeId
         }
       }
     );
-
-    console.log(response);
 
     const ids = response.data.item_ids;
 

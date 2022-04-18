@@ -17,8 +17,6 @@ export const Volume = ({ volume }) => {
   const { active, available, completed } = annotations;
 
   const onLoadClick = async () => {
-    console.log(id, volume.id);
-
     try {
       const assignment = await api.getNewAssignment(id, volume.id);
 
