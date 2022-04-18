@@ -13,3 +13,12 @@
 .wrapper:active > *:active {
   box-shadow: none;
 }
+
+.wrapper.disabled {
+  cursor: default;
+  filter: opacity(80%)
+}
+
+.wrapper.disabled > * {
+  box-shadow: none !important;
+}

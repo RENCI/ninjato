@@ -8,8 +8,8 @@ import { useLoadData } from 'hooks';
 import { api } from 'utils/api';
 import styles from './styles.module.css';
 
-export const Volume = ({ volume }) => {
-  const [{ id, assignment }, userDispatch] = useContext(UserContext);
+export const Volume = ({ volume, enabled }) => {
+  const [{ id }, userDispatch] = useContext(UserContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const loadData = useLoadData();
 
@@ -33,15 +33,17 @@ export const Volume = ({ volume }) => {
     }
   };
 
-  const enabled = available > 0;
+  const isEnabled = enabled && available > 0;
 
   return (    
-    <ButtonWrapper onClick={ onLoadClick}>
+    <ButtonWrapper 
+      onClick={ onLoadClick} 
+      disabled={ !isEnabled }
+    >
       <Segment 
-        color={ enabled ? 'blue' : null } 
-        secondary={ !enabled }
-        raised={ enabled }
-        className={ `clickable ${ styles.volume }` }
+        color={ available ? 'blue' : 'grey' } 
+        raised={ isEnabled }
+        className={ styles.volume }
       >
         <div>
           <div> 

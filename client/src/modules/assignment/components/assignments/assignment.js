@@ -11,8 +11,6 @@ export const Assignment = ({ assignment }) => {
 
   const { name, description, updated, labels } = assignment;
 
-  const enabled = true; // XXX: How to check if active or not?
-
   const onLoadClick = () => {
     userDispatch({ 
       type: SET_ASSIGNMENT, 
@@ -23,14 +21,18 @@ export const Assignment = ({ assignment }) => {
     loadData(assignment);
   };
 
+  const enabled = true; // XXX: How to check if active or not?
+
   return (
-    <ButtonWrapper onClick={ onLoadClick}>
+    <ButtonWrapper 
+      onClick={ onLoadClick}
+      disabled={ !enabled }
+    >
       <Segment
-        color={ enabled ? 'green' : null } 
-        secondary={ !enabled }
+        color={ enabled ? 'green' : 'grey' } 
         raised={ enabled }
         circular
-        className={ `${ styles.assignment }` }
+        className={ styles.assignment }
       >  
         <div>
           <div> 
@@ -39,6 +41,9 @@ export const Assignment = ({ assignment }) => {
               content={ name }
               subheader={ description ? description : 'No description' }
             />
+          </div>
+          <div>
+            <Label basic circular content='Status' detail={ enabled ? 'active' : 'pending review' } />
           </div>
           <div>
             <Label basic circular content='Updated' detail={ updated.toLocaleString() } />
