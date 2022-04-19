@@ -599,15 +599,15 @@ def get_item_assignment(user, subvolume_id):
     for sub_id in id_list:
         whole_item = Item().findOne({'_id': ObjectId(sub_id)})
         if uid in whole_item['meta']:
-            assign_item_id = whole_item['meta'][uid]
-            assign_item = Item().findOne({'_id': ObjectId(assign_item_id)})
-            assign_key = assign_item['meta']['region_label']
-            item_dict = {
-                'item_id': assign_item_id,
-                'subvolume_id': whole_item['_id'],
-                'assignment_key': assign_key
-            }
-            ret_data.append(item_dict)
+            for assign_item_id in whole_item['meta'][uid]:
+                assign_item = Item().findOne({'_id': ObjectId(assign_item_id)})
+                assign_key = assign_item['meta']['region_label']
+                item_dict = {
+                    'item_id': assign_item_id,
+                    'subvolume_id': whole_item['_id'],
+                    'assignment_key': assign_key
+                }
+                ret_data.append(item_dict)
             continue
         if review_approved_key in whole_item['meta'] and \
             whole_item['meta'][review_approved_key] == 'true':
