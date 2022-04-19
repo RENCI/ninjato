@@ -500,15 +500,16 @@ def claim_assignment(user, subvolume_id, claim_region_id):
     return ret_dict
 
 
-def request_assignment(user, subvolume_id, region_id):
+def request_assignment(user, subvolume_id, assignment_key):
     """
     allow a user to request an assignment for annotation or review
     :param user: requesting user
     :param subvolume_id: subvolume id that contains the requested region
-    :param region_id: requesting region id
+    :param assignment_key: requesting assignment key which is a region id that links back to
+    subvolume regions metadata
     :return: a dict indicating success or failure
     """
-    region_id_str = str(region_id)
+    region_id_str = str(assignment_key)
     ret_dict = {}
     whole_item = Item().findOne({'_id': ObjectId(subvolume_id)})
     if region_id_str in whole_item['meta']['regions']:
@@ -550,7 +551,7 @@ def request_assignment(user, subvolume_id, region_id):
         return ret_dict
     else:
         # check if the region id is part of the added region by split
-        val = _get_added_region_metadata(whole_item, region_id)
+        val = _get_added_region_metadata(whole_item, assignment_key)
         if val:
             ret_dict['status'] = 'success'
             ret_dict['assigned_user_info'] = val['annotation_assigned_to']
@@ -578,11 +579,10 @@ def get_item_assignment(user, subvolume_id):
     considered
     :return: list of assigned region ids and labels or empty if no assignment is available
     """
-    ret_dict = {
-        'item_ids': []
-    }
+    ret_data = []
+
     if user['login'] == 'admin':
-        return ret_dict
+        return ret_data
 
     id_list = []
     filtered_id_list = []
@@ -599,26 +599,32 @@ def get_item_assignment(user, subvolume_id):
     for sub_id in id_list:
         whole_item = Item().findOne({'_id': ObjectId(sub_id)})
         if uid in whole_item['meta']:
-            item_list = ret_dict['item_ids']
-            item_list.append(whole_item['meta'][uid])
-            ret_dict['item_ids'] = item_list
+            assign_item_id = whole_item['meta'][uid]
+            assign_item = Item().findOne({'_id': ObjectId(assign_item_id)})
+            assign_key = assign_item['meta']['region_label']
+            item_dict = {
+                'item_id': assign_item_id,
+                'subvolume_id': whole_item['_id'],
+                'assignment_key': assign_key
+            }
+            ret_data.append(item_dict)
             continue
         if review_approved_key in whole_item['meta'] and \
             whole_item['meta'][review_approved_key] == 'true':
             continue
         filtered_id_list.append(sub_id)
 
-    if ret_dict['item_ids']:
+    if ret_data:
         # return the user's active assignments
-        return ret_dict
+        return ret_data
 
-    if not ret_dict['item_ids'] and not subvolume_id:
+    if not ret_data and not subvolume_id:
         # the user does not have active assignment, return empty list
-        return ret_dict
+        return ret_data
 
     if not filtered_id_list:
         # there is no available subvolumes to assign to the user, return empty list
-        return ret_dict
+        return ret_data
 
     # this user has no active assignment, assign a new region to the user
     sub_id = filtered_id_list[0]
@@ -647,9 +653,14 @@ def get_item_assignment(user, subvolume_id):
             break
 
     if assigned_region_id:
-        ret_dict['item_ids'] = [assigned_region_id]
+        item_dict = {
+            'item_id': assigned_region_id,
+            'subvolume_id': subvolume_id,
+            'assignment_key': assigned_region_label
+        }
+        ret_data.append(item_dict)
 
-    return ret_dict
+    return ret_data
 
 
 def save_user_annotation_as_item(user, item_id, done, reject, comment, added_region_ids,
@@ -945,14 +956,15 @@ def get_subvolume_item_info(item):
     return ret_dict
 
 
-def get_region_or_assignment_info(item, region_label):
+def get_region_or_assignment_info(item, assignment_key):
     """
     get region info or assignment info if the region is part of the assignment
     :param item: subvolume item that contains the region
-    :param region_label: region label number such as 1, 2, etc.
+    :param assignment_key: region label number such as 1, 2, etc., whick links back to regions
+    metadata in its subvolume regions metadata
     :return: dict of region or assignment info
     """
-    region_label_str = str(region_label)
+    region_label_str = str(assignment_key)
     if region_label_str in item['meta']['regions']:
         region_dict = item['meta']['regions'][region_label_str]
         ret_dict = {

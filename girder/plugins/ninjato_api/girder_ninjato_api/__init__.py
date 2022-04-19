@@ -47,21 +47,24 @@ def claim_region_assignment(user, subvolume_id, claim_region_id):
 
 @access.public
 @autoDescribeRoute(
-    Description('Request an assignment for annotation or reivew. If the requested item has already '
+    Description('Request an assignment for annotation or review. If the requested item has already '
                 'been annotated, the requested item will be assigned for review; otherwise, '
                 'the requested item will be assigned for annotation.')
     .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
     .param('subvolume_id', 'subvolume id that includes the requesting assignment.',
            required=True)
-    .param('region_id', 'request assignment region id or label. Note a region id represents an '
-                        'assignment which could be a single region or multiple merge/split '
-                        'combined regions', required=True)
+    .param('assignment_key', 'request assignment key, e.g., 1, 2, 3, etc., which is the initial '
+                             'region label for the assignment used as a key to link back to its '
+                             'subvolume regions metadata that includes assignment metadata. '
+                             'Even though the initial assignment is associated with a region, '
+                             'it can evolve into multiple combined regions due to '
+                             'region merge/split', dataType='integer', required=True)
     .errorResponse()
     .errorResponse('Request action was denied on the user.', 403)
     .errorResponse('Failed to request the requested region', 500)
 )
-def request_region_assignment(user, subvolume_id, region_id):
-    return request_assignment(user, subvolume_id, region_id)
+def request_region_assignment(user, subvolume_id, assignment_key):
+    return request_assignment(user, subvolume_id, assignment_key)
 
 
 @access.public
@@ -150,16 +153,20 @@ def get_subvolume_info(item):
 
 @access.public
 @autoDescribeRoute(
-    Description('Get region info or assignment info if the region is part of the assignment.')
+    Description('Get assignment info.')
     .modelParam('id', 'The item ID', model='item', level=AccessType.READ)
-    .param('region_label', 'region label number such as 1, 2, etc.',dataType='integer',
-           required=True)
+    .param('assignment_key', 'request assignment key, e.g., 1, 2, 3, etc., which is the initial '
+                             'region label for the assignment used as a key to link back to its '
+                             'subvolume regions metadata that includes assignment metadata. '
+                             'Even though the initial assignment is associated with a region, '
+                             'it can evolve into multiple combined regions due to '
+                             'region merge/split', dataType='integer', required=True)
     .errorResponse()
     .errorResponse('Get action was denied on the user.', 403)
     .errorResponse('Failed to get region info', 500)
 )
-def get_region_info(item, region_label):
-    return get_region_or_assignment_info(item, region_label)
+def get_region_info(item, assignment_key):
+    return get_region_or_assignment_info(item, assignment_key)
 
 
 @access.public
