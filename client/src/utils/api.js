@@ -15,7 +15,7 @@ const convertDate = date => new Date(date);
 
 const getAssignment = async id => {
   // Get assignment
-  const itemResponse = await axios.get(`/item/${ id }/`);
+  const itemResponse = await axios.get(`/item/${ id }`);
 
   const { data } = itemResponse;
 
@@ -29,6 +29,22 @@ const getAssignment = async id => {
 
   const labels = [data.meta.region_label];
   if (data.meta.added_region_ids) labels.concat(data.meta.added_region_ids);
+
+  console.log(data);
+
+  // Get label info
+/*  
+  const labelInfo = [];
+  for (const label of labels) {
+    const response = await axios.get(`/item/${ data._id }/subvolume_assignment_info`, {
+      params: {
+        region_label: label
+      }
+    });
+
+    console.log(response);
+  }
+*/  
 
   // Copy info and rename to be more concise
   return {
@@ -146,7 +162,7 @@ export const api = {
 
     const ids = response.data.item_ids;
 
-    if (!ids || ids.length === 0) throw new Error('No item ids');
+    if (ids.length === 0) throw new Error('No item ids');
 
     const assignment = await getAssignment(ids[0]);
 

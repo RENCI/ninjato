@@ -9,7 +9,8 @@ export const REFINE_RESET = 'refine/RESET';
 const editModes = [
   { value: 'paint', icon: 'paint brush', cursor: getCursor('paint-brush.png', 11, 23) },
   { value: 'erase', icon: 'eraser', cursor: getCursor('eraser.png', 12, 22) },
-  { value: 'crop', icon: 'crop', cursor: getCursor('crop.png', 11, 21) }
+  { value: 'crop', icon: 'crop', cursor: getCursor('crop.png', 11, 21) },
+  { value: 'claim', icon: 'flag', cursor: getCursor('flag.png', 0, 0) }
 ];
 
 const brushes = [
