@@ -13,7 +13,8 @@ const fileUrl = id => `/file/${ id }/download`;
 
 const convertDate = date => new Date(date);
 
-const getAssignment = async id => {
+const getAssignment = async (subvolumeId, itemId, assignmentKey) => {
+  /*
   // Get assignment
   const itemResponse = await axios.get(`/item/${ id }`);
 
@@ -33,7 +34,7 @@ const getAssignment = async id => {
   console.log(data);
 
   // Get label info
-/*  
+
   const labelInfo = [];
   for (const label of labels) {
     const response = await axios.get(`/item/${ data._id }/subvolume_assignment_info`, {
@@ -44,7 +45,7 @@ const getAssignment = async id => {
 
     console.log(response);
   }
-*/  
+
 
   // Copy info and rename to be more concise
   return {
@@ -59,6 +60,7 @@ const getAssignment = async id => {
     created: convertDate(data.created),
     updated: convertDate(data.updated),
   };
+  */
 };
 
 // API
@@ -140,11 +142,17 @@ export const api = {
     return volumes;
   },
   getAssignments: async userId => {
+    console.log("DL:FKJSDL:FJSDF");
+
+    console.log(userId);
+
     const response = await axios.get(`/user/${ userId }/assignment`);
 
+    console.log(response);
+
     const assignments = [];
-    for (const itemId of response.data.item_ids) {
-      const assignment = await getAssignment(itemId);
+    for (const item of response.data) {
+      const assignment = await getAssignment(item.subvolume_id, item.item_id, item.assignment_key);
 
       assignments.push(assignment); 
     }
@@ -160,11 +168,11 @@ export const api = {
       }
     );
 
-    const ids = response.data.item_ids;
+    if (response.data.length === 0) throw new Error('No new assignment');
 
-    if (ids.length === 0) throw new Error('No item ids');
+    const item = response.data[0];
 
-    const assignment = await getAssignment(ids[0]);
+    const assignment = await getAssignment(item.subvolume_id, item.item_id, item.assignment_key);
 
     return assignment;
   },
