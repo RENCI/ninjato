@@ -1,5 +1,4 @@
 import { useContext, useEffect } from 'react';
-import { Dimmer, Loader } from 'semantic-ui-react';
 import { UserContext } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { Assignments } from 'modules/assignment/components/assignments';
@@ -17,11 +16,7 @@ export const AssignmentSelection = () => {
 
   return (
     <>
-      { !(assignments && volumes) ?
-        <Dimmer active>
-          <Loader>Loading</Loader>
-        </Dimmer>  
-      :
+      { (assignments && volumes) &&
         <>
           <AssignmentMessage>
             Select assignment

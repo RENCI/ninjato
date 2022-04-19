@@ -3,6 +3,7 @@ import {
   DataContext, SET_DATA,
   RefineContext, REFINE_RESET,
   FlagContext, FLAG_RESET,
+  LoadingContext, SET_LOADING, CLEAR_LOADING,
   ErrorContext, SET_ERROR 
 } from 'contexts';
 import { api } from 'utils/api';
@@ -12,10 +13,13 @@ export const useLoadData = ()  => {
   const [, dataDispatch] = useContext(DataContext);
   const [, refineDispatch] = useContext(RefineContext);
   const [, flagDispatch] = useContext(FlagContext);
+  const [, loadingDispatch] = useContext(LoadingContext);
   const [, errorDispatch] = useContext(ErrorContext);
 
   return async ({ imageId, maskId, labels }) => {
     try {
+      loadingDispatch({ type: SET_LOADING });
+
       const data = await api.getData(imageId, maskId);
 
       const imageData = decodeTIFF(data.imageBuffer);
@@ -48,11 +52,15 @@ export const useLoadData = ()  => {
       flagDispatch({
         type: FLAG_RESET
       });
+
+      loadingDispatch({ type: CLEAR_LOADING });
     }
     catch (error) {
       console.log(error);
 
       // XXX: Potentialy decline to get a new assignment?
+
+      loadingDispatch({ type: CLEAR_LOADING });
 
       errorDispatch({ type: SET_ERROR, error: error });
     }      

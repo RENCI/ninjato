@@ -3,7 +3,7 @@ import { Modal, Button, Form, Menu, Message } from 'semantic-ui-react';
 import { LOGIN, UserContext } from 'contexts';
 import { AutoFocusForm } from 'modules/common/components/auto-focus-form';
 import { api } from 'utils/api';
-import { useModal, useGetAssignments } from 'hooks';
+import { useModal } from 'hooks';
 import styles from './styles.module.css';
 
 const { Header, Content, Actions } = Modal;
@@ -12,7 +12,6 @@ const { Input } = Form;
 export const LoginForm = () => {
   const [, userDispatch] = useContext(UserContext);
   const [open, openModal, closeModal] = useModal();
-  const getAssignment = useGetAssignments();
   const [values, setValues] = useState({
     username: '',
     password: ''
@@ -40,8 +39,6 @@ export const LoginForm = () => {
         login: user.login,
         admin: user.admin
       });
-
-      //getAssignment(id);
 
       closeModal();
     }
