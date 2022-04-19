@@ -22,7 +22,18 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
   return (
     <ControlBar>
       <ControlGroup>
-        { editModes.map(({ value, icon }, i) => (
+        { editModes.filter(({ group }) => group === 'select').map(({ value, icon }, i) => (
+          <ControlButton
+            key={ i }
+            toggle={ true }
+            icon={ icon }
+            active={ value === editMode  }
+            onClick={ () => onModeClick(value) }              
+          />
+        ))}    
+      </ControlGroup>
+      <ControlGroup>
+        { editModes.filter(({ group }) => group === 'edit').map(({ value, icon }, i) => (
           value === 'paint' || value === 'erase' ?
             <SplitButton
               key={ i }

@@ -7,10 +7,12 @@ export const REFINE_SET_SHOW_BACKGROUND = 'refine/SET_SHOW_BACKGROUND';
 export const REFINE_RESET = 'refine/RESET';
 
 const editModes = [
-  { value: 'paint', icon: 'paint brush', cursor: getCursor('paint-brush.png', 11, 23) },
-  { value: 'erase', icon: 'eraser', cursor: getCursor('eraser.png', 12, 22) },
-  { value: 'crop', icon: 'crop', cursor: getCursor('crop.png', 11, 21) },
-  { value: 'claim', icon: 'flag', cursor: getCursor('flag.png', 0, 0) }
+  { group: 'select', value: 'select', icon: 'map marker alternate', cursor: getCursor('map-marker-alternate.png', 16, 23) },
+  { group: 'select', value: 'claim', icon: 'flag', cursor: getCursor('flag.png', 10, 23) },
+
+  { group: 'edit', value: 'paint', icon: 'paint brush', cursor: getCursor('paint-brush.png', 11, 23) },
+  { group: 'edit', value: 'erase', icon: 'eraser', cursor: getCursor('eraser.png', 12, 22) },
+  { group: 'edit', value: 'crop', icon: 'crop', cursor: getCursor('crop.png', 11, 21) }
 ];
 
 const brushes = [
