@@ -22,7 +22,7 @@ export const SubmitButton = ({ disabled }) => {
     const buffer = encodeTIFF(maskData);
 
     try {
-      await api.saveAnnotations(id, assignment.itemId, buffer, true);
+      await api.saveAnnotations(id, assignment.id, buffer, true);
 
       setSuccess(true);
       setTimeout(() => {        
