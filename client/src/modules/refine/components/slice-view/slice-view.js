@@ -2,12 +2,14 @@ import { RenderWindow, Slice, Image } from 'modules/view/components';
 import { Widgets } from 'modules/refine/components/slice-view/widgets';
 import { MaskPainter } from 'modules/refine/components/slice-view/mask-painter';
 
+const onHover = () => console.log("TEST HOVER");
+
 export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
   const renderWindow = RenderWindow();
   const slice = Slice();
   const image = Image();
   const mask = MaskPainter();  
-  const widgets = Widgets(mask.getPainter(), onEdit);
+  const widgets = Widgets(mask.getPainter(), onEdit, onHover);
 
   return {
     initialize: rootNode => {

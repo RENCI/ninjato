@@ -3,49 +3,90 @@ import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants'
 
 import vtkBrushWidget from 'vtk/brush-widget';
 import vtkCropWidget from 'vtk/crop-widget';
+import vtkRegionSelectWidget from 'vtk/region-select-widget';
 
 const setBrush = (handle, brush) => {
   handle.getRepresentations()[0].setBrush(brush);
 };
 
-export function Widgets(painter, onEdit) {
+const createWidget = type => type.newInstance();
+
+export function Widgets(painter, onEdit, onHover) {
   const manager = vtkWidgetManager.newInstance();
-  const floodWidget = vtkBrushWidget.newInstance();
+
+  const widgets = {
+    paint: createWidget(vtkBrushWidget),
+    erase: createWidget(vtkBrushWidget),
+    crop: createWidget(vtkCropWidget),
+    select: createWidget(vtkRegionSelectWidget),
+    claim: createWidget(vtkRegionSelectWidget)
+  }; 
+
+  let handles = null;
+
+  let activeWidget = null;
+
+/*
+  const paintWidget = vtkBrushWidget.newInstance();
   const eraseWidget = vtkBrushWidget.newInstance();
   const cropWidget = vtkCropWidget.newInstance();
+  const selectWidget = vtkRegionSelectWidget.newInstance();
+  const claimWidget = vtkRegionSelectWidget.newInstance();
 
   const widgets = [
-    floodWidget,
+    selectWidget,
+    claimWidget,
+    paintWidget,
     eraseWidget,
     cropWidget
   ];
 
   let activeWidget = null;
   
-  let floodHandle = null;
+  let paintHandle = null;
   let eraseHandle = null;
   let cropHandle = null;
+  let selectHandle = null;
+  let claimHandle = null;
 
   let handles = [];
+*/  
 
   return {
     setRenderer: renderer => {
       manager.setRenderer(renderer);
 
-      handles = widgets.map(widget => manager.addWidget(widget, ViewTypes.SLICE));
-      [floodHandle, eraseHandle, cropHandle] = [...handles];
+      handles = Object.entries(widgets).reduce((handles, [key, value]) => {
+        handles[key] = manager.addWidget(value, ViewTypes.SLICE);
+        return handles;
+      }, {});
     
-      activeWidget = floodWidget;
+      activeWidget = widgets.paint;
       manager.grabFocus(activeWidget);
 
-      handles.forEach(handle => {
+      // Start
+      [handles.paint, handles.erase, handles.crop].forEach(handle => {
         handle.onStartInteractionEvent(() => painter.startStroke());
       });
 
-      floodHandle.onEndInteractionEvent(async () => {
+      // Interaction
+      [widgets.select, widgets.claim].forEach(widgets => {
+        const startLabel = widgets.getStartLabel();
+        const label = widgets.getLabel();        
+
+        if (startLabel === null || (startLabel !== null && startLabel === label)) {
+          onHover(label);
+        }
+        else {
+          onHover(null);
+        }
+      });
+
+      // End
+      handles.paint.onEndInteractionEvent(async () => {
         painter.paintFloodFill(
-          floodHandle.getPoints(), 
-          floodHandle.getRepresentations()[0].getBrush()
+          handles.paint.getPoints(), 
+          handles.paint.getRepresentations()[0].getBrush()
         );
 
         await painter.endStroke();
@@ -53,10 +94,10 @@ export function Widgets(painter, onEdit) {
         onEdit();
       });
 
-      eraseHandle.onEndInteractionEvent(async () => {
+      handles.erase.onEndInteractionEvent(async () => {
         painter.erase(
-          eraseHandle.getPoints(), 
-          eraseHandle.getRepresentations()[0].getBrush()
+          handles.erase.getPoints(), 
+          handles.erase.getRepresentations()[0].getBrush()
         );
 
         await painter.endStroke(true);
@@ -64,8 +105,8 @@ export function Widgets(painter, onEdit) {
         onEdit();
       });
 
-      cropHandle.onEndInteractionEvent(async () => {
-        const handle = cropHandle.getWidgetState().getState().handle;
+      handles.crop.onEndInteractionEvent(async () => {
+        const handle = handles.crop.getWidgetState().getState().handle;
         const x = [handle.origin[0], handle.corner[0]].sort((a, b) => a - b);
         const y = [handle.origin[1], handle.corner[1]].sort((a, b) => a - b);
         const z = handle.origin[2];
@@ -78,55 +119,52 @@ export function Widgets(painter, onEdit) {
         await painter.endStroke(true);
 
         onEdit();
+      });      
+
+      [widgets.select, widgets.claim].forEach(widget => {
+        const startLabel = widget.getStartLabel();
+        const label = widget.getLabel();
+
+        if (startLabel !== null && label === startLabel) {
+          //onLink(label);
+          console.log("STUFF");
+        }
       });
     },
-    update: (position, spacing) => {
+    update: (position, spacing) => {      
       // XXX: Why is the 0.85 necessary here?
-      const radius = Math.max(spacing[0], spacing[1]) * 0.85;
- 
-      floodWidget.getManipulator().setOrigin(position);
-      floodWidget.setRadius(radius);
-      
-      floodHandle.updateRepresentationForRender();
+      const radius = Math.max(spacing[0], spacing[1]) * 0.85;  
 
-      eraseWidget.getManipulator().setOrigin(position);
-      eraseWidget.setRadius(radius);
-      
-      eraseHandle.updateRepresentationForRender();
+      Object.values(widgets).forEach(widget => widget.getManipulator().setOrigin(position));
 
-      cropWidget.getManipulator().setOrigin(position);
+      [widgets.paint, widgets.erase].forEach(widget => widget.setRadius(radius));
 
-      cropHandle.updateRepresentationForRender();
+      Object.values(handles).forEach(handle => handle.updateRepresentationForRender());
     },
     setImageData: imageData => {
-      widgets.forEach(widget => widget.setImageData(imageData))    
+      Object.values(widgets).forEach(widget => widget.setImageData(imageData))    
     },
     setEditMode: editMode => {
       const position = activeWidget.getPosition();
 
-      activeWidget = 
-        editMode === 'erase' ? eraseWidget : 
-        editMode === 'crop' ? cropWidget :
-        floodWidget;
+      activeWidget = widgets[editMode];
 
       manager.grabFocus(activeWidget);
 
       activeWidget.setPosition(position);
 
-      widgets.forEach(widget => {
+      Object.values(widgets).forEach(widget => {
         widget.setVisibility(widget === activeWidget);
-      });
+      });      
     },
-    setPaintBrush: brush => setBrush(floodHandle, brush),
-    setEraseBrush: brush => setBrush(eraseHandle, brush),
+    setPaintBrush: brush => setBrush(handles.paint, brush),
+    setEraseBrush: brush => setBrush(handles.erase, brush),
     cleanUp: () => {
       console.log('Clean up widgets');
 
       // Clean up anything we instantiated
       manager.delete();
-      floodWidget.delete();
-      eraseWidget.delete();
-      cropWidget.delete();
+      Object.values(widgets).forEach(widget => widget.delete());
     }
   }
 }
