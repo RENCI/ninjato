@@ -5,7 +5,7 @@ from girder.constants import AccessType
 from .utils import get_item_assignment, save_user_annotation_as_item, get_subvolume_item_ids, \
     get_subvolume_item_info, get_region_or_assignment_info, get_available_region_ids, \
     claim_assignment, request_assignment, get_all_avail_items_for_review, \
-    save_user_review_result_as_item
+    save_user_review_result_as_item, get_await_review_assignment
 
 
 @access.public
@@ -24,6 +24,22 @@ from .utils import get_item_assignment, save_user_annotation_as_item, get_subvol
 )
 def get_user_assign_info(user, subvolume_id):
     return get_item_assignment(user, subvolume_id)
+
+
+@access.public
+@autoDescribeRoute(
+    Description('Get awaiting review assignment info for a given user.')
+    .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
+    .param('subvolume_id', 'subvolume id from which to get awaiting review assignment if set. If '
+                           'it is not set, all awaiting review assignments for the user across '
+                           'all subvolumes will be returned. An empty list will be returned if '
+                           'the user does not have any awaiting review assignments.',
+           default='', required=False)
+    .errorResponse()
+    .errorResponse('Read access was denied on the user.', 403)
+)
+def get_user_await_review_assign(user, subvolume_id):
+    return get_await_review_assignment(user, subvolume_id)
 
 
 @access.public
@@ -195,6 +211,8 @@ class NinjatoPlugin(GirderPlugin):
         getPlugin('jobs').load(info)
         # attach API route to Girder
         info['apiRoot'].user.route('GET', (':id', 'assignment'), get_user_assign_info)
+        info['apiRoot'].user.route('GET', (':id', 'assignment_await_review'),
+                                   get_user_await_review_assign)
         info['apiRoot'].user.route('POST', (':id', 'annotation'), save_user_annotation)
 
         info['apiRoot'].user.route('POST', (':id', 'review_result'), save_user_review_result)
