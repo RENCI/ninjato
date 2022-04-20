@@ -967,8 +967,24 @@ def get_region_or_assignment_info(item, assignment_key):
     region_label_str = str(assignment_key)
     if region_label_str in item['meta']['regions']:
         region_dict = item['meta']['regions'][region_label_str]
+        item_id = region_dict['item_id'] if 'item_id' in region_dict else ''
+        region_item = Item().findOne({'_id': ObjectId(item_id)}) if item_id else None
+        regions = [{
+            'label': region_label_str
+        }]
+        if region_item and 'added_region_ids' in region_item['meta']:
+            for rid in region_item['meta']['added_region_ids']:
+                regions.append({
+                    'label': rid
+                })
+
         ret_dict = {
-            'item_id': region_dict['item_id'] if 'item_id' in region_dict else '',
+            'item_id': item_id,
+            'name': region_item['name'] if region_item else '',
+            'description': region_item['description'] if region_item else '',
+            'location': region_item['meta']['coordinates'] if region_item else {},
+            'last_updated_time': region_item['updated'] if region_item else '',
+            'regions': regions,
             'annotation_assigned_to': region_dict['annotation_assigned_to']
             if 'annotation_assigned_to' in region_dict else '',
             'annotation_completed_by': region_dict['annotation_completed_by']
@@ -985,6 +1001,11 @@ def get_region_or_assignment_info(item, assignment_key):
     else:
         ret_dict = {
             'item_id': '',
+            'name': '',
+            'description': '',
+            'location': {},
+            'last_updated_time': '',
+            'regions': [],
             'annotation_assigned_to': '',
             'annotation_completed_by': '',
             'annotation_rejected_by': '',
@@ -1007,8 +1028,21 @@ def get_region_or_assignment_info(item, assignment_key):
     # region is added as part of split
     val = _get_added_region_metadata(item, region_label_str)
     if val:
+        reg_item = Item().findOne({'_id': ObjectId(val['item_id'])})
         ret_dict['merged'] = False
         ret_dict['split'] = True
+        ret_dict['name'] = reg_item['name'],
+        ret_dict['description'] = reg_item['description']
+        ret_dict['location'] = reg_item['meta']['coordinates'],
+        ret_dict['last_updated_time'] = reg_item['updated'],
+        ret_dict['regions'] = {
+            'x_max': val['x_max'],
+            'x_min': val['x_min'],
+            'y_max': val['y_max'],
+            'y_min': val['y_min'],
+            'z_max': val['z_max'],
+            'z_min': val['z_min'],
+            },
         ret_dict['item_id'] = val['item_id']
         ret_dict['annotation_assigned_to'] = val['annotation_assigned_to']
         ret_dict['annotation_completed_by'] = val['annotation_completed_by'] \
