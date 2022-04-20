@@ -14,6 +14,14 @@ const fileUrl = id => `/file/${ id }/download`;
 const convertDate = date => new Date(date);
 
 const getAssignment = async (subvolumeId, itemId, assignmentKey) => {
+  const infoResponse = await axios.get(`/item/${ subvolumeId }/subvolume_assignment_info`, {
+    params: {
+      assignment_key: assignmentKey
+    }
+  }); 
+
+  console.log(infoResponse);
+
   /*
   // Get assignment
   const itemResponse = await axios.get(`/item/${ id }`);
