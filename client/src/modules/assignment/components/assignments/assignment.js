@@ -45,13 +45,28 @@ export const Assignment = ({ assignment }) => {
             />
           </div>
           <div>
-            <Label basic circular content='Status' detail={ enabled ? 'active' : 'awaiting review' } />
+            <Label 
+              basic 
+              circular 
+              content='Status' 
+              detail={ enabled ? 'active' : 'awaiting review' } 
+            />
           </div>
           <div>
-            <Label basic circular content='Updated' detail={ updated.toLocaleString() } />
+            <Label 
+              basic 
+              circular 
+              content='Updated' 
+              detail={ updated.toLocaleString() } 
+            />
           </div>
           <div>
-            <Label basic circular content='Labels' detail={ regions.map(({ label }) => label).join(', ') } />
+            <Label 
+              basic 
+              circular 
+              content={ regions.length > 1 ? 'Labels' : 'Label' } 
+              detail={ regions.map(({ label }) => label).join(', ') } 
+            />
           </div>
         </div>
       </Segment>

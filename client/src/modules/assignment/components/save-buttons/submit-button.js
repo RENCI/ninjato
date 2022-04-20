@@ -11,7 +11,6 @@ export const SubmitButton = ({ disabled }) => {
   const [{ id, assignment }] = useContext(UserContext);
   const [{ maskData }, dataDispatch] = useContext(DataContext);
   const [open, openModal, closeModal] = useModal();
-  const getAssignment = useGetAssignments();
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const ref = useRef();
@@ -31,8 +30,6 @@ export const SubmitButton = ({ disabled }) => {
 
         dataDispatch({ type: CLEAR_DATA });
       }, 1000);
-
-      //getAssignment(id);
     }
     catch (error) {
       console.log(error);        
