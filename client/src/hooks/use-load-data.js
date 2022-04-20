@@ -16,7 +16,7 @@ export const useLoadData = ()  => {
   const [, loadingDispatch] = useContext(LoadingContext);
   const [, errorDispatch] = useContext(ErrorContext);
 
-  return async ({ imageId, maskId, labels }) => {
+  return async ({ imageId, maskId, regions }) => {
     try {
       loadingDispatch({ type: SET_LOADING });
 
@@ -42,7 +42,7 @@ export const useLoadData = ()  => {
         type: SET_DATA,
         imageData: imageData,
         maskData: maskData,
-        label: labels[0] // XXX: Need to update this
+        label: regions[0].label // XXX: Need to update this
       });
 
       refineDispatch({

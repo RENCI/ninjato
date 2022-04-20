@@ -13,14 +13,49 @@ const fileUrl = id => `/file/${ id }/download`;
 
 const convertDate = date => new Date(date);
 
-const getAssignment = async (subvolumeId, itemId, assignmentKey) => {
+const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
+  // Get assignment info
   const infoResponse = await axios.get(`/item/${ subvolumeId }/subvolume_assignment_info`, {
     params: {
       assignment_key: assignmentKey
     }
   }); 
 
-  console.log(infoResponse);
+  const info = infoResponse.data;
+
+  // Get files
+  const filesResponse = await axios.get(`/item/${ itemId }/files`);
+
+  const { imageInfo, maskInfo } = filesResponse.data.reduce((info, item) => {
+    item.name.includes('mask') ? info.maskInfo = item : info.imageInfo = item;
+    return info;
+  }, {});
+
+  /*
+  // Combine
+  return {
+    ...info,
+    id: itemId,
+    subvolumeId: subvolumeId,
+    assignmentKey: assignmentKey,
+    imageId: imageInfo._id,
+    maskId: maskInfo._id,
+    updated: convertDate(info.updated)
+  };
+  */
+
+  return {
+    ...info,
+    id: itemId,
+    subvolumeId: subvolumeId,
+    assignmentKey: assignmentKey,
+    imageId: imageInfo._id,
+    maskId: maskInfo._id,
+    updated: new Date(),
+    regions: [{ label: 1 }]
+  }
+
+
 
   /*
   // Get assignment
@@ -160,7 +195,7 @@ export const api = {
 
     const assignments = [];
     for (const item of response.data) {
-      const assignment = await getAssignment(item.subvolume_id, item.item_id, item.assignment_key);
+      const assignment = await getAssignment(item.item_id, item.subvolume_id, item.assignment_key);
 
       assignments.push(assignment); 
     }
@@ -180,7 +215,7 @@ export const api = {
 
     const item = response.data[0];
 
-    const assignment = await getAssignment(item.subvolume_id, item.item_id, item.assignment_key);
+    const assignment = await getAssignment(item.item_id, item.subvolume_id, item.assignment_key);
 
     return assignment;
   },
