@@ -43,7 +43,10 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
     description: info.description,
     updated: convertDate(info.last_updated_time),
     location: {...info.location},
-    regions: [...info.regions],
+    regions: info.regions.map(region => ({
+      ...region,
+      label: +region.label
+    })),
     status: {
       assignedTo: info.annotation_assigned_to,
       completedBy: info.annotation_completed_by,
