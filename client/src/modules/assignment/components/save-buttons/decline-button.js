@@ -19,7 +19,7 @@ export const DeclineButton = ({ disabled }) => {
     setDeclining(true);
 
     try {
-      await api.declineAssignment(id, assignment.itemId);
+      await api.declineAssignment(id, assignment.id);
 
       setSuccess(true);
       setTimeout(() => {        

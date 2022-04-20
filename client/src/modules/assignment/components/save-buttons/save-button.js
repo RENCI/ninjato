@@ -30,7 +30,7 @@ export const SaveButton = ({ disabled, onSaving }) => {
     }
 
     try {
-      await api.saveAnnotations(id, assignment.itemId, buffer);
+      await api.saveAnnotations(id, assignment.id, buffer);
 
       setSuccess(true);
       setTimeout(() => setSuccess(false), 1000);
