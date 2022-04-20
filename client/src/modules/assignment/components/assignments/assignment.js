@@ -12,7 +12,7 @@ export const Assignment = ({ assignment }) => {
 
   console.log(assignment);
 
-  const { name, description, updated, regions, review_assigned_to } = assignment;
+  const { name, description, updated, regions } = assignment;
   const enabled = isActive(assignment);
 
   const onLoadClick = () => {
@@ -45,7 +45,7 @@ export const Assignment = ({ assignment }) => {
             />
           </div>
           <div>
-            <Label basic circular content='Status' detail={ enabled ? 'active' : 'pending review' } />
+            <Label basic circular content='Status' detail={ enabled ? 'active' : 'awaiting review' } />
           </div>
           <div>
             <Label basic circular content='Updated' detail={ updated.toLocaleString() } />

@@ -31,79 +31,30 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
     return info;
   }, {});
 
-  /*
-  // Combine
-  return {
-    ...info,
-    id: itemId,
-    subvolumeId: subvolumeId,
-    assignmentKey: assignmentKey,
-    imageId: imageInfo._id,
-    maskId: maskInfo._id,
-    updated: convertDate(info.updated)
-  };
-  */
-
-  return {
-    ...info,
-    id: itemId,
-    subvolumeId: subvolumeId,
-    assignmentKey: assignmentKey,
-    imageId: imageInfo._id,
-    maskId: maskInfo._id,
-    updated: new Date(),
-    regions: [{ label: 1 }]
-  }
-
-
-
-  /*
-  // Get assignment
-  const itemResponse = await axios.get(`/item/${ id }`);
-
-  const { data } = itemResponse;
-
-  // Get files
-  const filesResponse = await axios.get(`/item/${ id }/files`);
-
-  const { imageInfo, maskInfo } = filesResponse.data.reduce((info, item) => {
-    item.name.includes('mask') ? info.maskInfo = item : info.imageInfo = item;
-    return info;
-  }, {});
-
-  const labels = [data.meta.region_label];
-  if (data.meta.added_region_ids) labels.concat(data.meta.added_region_ids);
-
-  console.log(data);
-
-  // Get label info
-
-  const labelInfo = [];
-  for (const label of labels) {
-    const response = await axios.get(`/item/${ data._id }/subvolume_assignment_info`, {
-      params: {
-        region_label: label
-      }
-    });
-
-    console.log(response);
-  }
-
+  console.log(imageInfo);
+  console.log(maskInfo);
 
   // Copy info and rename to be more concise
   return {
-    id: data._id,
-    name: data.name,
-    parentId: data.baseParentId,
-    description: data.description,
-    coordinates: {...data.meta.coordinates},
-    labels: labels.map(label => +label),
+    id: itemId,
+    subvolumeId: subvolumeId,
+    assignmentKey: assignmentKey,
+    name: info.name,
+    description: info.description,
+    updated: convertDate(info.last_updated_time),
+    location: {...info.location},
+    regions: [...info.regions],
+    status: {
+      assignedTo: info.annotation_assigned_to,
+      completedBy: info.annotation_completed_by,
+      rejectedBy: info.annotation_rejected_by,
+      reviewAssignedTo: info.review_assigned_to,
+      reviewCompletedBy: info.review_completed_by,
+      reviewRejectedBy: info.review_rejected_by
+    },
     imageId: imageInfo._id,
-    maskId: maskInfo._id,
-    created: convertDate(data.created),
-    updated: convertDate(data.updated),
+    maskId: maskInfo._id
   };
-  */
 };
 
 // API
