@@ -3,14 +3,14 @@ import { Segment, Header, Label } from 'semantic-ui-react';
 import { UserContext, SET_ASSIGNMENT } from 'contexts';
 import { ButtonWrapper } from 'modules/common/components/button-wrapper';
 import { useLoadData } from 'hooks';
-import { isActive } from 'utils/assignment-utils';
+import { isActive, statusDisplay } from 'utils/assignment-utils';
 import styles from './styles.module.css';
 
 export const Assignment = ({ assignment }) => {
   const [, userDispatch] = useContext(UserContext);
   const loadData = useLoadData();
 
-  const { name, description, updated, regions } = assignment;
+  const { name, description, status, updated, regions } = assignment;
   const enabled = isActive(assignment);
 
   const onLoadClick = () => {
@@ -47,7 +47,8 @@ export const Assignment = ({ assignment }) => {
               basic 
               circular 
               content='Status' 
-              detail={ enabled ? 'active' : 'awaiting review' } 
+              color={ status === 'active' ? 'green' : null }
+              detail={ statusDisplay(assignment) } 
             />
           </div>
           <div>

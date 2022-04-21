@@ -69,9 +69,9 @@ export const Volume = ({ volume, enabled }) => {
               content='Assignments' 
             />
             <div className={ styles.labels }>
-              <Label basic color='blue' content='Available' detail={ available } />
-              <Label basic color='green' content='Active' detail={ active } />
-              <Label basic color='grey' content='Completed' detail={ completed } />
+              <Label basic color='blue' content='available' detail={ available } />
+              <Label basic color='green' content='active' detail={ active } />
+              <Label basic color='grey' content='completed' detail={ completed } />
             </div>
           </div>
         </div>

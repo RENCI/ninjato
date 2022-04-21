@@ -2,10 +2,15 @@ import { useContext } from 'react';
 import { Header } from 'semantic-ui-react';
 import { UserContext } from 'contexts';
 import { Assignment } from './assignment';
-import { hasActive } from 'utils/assignment-utils';
+import { hasActive, statusOrder } from 'utils/assignment-utils';
 import styles from './styles.module.css';
 
 const { Subheader } = Header;
+
+const sortOrder = (a, b) => (
+  a.status !== b.status ? statusOrder(a) - statusOrder(b) :
+  b.updated - a.updated
+);
 
 export const Assignments = () => {
   const [{ login, assignments }] = useContext(UserContext);
@@ -33,7 +38,7 @@ export const Assignments = () => {
             </Subheader>            
           </Header>
           <div className={ styles.container }>
-            { assignments.sort((a, b) => b.updated - a.updated).map((assignment, i) => (
+            { assignments.sort(sortOrder).map((assignment, i) => (
               <div key={ i }>
                 <Assignment assignment={ assignment } />
               </div>
