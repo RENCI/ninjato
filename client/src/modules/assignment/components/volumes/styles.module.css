@@ -10,7 +10,7 @@
 
 .volume {
   height: 100%;
-  width: 350px;
+  width: var(--assignment-width);
 }
 
 .volume > div {
