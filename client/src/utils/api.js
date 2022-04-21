@@ -31,9 +31,6 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
     return info;
   }, {});
 
-  console.log(imageInfo);
-  console.log(maskInfo);
-
   // Copy info and rename to be more concise
   return {
     id: itemId,
@@ -139,16 +136,11 @@ export const api = {
     return volumes;
   },
   getAssignments: async userId => {
-    console.log("DL:FKJSDL:FJSDF");
-
-    console.log(userId);
-
-    const response = await axios.get(`/user/${ userId }/assignment`);
-
-    console.log(response);
+    const assignmentResponse = await axios.get(`/user/${ userId }/assignment`);
+    const reviewResponse = await axios.get(`/user/${ userId }/assignment_await_review`);
 
     const assignments = [];
-    for (const item of response.data) {
+    for (const item of assignmentResponse.data.concat(reviewResponse.data)) {
       const assignment = await getAssignment(item.item_id, item.subvolume_id, item.assignment_key);
 
       assignments.push(assignment); 

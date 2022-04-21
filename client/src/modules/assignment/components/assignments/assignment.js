@@ -10,8 +10,6 @@ export const Assignment = ({ assignment }) => {
   const [, userDispatch] = useContext(UserContext);
   const loadData = useLoadData();
 
-  console.log(assignment);
-
   const { name, description, updated, regions } = assignment;
   const enabled = isActive(assignment);
 
