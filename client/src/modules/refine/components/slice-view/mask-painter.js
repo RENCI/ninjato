@@ -64,7 +64,11 @@ export function MaskPainter() {
     },
     setLabel: regionLabel => {
       label = regionLabel;
+
+      painter.setLabel(label);
+
       updateColors();
+      
       contour.setLabelOffsets({[label]: -0.01 });
     },
     getLabel: () => label,

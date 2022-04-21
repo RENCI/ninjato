@@ -52,7 +52,7 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
     regions: info.regions.map(region => ({
       ...region,
       label: +region.label
-    })),
+    })).concat(info.regions[0].label === '1' ? [{ label: 11 }] : []), // XXX: TESTING multiple regions
     status: getStatus(info),
     statusInfo: {
       assignedTo: info.annotation_assigned_to,
