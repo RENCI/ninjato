@@ -2,14 +2,24 @@ import { RenderWindow, Slice, Image } from 'modules/view/components';
 import { Widgets } from 'modules/refine/components/slice-view/widgets';
 import { MaskPainter } from 'modules/refine/components/slice-view/mask-painter';
 
-const onHover = () => console.log("TEST HOVER");
-
-export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
+export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDown, onKeyUp) {
   const renderWindow = RenderWindow();
   const slice = Slice();
   const image = Image();
-  const mask = MaskPainter();  
-  const widgets = Widgets(mask.getPainter(), onEdit, onHover);
+  const mask = MaskPainter();
+
+  const isValid = label => label !== null && label !== 0 && label !== mask.getLabel();
+
+  const onHover = label => {
+    if (!isValid(label)) {
+      onHighlight(null);
+    }
+    else {
+      onHighlight(label);
+    }
+  };
+
+  const widgets = Widgets(mask.getPainter(), onEdit, onSelect, onHover);
 
   return {
     initialize: rootNode => {
@@ -51,6 +61,7 @@ export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
       slice.setSliceByLabel(image.getMapper(), maskData, mask.getLabel());
     },
     setLabel: label => mask.setLabel(label),
+    setHighlightLabel: label => mask.setHighlightLabel(label),
     setEditMode: (editMode, cursor) => {
       widgets.setEditMode(editMode)
       renderWindow.setCursor(cursor);

@@ -11,7 +11,7 @@ const setBrush = (handle, brush) => {
 
 const createWidget = type => type.newInstance();
 
-export function Widgets(painter, onEdit, onHover) {
+export function Widgets(painter, onEdit, onSelect, onHover) {
   const manager = vtkWidgetManager.newInstance();
 
   const widgets = {
@@ -24,33 +24,7 @@ export function Widgets(painter, onEdit, onHover) {
 
   let handles = null;
 
-  let activeWidget = null;
-
-/*
-  const paintWidget = vtkBrushWidget.newInstance();
-  const eraseWidget = vtkBrushWidget.newInstance();
-  const cropWidget = vtkCropWidget.newInstance();
-  const selectWidget = vtkRegionSelectWidget.newInstance();
-  const claimWidget = vtkRegionSelectWidget.newInstance();
-
-  const widgets = [
-    selectWidget,
-    claimWidget,
-    paintWidget,
-    eraseWidget,
-    cropWidget
-  ];
-
-  let activeWidget = null;
-  
-  let paintHandle = null;
-  let eraseHandle = null;
-  let cropHandle = null;
-  let selectHandle = null;
-  let claimHandle = null;
-
-  let handles = [];
-*/  
+  let activeWidget = null; 
 
   return {
     setRenderer: renderer => {
@@ -70,16 +44,21 @@ export function Widgets(painter, onEdit, onHover) {
       });
 
       // Interaction
-      [widgets.select, widgets.claim].forEach(widgets => {
-        const startLabel = widgets.getStartLabel();
-        const label = widgets.getLabel();        
+      [
+        [widgets.select, handles.select], 
+        [widgets.claim, handles.claim]
+      ].forEach(([widget, handle]) => {
+        handle.onInteractionEvent(() => {
+          const startLabel = widget.getStartLabel();
+          const label = widget.getLabel(); 
 
-        if (startLabel === null || (startLabel !== null && startLabel === label)) {
-          onHover(label);
-        }
-        else {
-          onHover(null);
-        }
+          if (startLabel === null || (startLabel !== null && startLabel === label)) {
+            onHover(label);
+          }
+          else {
+            onHover(null);
+          }
+        });
       });
 
       // End
@@ -121,14 +100,18 @@ export function Widgets(painter, onEdit, onHover) {
         onEdit();
       });      
 
-      [widgets.select, widgets.claim].forEach(widget => {
-        const startLabel = widget.getStartLabel();
-        const label = widget.getLabel();
+      [
+        [widgets.select, handles.select, "select"], 
+        [widgets.claim, handles.claim, "claim"]
+      ].forEach(([widget, handle, type]) => {
+        handle.onEndInteractionEvent(() => {
+          const startLabel = widget.getStartLabel();
+          const label = widget.getLabel();
 
-        if (startLabel !== null && label === startLabel) {
-          //onLink(label);
-          console.log("STUFF");
-        }
+          if (startLabel !== null && label === startLabel) {
+            onSelect(label, type);
+          }
+        });
       });
     },
     update: (position, spacing) => {      

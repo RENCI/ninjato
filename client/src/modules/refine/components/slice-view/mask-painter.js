@@ -11,9 +11,11 @@ const sliceMode = vtkImageMapper.SlicingMode.K;
 
 export function MaskPainter() {      
   let label = null;
+  let highlightLabel = null;
 
   const backgroundColor = Blues[7];
   const regionColor = Reds[5];
+  const highlightColor = Reds[4];
 
   const painter = vtkNinjatoPainter.newInstance();
   painter.setSlicingMode(sliceMode);
@@ -32,6 +34,23 @@ export function MaskPainter() {
   actor.setMapper(mapper);
   actor.getProperty().setLighting(false);
 
+  const updateColors = () => {
+    // Initialize
+    color.removeAllPoints();
+    color.addRGBPoint(0, 0, 0, 0);
+    color.addRGBPoint(1, ...backgroundColor);
+
+    // Set background start and end points between special labels
+    [label, highlightLabel].filter(label => label !== null).forEach(label => {
+      if (label > 1) color.addRGBPoint(label - 1, ...backgroundColor);
+      color.addRGBPoint(label + 1, ...backgroundColor);
+    });
+
+    // Set special labels
+    color.addRGBPoint(label, ...regionColor);
+    if (highlightLabel) color.addRGBPoint(highlightLabel, ...highlightColor); 
+  };
+
   return {
     getPainter: () => painter,
     getActor: () => actor,
@@ -45,21 +64,14 @@ export function MaskPainter() {
     },
     setLabel: regionLabel => {
       label = regionLabel;
-      
-      painter.setLabel(label);
-
-      color.removeAllPoints();
-      color.addRGBPoint(0, 0, 0, 0);
-      if (label > 1) {
-        color.addRGBPoint(1, ...backgroundColor);
-        color.addRGBPoint(label - 1, ...backgroundColor);
-      }
-      color.addRGBPoint(label, ...regionColor);
-      color.addRGBPoint(label + 1, ...backgroundColor);
-
+      updateColors();
       contour.setLabelOffsets({[label]: -0.01 });
     },
     getLabel: () => label,
+    setHighlightLabel: label => {
+      highlightLabel = label;
+      updateColors();
+    },
     setSlice: slice => contour.setSliceRange([slice, slice]),
     cleanUp: () => {
       console.log('Clean up mask');

@@ -1,6 +1,9 @@
 import { useContext, useRef, useCallback, useState } from 'react';
 import { Grid } from 'semantic-ui-react';
-import { DataContext, RefineContext, REFINE_SET_EDIT_MODE } from 'contexts';
+import { 
+  DataContext, 
+  RefineContext, REFINE_SET_EDIT_MODE, REFINE_SET_CLAIM_LABEL 
+} from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
 import { VolumeViewWrapper, VolumeView } from 'modules/refine/components/volume-view';
@@ -9,6 +12,7 @@ import { VolumeControls } from 'modules/refine/components/volume-controls';
 import { SliceControls } from 'modules/refine/components/slice-controls';
 import { SliceSlider } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
+import { ClaimDialog } from 'modules/assignment/components/claim-dialog';
 import { Reds, cssString } from 'utils/colors';
 
 const { Column } = Grid;
@@ -17,7 +21,7 @@ export const RefineContainer = () => {
   const [{ imageData }] = useContext(DataContext);
   const [, refineDispatch] = useContext(RefineContext);
   const volumeView = useRef(VolumeView());
-  const sliceView = useRef(SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp));
+  const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDown, onKeyUp));
   const [loading, setLoading] = useState(true);
   const [slice, setSlice] = useState(0);
   const [canUndo, setCanUndo] = useState(false);
@@ -36,6 +40,17 @@ export const RefineContainer = () => {
     volumeView.current.setSlice(slice);
     volumeView.current.render();
     setSlice(slice);
+  }
+
+  function onSelect(label, type) {
+    if (type === 'claim') {
+      console.log(label);
+      refineDispatch({ type: REFINE_SET_CLAIM_LABEL, label: label });
+    }
+  }
+
+  function onHighlight(label) {
+    sliceView.current.setHighlightLabel(label);
   }
 
   function onKeyDown(evt) {
@@ -103,7 +118,12 @@ export const RefineContainer = () => {
           />
         }
       </Grid>
-      { !loading && <SaveButtons /> }
+      { !loading && 
+        <>
+          <SaveButtons /> 
+          <ClaimDialog />
+        </>
+      }
     </>
   );
 };

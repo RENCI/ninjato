@@ -12,7 +12,7 @@ export function Mask() {
 
   const backgroundColor = Blues[7];
   const regionColor = Reds[5];
-  const activeColor = Purples[6]
+  const activeColor = Purples[6];
   const highlightColor = Purples[5];
 
   const contour = vtkImageContour.newInstance();

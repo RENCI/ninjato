@@ -1,7 +1,11 @@
-import { useContext, useState, useRef } from 'react';
+import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
-import { UserContext, DataContext, CLEAR_DATA } from 'contexts';
-import { useModal, useGetAssignments } from 'hooks';
+import { 
+  UserContext, 
+  DataContext, CLEAR_DATA,
+  ErrorContext, SET_ERROR
+} from 'contexts';
+import { useModal } from 'hooks';
 import { api } from 'utils/api';
 
 const { Header, Content, Actions } = Modal;
@@ -9,11 +13,10 @@ const { Header, Content, Actions } = Modal;
 export const DeclineButton = ({ disabled }) => {
   const [{ id, assignment }] = useContext(UserContext);
   const [, dataDispatch] = useContext(DataContext);
+  const [, errorDispatch] = useContext(ErrorContext);
   const [open, openModal, closeModal] = useModal();
-  const getAssignment = useGetAssignments();
   const [declining, setDeclining] = useState(false);
   const [success, setSuccess] = useState(false);
-  const ref = useRef();
 
   const onConfirm = async () => {
     setDeclining(true);
@@ -26,12 +29,13 @@ export const DeclineButton = ({ disabled }) => {
         setSuccess(false);
         openModal(false);
 
-        //getAssignment(id);
         dataDispatch({ type: CLEAR_DATA });
       }, 1000);
     }
     catch (error) {
       console.log(error);        
+      
+      errorDispatch({ type: SET_ERROR, error: error });
     }
 
     setDeclining(false); 
@@ -40,7 +44,6 @@ export const DeclineButton = ({ disabled }) => {
   return (
     <>
       <Button 
-        ref={ ref }
         secondary
         disabled={ disabled }
         onClick={ openModal }

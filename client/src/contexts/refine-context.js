@@ -1,9 +1,10 @@
-import { createContext, useReducer } from "react";
+import { createContext, useReducer } from 'react';
 import { getCursor } from 'utils/cursor';
 
 export const REFINE_SET_EDIT_MODE = 'refine/SET_EDIT_MODE';
 export const REFINE_SET_BRUSH = 'refine/REFINE_SET_BRUSH';
 export const REFINE_SET_SHOW_BACKGROUND = 'refine/SET_SHOW_BACKGROUND';
+export const REFINE_SET_CLAIM_LABEL = 'refine/SET_CLAIM_LABEL';
 export const REFINE_RESET = 'refine/RESET';
 
 const editModes = [
@@ -51,7 +52,8 @@ const initialState = {
   brushes: brushes,
   paintBrush: 0,
   eraseBrush: 2,
-  showBackground: true
+  showBackground: true,
+  claimLabel: null
 };
 
 const reducer = (state, action) => {
@@ -72,7 +74,13 @@ const reducer = (state, action) => {
       return {
         ...state,
         showBackground: action.show
-      }
+      };
+
+    case REFINE_SET_CLAIM_LABEL:       
+      return {
+        ...state,
+        claimLabel: action.label
+      };
 
     case REFINE_RESET:
       return {
@@ -82,7 +90,7 @@ const reducer = (state, action) => {
       };
 
     default: 
-      throw new Error("Invalid Controls context action: " + action.type);
+      throw new Error('Invalid refine context action: ' + action.type);
   }
 }
 

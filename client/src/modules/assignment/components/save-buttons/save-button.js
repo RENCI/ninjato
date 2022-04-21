@@ -1,6 +1,10 @@
-import { useContext, useState, useRef } from 'react';
+import { useContext, useState } from 'react';
 import { Popup, Button, Icon } from 'semantic-ui-react';
-import { UserContext, DataContext } from 'contexts';
+import { 
+  UserContext, 
+  DataContext,
+  ErrorContext, SET_ERROR
+} from 'contexts';
 import { api } from 'utils/api';
 import { encodeTIFF, saveTIFF } from 'utils/data-conversion';
 
@@ -10,9 +14,9 @@ const download = false;
 export const SaveButton = ({ disabled, onSaving }) => {
   const [{ id, assignment }] = useContext(UserContext);
   const [{ maskData }] = useContext(DataContext);
+  const [, errorDispatch] = useContext(ErrorContext);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
-  const ref = useRef();
 
   const onSave = async () => {
     setSaving(true);
@@ -36,7 +40,9 @@ export const SaveButton = ({ disabled, onSaving }) => {
       setTimeout(() => setSuccess(false), 1000);
     }
     catch (error) {
-      console.log(error);        
+      console.log(error);   
+      
+      errorDispatch({ type: SET_ERROR, error: error });     
     }
 
     setSaving(false);
@@ -49,7 +55,6 @@ export const SaveButton = ({ disabled, onSaving }) => {
       open={ success }
       trigger={ 
         <Button 
-          ref={ ref }
           basic
           primary
           disabled={ disabled}

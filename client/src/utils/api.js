@@ -158,11 +158,11 @@ export const api = {
 
     return assignments;
   },
-  getNewAssignment: async (userId, volumeId) => {
+  getNewAssignment: async (userId, subvolumeId) => {
     const response = await axios.get(`/user/${ userId }/assignment`,
       {
         params: {
-          subvolume_id: volumeId
+          subvolume_id: subvolumeId
         }
       }
     );
@@ -228,5 +228,13 @@ export const api = {
         }
       }
     );
+  },
+  claimRegion: async (userId, subvolumeId, label) => {
+    await axios.post(`/user/${ userId }/claim_assignment`, null, {
+      params: {
+        subvolume_id: subvolumeId,
+        claim_region_id: label
+      }
+    });
   }
 };

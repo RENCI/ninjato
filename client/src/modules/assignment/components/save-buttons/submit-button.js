@@ -1,7 +1,11 @@
-import { useContext, useState, useRef } from 'react';
+import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
-import { UserContext, DataContext, CLEAR_DATA } from 'contexts';
-import { useModal, useGetAssignments } from 'hooks';
+import { 
+  UserContext, 
+  DataContext, CLEAR_DATA,
+  ErrorContext, SET_ERROR
+} from 'contexts';
+import { useModal } from 'hooks';
 import { api } from 'utils/api';
 import { encodeTIFF } from 'utils/data-conversion';
 
@@ -10,10 +14,10 @@ const { Header, Content, Actions } = Modal;
 export const SubmitButton = ({ disabled }) => {
   const [{ id, assignment }] = useContext(UserContext);
   const [{ maskData }, dataDispatch] = useContext(DataContext);
+  const [, errorDispatch] = useContext(ErrorContext);
   const [open, openModal, closeModal] = useModal();
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
-  const ref = useRef();
 
   const onConfirm = async () => {
     setSubmitting(true);
@@ -32,7 +36,9 @@ export const SubmitButton = ({ disabled }) => {
       }, 1000);
     }
     catch (error) {
-      console.log(error);        
+      console.log(error);   
+      
+      errorDispatch({ type: SET_ERROR, error: error });     
     }
 
     setSubmitting(false);   
@@ -41,7 +47,6 @@ export const SubmitButton = ({ disabled }) => {
   return (
     <>
       <Button 
-        ref={ ref }
         primary
         disabled={ disabled }
         onClick={ openModal }
