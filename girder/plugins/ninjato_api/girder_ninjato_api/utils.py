@@ -577,7 +577,8 @@ def get_item_assignment(user, subvolume_id):
     :param user: requesting user to get assignment for
     :param subvolume_id: requesting subvolume id if not empty; otherwise, all subvolumes will be
     considered
-    :return: list of assigned region ids and labels or empty if no assignment is available
+    :return: list of assigned item id, subvolume_id, and assignment key or empty
+    if no assignment is available
     """
     ret_data = []
 
@@ -663,6 +664,62 @@ def get_item_assignment(user, subvolume_id):
     return ret_data
 
 
+def get_await_review_assignment(user, subvolume_id):
+    """
+    get awaiting review assignments in a subvolume for annotation task if subvolume_id is set.
+    Otherwise, if it is not set, all awaoting review assignments across all subvolumes will be
+    returned; If user does not have any awaiting review assignments, empty list will be returned;
+
+    :param user: requesting user to get awaiting review assignment for
+    :param subvolume_id: requesting subvolume id if not empty; otherwise, all subvolumes will be
+    considered
+    :return: list of awaiting review assignment item id, subvolume_id, and assignment key or empty
+    if no assignment is available
+    """
+    ret_data = []
+
+    if user['login'] == 'admin':
+        return ret_data
+
+    id_list = []
+    if not subvolume_id:
+        subvolume_ids = get_subvolume_item_ids()
+        for id_item in subvolume_ids:
+            id_list.append(id_item['id'])
+    else:
+        id_list.append(subvolume_id)
+
+    annot_done_key = 'annotation_done'
+    review_done_key = 'review_done'
+    review_approved_key = 'review_approved'
+    for sub_id in id_list:
+        whole_item = Item().findOne({'_id': ObjectId(sub_id)})
+        if review_approved_key in whole_item['meta'] and \
+            whole_item['meta'][review_approved_key] == 'true':
+            continue
+
+        reg_items = Item().find({'folderId': whole_item['folderId']})
+        for reg_item in reg_items:
+            if reg_item['name'] == 'whole':
+                continue
+            if annot_done_key not in reg_item['meta']:
+                continue
+            if reg_item['meta'][annot_done_key] != 'true':
+                continue
+            if review_done_key in reg_item['meta'] and reg_item['meta'][review_done_key] == 'true':
+                continue
+            # annotation is done but review is not done, add it to await review list
+            item_dict = {
+                'item_id': str(reg_item['_id']),
+                'subvolume_id': sub_id,
+                'assignment_key': reg_item['meta']['region_label']
+            }
+            ret_data.append(item_dict)
+
+    # return the user's active assignments
+    return ret_data
+
+
 def save_user_annotation_as_item(user, item_id, done, reject, comment, added_region_ids,
                                  removed_region_ids, content_data):
     """
@@ -689,22 +746,6 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, added_reg
             "status": "success"
         }
 
-    done_key = f'annotation_done'
-    if done:
-        add_meta = {done_key: 'true'}
-    else:
-        add_meta = {done_key: 'false'}
-
-    if comment:
-        add_meta[f'annotation_comment'] = comment
-
-    if added_region_ids:
-        add_meta['added_region_ids'] = added_region_ids
-    if removed_region_ids:
-        add_meta['removed_region_ids'] = removed_region_ids
-
-    Item().setMetadata(item, add_meta)
-
     files = File().find({'itemId': ObjectId(item_id)})
     annot_file_name = ''
     assetstore_id = ''
@@ -728,6 +769,22 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, added_reg
         file = _save_file(assetstore_id, item, out_path, user, annot_file_name)
     except Exception as e:
         raise RestException(f'failure: {e}', 500)
+
+    done_key = f'annotation_done'
+    if done:
+        add_meta = {done_key: 'true'}
+    else:
+        add_meta = {done_key: 'false'}
+
+    if comment:
+        add_meta[f'annotation_comment'] = comment
+
+    if added_region_ids:
+        add_meta['added_region_ids'] = added_region_ids
+    if removed_region_ids:
+        add_meta['removed_region_ids'] = removed_region_ids
+
+    Item().setMetadata(item, add_meta)
 
     if done:
         if added_region_ids:
