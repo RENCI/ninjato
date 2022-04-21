@@ -13,6 +13,13 @@ const fileUrl = id => `/file/${ id }/download`;
 
 const convertDate = date => new Date(date);
 
+const getStatus = info => (
+  info.review_completed_by !== '' ? 'completed' :
+  info.review_assigned_to !== '' ? 'under review' :
+  info.annotation_completed_by !== '' ? 'awaiting review' :
+  'active'
+);
+
 const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
   // Get assignment info
   const infoResponse = await axios.get(`/item/${ subvolumeId }/subvolume_assignment_info`, {
@@ -22,6 +29,8 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
   }); 
 
   const info = infoResponse.data;
+
+  console.log(info);
 
   // Get files
   const filesResponse = await axios.get(`/item/${ itemId }/files`);
@@ -44,7 +53,8 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
       ...region,
       label: +region.label
     })),
-    status: {
+    status: getStatus(info),
+    statusInfo: {
       assignedTo: info.annotation_assigned_to,
       completedBy: info.annotation_completed_by,
       rejectedBy: info.annotation_rejected_by,
