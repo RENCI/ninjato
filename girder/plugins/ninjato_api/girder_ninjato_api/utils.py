@@ -279,9 +279,10 @@ def _update_assignment_in_whole_item(whole_item, assign_item_id):
                 counter += 1
             # update mask file by copying new tiff file to the old one, then delete the new tiff file
             shutil.move(output_path, whole_path)
-            return True
+            return
 
-    return False
+    raise RestException('Failed to update assignment annotation mask in the whole subvolume mask',
+                        code=500)
 
 
 def _remove_regions(region_list, whole_item):
@@ -315,7 +316,7 @@ def _merge_region_to_active_assignment(whole_item, active_assign_id, region_id):
     :return: active assignment annotation assigned to info
     """
     val = whole_item['meta']['regions'][region_id]
-    assign_item = Item().findOne({'_id': active_assign_id})
+    assign_item = Item().findOne({'_id': ObjectId(active_assign_id)})
     # get buffered extent for the region
     min_x = val['x_min']
     max_x = val['x_max']
@@ -327,13 +328,13 @@ def _merge_region_to_active_assignment(whole_item, active_assign_id, region_id):
     min_x, max_x, min_y, max_y, min_z, max_z = _get_buffered_extent(
         min_x, max_x, min_y, max_y, min_z, max_z, x_range, y_range, z_range)
     # update assign item coordinates to include the added region
-    max_x = max(max_x, assign_item['coordinates']["x_max"])
-    min_x = min(min_x, assign_item['coordinates']["x_min"])
-    max_y = max(max_y, assign_item['coordinates']["y_max"])
-    min_y = min(min_y, assign_item['coordinates']["y_min"])
-    max_z = max(max_z, assign_item['coordinates']["z_max"])
-    min_z = min(min_z, assign_item['coordinates']["z_min"])
-    assign_item['coordinates'] = {
+    max_x = max(max_x, assign_item['meta']['coordinates']["x_max"])
+    min_x = min(min_x, assign_item['meta']['coordinates']["x_min"])
+    max_y = max(max_y, assign_item['meta']['coordinates']["y_max"])
+    min_y = min(min_y, assign_item['meta']['coordinates']["y_min"])
+    max_z = max(max_z, assign_item['meta']['coordinates']["z_max"])
+    min_z = min(min_z, assign_item['meta']['coordinates']["z_min"])
+    assign_item['meta']['coordinates'] = {
         "x_max": max_x,
         "x_min": min_x,
         "y_max": max_y,
@@ -341,6 +342,14 @@ def _merge_region_to_active_assignment(whole_item, active_assign_id, region_id):
         "z_max": max_z,
         "z_min": min_z
     }
+
+    if 'added_region_ids' in assign_item['meta']:
+        rid_list = assign_item['meta']['added_region_ids']
+        rid_list.append(region_id)
+        assign_item['meta']['added_region_ids'] = rid_list
+    else:
+        assign_item['meta']['added_region_ids'] = [region_id]
+
     Item().save(assign_item)
 
     if "item_id" in val:
@@ -515,30 +524,30 @@ def claim_assignment(user, subvolume_id, active_assignment_id, claim_region_id):
     whole_item = Item().findOne({'_id': ObjectId(subvolume_id)})
     claim_region_id = str(claim_region_id)
     if claim_region_id not in whole_item['meta']['regions']:
-        ret_dict['status'] = 'failure'
-        ret_dict['assigned_user_info'] = ''
-        ret_dict['assigned_item_id'] = ''
-        return ret_dict
+        raise RestException('input region id to be claimed is invalid', code=400)
     else:
         val = whole_item['meta']['regions'][claim_region_id]
         done_key = 'annotation_completed_by'
         if done_key in val:
-            ret_dict['status'] = 'failure'
-            ret_dict['assigned_user_info'] = val[done_key]
-            ret_dict['assigned_item_id'] = val['item_id']
-            return ret_dict
+            raise RestException(f'Annotation of the claimed region has been '
+                                f'completed by {val[done_key]}', code=400)
 
         if 'annotation_assigned_to' in val:
+            assign_user_login = val['annotation_assigned_to'].split()[0]
+            assigned_user = User().findOne({'login': assign_user_login})
             ret_dict['status'] = 'failure'
             ret_dict['assigned_user_info'] = val['annotation_assigned_to']
+            ret_dict['assigned_user_email'] = assigned_user['email']
             ret_dict['assigned_item_id'] = val['item_id']
             return ret_dict
 
         # available to be claimed, merge claimed region to the user's active assignment
-        _merge_region_to_active_assignment(whole_item, active_assignment_id, claim_region_id)
+        annot_info = _merge_region_to_active_assignment(whole_item, active_assignment_id,
+                                                        claim_region_id)
 
         ret_dict['status'] = 'success'
-        ret_dict['assigned_user_info'] = val['annotation_assigned_to']
+        ret_dict['assigned_user_info'] = annot_info
+        ret_dict['assigned_user_email'] = user['email']
         ret_dict['assigned_item_id'] = active_assignment_id
         return ret_dict
 
@@ -601,10 +610,7 @@ def request_assignment(user, subvolume_id, assignment_key):
             ret_dict['assigned_item_id'] = val['item_id']
             return ret_dict
         else:
-            ret_dict['status'] = 'failure'
-            ret_dict['assigned_user_info'] = ''
-            ret_dict['assigned_item_id'] = ''
-            return ret_dict
+            raise RestException('request assigment key is invalid')
 
 
 def get_item_assignment(user, subvolume_id):
@@ -894,37 +900,33 @@ def save_user_review_result_as_item(user, item_id, reject, comment, approve):
         else:
             add_meta = {annot_uid: [item_id]}
         Item().setMetadata(whole_item, add_meta)
-        status = True
     else:
         # update whole volume masks with approved annotations
-        status = _update_assignment_in_whole_item(whole_item, item_id)
+        _update_assignment_in_whole_item(whole_item, item_id)
 
-    if status:
-        add_meta = {'review_done': 'true'}
+    add_meta = {'review_done': 'true'}
 
-        if comment:
-            add_meta['review_comment'] = comment
+    if comment:
+        add_meta['review_comment'] = comment
 
-        if approve:
-            add_meta['review_approved'] = 'true'
-        else:
-            add_meta['review_approved'] = 'false'
+    if approve:
+        add_meta['review_approved'] = 'true'
+    else:
+        add_meta['review_approved'] = 'false'
 
-        Item().setMetadata(item, add_meta)
+    Item().setMetadata(item, add_meta)
 
-        del whole_item['meta'][str(uid)]
-        whole_item = Item().save(whole_item)
-        info = {
-            'user': uname,
-            'timestamp': datetime.now().strftime("%m/%d/%Y %H:%M")
-        }
-        _add_meta_to_region(whole_item, region_key, 'review_completed_by', info)
-        # check if all regions for the partition is done, and if so add done metadata to whole item
-        _check_subvolume_done(whole_item, task='review')
-
-    return {
-        'status': 'success' if status else 'failure'
+    del whole_item['meta'][str(uid)]
+    whole_item = Item().save(whole_item)
+    info = {
+        'user': uname,
+        'timestamp': datetime.now().strftime("%m/%d/%Y %H:%M")
     }
+    _add_meta_to_region(whole_item, region_key, 'review_completed_by', info)
+    # check if all regions for the partition is done, and if so add done metadata to whole item
+    _check_subvolume_done(whole_item, task='review')
+
+    return
 
 
 def get_subvolume_item_ids():
