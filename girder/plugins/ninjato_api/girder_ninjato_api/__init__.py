@@ -51,14 +51,17 @@ def get_user_await_review_assign(user, subvolume_id):
     .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
     .param('subvolume_id', 'subvolume id that includes the region to be claimed from another owner',
            required=True)
+    .param('active_assignment_id', 'the active assignment item id from the user to add the claimed '
+                                   'region into',
+           required=True)
     .param('claim_region_id', 'region id or label to find the assignment to be claimed',
            required=True)
     .errorResponse()
     .errorResponse('Request action was denied on the user.', 403)
     .errorResponse('Failed to claim the requested region', 500)
 )
-def claim_region_assignment(user, subvolume_id, claim_region_id):
-    return claim_assignment(user, subvolume_id, claim_region_id)
+def claim_region_assignment(user, subvolume_id, active_assignment_id, claim_region_id):
+    return claim_assignment(user, subvolume_id, active_assignment_id, claim_region_id)
 
 
 @access.public
