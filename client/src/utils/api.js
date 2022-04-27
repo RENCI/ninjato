@@ -229,10 +229,11 @@ export const api = {
       }
     );
   },
-  claimRegion: async (userId, subvolumeId, label) => {
+  claimRegion: async (userId, subvolumeId, assignmentId, label) => {
     await axios.post(`/user/${ userId }/claim_assignment`, null, {
       params: {
         subvolume_id: subvolumeId,
+        active_assignment_id: assignmentId,
         claim_region_id: label
       }
     });
