@@ -3,11 +3,14 @@ import { UserContext, RefineContext } from 'contexts';
 import { useResize } from 'hooks';
 
 export const SliceViewWrapper = ({ sliceView }) => {
-  const [{ imageData, maskData, label }] = useContext(UserContext);
+  const [{ imageData, maskData, assignment }] = useContext(UserContext);
   const [{ editMode, editModes, brushes, paintBrush, eraseBrush }] = useContext(RefineContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);
   const { width } = useResize(div);
+
+  const labels = assignment.regions.map(({ label }) => label);
+  const activeLabel = labels.length > 0 ? labels[0] : -1;
   
   // Initialize
   useEffect(() => {
@@ -20,10 +23,11 @@ export const SliceViewWrapper = ({ sliceView }) => {
   // Update data
   useEffect(() => {
     if (initialized && imageData && maskData) {
-      sliceView.setLabel(label);
+      sliceView.setLabels(labels);
+      sliceView.setActiveLabel(activeLabel);
       sliceView.setData(imageData, maskData);
     }
-  }, [initialized, sliceView, imageData, maskData, label]);   
+  }, [initialized, sliceView, imageData, maskData, labels, activeLabel]);   
 
   // Edit mode
   useEffect(() => {

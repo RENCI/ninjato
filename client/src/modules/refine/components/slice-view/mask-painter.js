@@ -10,11 +10,13 @@ import { Reds, Blues } from 'utils/colors';
 const sliceMode = vtkImageMapper.SlicingMode.K;
 
 export function MaskPainter() {      
-  let label = null;
+  let labels = [];
+  let activeLabel = null;
   let highlightLabel = null;
 
   const backgroundColor = Blues[7];
-  const regionColor = Reds[5];
+  const regionColor = [0.5, 0.5, 0.5];
+  const activeColor = Reds[5];
   const highlightColor = Reds[4];
 
   const painter = vtkNinjatoPainter.newInstance();
@@ -40,14 +42,15 @@ export function MaskPainter() {
     color.addRGBPoint(0, 0, 0, 0);
     color.addRGBPoint(1, ...backgroundColor);
 
-    // Set background start and end points between special labels
-    [label, highlightLabel].filter(label => label !== null).forEach(label => {
+    // Set background start and end points between labels
+    [...labels, highlightLabel].filter(label => label !== null).forEach(label => {
       if (label > 1) color.addRGBPoint(label - 1, ...backgroundColor);
       color.addRGBPoint(label + 1, ...backgroundColor);
     });
 
-    // Set special labels
-    color.addRGBPoint(label, ...regionColor);
+    // Set labels
+    labels.forEach(label => color.addRGBPoint(label, ...regionColor));
+    if (activeLabel) color.addRGBPoint(activeLabel, ...activeColor);
     if (highlightLabel) color.addRGBPoint(highlightLabel, ...highlightColor); 
   };
 
@@ -62,8 +65,13 @@ export function MaskPainter() {
       const [w, h] = maskData.getDimensions();
       contour.setWidth(Math.max(w, h) / 200);
     },
-    setLabel: regionLabel => {
-      label = regionLabel;
+    setLabels: regionLabels => {
+      labels = regionLabels;
+
+      updateColors();
+    },
+    setActiveLabel: label => {
+      activeLabel = label;
 
       painter.setLabel(label);
 
@@ -71,7 +79,7 @@ export function MaskPainter() {
       
       contour.setLabelOffsets({[label]: -0.01 });
     },
-    getLabel: () => label,
+    getActiveLabel: () => activeLabel,
     setHighlightLabel: label => {
       highlightLabel = label;
       updateColors();

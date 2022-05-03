@@ -8,7 +8,7 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
   const image = Image();
   const mask = MaskPainter();
 
-  const isValid = label => label !== null && label !== 0 && label !== mask.getLabel();
+  const isValid = label => label !== null && label !== 0 && label !== mask.getActiveLabel();
 
   const onHover = label => {
     if (!isValid(label)) {
@@ -58,9 +58,10 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
       }
 
       slice.setImage(image.getActor(), renderWindow.getCamera(), onUpdateSlice);
-      slice.setSliceByLabel(image.getMapper(), maskData, mask.getLabel());
+      slice.setSliceByLabel(image.getMapper(), maskData, mask.getActiveLabel());
     },
-    setLabel: label => mask.setLabel(label),
+    setLabels: labels => mask.setLabels(labels),
+    setActiveLabel: label => mask.setActiveLabel(label),
     setHighlightLabel: label => mask.setHighlightLabel(label),
     setEditMode: (editMode, cursor) => {
       widgets.setEditMode(editMode)

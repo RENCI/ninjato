@@ -3,11 +3,13 @@ import { UserContext, RefineContext } from 'contexts';
 import { useResize } from 'hooks';
 
 export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
-  const [{ maskData, label }] = useContext(UserContext);
+  const [{ maskData, assignment }] = useContext(UserContext);
   const [{ showBackground }] = useContext(RefineContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);
   const { width } = useResize(div);
+
+  const label = assignment.regions.length > 0 ? assignment.regions[0].label : -1;
 
   // Initialize
   useEffect(() => {
