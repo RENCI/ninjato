@@ -1,9 +1,9 @@
 import { useContext, useState, useRef, useEffect } from 'react';
-import { DataContext, RefineContext } from 'contexts';
+import { UserContext, RefineContext } from 'contexts';
 import { useResize } from 'hooks';
 
 export const SliceViewWrapper = ({ sliceView }) => {
-  const [{ imageData, maskData, label }] = useContext(DataContext);
+  const [{ imageData, maskData, label }] = useContext(UserContext);
   const [{ editMode, editModes, brushes, paintBrush, eraseBrush }] = useContext(RefineContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);

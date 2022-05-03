@@ -1,8 +1,7 @@
 import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { 
-  UserContext, 
-  DataContext, CLEAR_DATA,
+  UserContext, CLEAR_DATA,
   ErrorContext, SET_ERROR
 } from 'contexts';
 import { useModal } from 'hooks';
@@ -12,8 +11,7 @@ import { encodeTIFF } from 'utils/data-conversion';
 const { Header, Content, Actions } = Modal;
 
 export const SubmitButton = ({ disabled }) => {
-  const [{ id, assignment }] = useContext(UserContext);
-  const [{ maskData }, dataDispatch] = useContext(DataContext);
+  const [{ id, assignment, maskData }, userDispatch] = useContext(UserContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const [open, openModal, closeModal] = useModal();
   const [submitting, setSubmitting] = useState(false);
@@ -32,7 +30,7 @@ export const SubmitButton = ({ disabled }) => {
         setSuccess(false);
         closeModal();
 
-        dataDispatch({ type: CLEAR_DATA });
+        userDispatch({ type: CLEAR_DATA });
       }, 1000);
     }
     catch (error) {

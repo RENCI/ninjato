@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import { 
-  DataContext, SET_DATA,
+  UserContext, SET_DATA,
   RefineContext, REFINE_RESET,
   FlagContext, FLAG_RESET,
   LoadingContext, SET_LOADING, CLEAR_LOADING,
@@ -10,13 +10,13 @@ import { api } from 'utils/api';
 import { decodeTIFF } from 'utils/data-conversion';
 
 export const useLoadData = ()  => {
-  const [, dataDispatch] = useContext(DataContext);
+  const [, userDispatch] = useContext(UserContext);
   const [, refineDispatch] = useContext(RefineContext);
   const [, flagDispatch] = useContext(FlagContext);
   const [, loadingDispatch] = useContext(LoadingContext);
   const [, errorDispatch] = useContext(ErrorContext);
 
-  return async ({ imageId, maskId, regions }) => {
+  return async ({ imageId, maskId }) => {
     try {
       loadingDispatch({ type: SET_LOADING });
 
@@ -38,11 +38,10 @@ export const useLoadData = ()  => {
         throw new Error(`Returned volume dimensions are (${ iDims }).\nAll dimensions must be greater than 1.\nPlease contact the site administrator`);
       }
 
-      dataDispatch({
+      userDispatch({
         type: SET_DATA,
         imageData: imageData,
-        maskData: maskData,
-        label: regions[0].label // XXX: Need to update this
+        maskData: maskData
       });
 
       refineDispatch({

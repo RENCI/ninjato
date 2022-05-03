@@ -1,9 +1,9 @@
 import { useContext, useState, useRef, useEffect } from 'react';
-import { DataContext, FlagContext } from 'contexts';
+import { UserContext, FlagContext } from 'contexts';
 import { useResize } from 'hooks';
 
 export const SliceViewWrapper = ({ sliceView }) => {
-  const [{ imageData, maskData, label }] = useContext(DataContext);
+  const [{ imageData, maskData, label }] = useContext(UserContext);
   const [{ flag, links }] = useContext(FlagContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);

@@ -1,10 +1,13 @@
-import { createContext, useReducer } from "react";
+import { createContext, useReducer } from 'react';
 
 export const LOGIN = 'user/LOGIN';
 export const LOGOUT = 'user/LOGOUT';
 export const SET_VOLUMES = 'user/SET_VOLUMES';
 export const SET_ASSIGNMENTS = 'user/SET_ASSIGNMENTS';
 export const SET_ASSIGNMENT = 'user/SET_ASSIGNMENT';
+export const UPDATE_ASSIGNMENT = 'user/UPDATE_ASSIGNMENT';
+export const SET_DATA = 'user/SET_DATA';
+export const CLEAR_DATA = 'user/CLEAR_DATA';
 
 const initialState = {
   id: null,
@@ -12,14 +15,16 @@ const initialState = {
   login: null,
   volumes: null,
   assignments: null, 
-  assignment: null
+  assignment: null,
+  imageData: null,
+  maskData: null
 };
 
 const reducer = (state, action) => {
   switch (action.type) {
     case LOGIN:
       return {
-        ...state,
+        ...initialState,
         id: action.id,
         login: action.login,
         admin: action.admin
@@ -27,10 +32,7 @@ const reducer = (state, action) => {
 
     case LOGOUT:
       return {
-        ...state,
-        id: null,
-        login: null,
-        admin: false,
+        ...initialState
       };    
 
     case SET_VOLUMES:
@@ -54,8 +56,51 @@ const reducer = (state, action) => {
         }
       };
 
+    case UPDATE_ASSIGNMENT: {
+      const assignments = [...state.assignments];
+
+      const index = assignments.findIndex(({ id }) => id === action.assignment.id);
+      const isActive = state.assignment.id === action.assignment.id;
+
+      if (index === -1) {
+        console.warn(`Could not find assignment ${ action.assignment.id }`);
+
+        if (!isActive) return state;
+      }
+
+      const update = {};
+
+      if (index !== -1) {
+        update.assignments = [...state.assignments];
+        update.assignments[index] = action.assignment;
+      }
+
+      if (isActive) {
+        update.assignment = action.assignment;
+      }
+
+      return {
+        ...state,
+        ...update
+      };
+    };
+
+    case SET_DATA:
+      return {
+        ...state,
+        imageData: action.imageData,
+        maskData: action.maskData
+      };
+
+    case CLEAR_DATA:
+      return {
+        ...state,
+        imageData: null,
+        maskData: null
+      };
+
     default: 
-      throw new Error("Invalid user context action: " + action.type);
+      throw new Error(`Invalid user context action: ${ action.type }`);
   }
 }
 

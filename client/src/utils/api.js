@@ -52,7 +52,7 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
     regions: info.regions.map(region => ({
       ...region,
       label: +region.label
-    })).concat(info.regions[0].label === '1' ? [{ label: 11 }] : []), // XXX: TESTING multiple regions
+    })).sort((a, b) => a.label - b.label),
     status: getStatus(info),
     statusInfo: {
       assignedTo: info.annotation_assigned_to,
@@ -176,7 +176,7 @@ export const api = {
     return assignment;
   },
   declineAssignment: async (userId, itemId) => {
-    await axios.post(`/user/${ userId }/annotation`,
+    const response = await axios.post(`/user/${ userId }/annotation`,
       null,
       {
         params: {
@@ -185,6 +185,13 @@ export const api = {
         }
       }
     );
+
+    return response.data;
+  },
+  updateAssignment: async ({ id, subvolumeId, assignmentKey }) => {
+    const assignment = await getAssignment(id, subvolumeId, assignmentKey);
+
+    return assignment;
   },
   getData: async (imageId, maskId) => {
     const responses = await Promise.all([
@@ -230,12 +237,14 @@ export const api = {
     );
   },
   claimRegion: async (userId, subvolumeId, assignmentId, label) => {
-    await axios.post(`/user/${ userId }/claim_assignment`, null, {
+    const response = await axios.post(`/user/${ userId }/claim_assignment`, null, {
       params: {
         subvolume_id: subvolumeId,
         active_assignment_id: assignmentId,
         claim_region_id: label
       }
     });
+
+    return response.data;
   }
 };

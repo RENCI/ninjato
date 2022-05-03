@@ -1,13 +1,13 @@
 import { useContext } from 'react';
 import { 
-  DataContext, SET_DATA,
+  UserContext, SET_DATA,
   ErrorContext, SET_ERROR 
 } from 'contexts';
 import { api } from 'utils/api';
 import { decodeTIFF } from 'utils/data-conversion';
 
 export const useLoadPracticeData = ()  => {
-  const [, dataDispatch] = useContext(DataContext);
+  const [, dataDispatch] = useContext(UserContext);
   const [, errorDispatch] = useContext(ErrorContext);
 
   return async () => {

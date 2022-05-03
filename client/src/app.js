@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { 
   UserProvider, 
-  DataProvider, 
   RefineProvider, 
   FlagProvider, 
   LoadingProvider,
@@ -15,7 +14,6 @@ import { Home } from 'pages';
 export const App = () => { 
   return (
     <UserProvider>
-    <DataProvider>
     <RefineProvider>
     <FlagProvider>
     <LoadingProvider>
@@ -32,7 +30,6 @@ export const App = () => {
     </LoadingProvider>
     </FlagProvider>
     </RefineProvider>
-    </DataProvider>
     </UserProvider>
   );
 };

@@ -1,6 +1,6 @@
 import { useContext, useRef, useCallback, useState } from 'react';
 import { Grid } from 'semantic-ui-react';
-import { DataContext, FlagContext, FLAG_ADD_LINK, FLAG_REMOVE_LINK } from 'contexts';
+import { UserContext, FlagContext, FLAG_ADD_LINK, FLAG_REMOVE_LINK } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
 import { VolumeViewWrapper, VolumeView } from 'modules/flag/components/volume-view';
@@ -14,7 +14,7 @@ import { Reds, Blues, cssString } from 'utils/colors';
 const { Column } = Grid;
 
 export const FlagContainer = () => {
-  const [{ imageData }] = useContext(DataContext);
+  const [{ imageData }] = useContext(UserContext);
   const [,flagDispatch] = useContext(FlagContext);
   const volumeView = useRef(VolumeView());
   const sliceView = useRef(SliceView(onAddLink, onRemoveLink, onHighlight, onSliceChange));

@@ -1,9 +1,9 @@
 import { useContext, useState, useRef, useEffect } from 'react';
-import { DataContext, FlagContext } from 'contexts';
+import { UserContext, FlagContext } from 'contexts';
 import { useResize } from 'hooks';
 
 export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
-  const [{ maskData, label }] = useContext(DataContext);
+  const [{ maskData, label }] = useContext(UserContext);
   const [{ flag, links, showBackground }] = useContext(FlagContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);

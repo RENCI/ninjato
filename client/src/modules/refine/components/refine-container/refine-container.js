@@ -1,7 +1,7 @@
 import { useContext, useRef, useCallback, useState } from 'react';
 import { Grid } from 'semantic-ui-react';
 import { 
-  DataContext, 
+  UserContext, 
   RefineContext, REFINE_SET_EDIT_MODE, REFINE_SET_CLAIM_LABEL 
 } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
@@ -18,7 +18,7 @@ import { Reds, cssString } from 'utils/colors';
 const { Column } = Grid;
 
 export const RefineContainer = () => {
-  const [{ imageData }] = useContext(DataContext);
+  const [{ imageData }] = useContext(UserContext);
   const [, refineDispatch] = useContext(RefineContext);
   const volumeView = useRef(VolumeView());
   const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDown, onKeyUp));
@@ -44,7 +44,6 @@ export const RefineContainer = () => {
 
   function onSelect(label, type) {
     if (type === 'claim') {
-      console.log(label);
       refineDispatch({ type: REFINE_SET_CLAIM_LABEL, label: label });
     }
   }

@@ -1,39 +1,55 @@
 import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { 
-  UserContext,
+  UserContext, UPDATE_ASSIGNMENT,
   RefineContext, REFINE_SET_CLAIM_LABEL, 
   ErrorContext, SET_ERROR
 } from 'contexts';
+import { useLoadData } from 'hooks';
 import { api } from 'utils/api';
 
 const { Header, Content, Actions } = Modal;
 
 export const ClaimDialog = () => {
-  const [{ id, assignment }] = useContext(UserContext);
+  const [{ id, assignment }, userDispatch] = useContext(UserContext);
   const [{ claimLabel }, refineDispatch] = useContext(RefineContext);
   const [, errorDispatch] = useContext(ErrorContext);
+  const loadData = useLoadData();
   const [claiming, setClaiming] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const onConfirm = async () => {
     setClaiming(true);
 
-    console.log(assignment);
-
     try {
-      await api.claimRegion(id, assignment.subvolumeId, assignment.id, claimLabel);
+      const { status } = await api.claimRegion(id, assignment.subvolumeId, assignment.id, claimLabel);
+
+      if (status !== 'success') throw new Error(`Error claiming region ${ claimLabel }`);
 
       setSuccess(true);
-      setTimeout(() => {        
+      setTimeout(async () => {
         setSuccess(false);
+        setClaiming(false);
 
         refineDispatch({ type: REFINE_SET_CLAIM_LABEL, label: null });
-      }, 1000);
+        
+        const update = await api.updateAssignment(assignment);
+
+        userDispatch({
+          type: UPDATE_ASSIGNMENT,
+          assignment: update,
+          assignmentType: 'refine'
+        });
+  
+        loadData(update);    
+      }, 1000); 
     }
     catch (error) {
       console.log(error);   
       
+      setSuccess(false);
+      setClaiming(false);
+
       errorDispatch({ type: SET_ERROR, error: error });
     }
 

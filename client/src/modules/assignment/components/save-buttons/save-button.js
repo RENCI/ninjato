@@ -2,7 +2,6 @@ import { useContext, useState } from 'react';
 import { Popup, Button, Icon } from 'semantic-ui-react';
 import { 
   UserContext, 
-  DataContext,
   ErrorContext, SET_ERROR
 } from 'contexts';
 import { api } from 'utils/api';
@@ -12,8 +11,7 @@ import { encodeTIFF, saveTIFF } from 'utils/data-conversion';
 const download = false;
 
 export const SaveButton = ({ disabled, onSaving }) => {
-  const [{ id, assignment }] = useContext(UserContext);
-  const [{ maskData }] = useContext(DataContext);
+  const [{ id, assignment, maskData }] = useContext(UserContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
