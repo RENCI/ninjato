@@ -18,7 +18,7 @@ import { Reds, cssString } from 'utils/colors';
 const { Column } = Grid;
 
 export const RefineContainer = () => {
-  const [{ imageData }] = useContext(UserContext);
+  const [{ imageData, regions }] = useContext(UserContext);
   const [, refineDispatch] = useContext(RefineContext);
   const volumeView = useRef(VolumeView());
   const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDown, onKeyUp));

@@ -60,8 +60,14 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
       slice.setImage(image.getActor(), renderWindow.getCamera(), onUpdateSlice);
       slice.setSliceByLabel(image.getMapper(), maskData, mask.getActiveLabel());
     },
-    setLabels: labels => mask.setLabels(labels),
-    setActiveLabel: label => mask.setActiveLabel(label),
+    setLabels: labels => {
+      mask.setLabels(labels);
+      widgets.setLabels(labels);
+    },
+    setActiveLabel: label => {
+      mask.setActiveLabel(label);
+      widgets.setActiveLabel(label);
+    },
     setHighlightLabel: label => mask.setHighlightLabel(label),
     setEditMode: (editMode, cursor) => {
       widgets.setEditMode(editMode)

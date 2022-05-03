@@ -9,15 +9,17 @@ import { Reds, Blues } from 'utils/colors';
 
 const sliceMode = vtkImageMapper.SlicingMode.K;
 
+
+
 export function MaskPainter() {      
   let labels = [];
   let activeLabel = null;
   let highlightLabel = null;
 
   const backgroundColor = Blues[7];
-  const regionColor = [0.5, 0.5, 0.5];
-  const activeColor = Reds[5];
-  const highlightColor = Reds[4];
+  const regionColor = Reds[4];
+  const activeColor = Reds[6];
+  const highlightColor = Reds[1];
 
   const painter = vtkNinjatoPainter.newInstance();
   painter.setSlicingMode(sliceMode);
@@ -49,9 +51,20 @@ export function MaskPainter() {
     });
 
     // Set labels
+    if (highlightLabel) color.addRGBPoint(highlightLabel, ...highlightColor);
     labels.forEach(label => color.addRGBPoint(label, ...regionColor));
-    if (activeLabel) color.addRGBPoint(activeLabel, ...activeColor);
-    if (highlightLabel) color.addRGBPoint(highlightLabel, ...highlightColor); 
+    if (activeLabel) color.addRGBPoint(activeLabel, ...activeColor); 
+
+    // Set z offsets
+    const offsets = labels.reduce((offsets, label) => {
+      offsets[label] = -0.01;
+      return offsets;
+    }, {});
+
+    if (activeLabel) offsets[activeLabel] = -0.02;
+    if (highlightLabel) offsets[highlightLabel] = -0.03;
+
+    contour.setLabelOffsets(offsets);
   };
 
   return {
@@ -75,13 +88,12 @@ export function MaskPainter() {
 
       painter.setLabel(label);
 
-      updateColors();
-      
-      contour.setLabelOffsets({[label]: -0.01 });
+      updateColors();            
     },
     getActiveLabel: () => activeLabel,
     setHighlightLabel: label => {
       highlightLabel = label;
+      
       updateColors();
     },
     setSlice: slice => contour.setSliceRange([slice, slice]),

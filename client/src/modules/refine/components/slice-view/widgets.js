@@ -26,6 +26,9 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
 
   let activeWidget = null; 
 
+  let labels = [];
+  let activeLabel = null;
+
   return {
     setRenderer: renderer => {
       manager.setRenderer(renderer);
@@ -100,18 +103,36 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
         onEdit();
       });      
 
-      [
-        [widgets.select, handles.select, "select"], 
-        [widgets.claim, handles.claim, "claim"]
-      ].forEach(([widget, handle, type]) => {
-        handle.onEndInteractionEvent(() => {
-          const startLabel = widget.getStartLabel();
-          const label = widget.getLabel();
+      handles.select.onEndInteractionEvent(() => {
+        const widget = widgets.select;
 
-          if (startLabel !== null && label === startLabel) {
-            onSelect(label, type);
-          }
-        });
+        const startLabel = widget.getStartLabel();
+        const label = widget.getLabel();
+
+        if (
+          startLabel !== null && 
+          label === startLabel &&           
+          labels.includes(label) && 
+          label !== activeLabel
+        ) {
+          onSelect(label, 'select');
+        }
+      });
+
+      handles.claim.onEndInteractionEvent(() => {
+        const widget = widgets.claim;
+
+        const startLabel = widget.getStartLabel();
+        const label = widget.getLabel();
+
+        if (
+          startLabel !== null && 
+          label === startLabel && 
+          label !== 0 &&
+          !labels.includes(label)
+        ) {
+          onSelect(label, 'claim');
+        }
       });
     },
     update: (position, spacing) => {      
@@ -142,6 +163,12 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
     },
     setPaintBrush: brush => setBrush(handles.paint, brush),
     setEraseBrush: brush => setBrush(handles.erase, brush),
+    setLabels: regionLabels => {
+      labels = regionLabels;
+    },
+    setActiveLabel: label => {
+      activeLabel = label;
+    },
     cleanUp: () => {
       console.log('Clean up widgets');
 

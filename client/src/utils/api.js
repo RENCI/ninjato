@@ -30,8 +30,6 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
 
   const info = infoResponse.data;
 
-  console.log(info);
-
   // Get files
   const filesResponse = await axios.get(`/item/${ itemId }/files`);
 
