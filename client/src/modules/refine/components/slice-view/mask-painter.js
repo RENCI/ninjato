@@ -51,9 +51,9 @@ export function MaskPainter() {
     });
 
     // Set labels
-    if (highlightLabel) color.addRGBPoint(highlightLabel, ...highlightColor);
     labels.forEach(label => color.addRGBPoint(label, ...regionColor));
     if (activeLabel) color.addRGBPoint(activeLabel, ...activeColor); 
+    if (highlightLabel) color.addRGBPoint(highlightLabel, ...highlightColor);
 
     // Set z offsets
     const offsets = labels.reduce((offsets, label) => {

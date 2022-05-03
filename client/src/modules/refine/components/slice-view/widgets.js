@@ -47,21 +47,40 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       });
 
       // Interaction
-      [
-        [widgets.select, handles.select], 
-        [widgets.claim, handles.claim]
-      ].forEach(([widget, handle]) => {
-        handle.onInteractionEvent(() => {
-          const startLabel = widget.getStartLabel();
-          const label = widget.getLabel(); 
+      handles.select.onInteractionEvent(() => {
+        const widget = widgets.select;
 
-          if (startLabel === null || (startLabel !== null && startLabel === label)) {
-            onHover(label);
-          }
-          else {
-            onHover(null);
-          }
-        });
+        const startLabel = widget.getStartLabel();
+        const label = widget.getLabel();
+
+        if (
+          (startLabel === null || label === startLabel) &&           
+          labels.includes(label) && 
+          label !== activeLabel
+        ) {
+          onHover(label);
+        }
+        else {
+          onHover(null);
+        }
+      });
+
+      handles.claim.onInteractionEvent(() => {
+        const widget = widgets.claim;
+
+        const startLabel = widget.getStartLabel();
+        const label = widget.getLabel();
+
+        if (
+          (startLabel === null || label === startLabel) &&   
+          label !== 0 &&
+          !labels.includes(label)
+        ) {          
+          onHover(label);
+        }
+        else {
+          onHover(null);
+        }
       });
 
       // End

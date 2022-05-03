@@ -8,9 +8,6 @@ export const SliceViewWrapper = ({ sliceView }) => {
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);
   const { width } = useResize(div);
-
-  const labels = assignment.regions.map(({ label }) => label);
-  const activeLabel = labels.length > 0 ? labels[0] : -1;
   
   // Initialize
   useEffect(() => {
@@ -23,11 +20,12 @@ export const SliceViewWrapper = ({ sliceView }) => {
   // Update data
   useEffect(() => {
     if (initialized && imageData && maskData) {
+      const labels = assignment.regions.map(({ label }) => label);
+
       sliceView.setLabels(labels);
-      sliceView.setActiveLabel(activeLabel);
       sliceView.setData(imageData, maskData);
     }
-  }, [initialized, sliceView, imageData, maskData, labels, activeLabel]);   
+  }, [initialized, sliceView, imageData, maskData, assignment]);   
 
   // Edit mode
   useEffect(() => {

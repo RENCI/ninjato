@@ -63,6 +63,13 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
     setLabels: labels => {
       mask.setLabels(labels);
       widgets.setLabels(labels);
+
+      if (!mask.getActiveLabel() && labels.length > 0) {
+        const label = labels[0];
+        
+        mask.setActiveLabel(label);
+        widgets.setActiveLabel(label);
+      }
     },
     setActiveLabel: label => {
       mask.setActiveLabel(label);

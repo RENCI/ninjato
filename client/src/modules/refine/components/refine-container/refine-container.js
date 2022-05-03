@@ -43,9 +43,14 @@ export const RefineContainer = () => {
   }
 
   function onSelect(label, type) {
-    if (type === 'claim') {
-      refineDispatch({ type: REFINE_SET_CLAIM_LABEL, label: label });
+    if (type === 'select') {
+      sliceView.current.setActiveLabel(label);
     }
+    else if (type === 'claim') {
+      refineDispatch({ type: REFINE_SET_CLAIM_LABEL, label: label });     
+    }    
+    
+    sliceView.current.setHighlightLabel(null);
   }
 
   function onHighlight(label) {
