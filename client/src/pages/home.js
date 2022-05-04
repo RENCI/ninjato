@@ -2,7 +2,6 @@ import { useContext } from 'react';
 import { UserContext } from 'contexts';
 import { AssignmentSelection } from 'modules/assignment/components/assignment-selection';
 import { RefineContainer } from 'modules/refine/components/refine-container';
-import { FlagContainer } from 'modules/flag/components/flag-container';
 
 export const Home = () => {
   const [{ id, assignment }] = useContext(UserContext);
@@ -12,9 +11,10 @@ export const Home = () => {
     <>
       { !id ? null
       : imageData ? 
-          assignment.type === 'flag' ? 
-            <FlagContainer /> :
-            <RefineContainer />        
+          assignment.type === 'refine' ? 
+            <RefineContainer />
+          : 
+            <>Unknown assignment type { assignment.type }</>
       : 
         <AssignmentSelection />
       }

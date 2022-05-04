@@ -64,7 +64,7 @@ export const Assignment = ({ assignment }) => {
               basic 
               circular 
               content={ regions.length > 1 ? 'Labels' : 'Label' } 
-              detail={ regions.map(({ label }) => label).join(', ') } 
+              detail={ regions.map(({ label }) => label).sort((a, b) => a - b).join(', ') } 
             />
           </div>
         </div>

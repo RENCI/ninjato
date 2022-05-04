@@ -2,7 +2,6 @@ import { RenderWindow, Surface, BoundingBox } from 'modules/view/components';
 import { getUniqueLabels } from 'utils/data';
 import { 
   regionSurfaceColor, 
-  activeSurfaceColor,
   backgroundSurfaceColor1, 
   backgroundSurfaceColor2 
 } from 'utils/colors';
@@ -45,11 +44,8 @@ const centerCamera = (renderer, surface) => {
   }
 };
 
-const applyActiveLabel = (label, regions) => {      
-  const region = regions[label];
-
-  Object.values(regions).forEach(region => region.setOpaqueColor(regionSurfaceColor));
-  region.setOpaqueColor(activeSurfaceColor);
+const applyActiveLabel = (label, regions) => {
+  Object.entries(regions).forEach(([key, region]) => region.setOpaqueColor(regionSurfaceColor(key, key === label)));
 };
 
 export function VolumeView() {
@@ -109,7 +105,7 @@ export function VolumeView() {
       // Create surfaces for each label
       regions = labels.reduce((regions, label) => {
         const region = Surface();
-        region.setOpaqueColor(regionSurfaceColor);
+        region.setOpaqueColor(regionSurfaceColor(label));
         region.setSliceHighlight(true);
         region.setLabels([label]);
 

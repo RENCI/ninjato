@@ -5,7 +5,7 @@ import { FieldDataTypes } from '@kitware/vtk.js/Common/DataModel/DataSet/Constan
 import vtkCalculator from 'vtk/calculator';
 import vtkDiscreteFlyingEdges3D from 'vtk/discrete-flying-edges-3D';
 import { SliceHighlightVP, SliceHighlightFP } from 'vtk/shaders';
-import { Reds } from 'utils/colors';
+import { regionSliceHighlightColors } from 'utils/colors';
 
 export function Surface() {
   const maskCalculator = vtkCalculator.newInstance();
@@ -91,11 +91,16 @@ export function Surface() {
       const z = input.indexToWorld([0, 0, slice])[2]; 
       const sliceWidth = input.getSpacing()[2];
       const borderWidth = sliceWidth / 8;      
+      
+      const labels = flyingEdges.getValues();
+      console.log(labels);
+      const [c1, c2] = labels.length > 0 ? regionSliceHighlightColors(labels[0]) : [[0, 0, 0], [1, 1, 1]];
 
       mapper.getViewSpecificProperties().ShadersCallbacks = [
         {
           // XXX: Should pass in colors, or compute from diffuse color
-          userData: [z, sliceWidth / 2, borderWidth, Reds[5], Reds[7]],
+          userData: [z, sliceWidth / 2, borderWidth, c1, c2],
+          //userData: [z, sliceWidth / 2, borderWidth, Reds[5], Reds[7]],
           callback: ([z, halfWidth, borderWidth, color, borderColor], cellBO) => {
             const cabo = cellBO.getCABO();
             if (cabo.getCoordShiftAndScaleEnabled()) {

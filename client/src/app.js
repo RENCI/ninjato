@@ -2,7 +2,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { 
   UserProvider, 
   RefineProvider, 
-  FlagProvider, 
   LoadingProvider,
   ErrorProvider 
 } from "contexts"; 
@@ -15,7 +14,6 @@ export const App = () => {
   return (
     <UserProvider>
     <RefineProvider>
-    <FlagProvider>
     <LoadingProvider>
     <ErrorProvider>
       <Router>        
@@ -28,7 +26,6 @@ export const App = () => {
       </Router>
     </ErrorProvider>
     </LoadingProvider>
-    </FlagProvider>
     </RefineProvider>
     </UserProvider>
   );

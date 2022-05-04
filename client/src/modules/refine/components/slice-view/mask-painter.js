@@ -5,21 +5,20 @@ import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 
 import vtkNinjatoPainter from 'vtk/ninjato-painter';
 import vtkImageContour from 'vtk/image-contour';
-import { Reds, Blues } from 'utils/colors';
+import { 
+  backgroundContourColor, 
+  regionContourColor, 
+  regionContourHighlightColor 
+} from 'utils/colors';
 
 const sliceMode = vtkImageMapper.SlicingMode.K;
 
-
+const backgroundColor = backgroundContourColor;
 
 export function MaskPainter() {      
   let labels = [];
   let activeLabel = null;
   let highlightLabel = null;
-
-  const backgroundColor = Blues[7];
-  const regionColor = Reds[4];
-  const activeColor = Reds[6];
-  const highlightColor = Reds[1];
 
   const painter = vtkNinjatoPainter.newInstance();
   painter.setSlicingMode(sliceMode);
@@ -45,15 +44,15 @@ export function MaskPainter() {
     color.addRGBPoint(1, ...backgroundColor);
 
     // Set background start and end points between labels
-    [...labels, highlightLabel].filter(label => label !== null).forEach(label => {
+    [...labels, activeLabel, highlightLabel].filter(label => label !== null).forEach(label => {
       if (label > 1) color.addRGBPoint(label - 1, ...backgroundColor);
       color.addRGBPoint(label + 1, ...backgroundColor);
     });
 
     // Set labels
-    labels.forEach(label => color.addRGBPoint(label, ...regionColor));
-    if (activeLabel) color.addRGBPoint(activeLabel, ...activeColor); 
-    if (highlightLabel) color.addRGBPoint(highlightLabel, ...highlightColor);
+    labels.forEach(label => color.addRGBPoint(label, ...regionContourColor(label)));
+    color.addRGBPoint(activeLabel, ...regionContourColor(activeLabel, true));
+    if (highlightLabel) color.addRGBPoint(highlightLabel, ...regionContourHighlightColor(highlightLabel)); 
 
     // Set z offsets
     const offsets = labels.reduce((offsets, label) => {

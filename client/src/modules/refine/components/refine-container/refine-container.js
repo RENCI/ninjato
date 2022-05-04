@@ -13,9 +13,11 @@ import { SliceControls } from 'modules/refine/components/slice-controls';
 import { SliceSlider } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
 import { ClaimDialog } from 'modules/assignment/components/claim-dialog';
-import { Reds, cssString } from 'utils/colors';
+import { regionColors, cssString } from 'utils/colors';
 
 const { Column } = Grid;
+
+const Reds = regionColors[0];
 
 export const RefineContainer = () => {
   const [{ imageData }] = useContext(UserContext);
@@ -90,7 +92,7 @@ export const RefineContainer = () => {
     <> 
       <VisualizationLoader loading={ loading } />
       <AssignmentMessage>
-        Refine <span style={{ color: color, fontWeight: 'bold' }}>red region boundary</span>
+        Refine colored region boundaries
       </AssignmentMessage>
       <Grid columns='equal' verticalAlign='middle' padded stackable reversed='mobile'>
         { !loading && 

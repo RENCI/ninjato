@@ -2,7 +2,6 @@ import { useContext } from 'react';
 import { 
   UserContext, SET_DATA,
   RefineContext, REFINE_RESET,
-  FlagContext, FLAG_RESET,
   LoadingContext, SET_LOADING, CLEAR_LOADING,
   ErrorContext, SET_ERROR 
 } from 'contexts';
@@ -12,7 +11,6 @@ import { decodeTIFF } from 'utils/data-conversion';
 export const useLoadData = ()  => {
   const [, userDispatch] = useContext(UserContext);
   const [, refineDispatch] = useContext(RefineContext);
-  const [, flagDispatch] = useContext(FlagContext);
   const [, loadingDispatch] = useContext(LoadingContext);
   const [, errorDispatch] = useContext(ErrorContext);
 
@@ -46,10 +44,6 @@ export const useLoadData = ()  => {
 
       refineDispatch({
         type: REFINE_RESET
-      });
-
-      flagDispatch({
-        type: FLAG_RESET
       });
 
       loadingDispatch({ type: CLEAR_LOADING });

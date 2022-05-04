@@ -3,17 +3,18 @@ import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 
 import vtkImageContour from 'vtk/image-contour';
-import { Reds, Blues, Purples } from 'utils/colors';
+import { 
+  backgroundContourColor, 
+  regionContourColor, 
+  regionContourHighlightColor 
+} from 'utils/colors';
+
+const backgroundColor = backgroundContourColor;
 
 export function Mask() {      
-  let label = null;
-  let activeLabels = [];
+  let labels = [];
+  let activeLabel = null;
   let highlightLabel = null;
-
-  const backgroundColor = Blues[7];
-  const regionColor = Reds[5];
-  const activeColor = Purples[6];
-  const highlightColor = Purples[5];
 
   const contour = vtkImageContour.newInstance();
 
@@ -34,16 +35,16 @@ export function Mask() {
     color.addRGBPoint(0, 0, 0, 0);
     color.addRGBPoint(1, ...backgroundColor);
 
-    // Set background start and end points between special labels
-    [label, ...activeLabels, highlightLabel].filter(label => label !== null).forEach(label => {
+    // Set background start and end points between labels
+    [...labels, activeLabel, highlightLabel].filter(label => label !== null).forEach(label => {
       if (label > 1) color.addRGBPoint(label - 1, ...backgroundColor);
       color.addRGBPoint(label + 1, ...backgroundColor);
     });
 
-    // Set special labels
-    activeLabels.forEach(label => color.addRGBPoint(label, ...activeColor));
-    color.addRGBPoint(label, ...regionColor);
-    if (highlightLabel) color.addRGBPoint(highlightLabel, ...highlightColor); 
+    // Set labels
+    labels.forEach(label => color.addRGBPoint(label, ...regionContourColor(label)));
+    color.addRGBPoint(activeLabel, ...regionContourColor(activeLabel, true));
+    if (highlightLabel) color.addRGBPoint(highlightLabel, ...regionContourHighlightColor(highlightLabel)); 
   };
 
   return {
@@ -55,14 +56,14 @@ export function Mask() {
       const [w, h] = maskData.getDimensions();
       contour.setWidth(Math.max(w, h) / 200);
     },
-    setLabel: regionLabel => {
-      label = regionLabel;
+    setActiveLabel: label => {
+      activeLabel = label;
       updateColors();
       contour.setLabelOffsets({[label]: -0.01 });
     },
-    getLabel: () => label,
-    setActiveLabels: labels => {
-      activeLabels = labels;
+    getActiveLabel: () => activeLabel,
+    setLabels: regionLabels => {
+      labels = regionLabels;
       updateColors();
     },
     setHighlightLabel: label => {

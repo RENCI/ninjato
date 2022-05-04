@@ -50,7 +50,7 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
     regions: info.regions.map(region => ({
       ...region,
       label: +region.label
-    })).sort((a, b) => a.label - b.label),
+    })),
     status: getStatus(info),
     statusInfo: {
       assignedTo: info.annotation_assigned_to,
