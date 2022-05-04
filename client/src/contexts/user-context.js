@@ -52,7 +52,7 @@ const reducer = (state, action) => {
         ...state,
         assignment: {
           ...action.assignment,
-          assignmentType: action.type
+          type: action.assignmentType
         }
       };
 
@@ -72,11 +72,17 @@ const reducer = (state, action) => {
 
       if (index !== -1) {
         update.assignments = [...state.assignments];
-        update.assignments[index] = action.assignment;
+        update.assignments[index] = {
+          ...update.assignments[index],
+          ...action.assignment
+        };
       }
 
       if (isActive) {
-        update.assignment = action.assignment;
+        update.assignment = {
+          ...state.assignment,
+          ...action.assignment
+        };
       }
 
       return {

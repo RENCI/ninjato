@@ -84,7 +84,7 @@ export function Surface() {
 
       flyingEdges.setValues(labels);
     },
-    setSlice: slice => {      
+    setSlice: (slice, colors) => {      
       if (!sliceCalculator) return;
 
       const input = maskCalculator.getInputData();
@@ -92,15 +92,13 @@ export function Surface() {
       const sliceWidth = input.getSpacing()[2];
       const borderWidth = sliceWidth / 8;      
       
-      const labels = flyingEdges.getValues();
-      console.log(labels);
-      const [c1, c2] = labels.length > 0 ? regionSliceHighlightColors(labels[0]) : [[0, 0, 0], [1, 1, 1]];
+      //const labels = flyingEdges.getValues();
+      //const [c1, c2] = labels.length > 0 ? regionSliceHighlightColors(labels[0]) : [[0, 0, 0], [1, 1, 1]];
+      const [c1, c2] = colors;
 
       mapper.getViewSpecificProperties().ShadersCallbacks = [
         {
-          // XXX: Should pass in colors, or compute from diffuse color
           userData: [z, sliceWidth / 2, borderWidth, c1, c2],
-          //userData: [z, sliceWidth / 2, borderWidth, Reds[5], Reds[7]],
           callback: ([z, halfWidth, borderWidth, color, borderColor], cellBO) => {
             const cabo = cellBO.getCABO();
             if (cabo.getCoordShiftAndScaleEnabled()) {

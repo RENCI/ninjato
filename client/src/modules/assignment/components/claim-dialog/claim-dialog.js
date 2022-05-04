@@ -37,8 +37,7 @@ export const ClaimDialog = () => {
 
         userDispatch({
           type: UPDATE_ASSIGNMENT,
-          assignment: update,
-          assignmentType: 'refine'
+          assignment: update
         });
   
         loadData(update);    

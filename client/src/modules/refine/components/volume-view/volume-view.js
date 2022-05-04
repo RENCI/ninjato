@@ -3,7 +3,8 @@ import { getUniqueLabels } from 'utils/data';
 import { 
   regionSurfaceColor, 
   backgroundSurfaceColor1, 
-  backgroundSurfaceColor2 
+  backgroundSurfaceColor2, 
+  regionSliceHighlightColors
 } from 'utils/colors';
 
 const resetCamera = (renderer, surface) => {
@@ -45,7 +46,7 @@ const centerCamera = (renderer, surface) => {
 };
 
 const applyActiveLabel = (label, regions) => {
-  Object.entries(regions).forEach(([key, region]) => region.setOpaqueColor(regionSurfaceColor(key, key === label)));
+  Object.entries(regions).forEach(([key, region], i) => region.setOpaqueColor(regionSurfaceColor(i, key === label)));
 };
 
 export function VolumeView() {
@@ -103,9 +104,9 @@ export function VolumeView() {
       labels = regionLabels;
 
       // Create surfaces for each label
-      regions = labels.reduce((regions, label) => {
+      regions = labels.reduce((regions, label, i) => {
         const region = Surface();
-        region.setOpaqueColor(regionSurfaceColor(label));
+        region.setOpaqueColor(regionSurfaceColor(i));
         region.setSliceHighlight(true);
         region.setLabels([label]);
 
@@ -121,7 +122,7 @@ export function VolumeView() {
     },
     //setHighlightLabel: label => mask.setHighlightLabel(label),
     setSlice: slice => {
-      Object.values(regions).forEach(region => region.setSlice(slice));
+      Object.values(regions).forEach((region, i) => region.setSlice(slice, regionSliceHighlightColors(i)));
     },
     setShowBackground: show => {
       background.getActor().setVisibility(show);

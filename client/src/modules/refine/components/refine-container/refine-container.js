@@ -13,11 +13,8 @@ import { SliceControls } from 'modules/refine/components/slice-controls';
 import { SliceSlider } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
 import { ClaimDialog } from 'modules/assignment/components/claim-dialog';
-import { regionColors, cssString } from 'utils/colors';
 
 const { Column } = Grid;
-
-const Reds = regionColors[0];
 
 export const RefineContainer = () => {
   const [{ imageData }] = useContext(UserContext);
@@ -85,8 +82,6 @@ export const RefineContainer = () => {
   }, [sliceView]);
 
   const numSlices = imageData ? imageData.getDimensions()[2] : 0; 
-
-  const color = cssString(Reds[5]);
 
   return (
     <> 
