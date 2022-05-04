@@ -2,6 +2,7 @@ import { RenderWindow, Surface, BoundingBox } from 'modules/view/components';
 import { getUniqueLabels } from 'utils/data';
 import { 
   regionSurfaceColor, 
+  activeSurfaceColor,
   backgroundSurfaceColor1, 
   backgroundSurfaceColor2 
 } from 'utils/colors';
@@ -44,12 +45,17 @@ const centerCamera = (renderer, surface) => {
   }
 };
 
+const applyActiveLabel = (label, regions) => {      
+  const region = regions[label];
+
+  Object.values(regions).forEach(region => region.setOpaqueColor(regionSurfaceColor));
+  region.setOpaqueColor(activeSurfaceColor);
+};
+
 export function VolumeView() {
   const renderWindow = RenderWindow();
 
-  const region = Surface();  
-  region.setOpaqueColor(regionSurfaceColor);
-  region.setSliceHighlight(true);
+  let regions = {};
 
   const background = Surface();
   background.setTranslucentColors(backgroundSurfaceColor1, backgroundSurfaceColor2);
@@ -59,6 +65,7 @@ export function VolumeView() {
   const render = renderWindow.render;
 
   let labels = [];
+  let activeLabel = null;
 
   return {
     initialize: rootNode => {
@@ -68,37 +75,63 @@ export function VolumeView() {
     },
     setData: (maskData, onRendered) => {
       if (maskData) {
-        labels = getUniqueLabels(maskData);
+        const allLabels = getUniqueLabels(maskData);
 
-        region.setInputData(maskData);
+        background.setLabels(allLabels.filter(label => !labels.includes(label)));
+
+        Object.values(regions).forEach(region => region.setInputData(maskData));
         background.setInputData(maskData);
         boundingBox.setData(maskData);
 
         const renderer = renderWindow.getRenderer();
-        renderer.addActor(region.getActor());
+        Object.values(regions).forEach(region => renderer.addActor(region.getActor()));
         renderer.addActor(background.getActor());
         renderer.addActor(boundingBox.getActor());
       } 
       else {
         const renderer = renderWindow.getRenderer();
-        renderer.removeActor(region.getActor());
+        Object.values(regions).forEach(region => renderer.removeActor(region.getActor()));
         renderer.removeActor(background.getActor());
+        renderer.removeActor(boundingBox.getActor());
+      }
+
+      if (!activeLabel && labels.length > 0) {
+        activeLabel = labels[0];
+
+        applyActiveLabel(activeLabel, regions);
+
+        resetCamera(renderWindow.getRenderer(), regions[activeLabel].getOutput());
       }
     },
-    setLabel: label => {
-      region.setLabels([label]);
-      background.setLabels(labels.filter(value => value !== label));
+    setLabels: regionLabels => {
+      labels = regionLabels;
 
-      resetCamera(renderWindow.getRenderer(), region.getOutput());
+      // Create surfaces for each label
+      regions = labels.reduce((regions, label) => {
+        const region = Surface();
+        region.setOpaqueColor(regionSurfaceColor);
+        region.setSliceHighlight(true);
+        region.setLabels([label]);
+
+        regions[label] = region;
+
+        return regions;
+      }, {});
     },
+    setActiveLabel: label => {
+      activeLabel = label;
+      applyActiveLabel(label, regions, renderWindow);
+      centerCamera(renderWindow.getRenderer(), regions[label].getOutput());
+    },
+    //setHighlightLabel: label => mask.setHighlightLabel(label),
     setSlice: slice => {
-      region.setSlice(slice);
+      Object.values(regions).forEach(region => region.setSlice(slice));
     },
     setShowBackground: show => {
       background.getActor().setVisibility(show);
     },
     centerCamera: () => {
-      centerCamera(renderWindow.getRenderer(), region.getOutput());
+      centerCamera(renderWindow.getRenderer(), regions[activeLabel].getOutput());
     },
     render: onRendered => {
       render();
@@ -109,7 +142,7 @@ export function VolumeView() {
 
       // Clean up anything we instantiated
       renderWindow.cleanUp();      
-      region.cleanUp();
+      Object.values(regions).forEach(region => region.cleanUp());
       background.cleanUp();
       boundingBox.cleanUp();
     }

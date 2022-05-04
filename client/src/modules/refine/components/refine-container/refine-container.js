@@ -18,7 +18,7 @@ import { Reds, cssString } from 'utils/colors';
 const { Column } = Grid;
 
 export const RefineContainer = () => {
-  const [{ imageData, regions }] = useContext(UserContext);
+  const [{ imageData }] = useContext(UserContext);
   const [, refineDispatch] = useContext(RefineContext);
   const volumeView = useRef(VolumeView());
   const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDown, onKeyUp));
@@ -45,6 +45,8 @@ export const RefineContainer = () => {
   function onSelect(label, type) {
     if (type === 'select') {
       sliceView.current.setActiveLabel(label);
+      volumeView.current.setActiveLabel(label);
+      volumeView.current.render();
     }
     else if (type === 'claim') {
       refineDispatch({ type: REFINE_SET_CLAIM_LABEL, label: label });     
@@ -88,7 +90,7 @@ export const RefineContainer = () => {
     <> 
       <VisualizationLoader loading={ loading } />
       <AssignmentMessage>
-        Refine <span style={{ color: color, fontWeight: 'bold' }}>red  region boundary</span>
+        Refine <span style={{ color: color, fontWeight: 'bold' }}>red region boundary</span>
       </AssignmentMessage>
       <Grid columns='equal' verticalAlign='middle' padded stackable reversed='mobile'>
         { !loading && 

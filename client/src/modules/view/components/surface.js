@@ -28,6 +28,7 @@ export function Surface() {
   return {
     getActor: () => actor,
     setInputData: data => maskCalculator.setInputData(data),
+    getInputData: () => maskCalculator.getInputData(),
     setOpaqueColor: color => {
       const property = actor.getProperty();
       property.setColor(color);

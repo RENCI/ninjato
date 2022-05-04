@@ -9,8 +9,6 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
   const div = useRef(null);
   const { width } = useResize(div);
 
-  const label = assignment.regions.length > 0 ? assignment.regions[0].label : -1;
-
   // Initialize
   useEffect(() => {
     if (!initialized && div.current && width) { 
@@ -22,11 +20,13 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
   // Update data
   useEffect(() => {
     if (initialized && maskData) {
+      const labels = assignment.regions.map(({ label }) => label);
+
+      volumeView.setLabels(labels);
       volumeView.setData(maskData);
-      volumeView.setLabel(label);
       volumeView.render(onLoaded);
     }
-  }, [initialized, volumeView, maskData, label, onLoaded]);   
+  }, [initialized, volumeView, maskData, assignment, onLoaded]);   
 
   // Show background
   useEffect(() => {

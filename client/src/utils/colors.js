@@ -23,6 +23,7 @@ export const Purples = [
   '#fcfbfd', '#efedf5', '#dadaeb', '#bcbddc', '#9e9ac8', '#807dba', '#6a51a3', '#54278f', '#3f007d'
 ].map(hex2rgb);
 
-export const regionSurfaceColor = Reds[3];
+export const regionSurfaceColor = Reds[1];
+export const activeSurfaceColor = Reds[3];
 export const backgroundSurfaceColor1 = Blues[2];
 export const backgroundSurfaceColor2 = Blues[8];
