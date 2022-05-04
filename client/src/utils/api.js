@@ -47,9 +47,10 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
     description: info.description,
     updated: convertDate(info.last_updated_time),
     location: {...info.location},
-    regions: info.regions.map(region => ({
+    regions: info.regions.map((region, i) => ({
       ...region,
-      label: +region.label
+      label: +region.label,
+      index: i
     })),
     status: getStatus(info),
     statusInfo: {

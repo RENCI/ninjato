@@ -74,6 +74,8 @@ export function VolumeView() {
       if (maskData) {
         const allLabels = getUniqueLabels(maskData);
 
+        console.log(regions);
+
         background.setLabels(allLabels.filter(label => !labels.includes(label)));
 
         Object.values(regions).forEach(region => region.setInputData(maskData));
@@ -102,6 +104,14 @@ export function VolumeView() {
     },
     setLabels: regionLabels => {
       labels = regionLabels;
+
+
+      // XXX: Old surfaces are not being removed from renderer. Probably the reason for 
+      // doubled surfaces. Probably make sense to combine setLabels and setData, and do some 
+      // clean up before creating and adding things.
+      // Similar could be happening in slice view with points not being in extent: still have old one 
+      // hanging around.
+
 
       // Create surfaces for each label
       regions = labels.reduce((regions, label, i) => {

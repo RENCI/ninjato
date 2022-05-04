@@ -1,7 +1,7 @@
 import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { 
-  UserContext, UPDATE_ASSIGNMENT,
+  UserContext, UPDATE_ASSIGNMENT, SET_ASSIGNMENT, CLEAR_DATA,
   RefineContext, REFINE_SET_CLAIM_LABEL, 
   ErrorContext, SET_ERROR
 } from 'contexts';
@@ -41,6 +41,11 @@ export const ClaimDialog = () => {
         });
   
         loadData(update);    
+/*
+        userDispatch({ type: CLEAR_DATA });
+        userDispatch({ type: SET_ASSIGNMENT, assignment: update, assignmentType: 'refine' });
+        loadData(update); 
+*/        
       }, 1000); 
     }
     catch (error) {
