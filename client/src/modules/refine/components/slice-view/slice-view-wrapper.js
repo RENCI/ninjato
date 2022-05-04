@@ -22,8 +22,6 @@ export const SliceViewWrapper = ({ sliceView }) => {
     if (initialized && imageData && maskData) {
       const labels = assignment.regions.map(({ label }) => label);
 
-      console.log(labels);
-
       sliceView.setLabels(labels);
       sliceView.setData(imageData, maskData);
     }

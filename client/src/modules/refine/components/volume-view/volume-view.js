@@ -32,16 +32,44 @@ const resetCamera = (renderer, surface) => {
   renderer.resetCameraClippingRange();
 };
 
-const centerCamera = (renderer, surface) => {
+const centerCamera = (renderWindow, surface) => {
+
+  // XXX: WHY IS THIS TRIGGERING FLYING EDGES?
+
   if (surface.getPoints().getNumberOfPoints() > 0) {
+    const renderer = renderWindow.getRenderer();
+
     const [x1, x2, y1, y2, z1, z2] = surface.getPoints().getBounds();
 
-    const x = (x2 + x1) / 2;
-    const y = (y2 + y1) / 2;
-    const z = (z2 + z1) / 2;
+    const end = [
+      (x2 + x1) / 2,
+      (y2 + y1) / 2,
+      (z2 + z1) / 2
+    ];
 
-    renderer.getActiveCamera().setFocalPoint(x, y, z);
-    renderer.resetCameraClippingRange();
+    const camera = renderer.getActiveCamera();
+    const start = camera.getFocalPoint();
+
+    const animateTime = 500;
+    const startTime = new Date();
+
+    const interpolate = (t, min, max) => min + t * (max - min);
+
+    function animate() {
+      const now = new Date();
+      const elapsed = now - startTime;
+      const t = Math.min(elapsed / animateTime, 1);
+
+      const [tx, ty, tz] = start.map((d, i) => interpolate(t, d, end[i]));
+
+      renderer.getActiveCamera().setFocalPoint(tx, ty, tz);
+      renderer.resetCameraClippingRange();
+      renderWindow.render();
+
+      if (elapsed < animateTime) setTimeout(animate, 0);
+    };
+
+    animate();
   }
 };
 
@@ -103,15 +131,10 @@ export function VolumeView() {
       }
     },
     setLabels: regionLabels => {
+      // Clean up any old regions
+      Object.values(regions).forEach(region => region.cleanUp());
+
       labels = regionLabels;
-
-
-      // XXX: Old surfaces are not being removed from renderer. Probably the reason for 
-      // doubled surfaces. Probably make sense to combine setLabels and setData, and do some 
-      // clean up before creating and adding things.
-      // Similar could be happening in slice view with points not being in extent: still have old one 
-      // hanging around.
-
 
       // Create surfaces for each label
       regions = labels.reduce((regions, label, i) => {
@@ -127,8 +150,8 @@ export function VolumeView() {
     },
     setActiveLabel: label => {
       activeLabel = label;
-      applyActiveLabel(label, regions, renderWindow);
-      centerCamera(renderWindow.getRenderer(), regions[label].getOutput());
+      //applyActiveLabel(label, regions, renderWindow);
+      centerCamera(renderWindow, regions[label].getOutput());
     },
     //setHighlightLabel: label => mask.setHighlightLabel(label),
     setSlice: slice => {
@@ -138,7 +161,7 @@ export function VolumeView() {
       background.getActor().setVisibility(show);
     },
     centerCamera: () => {
-      centerCamera(renderWindow.getRenderer(), regions[activeLabel].getOutput());
+      centerCamera(renderWindow, regions[activeLabel].getOutput());
     },
     render: onRendered => {
       render();

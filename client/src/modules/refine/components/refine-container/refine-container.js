@@ -45,7 +45,7 @@ export const RefineContainer = () => {
     if (type === 'select') {
       sliceView.current.setActiveLabel(label);
       volumeView.current.setActiveLabel(label);
-      volumeView.current.render();
+      //volumeView.current.render();
     }
     else if (type === 'claim') {
       refineDispatch({ type: REFINE_SET_CLAIM_LABEL, label: label });     
