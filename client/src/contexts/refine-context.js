@@ -3,7 +3,7 @@ import { getCursor } from 'utils/cursor';
 
 export const REFINE_SET_EDIT_MODE = 'refine/SET_EDIT_MODE';
 export const REFINE_SET_BRUSH = 'refine/REFINE_SET_BRUSH';
-export const REFINE_SET_SHOW_BACKGROUND = 'refine/SET_SHOW_BACKGROUND';
+export const REFINE_SET_CONTROL = 'refine/SET_SHOW_BACKGROUND';
 export const REFINE_SET_CLAIM_LABEL = 'refine/SET_CLAIM_LABEL';
 export const REFINE_RESET = 'refine/RESET';
 
@@ -53,6 +53,7 @@ const initialState = {
   paintBrush: 0,
   eraseBrush: 2,
   showBackground: true,
+  showContours: true,
   claimLabel: null
 };
 
@@ -70,10 +71,10 @@ const reducer = (state, action) => {
         [`${ action.which }Brush`]: action.brush
       };
 
-    case REFINE_SET_SHOW_BACKGROUND:
+    case REFINE_SET_CONTROL:
       return {
         ...state,
-        showBackground: action.show
+        [action.name]: action.value
       };
 
     case REFINE_SET_CLAIM_LABEL:       

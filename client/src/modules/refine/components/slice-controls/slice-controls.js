@@ -1,14 +1,19 @@
 import { useContext } from 'react';
-import { RefineContext, REFINE_SET_EDIT_MODE } from 'contexts';
-import { ControlBar, ControlGroup, ControlButton } from 'modules/common/components/control-bar';
+import { Label, Divider } from 'semantic-ui-react';
+import { RefineContext, REFINE_SET_EDIT_MODE, REFINE_SET_CONTROL } from 'contexts';
+import { ControlBar, ControlGroup, ControlButton, ControlLabel } from 'modules/common/components/control-bar';
 import { SplitButton } from 'modules/common/components/split-button';
 import { BrushOptions } from './brush-options';
 
 export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
-  const [{ editModes, editMode }, dispatch] = useContext(RefineContext);
+  const [{ editModes, editMode, showContours }, dispatch] = useContext(RefineContext);
 
   const onModeClick = value => {
     dispatch({ type: REFINE_SET_EDIT_MODE, mode: value });
+  };
+
+  const onShowContoursClick = () => {
+    dispatch({ type: REFINE_SET_CONTROL, name: 'showContours', value: !showContours });
   };
 
   const onUndoClick = () => {
@@ -21,6 +26,16 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
 
   return (
     <ControlBar>
+      <ControlLabel>view</ControlLabel>
+      <ControlGroup>
+        <ControlButton
+          toggle={ true }
+          icon={ 'circle outline' }
+          active={ showContours  }
+          onClick={ onShowContoursClick }              
+        />
+      </ControlGroup>
+      <ControlLabel>mode</ControlLabel>
       <ControlGroup>
         { editModes.filter(({ group }) => group === 'select').map(({ value, icon }, i) => (
           <ControlButton
@@ -53,6 +68,7 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
             />
         ))}    
       </ControlGroup>
+      <ControlLabel>undo/redo</ControlLabel>
       <ControlGroup>
         <ControlButton
           icon='undo alternate'        

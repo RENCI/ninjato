@@ -83,6 +83,9 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
     setPaintBrush: brush => widgets.setPaintBrush(brush),
     setEraseBrush: brush => widgets.setEraseBrush(brush),
     setSlice: slice => image.getMapper().setSlice(slice),
+    setShowContours: show => {
+      mask.getActor().setVisibility(show);
+    },
     undo: () => {
       mask.getPainter().undo();
       onEdit()
