@@ -91,9 +91,6 @@ export function Surface() {
       const z = input.indexToWorld([0, 0, slice])[2]; 
       const sliceWidth = input.getSpacing()[2];
       const borderWidth = sliceWidth / 8;      
-      
-      //const labels = flyingEdges.getValues();
-      //const [c1, c2] = labels.length > 0 ? regionSliceHighlightColors(labels[0]) : [[0, 0, 0], [1, 1, 1]];
       const [c1, c2] = colors;
 
       mapper.getViewSpecificProperties().ShadersCallbacks = [

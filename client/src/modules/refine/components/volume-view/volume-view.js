@@ -6,6 +6,7 @@ import {
   backgroundSurfaceColor2, 
   regionSliceHighlightColors
 } from 'utils/colors';
+import { interpolate, distance } from 'utils/math';
 
 const resetCamera = (renderer, surface) => {
   const [x1, x2, y1, y2, z1, z2] = surface.getPoints().getBounds();
@@ -32,44 +33,64 @@ const resetCamera = (renderer, surface) => {
   renderer.resetCameraClippingRange();
 };
 
-const centerCamera = (renderWindow, surface) => {
-
-  // XXX: WHY IS THIS TRIGGERING FLYING EDGES?
-
+const centerCamera = (renderWindow, surface, volume) => {
   if (surface.getPoints().getNumberOfPoints() > 0) {
     const renderer = renderWindow.getRenderer();
+    const camera = renderer.getActiveCamera();
+    const start = camera.getFocalPoint();
 
     const [x1, x2, y1, y2, z1, z2] = surface.getPoints().getBounds();
-
     const end = [
       (x2 + x1) / 2,
       (y2 + y1) / 2,
       (z2 + z1) / 2
     ];
 
-    const camera = renderer.getActiveCamera();
-    const start = camera.getFocalPoint();
+    const endPos = camera.getPosition();
+    endPos[0] += end[0] - start[0];
+    endPos[1] += end[1] - start[1];
+    endPos[2] += end[2] - start[2]; 
 
-    const animateTime = 500;
+    const [bx1, bx2, by1, by2, bz1, bz2] = volume.getBounds();
+    const diagonal = distance([bx1, by1, bz1], [bx2, by2, bz2]);
+
+    const d = distance(start, end);
+
+    const maxDuration = 2000;
+    const duration = interpolate(0, maxDuration, d / diagonal);
+    
     const startTime = new Date();
-
-    const interpolate = (t, min, max) => min + t * (max - min);
 
     function animate() {
       const now = new Date();
       const elapsed = now - startTime;
-      const t = Math.min(elapsed / animateTime, 1);
+      const t = Math.min(elapsed / duration, 1);
 
-      const [tx, ty, tz] = start.map((d, i) => interpolate(t, d, end[i]));
+      const [tx, ty, tz] = interpolate(start, end, t);
+      const [fx, fy, fz] = camera.getFocalPoint();
+      const [dx, dy, dz] = [tx - fx, ty - fy, tz - fz];
 
-      renderer.getActiveCamera().setFocalPoint(tx, ty, tz);
+      camera.translate(dx, dy, dz);
+
+      // XXX: Next two calls are causing flying edges to be recalculated
       renderer.resetCameraClippingRange();
       renderWindow.render();
 
-      if (elapsed < animateTime) setTimeout(animate, 0);
+      if (elapsed < duration) {
+        // Keep going
+        setTimeout(animate, 0);
+      }
+      else {
+        // Make sure we are at the right spot
+        camera.setFocalPoint(...end);
+        camera.setPosition(...endPos);  
+
+        renderer.resetCameraClippingRange();
+        renderWindow.render();      
+      }
     };
 
-    animate();
+    animate();    
   }
 };
 
@@ -101,8 +122,6 @@ export function VolumeView() {
     setData: (maskData, onRendered) => {
       if (maskData) {
         const allLabels = getUniqueLabels(maskData);
-
-        console.log(regions);
 
         background.setLabels(allLabels.filter(label => !labels.includes(label)));
 
@@ -150,8 +169,9 @@ export function VolumeView() {
     },
     setActiveLabel: label => {
       activeLabel = label;
-      //applyActiveLabel(label, regions, renderWindow);
-      centerCamera(renderWindow, regions[label].getOutput());
+      applyActiveLabel(label, regions, renderWindow);
+      centerCamera(renderWindow, regions[label].getOutput(), background.getInputData());
+      regions[label].getOutput();
     },
     //setHighlightLabel: label => mask.setHighlightLabel(label),
     setSlice: slice => {
@@ -161,7 +181,7 @@ export function VolumeView() {
       background.getActor().setVisibility(show);
     },
     centerCamera: () => {
-      centerCamera(renderWindow, regions[activeLabel].getOutput());
+      centerCamera(renderWindow, regions[activeLabel].getOutput(), background.getInputData());
     },
     render: onRendered => {
       render();
