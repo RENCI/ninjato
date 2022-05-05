@@ -1,4 +1,5 @@
 import { Button, Icon, Popup } from 'semantic-ui-react';
+import { ControlPopup } from 'modules/common/components/control-bar';
 import styles from './styles.module.css';
   
 const cancelEvent = evt => evt.stopPropagation();
@@ -6,12 +7,13 @@ const cancelEvent = evt => evt.stopPropagation();
 export const SplitButton = ({ 
   toggle = false, 
   icon, 
+  tooltip = null,
   active = true, 
   position = 'top right',
   content,
   onClick 
 }) => {
-  return (
+  const button = (
     <Button             
       as='div'
       className={ styles.splitButton }
@@ -46,5 +48,15 @@ export const SplitButton = ({
         />
       </div>
     </Button>
+  );
+
+  return (
+    <>
+      { tooltip ? 
+        <ControlPopup content={ tooltip } trigger={ button } />
+      :
+        <>{ button }</>
+      }
+    </>
   );
 };

@@ -19,7 +19,8 @@ export const VolumeControls = () => {
         <ControlButton
           icon='cubes'
           toggle
-          color={ showBackground ? 'grey' : null }
+          tooltip='show background regions'
+          active={ showBackground }
           onClick={ onShowBackgroundClick }
         />
       </ControlGroup>
