@@ -22,8 +22,6 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
     if (initialized && maskData) {
       const labels = assignment.regions.map(({ label }) => label);
 
-      console.log(labels);
-
       volumeView.setLabels(labels);
       volumeView.setData(maskData);
       volumeView.render(onLoaded);

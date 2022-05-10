@@ -6,7 +6,7 @@ export const ControlPopup = (props) => {
       {...props}
       inverted 
       size='tiny'
-      mouseEnterDelay={1000}
+      mouseEnterDelay={ 1000 }
     />
   );
 };

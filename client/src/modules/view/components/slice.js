@@ -64,7 +64,8 @@ const setWindowLevel = (actor, range) => {
   actor.getProperty().set({ colorLevel, colorWindow });
 };
 
-export function Slice() { 
+export function Slice(onKeyDown, onKeyUp) { 
+  let interactor = null;
   let imageMapper = null;
   let sliceRanges = null;
 
@@ -78,7 +79,9 @@ export function Slice() {
   return {
     initialize: renderWindow => {
       renderWindow.getCamera().setParallelProjection(true);
-      renderWindow.getInteractor().setInteractorStyle(interactorStyle);
+
+      interactor = renderWindow.getInteractor();
+      interactor.setInteractorStyle(interactorStyle);
     },
     setImage: (imageActor, camera, onSliceChange) => {
       imageMapper = imageActor.getMapper();
@@ -96,6 +99,13 @@ export function Slice() {
       const kSet = k => imageMapper.setSlice(k);
 
       manipulator.setScrollListener(kMin, kMax, -1, kGet, kSet, 1);
+
+      interactor.onKeyDown(evt =>
+        evt.key === 'ArrowUp' ? imageMapper.setSlice(Math.min(kMax, imageMapper.getSlice() + 1)) : 
+        evt.key === 'ArrowDown' ? imageMapper.setSlice(Math.max(kMin, imageMapper.getSlice() - 1)) :
+        onKeyDown(evt)
+      );
+      interactor.onKeyUp(onKeyUp);
     
       const updateSlice = () => {  
         // Get slice position
