@@ -44,14 +44,14 @@ export function MaskPainter() {
     color.addRGBPoint(1, ...backgroundColor);
 
     // Set background start and end points between labels
-    [...labels, activeLabel, highlightLabel].filter(label => label !== null).forEach(label => {
+    [...labels, highlightLabel].filter(label => label !== null).forEach(label => {
       if (label > 1) color.addRGBPoint(label - 1, ...backgroundColor);
       color.addRGBPoint(label + 1, ...backgroundColor);
     });
 
     // Set labels
     labels.forEach((label, i) => color.addRGBPoint(label, ...regionContourColor(i, label === activeLabel)));
-    if (highlightLabel) color.addRGBPoint(highlightLabel, ...regionContourHighlightColor(labels.indexOf(highlightLabel))); 
+    if (highlightLabel) color.addRGBPoint(highlightLabel, ...regionContourHighlightColor());
 
     // Set z offsets
     const offsets = labels.reduce((offsets, label) => {

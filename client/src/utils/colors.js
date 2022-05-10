@@ -25,35 +25,39 @@ const regionColors = [
   ['#f7fcf5', '#e5f5e0', '#c7e9c0', '#a1d99b', '#74c476', '#41ab5d', '#238b45', '#006d2c', '#00441b']
 ].map(colors => colors.map(hex2rgb));
 
+const getIndexColors = index => regionColors[index % regionColors.length];
+
 const contourIndex = 4;
 const activeContourIndex = 6;
+const highlightContourIndex = 2;
 
 const surfaceIndex = 4;
 const activeSurfaceIndex = 6;
+const highlightSurfaceIndex = 7;
 
 // Contour
 
 export const backgroundContourColor = [0.5, 0.5, 0.5];
 const backgroundContourHighlightColor = [0.8, 0.8, 0.8];
 
-export const regionContourColor = (label, active = false) => 
-  regionColors[label % regionColors.length][active ? activeContourIndex : contourIndex];
+export const regionContourColor = (index, active = false) => 
+  getIndexColors(index)[active ? activeContourIndex : contourIndex];
 
-export const regionContourHighlightColor = label => 
-  label && label > 0 ? regionContourColor(label, true) : backgroundContourHighlightColor;
+export const regionContourHighlightColor = (index = null)=> 
+  index !== null ? getIndexColors(index)[highlightContourIndex] : backgroundContourHighlightColor;
 
 // Surface
 
 export const backgroundSurfaceColor1 = [0.2, 0.2, 0.2];
 export const backgroundSurfaceColor2 = [0.8, 0.8, 0.8];
 
-export const regionSurfaceColor = (label, active = false) => 
-  regionColors[label % regionColors.length][active ? activeSurfaceIndex : surfaceIndex];
+export const regionSurfaceColor = (index, active = false) => 
+getIndexColors(index)[active ? activeSurfaceIndex : surfaceIndex];
 
-export const regionSurfaceHighlightColor = label => regionSurfaceColor(label, true);
+export const regionSurfaceHighlightColor = index => regionSurfaceColor(index, true);
 
-export const regionSliceHighlightColors = label => {
-  const i = label % regionColors.length;
+export const regionSliceHighlightColors = index => {
+  const i = index % regionColors.length;
 
   return [
     regionColors[i][surfaceIndex + 2],

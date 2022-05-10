@@ -4,9 +4,14 @@ import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants'
 import vtkBrushWidget from 'vtk/brush-widget';
 import vtkCropWidget from 'vtk/crop-widget';
 import vtkRegionSelectWidget from 'vtk/region-select-widget';
+import { regionContourColor } from 'utils/colors';
 
 const setBrush = (handle, brush) => {
   handle.getRepresentations()[0].setBrush(brush);
+};
+
+const setColor = (handle, color) => {
+  handle.getRepresentations()[0].setColor(color);
 };
 
 const createWidget = type => type.newInstance();
@@ -19,7 +24,8 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
     erase: createWidget(vtkBrushWidget),
     crop: createWidget(vtkCropWidget),
     select: createWidget(vtkRegionSelectWidget),
-    claim: createWidget(vtkRegionSelectWidget)
+    claim: createWidget(vtkRegionSelectWidget),
+    split: createWidget(vtkRegionSelectWidget)
   }; 
 
   let handles = null;
@@ -75,6 +81,24 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
           (startLabel === null || label === startLabel) &&   
           label !== 0 &&
           !labels.includes(label)
+        ) {          
+          onHover(label);
+        }
+        else {
+          onHover(null);
+        }
+      });
+
+
+      handles.split.onInteractionEvent(() => {
+        const widget = widgets.split;
+
+        const startLabel = widget.getStartLabel();
+        const label = widget.getLabel();
+
+        if (
+          (startLabel === null || label === startLabel) && 
+          labels.includes(label)
         ) {          
           onHover(label);
         }
@@ -153,6 +177,21 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
           onSelect(label, 'claim');
         }
       });
+
+      handles.split.onEndInteractionEvent(() => {
+        const widget = widgets.split;
+
+        const startLabel = widget.getStartLabel();
+        const label = widget.getLabel();
+
+        if (
+          startLabel !== null && 
+          label === startLabel && 
+          labels.includes(label)
+        ) {
+          onSelect(label, 'split');
+        }
+      });
     },
     update: (position, spacing) => {      
       // XXX: Why is the 0.85 necessary here?
@@ -187,6 +226,10 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
     },
     setActiveLabel: label => {
       activeLabel = label;
+
+      const color = regionContourColor(labels.indexOf(label));
+      setColor(handles.paint, color);
+      setColor(handles.erase, color);
     },
     cleanUp: () => {
       console.log('Clean up widgets');

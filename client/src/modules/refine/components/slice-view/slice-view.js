@@ -8,14 +8,14 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
   const slice = Slice(evt => evt.key === 'i' ? image.toggleInterpolation() : onKeyDown(evt), onKeyUp);
   const mask = MaskPainter();
 
-  const isValid = label => label !== null && label !== 0 && label !== mask.getActiveLabel();
+  const isValid = label => label !== null && label !== 0;
 
   const onHover = label => {
-    if (!isValid(label)) {
-      onHighlight(null);
+    if (isValid(label)) {
+      onHighlight(label);
     }
     else {
-      onHighlight(label);
+      onHighlight(null);
     }
   };
 

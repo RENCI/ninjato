@@ -54,8 +54,6 @@ function vtkBrushRepresentation(publicAPI, model) {
   // --------------------------------------------------------------------------
 
   const color = vtkColorTransferFunction.newInstance();
-  color.addRGBPoint(0, 1, 0, 0);
-  color.addRGBPoint(1, 1, 1, 1);
 
   model.pipelines = {
     brush: {
@@ -96,9 +94,16 @@ function vtkBrushRepresentation(publicAPI, model) {
     return model.pipelines.brush.glyph.getBrush();
   };
 
-  // --------------------------------------------------------------------------
+  publicAPI.setColor = (color) => {
+    const lut = model.pipelines.brush.mapper.getLookupTable();
+    
+    lut.removeAllPoints();
+    lut.addRGBPoint(0, ...color);
+    lut.addRGBPoint(1, ...color);
+  };
 
   publicAPI.setOpacity = (opacity) => {
+    console.log(opacity);
     model.pipelines.brush.actor.getProperty().setOpacity(opacity);
   };
 
