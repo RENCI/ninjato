@@ -2,7 +2,7 @@ import { useContext, useRef, useCallback, useState } from 'react';
 import { Grid } from 'semantic-ui-react';
 import { 
   UserContext, 
-  RefineContext, REFINE_SET_EDIT_MODE, REFINE_SET_CLAIM_LABEL 
+  RefineContext, REFINE_SET_EDIT_MODE, REFINE_SET_CLAIM_LABEL, REFINE_SET_SPLIT_LABEL
 } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
@@ -13,6 +13,7 @@ import { SliceControls } from 'modules/refine/components/slice-controls';
 import { SliceSlider } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
 import { ClaimDialog } from 'modules/assignment/components/claim-dialog';
+import { SplitDialog } from 'modules/refine/components/split-dialog';
 
 const { Column } = Grid;
 
@@ -50,7 +51,10 @@ export const RefineContainer = () => {
     else if (type === 'claim') {
       refineDispatch({ type: REFINE_SET_CLAIM_LABEL, label: label });     
     }    
-    
+    else if (type === 'split') {
+      refineDispatch({ type: REFINE_SET_SPLIT_LABEL, label: label });
+    }    
+
     sliceView.current.setHighlightLabel(null);
   }
 
@@ -125,6 +129,7 @@ export const RefineContainer = () => {
         <>
           <SaveButtons /> 
           <ClaimDialog />
+          <SplitDialog />
         </>
       }
     </>

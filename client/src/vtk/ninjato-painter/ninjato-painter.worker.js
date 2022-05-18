@@ -87,28 +87,24 @@ function floodFillScanlineStack({ buffer, w, h, seed }) {
     x1++;
 
     spanAbove = spanBelow = 0;
-    while(x1 < w && buffer[y * w + x1] === 0)
-    {
+    while(x1 < w && buffer[y * w + x1] === 0) {
       buffer[y * w + x1] = 1;
 
-      if(!spanAbove && y > 0 && buffer[(y - 1) * w + x1] === 0)
-      {
+      if(!spanAbove && y > 0 && buffer[(y - 1) * w + x1] === 0) {
         stack.push([x1, y - 1]);
         spanAbove = 1;
       }
-      else if(spanAbove && y > 0 && buffer[(y - 1) * w + x1] !== 0)
-      {
+      else if(spanAbove && y > 0 && buffer[(y - 1) * w + x1] !== 0) {
         spanAbove = 0;
       }
-      if(!spanBelow && y < h - 1 && buffer[(y + 1) * w + x1] === 0)
-      {
+      if(!spanBelow && y < h - 1 && buffer[(y + 1) * w + x1] === 0) {
         stack.push([x1, y + 1]);
         spanBelow = 1;
       }
-      else if(spanBelow && y < h - 1 && buffer[(y + 1) * w + x1] !== 0)
-      {
+      else if(spanBelow && y < h - 1 && buffer[(y + 1) * w + x1] !== 0) {
         spanBelow = 0;
       }
+      
       x1++;
     }
   }
