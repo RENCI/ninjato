@@ -2,7 +2,7 @@ import { useContext, useRef, useCallback, useState } from 'react';
 import { Grid } from 'semantic-ui-react';
 import { 
   UserContext, 
-  RefineContext, REFINE_SET_EDIT_MODE, REFINE_SET_CLAIM_LABEL, REFINE_SET_SPLIT_LABEL
+  RefineContext, REFINE_SET_EDIT_MODE, REFINE_SET_ACTION
 } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
@@ -53,6 +53,9 @@ export const RefineContainer = () => {
     }    
     else if (type === 'split') {
       refineDispatch({ type: REFINE_SET_SPLIT_LABEL, label: label });
+    }    
+    else if (type === 'merge') {
+      refineDispatch({ type: REFINE_SET_MERGE_LABEL, label: label });
     }    
 
     sliceView.current.setHighlightLabel(null);

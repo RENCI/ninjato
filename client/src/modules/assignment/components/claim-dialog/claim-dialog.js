@@ -2,7 +2,7 @@ import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { 
   UserContext, UPDATE_ASSIGNMENT,//, SET_ASSIGNMENT, CLEAR_DATA,
-  RefineContext, REFINE_SET_CLAIM_LABEL, 
+  RefineContext, REFINE_SET_ACTION,
   ErrorContext, SET_ERROR
 } from 'contexts';
 import { useLoadData } from 'hooks';
@@ -12,7 +12,7 @@ const { Header, Content, Actions } = Modal;
 
 export const ClaimDialog = () => {
   const [{ id, assignment }, userDispatch] = useContext(UserContext);
-  const [{ claimLabel }, refineDispatch] = useContext(RefineContext);
+  const [{ action }, refineDispatch] = useContext(RefineContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const loadData = useLoadData();
   const [claiming, setClaiming] = useState(false);
@@ -31,7 +31,7 @@ export const ClaimDialog = () => {
         setSuccess(false);
         setClaiming(false);
 
-        refineDispatch({ type: REFINE_SET_CLAIM_LABEL, label: null });
+        refineDispatch({ type: REFINE_SET_ACTION, action: null });
         
         const update = await api.updateAssignment(assignment);
 
@@ -61,13 +61,13 @@ export const ClaimDialog = () => {
   };
 
   const onCancel = () => {
-    refineDispatch({ type: REFINE_SET_CLAIM_LABEL, label: null });
+    refineDispatch({ type: REFINE_SET_ACTION, action: null });
   };
 
   return (
     <Modal
       dimmer='blurring'
-      open={ claimLabel !== null }        
+      open={ action && action.type === 'claim' }        
     >
       <Header>Claim Region</Header>
       <Content>
@@ -80,7 +80,7 @@ export const ClaimDialog = () => {
           </>
         :
           <>
-            <p>Add region <b>{ claimLabel }</b> to this assignment?</p>
+            <p>Add region <b>{ action.label }</b> to this assignment?</p>
           </>
         }
       </Content>

@@ -108,6 +108,24 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
         }
       });
 
+      handles.merge.onInteractionEvent(() => {
+        const widget = widgets.merge;
+
+        const startLabel = widget.getStartLabel();
+        const label = widget.getLabel();
+
+        if (
+          (startLabel === null || label === startLabel) &&           
+          labels.includes(label) && 
+          label !== activeLabel
+        ) {          
+          onHover(label);
+        }
+        else {
+          onHover(null);
+        }
+      });
+
       // End
       handles.paint.onEndInteractionEvent(async () => {
         painter.paintFloodFill(
@@ -191,6 +209,22 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
           labels.includes(label)
         ) {
           onSelect(label, 'split');
+        }
+      });
+
+      handles.merge.onEndInteractionEvent(() => {
+        const widget = widgets.split;
+
+        const startLabel = widget.getStartLabel();
+        const label = widget.getLabel();
+
+        if (
+          startLabel !== null && 
+          label === startLabel &&           
+          labels.includes(label) && 
+          label !== activeLabel
+        ) {
+          onSelect(label, 'merge');
         }
       });
     },

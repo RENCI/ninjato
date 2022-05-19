@@ -4,8 +4,7 @@ import { getCursor } from 'utils/cursor';
 export const REFINE_SET_EDIT_MODE = 'refine/SET_EDIT_MODE';
 export const REFINE_SET_BRUSH = 'refine/REFINE_SET_BRUSH';
 export const REFINE_SET_CONTROL = 'refine/SET_SHOW_BACKGROUND';
-export const REFINE_SET_CLAIM_LABEL = 'refine/SET_CLAIM_LABEL';
-export const REFINE_SET_SPLIT_LABEL = 'fefine/SET_SPLIT_LABEL';
+export const REFINE_SET_ACTION = 'fefine/SET_SPLIT_LABEL';
 export const REFINE_RESET = 'refine/RESET';
 
 const editModes = [
@@ -58,8 +57,7 @@ const initialState = {
   eraseBrush: 2,
   showBackground: true,
   showContours: true,
-  claimLabel: null,
-  splitLabel: null
+  action: null
 };
 
 const reducer = (state, action) => {
@@ -82,16 +80,10 @@ const reducer = (state, action) => {
         [action.name]: action.value
       };
 
-    case REFINE_SET_CLAIM_LABEL:       
+    case REFINE_SET_ACTION:       
       return {
         ...state,
-        claimLabel: action.label
-      };
-
-    case REFINE_SET_SPLIT_LABEL:       
-      return {
-        ...state,
-        splitLabel: action.label
+        action: action.action
       };
 
     case REFINE_RESET:
