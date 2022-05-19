@@ -24,6 +24,11 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
     sliceView.redo();
   };
 
+  const groups = editModes.reduce((groups, { group }) => {
+    if (!groups.includes(group)) groups.push(group);
+    return groups;
+  }, []);
+
   return (
     <ControlBar>
       <ControlLabel>view</ControlLabel>
@@ -37,41 +42,31 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
         />
       </ControlGroup>
       <ControlLabel>mode</ControlLabel>
-      <ControlGroup>
-        { editModes.filter(({ group }) => group === 'select').map(({ value, icon, tooltip }, i) => (
-          <ControlButton
-            key={ i }
-            toggle={ true }
-            icon={ icon }
-            tooltip={ tooltip }
-            active={ value === editMode  }
-            onClick={ () => onModeClick(value) }              
-          />
-        ))}    
-      </ControlGroup>
-      <ControlGroup>
-        { editModes.filter(({ group }) => group === 'edit').map(({ value, icon, tooltip }, i) => (
-          value === 'paint' || value === 'erase' ?
-            <SplitButton
-              key={ i }
-              toggle={ true }
-              icon={ icon }
-              tooltip={ tooltip }
-              active={ value === editMode }
-              content={ <BrushOptions which={ value } /> }
-              onClick={ () => onModeClick(value )}
-            />
-          :
-            <ControlButton
-              key={ i }
-              toggle={ true }
-              icon={ icon }
-              tooltip={ tooltip }
-              active={ value === editMode  }
-              onClick={ () => onModeClick(value) }              
-            />
-        ))}    
-      </ControlGroup>
+      { groups.map(group => (
+        <ControlGroup key={ group }>
+          { editModes.filter(mode => mode.group === group).map(({ value, icon, tooltip }, i) => (
+            value === 'paint' || value === 'erase' ?
+              <SplitButton
+                key={ i }
+                toggle={ true }
+                icon={ icon }
+                tooltip={ tooltip }
+                active={ value === editMode }
+                content={ <BrushOptions which={ value } /> }
+                onClick={ () => onModeClick(value )}
+              />
+            :
+              <ControlButton
+                key={ i }
+                toggle={ true }
+                icon={ icon }
+                tooltip={ tooltip }
+                active={ value === editMode  }
+                onClick={ () => onModeClick(value) }              
+              />
+          ))}
+        </ControlGroup>
+      ))}
       <ControlLabel>undo/redo</ControlLabel>
       <ControlGroup>
         <ControlButton

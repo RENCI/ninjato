@@ -25,7 +25,8 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
     crop: createWidget(vtkCropWidget),
     select: createWidget(vtkRegionSelectWidget),
     claim: createWidget(vtkRegionSelectWidget),
-    split: createWidget(vtkRegionSelectWidget)
+    split: createWidget(vtkRegionSelectWidget),
+    merge: createWidget(vtkRegionSelectWidget)
   }; 
 
   let handles = null;
