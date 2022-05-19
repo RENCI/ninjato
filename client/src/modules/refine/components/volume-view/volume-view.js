@@ -1,11 +1,6 @@
 import { RenderWindow, Surface, BoundingBox } from 'modules/view/components';
 import { getUniqueLabels } from 'utils/data';
-import { 
-  regionSurfaceColor, 
-  backgroundSurfaceColor1, 
-  backgroundSurfaceColor2, 
-  regionSliceHighlightColors
-} from 'utils/colors';
+import { regionSurfaceColor } from 'utils/colors';
 import { interpolate, distance } from 'utils/math';
 
 const resetCamera = (renderer, surface) => {
@@ -104,7 +99,7 @@ export function VolumeView() {
   let regions = {};
 
   const background = Surface();
-  background.setTranslucentColors(backgroundSurfaceColor1, backgroundSurfaceColor2);
+  background.setTranslucentColors(...regionSurfaceColor());
 
   const boundingBox = BoundingBox();
 
@@ -175,7 +170,7 @@ export function VolumeView() {
     },
     //setHighlightLabel: label => mask.setHighlightLabel(label),
     setSlice: slice => {
-      Object.values(regions).forEach((region, i) => region.setSlice(slice, regionSliceHighlightColors(i)));
+      Object.values(regions).forEach((region, i) => region.setSlice(slice, regionSurfaceColor(i, 'slice')));
     },
     setShowBackground: show => {
       background.getActor().setVisibility(show);

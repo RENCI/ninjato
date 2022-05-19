@@ -5,15 +5,9 @@ import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 
 import vtkNinjatoPainter from 'vtk/ninjato-painter';
 import vtkImageContour from 'vtk/image-contour';
-import { 
-  backgroundContourColor, 
-  regionContourColor, 
-  regionContourHighlightColor 
-} from 'utils/colors';
+import { regionContourColor } from 'utils/colors';
 
 const sliceMode = vtkImageMapper.SlicingMode.K;
-
-const backgroundColor = backgroundContourColor;
 
 export function MaskPainter() {      
   let labels = [];
@@ -38,6 +32,8 @@ export function MaskPainter() {
   actor.getProperty().setLighting(false);
 
   const updateColors = () => {
+    const backgroundColor = regionContourColor();
+
     // Initialize
     color.removeAllPoints();
     color.addRGBPoint(0, 0, 0, 0);
@@ -50,8 +46,8 @@ export function MaskPainter() {
     });
 
     // Set labels
-    labels.forEach((label, i) => color.addRGBPoint(label, ...regionContourColor(i, label === activeLabel)));
-    if (highlightLabel) color.addRGBPoint(highlightLabel, ...regionContourHighlightColor());
+    labels.forEach((label, i) => color.addRGBPoint(label, ...regionContourColor(i, label === activeLabel ? 'active' : null )));
+    if (highlightLabel) color.addRGBPoint(highlightLabel, ...regionContourColor(labels.indexOf(highlightLabel), 'highlight'));
 
     // Set z offsets
     const offsets = labels.reduce((offsets, label) => {
