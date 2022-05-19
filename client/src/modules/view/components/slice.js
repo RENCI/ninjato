@@ -82,47 +82,57 @@ export function Slice(onKeyDown, onKeyUp) {
 
       interactor = renderWindow.getInteractor();
       interactor.setInteractorStyle(interactorStyle);
+
+      interactor.onKeyDown(evt => {
+        if (!imageMapper) return;
+
+        const extent = imageMapper.getInputData().getExtent();
+        const kMin = extent[4];
+        const kMax = extent[5];
+    
+        evt.key === 'ArrowUp' ? imageMapper.setSlice(Math.min(kMax, imageMapper.getSlice() + 1)) : 
+        evt.key === 'ArrowDown' ? imageMapper.setSlice(Math.max(kMin, imageMapper.getSlice() - 1)) :
+        onKeyDown(evt)
+      });
+    
+      interactor.onKeyUp(onKeyUp);
     },
     setImage: (imageActor, camera, onSliceChange) => {
-      imageMapper = imageActor.getMapper();
-      const imageData = imageMapper.getInputData();
+      const firstTime = !imageMapper;
 
-      sliceRanges = getSliceRanges(imageData);
-    
+      imageMapper = imageActor.getMapper();
+      const imageData = imageMapper.getInputData(); 
+
+      sliceRanges = getSliceRanges(imageData);      
+
       resetCamera(camera, imageData);
 
-      const extent = imageData.getExtent(); 
-
+      const extent = imageData.getExtent();
       const kMin = extent[4];
       const kMax = extent[5];
       const kGet = imageMapper.getSlice;
       const kSet = k => imageMapper.setSlice(k);
 
       manipulator.setScrollListener(kMin, kMax, -1, kGet, kSet, 1);
-
-      interactor.onKeyDown(evt =>
-        evt.key === 'ArrowUp' ? imageMapper.setSlice(Math.min(kMax, imageMapper.getSlice() + 1)) : 
-        evt.key === 'ArrowDown' ? imageMapper.setSlice(Math.max(kMin, imageMapper.getSlice() - 1)) :
-        onKeyDown(evt)
-      );
-      interactor.onKeyUp(onKeyUp);
     
-      const updateSlice = () => {  
-        // Get slice position
-        const ijk = [0, 0, 0];
-        const position = [0, 0, 0];
-  
-        ijk[slicingMode] = imageMapper.getSlice();
-        imageData.indexToWorld(ijk, position);
+      if (firstTime) {
+        const updateSlice = () => {  
+          // Get slice position
+          const ijk = [0, 0, 0];
+          const position = [0, 0, 0];
+    
+          ijk[slicingMode] = imageMapper.getSlice();
+          imageData.indexToWorld(ijk, position);
 
-        // Update window/level
-        const z = Math.floor(ijk[slicingMode]);
-        setWindowLevel(imageActor, sliceRanges[z]);
+          // Update window/level
+          const z = Math.floor(ijk[slicingMode]);
+          setWindowLevel(imageActor, sliceRanges[z]);
 
-        if (onSliceChange) onSliceChange(z, position);
-      };
+          if (onSliceChange) onSliceChange(z, position);
+        };
 
-      imageMapper.onModified(updateSlice);
+        imageMapper.onModified(updateSlice);
+      }
     },
     setSliceByLabel: (imageMapper, maskData, label) => {
       imageMapper.setSlice(findFirstSlice(maskData, label));
