@@ -4,7 +4,7 @@ import { useResize } from 'hooks';
 
 export const SliceViewWrapper = ({ sliceView }) => {
   const [{ imageData, maskData, assignment }] = useContext(UserContext);
-  const [{ editMode, editModes, brushes, paintBrush, eraseBrush, showContours }] = useContext(RefineContext);
+  const [{ tool, tools, brushes, paintBrush, eraseBrush, showContours }] = useContext(RefineContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);
   const { width } = useResize(div);
@@ -27,22 +27,22 @@ export const SliceViewWrapper = ({ sliceView }) => {
     }
   }, [initialized, sliceView, imageData, maskData, assignment]);   
 
-  // Edit mode
+  // Tool
   useEffect(() => {
     if (initialized) {
-      const mode = editModes.find(({ value }) => value === editMode);
-      sliceView.setEditMode(editMode, mode.cursor);
+      const toolObject = tools.find(({ value }) => value === tool);
+      sliceView.setTool(tool, toolObject.cursor);
     }
-  }, [initialized, sliceView, editMode, editModes]);
+  }, [initialized, sliceView, tool, tools]);
 
   // Paint brush
   useEffect(() => {
-    if (initialized) sliceView.setPaintBrush(brushes[paintBrush]);
+    if (initialized) sliceView.setBrush('paint', brushes[paintBrush]);
   }, [initialized, sliceView, brushes, paintBrush]);
 
   // Erase brush
   useEffect(() => {
-    if (initialized) sliceView.setEraseBrush(brushes[eraseBrush]);
+    if (initialized) sliceView.setBrush('erase', brushes[eraseBrush]);
   }, [initialized, sliceView, brushes, eraseBrush]);
 
   // Show contours

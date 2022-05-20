@@ -25,8 +25,7 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
     crop: createWidget(vtkCropWidget),
     select: createWidget(vtkRegionSelectWidget),
     claim: createWidget(vtkRegionSelectWidget),
-    add: createWidget(vtkBrushWidget),
-    split: createWidget(vtkRegionSelectWidget),
+    split: createWidget(vtkBrushWidget),
     merge: createWidget(vtkRegionSelectWidget)
   }; 
 
@@ -50,7 +49,7 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       manager.grabFocus(activeWidget);
 
       // Start
-      [handles.paint, handles.erase, handles.crop].forEach(handle => {
+      [handles.paint, handles.erase, handles.crop, handles.split].forEach(handle => {
         handle.onStartInteractionEvent(() => painter.startStroke());
       });
 
@@ -83,42 +82,6 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
           (startLabel === null || label === startLabel) &&   
           label !== 0 &&
           !labels.includes(label)
-        ) {          
-          onHover(label);
-        }
-        else {
-          onHover(null);
-        }
-      });
-
-      handles.add.onInteractionEvent(() => {
-        const widget = widgets.add;
-/*
-        const startLabel = widget.getStartLabel();
-        const label = widget.getLabel();
-
-        if (
-          (startLabel === null || label === startLabel) && 
-          labels.includes(label)
-        ) {          
-          onHover(label);
-        }
-        else {
-          onHover(null);
-        }
-*/        
-      });
-
-
-      handles.split.onInteractionEvent(() => {
-        const widget = widgets.split;
-
-        const startLabel = widget.getStartLabel();
-        const label = widget.getLabel();
-
-        if (
-          (startLabel === null || label === startLabel) && 
-          labels.includes(label)
         ) {          
           onHover(label);
         }
@@ -184,6 +147,17 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
         onEdit();
       });      
 
+      handles.split.onEndInteractionEvent(async () => {
+        painter.paintFloodFill(
+          handles.split.getPoints(), 
+          handles.split.getRepresentations()[0].getBrush()
+        );
+
+        await painter.endStroke();
+  
+        onEdit();
+      });
+
       handles.select.onEndInteractionEvent(() => {
         const widget = widgets.select;
 
@@ -216,21 +190,6 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
         }
       });
 
-      handles.split.onEndInteractionEvent(() => {
-        const widget = widgets.split;
-
-        const startLabel = widget.getStartLabel();
-        const label = widget.getLabel();
-
-        if (
-          startLabel !== null && 
-          label === startLabel && 
-          labels.includes(label)
-        ) {
-          onSelect(label, 'split');
-        }
-      });
-
       handles.merge.onEndInteractionEvent(() => {
         const widget = widgets.split;
 
@@ -253,17 +212,17 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
 
       Object.values(widgets).forEach(widget => widget.getManipulator().setOrigin(position));
 
-      [widgets.paint, widgets.erase, widgets.add].forEach(widget => widget.setRadius(radius));
+      [widgets.paint, widgets.erase, widgets.split].forEach(widget => widget.setRadius(radius));
 
       Object.values(handles).forEach(handle => handle.updateRepresentationForRender());
     },
     setImageData: imageData => {
       Object.values(widgets).forEach(widget => widget.setImageData(imageData))    
     },
-    setEditMode: editMode => {
+    setTool: tool => {
       const position = activeWidget.getPosition();
 
-      activeWidget = widgets[editMode];
+      activeWidget = widgets[tool];
 
       manager.grabFocus(activeWidget);
 
@@ -273,11 +232,7 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
         widget.setVisibility(widget === activeWidget);
       });      
     },
-    setPaintBrush: brush => {
-      setBrush(handles.paint, brush);
-      setBrush(handles.add, brush);
-    },
-    setEraseBrush: brush => setBrush(handles.erase, brush),
+    setBrush: (type, brush) => setBrush(handles[type], brush),
     setLabels: regionLabels => {
       labels = regionLabels;
     },

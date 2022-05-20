@@ -1,13 +1,13 @@
 import { createContext, useReducer } from 'react';
 import { getCursor } from 'utils/cursor';
 
-export const REFINE_SET_EDIT_MODE = 'refine/SET_EDIT_MODE';
+export const REFINE_SET_TOOL = 'refine/SET_TOOL';
 export const REFINE_SET_BRUSH = 'refine/REFINE_SET_BRUSH';
 export const REFINE_SET_CONTROL = 'refine/SET_SHOW_BACKGROUND';
 export const REFINE_SET_ACTION = 'fefine/SET_SPLIT_LABEL';
 export const REFINE_RESET = 'refine/RESET';
 
-const editModes = [
+const tools = [
   { group: 'select', value: 'select', icon: 'map marker alternate', cursor: getCursor('map-marker-alternate.png', 16, 23), tooltip: 'select region' },
   { group: 'select', value: 'claim', icon: 'flag', cursor: getCursor('flag.png', 10, 23), tooltip: 'claim region' },
 
@@ -51,11 +51,12 @@ const brushes = [
 ];
 
 const initialState = {
-  editMode: 'paint',
-  editModes: editModes,
+  tool: 'paint',
+  tools: tools,
   brushes: brushes,
   paintBrush: 0,
   eraseBrush: 2,
+  splitBrush: 0,
   showBackground: true,
   showContours: true,
   action: null
@@ -63,10 +64,10 @@ const initialState = {
 
 const reducer = (state, action) => {
   switch (action.type) {
-    case REFINE_SET_EDIT_MODE:
+    case REFINE_SET_TOOL:
       return {
         ...state,
-        editMode: action.mode
+        tool: action.tool
       };
 
     case REFINE_SET_BRUSH:

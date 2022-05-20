@@ -70,12 +70,11 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
       widgets.setActiveLabel(label);
     },
     setHighlightLabel: label => mask.setHighlightLabel(label),
-    setEditMode: (editMode, cursor) => {
-      widgets.setEditMode(editMode)
+    setTool: (tool, cursor) => {
+      widgets.setTool(tool)
       renderWindow.setCursor(cursor);
     },
-    setPaintBrush: brush => widgets.setPaintBrush(brush),
-    setEraseBrush: brush => widgets.setEraseBrush(brush),
+    setBrush: (type, brush) => widgets.setBrush(type, brush),
     setSlice: slice => image.getMapper().setSlice(slice),
     setShowContours: show => {
       mask.getActor().setVisibility(show);

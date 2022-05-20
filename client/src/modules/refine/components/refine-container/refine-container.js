@@ -2,7 +2,7 @@ import { useContext, useRef, useCallback, useState } from 'react';
 import { Grid } from 'semantic-ui-react';
 import { 
   UserContext, 
-  RefineContext, REFINE_SET_EDIT_MODE, REFINE_SET_ACTION
+  RefineContext, REFINE_SET_TOOL, REFINE_SET_ACTION
 } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
@@ -67,13 +67,13 @@ export const RefineContainer = () => {
 
   function onKeyDown(evt) {
     if (evt.key === 'Control') {
-      refineDispatch({ type: REFINE_SET_EDIT_MODE, mode: 'erase' });
+      refineDispatch({ type: REFINE_SET_TOOL, tool: 'erase' });
     }
   }
 
   function onKeyUp(evt) {
     if (evt.key === 'Control') {
-      refineDispatch({ type: REFINE_SET_EDIT_MODE, mode: 'paint' });
+      refineDispatch({ type: REFINE_SET_TOOL, tool: 'paint' });
     }
   }
 

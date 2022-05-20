@@ -1,15 +1,15 @@
 import { useContext } from 'react';
 import { Label, Divider } from 'semantic-ui-react';
-import { RefineContext, REFINE_SET_EDIT_MODE, REFINE_SET_CONTROL } from 'contexts';
+import { RefineContext, REFINE_SET_TOOL, REFINE_SET_CONTROL } from 'contexts';
 import { ControlBar, ControlGroup, ControlButton, ControlLabel } from 'modules/common/components/control-bar';
 import { SplitButton } from 'modules/common/components/split-button';
 import { BrushOptions } from './brush-options';
 
 export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
-  const [{ editModes, editMode, showContours }, dispatch] = useContext(RefineContext);
+  const [{ tools, tool, showContours }, dispatch] = useContext(RefineContext);
 
-  const onModeClick = value => {
-    dispatch({ type: REFINE_SET_EDIT_MODE, mode: value });
+  const onToolClick = value => {
+    dispatch({ type: REFINE_SET_TOOL, tool: value });
   };
 
   const onShowContoursClick = () => {
@@ -24,7 +24,7 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
     sliceView.redo();
   };
 
-  const groups = editModes.reduce((groups, { group }) => {
+  const groups = tools.reduce((groups, { group }) => {
     if (!groups.includes(group)) groups.push(group);
     return groups;
   }, []);
@@ -41,19 +41,19 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
           onClick={ onShowContoursClick }              
         />
       </ControlGroup>
-      <ControlLabel>mode</ControlLabel>
+      <ControlLabel>tool</ControlLabel>
       { groups.map(group => (
         <ControlGroup key={ group }>
-          { editModes.filter(mode => mode.group === group).map(({ value, icon, tooltip }, i) => (
-            value === 'paint' || value === 'erase' ?
+          { tools.filter(tool => tool.group === group).map(({ value, icon, tooltip }, i) => (
+            value === 'paint' || value === 'erase' || value === 'split' ?
               <SplitButton
                 key={ i }
                 toggle={ true }
                 icon={ icon }
                 tooltip={ tooltip }
-                active={ value === editMode }
+                active={ value === tool }
                 content={ <BrushOptions which={ value } /> }
-                onClick={ () => onModeClick(value )}
+                onClick={ () => onToolClick(value )}
               />
             :
               <ControlButton
@@ -61,8 +61,8 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
                 toggle={ true }
                 icon={ icon }
                 tooltip={ tooltip }
-                active={ value === editMode  }
-                onClick={ () => onModeClick(value) }              
+                active={ value === tool  }
+                onClick={ () => onToolClick(value) }              
               />
           ))}
         </ControlGroup>
