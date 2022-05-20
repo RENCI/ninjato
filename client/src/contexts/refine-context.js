@@ -20,6 +20,11 @@ const tools = [
   { group: 'region', value: 'merge', icon: 'sign-in', cursor: getCursor('merge.png', 12, 16), tooltip: 'merge' }
 ];
 
+const modes = [
+  { name: 'refine', tools: tools.map(({ value }) => value) },
+  { name: 'split', tools: ['paint', 'erase', 'crop'] }
+]
+
 const brushes = [
   [
     [1]
@@ -51,6 +56,8 @@ const brushes = [
 ];
 
 const initialState = {
+  mode: 'refine',
+  modes: modes,
   tool: 'paint',
   tools: tools,
   brushes: brushes,
