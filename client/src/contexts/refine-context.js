@@ -15,8 +15,9 @@ const editModes = [
   { group: 'edit', value: 'erase', icon: 'eraser', cursor: getCursor('eraser.png', 12, 22), tooltip: 'erase' },
   { group: 'edit', value: 'crop', icon: 'crop', cursor: getCursor('crop.png', 11, 21), tooltip: 'crop' },
 
-  { group: 'splitMerge', value: 'split', icon: 'share alternate', cursor: getCursor('split.png', 16, 16), tooltip: 'split' },
-  { group: 'splitMerge', value: 'merge', icon: 'sign-in', cursor: getCursor('merge.png', 12, 16), tooltip: 'merge' }
+  { group: 'region', value: 'add', icon: 'add circle', cursor: getCursor('merge.png', 12, 16), tooltip: 'add' },
+  { group: 'region', value: 'split', icon: 'share alternate', cursor: getCursor('split.png', 16, 16), tooltip: 'split' },
+  { group: 'region', value: 'merge', icon: 'sign-in', cursor: getCursor('merge.png', 12, 16), tooltip: 'merge' }
 ];
 
 const brushes = [

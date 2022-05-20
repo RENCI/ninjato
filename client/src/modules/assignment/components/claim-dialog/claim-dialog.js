@@ -22,9 +22,9 @@ export const ClaimDialog = () => {
     setClaiming(true);
 
     try {
-      const { status } = await api.claimRegion(id, assignment.subvolumeId, assignment.id, claimLabel);
+      const { status } = await api.claimRegion(id, assignment.subvolumeId, assignment.id, action.label);
 
-      if (status !== 'success') throw new Error(`Error claiming region ${ claimLabel }`);
+      if (status !== 'success') throw new Error(`Error claiming region ${ action.label }`);
 
       setSuccess(true);
       setTimeout(async () => {
@@ -79,9 +79,7 @@ export const ClaimDialog = () => {
             Claimed successfully
           </>
         :
-          <>
-            <p>Add region <b>{ action.label }</b> to this assignment?</p>
-          </>
+          action && <p>Add region <b>{ action && action.label }</b> to this assignment?</p>
         }
       </Content>
       <Actions>

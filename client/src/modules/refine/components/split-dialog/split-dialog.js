@@ -1,14 +1,14 @@
 import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { 
-  RefineContext, REFINE_SET_SPLIT_LABEL, 
+  RefineContext, REFINE_SET_ACTION, 
   ErrorContext, SET_ERROR
 } from 'contexts';
 
 const { Header, Content, Actions } = Modal;
 
 export const SplitDialog = () => {
-  const [{ splitLabel }, refineDispatch] = useContext(RefineContext);
+  const [{ action }, refineDispatch] = useContext(RefineContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const [splitting, setSplitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -21,7 +21,7 @@ export const SplitDialog = () => {
       setSuccess(false);
       setSplitting(false);
 
-      refineDispatch({ type: REFINE_SET_SPLIT_LABEL, label: null });
+      refineDispatch({ type: REFINE_SET_ACTION, action: null });
     }, 1000);
 /*
 
@@ -63,13 +63,13 @@ export const SplitDialog = () => {
   };
 
   const onCancel = () => {
-    refineDispatch({ type: REFINE_SET_SPLIT_LABEL, label: null });
+    refineDispatch({ type: REFINE_SET_ACTION, action: null });
   };
 
   return (
     <Modal
       dimmer='blurring'
-      open={ splitLabel !== null }        
+      open={ action && action.type === 'split' }        
     >
       <Header>Split Region</Header>
       <Content>
@@ -81,9 +81,7 @@ export const SplitDialog = () => {
             Split successfully
           </>
         :
-          <>
-            <p>Split region <b>{ splitLabel }</b>?</p>
-          </>
+          action && <p>Split region <b>{ action.label }</b>?</p>
         }
       </Content>
       <Actions>

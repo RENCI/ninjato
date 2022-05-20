@@ -49,13 +49,13 @@ export const RefineContainer = () => {
       //volumeView.current.render();
     }
     else if (type === 'claim') {
-      refineDispatch({ type: REFINE_SET_CLAIM_LABEL, label: label });     
+      refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'claim', label: label } });     
     }    
     else if (type === 'split') {
-      refineDispatch({ type: REFINE_SET_SPLIT_LABEL, label: label });
+      refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'split', label: label } });  
     }    
     else if (type === 'merge') {
-      refineDispatch({ type: REFINE_SET_MERGE_LABEL, label: label });
+      refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'merge', label: label } });  
     }    
 
     sliceView.current.setHighlightLabel(null);

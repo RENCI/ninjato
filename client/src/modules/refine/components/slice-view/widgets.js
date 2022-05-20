@@ -25,6 +25,7 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
     crop: createWidget(vtkCropWidget),
     select: createWidget(vtkRegionSelectWidget),
     claim: createWidget(vtkRegionSelectWidget),
+    add: createWidget(vtkBrushWidget),
     split: createWidget(vtkRegionSelectWidget),
     merge: createWidget(vtkRegionSelectWidget)
   }; 
@@ -88,6 +89,24 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
         else {
           onHover(null);
         }
+      });
+
+      handles.add.onInteractionEvent(() => {
+        const widget = widgets.add;
+/*
+        const startLabel = widget.getStartLabel();
+        const label = widget.getLabel();
+
+        if (
+          (startLabel === null || label === startLabel) && 
+          labels.includes(label)
+        ) {          
+          onHover(label);
+        }
+        else {
+          onHover(null);
+        }
+*/        
       });
 
 
@@ -234,7 +253,7 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
 
       Object.values(widgets).forEach(widget => widget.getManipulator().setOrigin(position));
 
-      [widgets.paint, widgets.erase].forEach(widget => widget.setRadius(radius));
+      [widgets.paint, widgets.erase, widgets.add].forEach(widget => widget.setRadius(radius));
 
       Object.values(handles).forEach(handle => handle.updateRepresentationForRender());
     },
@@ -254,7 +273,10 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
         widget.setVisibility(widget === activeWidget);
       });      
     },
-    setPaintBrush: brush => setBrush(handles.paint, brush),
+    setPaintBrush: brush => {
+      setBrush(handles.paint, brush);
+      setBrush(handles.add, brush);
+    },
     setEraseBrush: brush => setBrush(handles.erase, brush),
     setLabels: regionLabels => {
       labels = regionLabels;
