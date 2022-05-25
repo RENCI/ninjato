@@ -307,6 +307,82 @@ def _remove_regions(region_list, whole_item):
     return
 
 
+def _remove_region_from_active_assignment(whole_item, active_assign_id, region_id):
+    """
+    remove a region from a user's active assignment
+    :param whole_item: whole subvolume item
+    :param active_assign_id: a user's active assignment item id
+    :param region_id: region id/label to be removed from the active assignment
+    :return: True if succeed and False otherwise
+    """
+    assign_item = Item().findOne({'_id': ObjectId(active_assign_id)})
+    if 'added_region_ids' in assign_item['meta']:
+        rid_list = assign_item['meta']['added_region_ids']
+        if region_id in rid_list:
+            rid_list.remove(region_id)
+            assign_item['meta']['added_region_ids'] = rid_list
+        elif region_id == str(assign_item['meta']['region_label']):
+            raise RestException('input region id to be removed cannot be the initial '
+                                'assigned region', code=400)
+        else:
+            raise RestException('input region id to be removed is not in the assigned regions for '
+                                'the requesting user', code=400)
+    elif region_id == str(assign_item['meta']['region_label']):
+            raise RestException('input region id to be removed cannot be the initial '
+                                'assigned region', code=400)
+    else:
+        raise RestException('input region id is not in the assigned regions for the requesting '
+                            'user', code=400)
+
+    assign_item_files = File().find({'itemId': ObjectId(active_assign_id)})
+    # initialize min-max box values for x, y, z for subsequent range computation
+    min_x = assign_item['meta']['coordinates']["x_max"]
+    max_x = assign_item['meta']['coordinates']["x_min"]
+    min_y = assign_item['meta']['coordinates']["y_max"]
+    max_y = assign_item['meta']['coordinates']["y_min"]
+    min_z = assign_item['meta']['coordinates']["z_max"]
+    max_z = assign_item['meta']['coordinates']["z_min"]
+    # compute updated range after removing the region from the user's assignment
+    for assign_item_file in assign_item_files:
+        if '_masks' not in assign_item_file['name']:
+            continue
+        imarray, _ = _get_tif_file_content_and_path(assign_item_file)
+        levels = imarray[np.nonzero(imarray)]
+        min_level = min(levels)
+        max_level = max(levels)
+        # find the range after the region is removed from the assigned item
+        for lev in range(min_level, max_level + 1):
+            if lev == int(region_id):
+                continue
+            level_indices = np.where(imarray == lev)
+            min_z = min(min(level_indices[0]), min_z)
+            max_z = max(max(level_indices[0]), max_z)
+            min_y = min(min(level_indices[1]), min_y)
+            max_y = max(max(level_indices[1]), max_y)
+            min_x = min(min(level_indices[2]), min_x)
+            max_x = max(max(level_indices[2]), max_x)
+
+        x_range, y_range, z_range = _get_range(whole_item)
+        min_x, max_x, min_y, max_y, min_z, max_z = _get_buffered_extent(
+            min_x, max_x, min_y, max_y, min_z, max_z, x_range, y_range, z_range)
+
+        assign_item['meta']['coordinates'] = {
+            "x_max": max_x,
+            "x_min": min_x,
+            "y_max": max_y,
+            "y_min": min_y,
+            "z_max": max_z,
+            "z_min": min_z
+        }
+        Item().save(assign_item)
+
+        # update assign_item based on updated extent that has region removed
+        _create_region_files(assign_item, whole_item)
+        return True
+
+    return False
+
+
 def _merge_region_to_active_assignment(whole_item, active_assign_id, region_id):
     """
     merge a region into a user's active assignment
@@ -509,6 +585,38 @@ def _get_added_region_metadata(whole_item, added_region_id):
             reg_item['meta']['added_region_ids']:
             return whole_item['meta']['regions'][reg_item['meta']['region_label']]
     return None
+
+
+def remove_region_from_item_assignment(user, subvolume_id, active_assignment_id, region_id):
+    """
+    remove a region from item assignment
+    :param user: requesting user
+    :param subvolume_id: subvolume_id that contains the region to be removed
+    :param active_assignment_id: the user's active assignment id to remove the region from
+    :param region_id: region id or label to remove from the assignment
+    :return: a dict with status
+    """
+    ret_dict = {}
+    whole_item = Item().findOne({'_id': ObjectId(subvolume_id)})
+    region_id = str(region_id)
+    if region_id not in whole_item['meta']['regions']:
+        raise RestException('input region id to be removed is invalid', code=400)
+    else:
+        val = whole_item['meta']['regions'][region_id]
+        if 'annotation_assigned_to' in val:
+            assign_user_login = val['annotation_assigned_to'].split()[0]
+            if assign_user_login != user['login']:
+                raise RestException('input region id to be removed is not currently assigned '
+                                    'to the requesting user', code=400)
+            ret = _remove_region_from_active_assignment(whole_item, active_assignment_id, region_id)
+            if ret:
+                ret_dict['status'] = 'success'
+            else:
+                ret_dict['status'] = 'failure'
+            return ret_dict
+        else:
+            raise RestException('input region id to be removed is not currently assigned to the '
+                                'requesting user', code=400)
 
 
 def claim_assignment(user, subvolume_id, active_assignment_id, claim_region_id):
