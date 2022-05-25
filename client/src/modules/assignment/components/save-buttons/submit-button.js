@@ -1,45 +1,31 @@
 import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
-import { 
-  UserContext, CLEAR_DATA,
-  ErrorContext, SET_ERROR
-} from 'contexts';
-import { useModal } from 'hooks';
-import { api } from 'utils/api';
-import { encodeTIFF } from 'utils/data-conversion';
+import { UserContext, CLEAR_DATA } from 'contexts';
+import { useModal, useSaveAnnotations } from 'hooks';
 
 const { Header, Content, Actions } = Modal;
 
 export const SubmitButton = ({ disabled }) => {
-  const [{ id, assignment, maskData }, userDispatch] = useContext(UserContext);
-  const [, errorDispatch] = useContext(ErrorContext);
+  const [, userDispatch] = useContext(UserContext);
   const [open, openModal, closeModal] = useModal();
+  const saveAnnotations = useSaveAnnotations();
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const onConfirm = async () => {
     setSubmitting(true);
 
-    const buffer = encodeTIFF(maskData);
+    await saveAnnotations(true);
 
-    try {
-      await api.saveAnnotations(id, assignment.id, buffer, true);
+    setSubmitting(false);
+    setSuccess(true);
 
-      setSuccess(true);
-      setTimeout(() => {        
-        setSuccess(false);
-        closeModal();
+    setTimeout(() => {        
+      setSuccess(false);
+      closeModal();
 
-        userDispatch({ type: CLEAR_DATA });
-      }, 1000);
-    }
-    catch (error) {
-      console.log(error);   
-      
-      errorDispatch({ type: SET_ERROR, error: error });     
-    }
-
-    setSubmitting(false);   
+      userDispatch({ type: CLEAR_DATA });
+    }, 1000);   
   };
 
   return (

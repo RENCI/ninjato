@@ -1,47 +1,20 @@
-import { useContext, useState } from 'react';
+import { useState } from 'react';
 import { Popup, Button, Icon } from 'semantic-ui-react';
-import { 
-  UserContext, 
-  ErrorContext, SET_ERROR
-} from 'contexts';
-import { api } from 'utils/api';
-import { encodeTIFF, saveTIFF } from 'utils/data-conversion';
-
-// Download for testing
-const download = false;
+import { useSaveAnnotations } from 'hooks';
 
 export const SaveButton = ({ disabled, onSaving }) => {
-  const [{ id, assignment, maskData }] = useContext(UserContext);
-  const [, errorDispatch] = useContext(ErrorContext);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
+  const saveAnnotations = useSaveAnnotations();
 
   const onSave = async () => {
     setSaving(true);
     onSaving(true);
 
-    const buffer = encodeTIFF(maskData);
+    await saveAnnotations();
 
-    if (download) {  
-      saveTIFF(buffer, 'testTiff.tif');
-
-      setSaving(false);      
-      onSaving(false);
-
-      return;
-    }
-
-    try {
-      await api.saveAnnotations(id, assignment.id, buffer);
-
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 1000);
-    }
-    catch (error) {
-      console.log(error);   
-      
-      errorDispatch({ type: SET_ERROR, error: error });     
-    }
+    setSuccess(true);
+    setTimeout(() => setSuccess(false), 1000);
 
     setSaving(false);
     onSaving(false);

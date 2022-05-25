@@ -38,6 +38,8 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
     return info;
   }, {});
 
+console.log(info);
+
   // Copy info and rename to be more concise
   return {
     id: itemId,
@@ -214,12 +216,14 @@ export const api = {
       maskBuffer: responses[1].data
     };   
   },
-  saveAnnotations: async (userId, itemId, buffer, done = false) => {
+  saveAnnotations: async (userId, itemId, buffer, addedLabels, removedLabels, done = false) => {
     const blob = new Blob([buffer], { type: 'image/tiff' });
 
-    // Set data form data
+    // Set form data
     const formData = new FormData();
-    formData.append('content_data', blob);
+    formData.append('added_region_ids', JSON.stringify(addedLabels));
+    formData.append('removed_region_ids', JSON.stringify(removedLabels));
+    formData.append('content_data', blob);    
 
     await axios.post(`/user/${ userId }/annotation`, 
       formData,

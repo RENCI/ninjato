@@ -2,7 +2,7 @@ import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { 
   UserContext, ADD_REGION,
-  RefineContext, REFINE_SET_ACTION, 
+  RefineContext, REFINE_SET_ACTION, REFINE_SET_ACTIVE_LABEL,
   ErrorContext, SET_ERROR
 } from 'contexts';
 import { api } from 'utils/api';
@@ -31,9 +31,8 @@ export const AddDialog = () => {
         setSuccess(false);
 
         refineDispatch({ type: REFINE_SET_ACTION, action: null });
-        userDispatch({ type: ADD_REGION, label: label,  });
-
-        // XXX: Need to set the active label via refine context
+        userDispatch({ type: ADD_REGION, label: label });
+        refineDispatch({ type: REFINE_SET_ACTIVE_LABEL, label: label });
       }, 1000);
     }
     catch (error) {

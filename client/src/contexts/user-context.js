@@ -9,6 +9,7 @@ export const UPDATE_ASSIGNMENT = 'user/UPDATE_ASSIGNMENT';
 export const SET_DATA = 'user/SET_DATA';
 export const CLEAR_DATA = 'user/CLEAR_DATA';
 export const ADD_REGION = 'user/ADD_REGION';
+export const CLEAR_SAVE_LABELS = 'user/CLEAR_SAVE_LABELS';
 
 const initialState = {
   id: null,
@@ -18,7 +19,9 @@ const initialState = {
   assignments: null, 
   assignment: null,
   imageData: null,
-  maskData: null
+  maskData: null,
+  addedLabels: [],
+  removedLabels: []
 };
 
 const reducer = (state, action) => {
@@ -119,9 +122,17 @@ const reducer = (state, action) => {
         assignment: {
           ...state.assignment,
           regions: regions
-        }
-      }
+        },
+        addedLabels: state.addedLabels.concat(action.label)
+      };
     }
+
+    case CLEAR_SAVE_LABELS:
+      return {
+        ...state,
+        addedLabels: [],
+        removedLabels: []
+      };
 
     default: 
       throw new Error(`Invalid user context action: ${ action.type }`);

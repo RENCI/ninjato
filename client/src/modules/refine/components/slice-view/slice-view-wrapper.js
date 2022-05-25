@@ -4,7 +4,9 @@ import { useResize } from 'hooks';
 
 export const SliceViewWrapper = ({ sliceView }) => {
   const [{ imageData, maskData, assignment }] = useContext(UserContext);
-  const [{ tool, tools, brushes, paintBrush, eraseBrush, addBrush, showContours }] = useContext(RefineContext);
+  const [
+    { activeLabel, tool, tools, brushes, paintBrush, eraseBrush, addBrush, showContours }
+  ] = useContext(RefineContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);
   const { width } = useResize(div);
@@ -26,6 +28,11 @@ export const SliceViewWrapper = ({ sliceView }) => {
       sliceView.setData(imageData, maskData);
     }
   }, [initialized, sliceView, imageData, maskData, assignment]);   
+
+  // Active label
+  useEffect(() => {
+    if (initialized) sliceView.setActiveLabel(activeLabel);
+  }, [initialized, activeLabel]);
 
   // Tool
   useEffect(() => {

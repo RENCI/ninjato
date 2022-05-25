@@ -4,7 +4,8 @@ import { getCursor } from 'utils/cursor';
 export const REFINE_SET_TOOL = 'refine/SET_TOOL';
 export const REFINE_SET_BRUSH = 'refine/REFINE_SET_BRUSH';
 export const REFINE_SET_CONTROL = 'refine/SET_SHOW_BACKGROUND';
-export const REFINE_SET_ACTION = 'fefine/SET_SPLIT_LABEL';
+export const REFINE_SET_ACTION = 'refine/SET_ACTION';
+export const REFINE_SET_ACTIVE_LABEL = 'refine/SET_ACTIVE_LABEL';
 export const REFINE_RESET = 'refine/RESET';
 
 const tools = [
@@ -50,6 +51,7 @@ const brushes = [
 ];
 
 const initialState = {
+  activeLabel: null,
   tool: 'paint',
   tools: tools,
   brushes: brushes,
@@ -63,6 +65,12 @@ const initialState = {
 
 const reducer = (state, action) => {
   switch (action.type) {
+    case REFINE_SET_ACTIVE_LABEL:
+      return {
+        ...state,
+        activeLabel: action.label
+      };
+
     case REFINE_SET_TOOL:
       return {
         ...state,
