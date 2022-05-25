@@ -13,7 +13,7 @@ import { SliceControls } from 'modules/refine/components/slice-controls';
 import { SliceSlider } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
 import { ClaimDialog } from 'modules/assignment/components/claim-dialog';
-import { SplitDialog } from 'modules/refine/components/split-dialog';
+import { AddDialog } from 'modules/refine/components/add-dialog';
 
 const { Column } = Grid;
 
@@ -51,8 +51,8 @@ export const RefineContainer = () => {
     else if (type === 'claim') {
       refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'claim', label: label } });     
     }    
-    else if (type === 'split') {
-      refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'split', label: label } });  
+    else if (type === 'add') {
+      refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'add' } });  
     }    
     else if (type === 'merge') {
       refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'merge', label: label } });  
@@ -132,7 +132,7 @@ export const RefineContainer = () => {
         <>
           <SaveButtons /> 
           <ClaimDialog />
-          <SplitDialog />
+          <AddDialog />
         </>
       }
     </>

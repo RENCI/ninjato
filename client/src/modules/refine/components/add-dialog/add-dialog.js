@@ -1,60 +1,49 @@
 import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { 
-  UserContext, UPDATE_ASSIGNMENT,//, SET_ASSIGNMENT, CLEAR_DATA,
-  RefineContext, REFINE_SET_ACTION,
+  UserContext, ADD_REGION,
+  RefineContext, REFINE_SET_ACTION, 
   ErrorContext, SET_ERROR
 } from 'contexts';
-import { useLoadData } from 'hooks';
 import { api } from 'utils/api';
 
 const { Header, Content, Actions } = Modal;
 
-export const ClaimDialog = () => {
-  const [{ id, assignment }, userDispatch] = useContext(UserContext);
+export const AddDialog = () => {
+  const [{ assignment }, userDispatch] = useContext(UserContext);
   const [{ action }, refineDispatch] = useContext(RefineContext);
   const [, errorDispatch] = useContext(ErrorContext);
-  const loadData = useLoadData();
-  const [claiming, setClaiming] = useState(false);
+  const [adding, setAdding] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [newLabel, setNewLabel] = useState();
 
   const onConfirm = async () => {
-    setClaiming(true);
+    setAdding(true);
 
     try {
-      await api.claimRegion(id, assignment.subvolumeId, assignment.id, action.label);
+      const label = await api.getNewLabel(assignment.subvolumeId);
 
-      setClaiming(false);
+      setNewLabel(label);
+      setAdding(false);
       setSuccess(true);
-      
+
       setTimeout(async () => {
         setSuccess(false);
 
         refineDispatch({ type: REFINE_SET_ACTION, action: null });
-        
-        const update = await api.updateAssignment(assignment);
+        userDispatch({ type: ADD_REGION, label: label,  });
 
-        userDispatch({
-          type: UPDATE_ASSIGNMENT,
-          assignment: update
-        });
-  
-        loadData(update);    
-/*
-        userDispatch({ type: CLEAR_DATA });
-        userDispatch({ type: SET_ASSIGNMENT, assignment: update, assignmentType: 'refine' });
-        loadData(update); 
-*/        
-      }, 1000); 
+        // XXX: Need to set the active label via refine context
+      }, 1000);
     }
     catch (error) {
       console.log(error);   
       
       setSuccess(false);
-      setClaiming(false);
+      setAdding(false);
 
       errorDispatch({ type: SET_ERROR, error: error });
-    } 
+    }   
   };
 
   const onCancel = () => {
@@ -64,33 +53,33 @@ export const ClaimDialog = () => {
   return (
     <Modal
       dimmer='blurring'
-      open={ action && action.type === 'claim' }        
+      open={ action && action.type === 'add' }        
     >
-      <Header>Claim Region</Header>
+      <Header>Add Region</Header>
       <Content>
-        { claiming ?             
+        { adding ?             
           <>Processing</>
         :  success ?
           <>
             <Icon name='check circle outline' color='green' />
-            Claimed successfully
+            Now editing with new region label <b>{ newLabel }</b>
           </>
         :
-          action && <p>Add region <b>{ action && action.label }</b> to this assignment?</p>
+          action && <p>Add new region?</p>
         }
       </Content>
       <Actions>
         <Button 
           secondary 
-          disabled={ claiming || success }
+          disabled={ adding || success }
           onClick={ onCancel }
         >
           Cancel
         </Button>
         <Button 
           primary 
-          disabled={ claiming || success }
-          loading={ claiming }
+          disabled={ adding || success }
+          loading={ adding }
           onClick={ onConfirm } 
         >
           Confirm

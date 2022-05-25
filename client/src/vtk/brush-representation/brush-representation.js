@@ -102,8 +102,9 @@ function vtkBrushRepresentation(publicAPI, model) {
     lut.addRGBPoint(1, ...color);
   };
 
+  publicAPI.setColor([1, 1, 1]);
+
   publicAPI.setOpacity = (opacity) => {
-    console.log(opacity);
     model.pipelines.brush.actor.getProperty().setOpacity(opacity);
   };
 

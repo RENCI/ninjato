@@ -25,9 +25,11 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
     crop: createWidget(vtkCropWidget),
     select: createWidget(vtkRegionSelectWidget),
     claim: createWidget(vtkRegionSelectWidget),
-    split: createWidget(vtkBrushWidget),
+    add: createWidget(vtkBrushWidget),
     merge: createWidget(vtkRegionSelectWidget)
   }; 
+
+  widgets.add.setShowTrail(false);
 
   let handles = null;
 
@@ -49,7 +51,7 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       manager.grabFocus(activeWidget);
 
       // Start
-      [handles.paint, handles.erase, handles.crop, handles.split].forEach(handle => {
+      [handles.paint, handles.erase, handles.crop].forEach(handle => {
         handle.onStartInteractionEvent(() => painter.startStroke());
       });
 
@@ -145,17 +147,6 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
         await painter.endStroke(true);
 
         onEdit();
-      });      
-
-      handles.split.onEndInteractionEvent(async () => {
-        painter.paintFloodFill(
-          handles.split.getPoints(), 
-          handles.split.getRepresentations()[0].getBrush()
-        );
-
-        await painter.endStroke();
-  
-        onEdit();
       });
 
       handles.select.onEndInteractionEvent(() => {
@@ -190,8 +181,12 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
         }
       });
 
+      handles.add.onEndInteractionEvent(() => {
+        onSelect(null, 'add');
+      });
+
       handles.merge.onEndInteractionEvent(() => {
-        const widget = widgets.split;
+        const widget = widgets.merge;
 
         const startLabel = widget.getStartLabel();
         const label = widget.getLabel();
@@ -212,7 +207,7 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
 
       Object.values(widgets).forEach(widget => widget.getManipulator().setOrigin(position));
 
-      [widgets.paint, widgets.erase, widgets.split].forEach(widget => widget.setRadius(radius));
+      [widgets.paint, widgets.erase, widgets.add].forEach(widget => widget.setRadius(radius));
 
       Object.values(handles).forEach(handle => handle.updateRepresentationForRender());
     },

@@ -8,6 +8,7 @@ export const SET_ASSIGNMENT = 'user/SET_ASSIGNMENT';
 export const UPDATE_ASSIGNMENT = 'user/UPDATE_ASSIGNMENT';
 export const SET_DATA = 'user/SET_DATA';
 export const CLEAR_DATA = 'user/CLEAR_DATA';
+export const ADD_REGION = 'user/ADD_REGION';
 
 const initialState = {
   id: null,
@@ -48,6 +49,7 @@ const reducer = (state, action) => {
       };
 
     case SET_ASSIGNMENT:
+      console.log(action.assignment);
       return {
         ...state,
         assignment: {
@@ -104,6 +106,22 @@ const reducer = (state, action) => {
         imageData: null,
         maskData: null
       };
+
+    case ADD_REGION: {
+      const regions = state.assignment.regions;
+      regions.push({
+        label: action.label,
+        index: regions.length
+      });
+
+      return {
+        ...state,
+        assignment: {
+          ...state.assignment,
+          regions: regions
+        }
+      }
+    }
 
     default: 
       throw new Error(`Invalid user context action: ${ action.type }`);

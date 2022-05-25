@@ -12,7 +12,6 @@ const { Input } = Form;
 export const RegisterForm = () => {
   const [, userDispatch] = useContext(UserContext);
   const [open, openModal, closeModal] = useModal();
-  const getAssignments = useGetAssignments();
   const [values, setValues] = useState({
     username: '',
     email: '',
@@ -43,8 +42,6 @@ export const RegisterForm = () => {
         login: user.login,
         admin: false
       });
-
-      //getAssignment(id);
 
       closeModal();
     }

@@ -187,8 +187,8 @@ export const api = {
 
     return response.data;
   },
-  updateAssignment: async ({ id, subvolumeId, assignmentKey }) => {
-    const assignment = await getAssignment(id, subvolumeId, assignmentKey);
+  updateAssignment: async ({ userId, subvolumeId, assignmentKey }) => {
+    const assignment = await getAssignment(userId, subvolumeId, assignmentKey);
 
     return assignment;
   },
@@ -244,6 +244,20 @@ export const api = {
       }
     });
 
+    if (response.data.status !== 'success') throw new Error(`Error adding region ${ label }`);
+
     return response.data;
+  },
+  getNewLabel: async subvolumeId => {
+    const response = await axios.get(`/item/${ subvolumeId }/new_region_ids`, {
+      params: {
+        split_region_count: 1
+      }
+    });
+
+    if (response.data.length === 0) throw new Error('No new region label returned');
+    else if (response.data.length > 0) console.warn(`${ response.data.length } new region labels returned (should only be 1)`);
+
+    return response.data[0];
   }
 };

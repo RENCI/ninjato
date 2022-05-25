@@ -1,13 +1,12 @@
 import { useContext } from 'react';
-import { Label, Divider, Button, Icon } from 'semantic-ui-react';
+import { Divider } from 'semantic-ui-react';
 import { RefineContext, REFINE_SET_TOOL, REFINE_SET_CONTROL } from 'contexts';
 import { ControlBar, ControlGroup, ControlButton, ControlLabel } from 'modules/common/components/control-bar';
 import { SplitButton } from 'modules/common/components/split-button';
 import { BrushOptions } from './brush-options';
-import { ButtonWrapper } from 'modules/common/components/button-wrapper';
 
 export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
-  const [{ mode, modes, tools, tool, showContours }, dispatch] = useContext(RefineContext);
+  const [{ tools, tool, showContours }, dispatch] = useContext(RefineContext);
 
   const onToolClick = value => {
     dispatch({ type: REFINE_SET_TOOL, tool: value });
@@ -32,12 +31,6 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
 
   return (
     <ControlBar>
-      <ControlLabel>mode</ControlLabel>
-      <ControlGroup>
-        <Button icon><Icon name='pencil' /></Button>
-        <Button icon><Icon name='share alternate' /></Button>
-      </ControlGroup>
-      <Divider />
       <ControlLabel>view</ControlLabel>
       <ControlGroup>
         <ControlButton
@@ -52,7 +45,7 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
       { groups.map(group => (
         <ControlGroup key={ group }>
           { tools.filter(tool => tool.group === group).map(({ value, icon, tooltip }, i) => (
-            value === 'paint' || value === 'erase' || value === 'split' ?
+            value === 'paint' || value === 'erase' || value === 'add' ?
               <SplitButton
                 key={ i }
                 toggle={ true }
@@ -60,7 +53,7 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
                 tooltip={ tooltip }
                 active={ value === tool }
                 content={ <BrushOptions which={ value } /> }
-                onClick={ () => onToolClick(value )}
+                onClick={ () => onToolClick(value)}
               />
             :
               <ControlButton

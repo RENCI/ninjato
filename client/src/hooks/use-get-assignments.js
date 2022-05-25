@@ -39,5 +39,5 @@ export const useGetAssignments = () => {
         errorDispatch({ type: SET_ERROR, error: error });
       }      
     }
-  }, [error, userDispatch, errorDispatch]);
+  }, [error, userDispatch, loadingDispatch, errorDispatch]);
 };

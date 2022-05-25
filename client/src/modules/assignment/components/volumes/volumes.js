@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { Header, Label } from 'semantic-ui-react';
+import { Header } from 'semantic-ui-react';
 import { UserContext } from 'contexts';
 import { Volume } from './volume';
 import { hasActive } from 'utils/assignment-utils';
