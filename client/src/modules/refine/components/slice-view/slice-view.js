@@ -79,10 +79,13 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
     setShowContours: show => {
       mask.getActor().setVisibility(show);
     },
-    addRegion: () => widgets.addRegion(),
+    addRegion: () => {
+      widgets.addRegion();
+      onEdit();
+    },
     undo: () => {
       mask.getPainter().undo();
-      onEdit()
+      onEdit();
     },
     redo: () => {
       mask.getPainter().redo();

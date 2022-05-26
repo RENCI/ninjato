@@ -9,7 +9,7 @@ import { api } from 'utils/api';
 
 const { Header, Content, Actions } = Modal;
 
-export const AddDialog = ({ sliceView }) => {
+export const AddDialog = ({ sliceView, volumeView }) => {
   const [{ assignment }, userDispatch] = useContext(UserContext);
   const [{ action }, refineDispatch] = useContext(RefineContext);
   const [, errorDispatch] = useContext(ErrorContext);
@@ -36,6 +36,7 @@ export const AddDialog = ({ sliceView }) => {
 
         sliceView.setActiveLabel(label);
         sliceView.addRegion();
+        volumeView.setActiveLabel(label);
 
         refineDispatch({ type: REFINE_SET_TOOL, tool: 'paint' });
       }, 1000);

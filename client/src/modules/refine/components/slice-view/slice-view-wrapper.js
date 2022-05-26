@@ -19,15 +19,19 @@ export const SliceViewWrapper = ({ sliceView }) => {
     }
   }, [initialized, div, width, sliceView]);
 
-  // Update data
+  // Labels
   useEffect(() => {
-    if (initialized && imageData && maskData) {
+    if (initialized) {
       const labels = assignment.regions.map(({ label }) => label);
 
       sliceView.setLabels(labels);
-      sliceView.setData(imageData, maskData);
     }
-  }, [initialized, sliceView, imageData, maskData, assignment]);   
+  }, [initialized, sliceView, assignment]);   
+
+  // Data
+  useEffect(() => {
+    if (initialized && imageData && maskData) sliceView.setData(imageData, maskData);
+  }, [initialized, sliceView, imageData, maskData]);   
 
   // Active label
   useEffect(() => {
