@@ -142,19 +142,23 @@ def _get_buffered_extent(minx, maxx, miny, maxy, minz, maxz, xrange, yrange, zra
     if maxx > xrange:
         minx = minx - (maxx - xrange)
         maxx = xrange
+        if minx < 0:
+            minx = 0
     if maxy > yrange:
         miny = miny - (maxy - yrange)
         maxy = yrange
+        if miny < 0:
+            miny = 0
     minz = minz if minz >= 0 else 0
     maxz = maxz if maxz <= zrange else zrange
     # make sure to send at least 3 slices
     if maxz - minz < 2:
         if minz > 0:
             minz -= 1
-        else:
+        elif maxz < zrange:
             maxz += 1
 
-    return minx, maxx, miny, maxy, minz, maxz
+    return int(minx), int(maxx), int(miny), int(maxy), int(minz), int(maxz)
 
 
 def _create_region_files(region_item, whole_item):
@@ -324,7 +328,6 @@ def _remove_region_from_active_assignment(whole_item, assign_item, region_id):
             # remove the initial assigned region
             region_levels = rid_list[0]
             assign_item['meta']['region_label'] = rid_list[0]
-            rid_list = rid_list[1:]
             assign_item['name'] = f'region{rid_list[0]}'
             whole_item['meta']['regions'][rid_list[0]]['annotation_assigned_to'] = \
                 whole_item['meta']['regions'][region_id]['annotation_assigned_to']
@@ -332,8 +335,9 @@ def _remove_region_from_active_assignment(whole_item, assign_item, region_id):
                 whole_item['meta']['regions'][region_id]['item_id']
             del whole_item['meta']['regions'][region_id]['annotation_assigned_to']
             del whole_item['meta']['regions'][region_id]['item_id']
-            whole_item = Item.save(whole_item)
-            assign_item = Item.save(assign_item)
+            whole_item = Item().save(whole_item)
+            assign_item = Item().save(assign_item)
+            rid_list = rid_list[1:]
         else:
             raise RestException('invalid region id', code=400)
         if rid_list:
@@ -347,19 +351,12 @@ def _remove_region_from_active_assignment(whole_item, assign_item, region_id):
     else:
         raise RestException('invalid region id', code=400)
 
-    assign_item_files = File().find({'itemId': assign_item['_id']})
-    # initialize min-max box values for x, y, z for subsequent range computation
-    min_x = assign_item['meta']['coordinates']["x_max"]
-    max_x = assign_item['meta']['coordinates']["x_min"]
-    min_y = assign_item['meta']['coordinates']["y_max"]
-    max_y = assign_item['meta']['coordinates']["y_min"]
-    min_z = assign_item['meta']['coordinates']["z_max"]
-    max_z = assign_item['meta']['coordinates']["z_min"]
+    item_files = File().find({'itemId': whole_item['_id']})
     # compute updated range after removing the region from the user's assignment
-    for assign_item_file in assign_item_files:
-        if '_masks' not in assign_item_file['name']:
+    for item_file in item_files:
+        if '_masks' not in item_file['name']:
             continue
-        tif, _ = _get_tif_file_content_and_path(assign_item_file)
+        tif, _ = _get_tif_file_content_and_path(item_file)
         images = []
         for image in tif.iter_images():
             images.append(image)
@@ -367,28 +364,47 @@ def _remove_region_from_active_assignment(whole_item, assign_item, region_id):
         levels = imarray[np.nonzero(imarray)]
         min_level = min(levels)
         max_level = max(levels)
+        min_z_ary = []
+        max_z_ary = []
+        min_y_ary = []
+        max_y_ary = []
+        min_x_ary = []
+        max_x_ary = []
         # find the range after the region is removed from the assigned item
         for lev in range(min_level, max_level + 1):
             if str(lev) not in region_levels:
                 continue
             level_indices = np.where(imarray == lev)
-            min_z = min(min(level_indices[0]), min_z)
-            max_z = max(max(level_indices[0]), max_z)
-            min_y = min(min(level_indices[1]), min_y)
-            max_y = max(max(level_indices[1]), max_y)
-            min_x = min(min(level_indices[2]), min_x)
-            max_x = max(max(level_indices[2]), max_x)
-
+            min_z_ary.append(min(level_indices[0]))
+            max_z_ary.append(max(level_indices[0]))
+            min_y_ary.append(min(level_indices[1]))
+            max_y_ary.append(max(level_indices[1]))
+            min_x_ary.append(min(level_indices[2]))
+            max_x_ary.append(max(level_indices[2]))
+        min_z = min(min_z_ary)
+        max_z = max(max_z_ary)
+        min_y = min(min_y_ary)
+        max_y = max(max_y_ary)
+        min_x = min(min_x_ary)
+        max_x = max(max_x_ary)
         x_range, y_range, z_range = _get_range(whole_item)
         min_x, max_x, min_y, max_y, min_z, max_z = _get_buffered_extent(
             min_x, max_x, min_y, max_y, min_z, max_z, x_range, y_range, z_range)
+
+        ori_min_x = assign_item['meta']['coordinates']['x_min']
+        ori_max_x = assign_item['meta']['coordinates']['x_max']
+        ori_min_y = assign_item['meta']['coordinates']['y_min']
+        ori_max_y = assign_item['meta']['coordinates']['y_max']
+        ori_min_z = assign_item['meta']['coordinates']['z_min']
+        ori_max_z = assign_item['meta']['coordinates']['z_max']
+
         assign_item['meta']['coordinates'] = {
-            "x_max": int(max_x),
-            "x_min": int(min_x),
-            "y_max": int(max_y),
-            "y_min": int(min_y),
-            "z_max": int(max_z),
-            "z_min": int(min_z)
+            "x_max": min(max_x, ori_max_x),
+            "x_min": max(min_x , ori_min_x),
+            "y_max": min(max_y, ori_max_y),
+            "y_min": max(min_y, ori_min_y),
+            "z_max": min(max_z, ori_max_z),
+            "z_min": max(min_z, ori_min_z)
         }
         assign_item = Item().save(assign_item)
         # update assign_item based on updated extent that has region removed
