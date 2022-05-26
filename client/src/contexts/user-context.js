@@ -52,7 +52,6 @@ const reducer = (state, action) => {
       };
 
     case SET_ASSIGNMENT:
-      console.log(action.assignment);
       return {
         ...state,
         assignment: {

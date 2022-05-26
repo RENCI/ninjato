@@ -132,7 +132,7 @@ export const RefineContainer = () => {
         <>
           <SaveButtons /> 
           <ClaimDialog />
-          <AddDialog />
+          <AddDialog sliceView={ sliceView.current } />
         </>
       }
     </>

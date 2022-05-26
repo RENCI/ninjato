@@ -3,13 +3,13 @@ import { Button, Modal, Icon } from 'semantic-ui-react';
 import { 
   UserContext, ADD_REGION,
   RefineContext, REFINE_SET_ACTION, REFINE_SET_ACTIVE_LABEL,
-  ErrorContext, SET_ERROR
+  ErrorContext, SET_ERROR, REFINE_SET_ADD_REGION, REFINE_SET_TOOL
 } from 'contexts';
 import { api } from 'utils/api';
 
 const { Header, Content, Actions } = Modal;
 
-export const AddDialog = () => {
+export const AddDialog = ({ sliceView }) => {
   const [{ assignment }, userDispatch] = useContext(UserContext);
   const [{ action }, refineDispatch] = useContext(RefineContext);
   const [, errorDispatch] = useContext(ErrorContext);
@@ -27,12 +27,17 @@ export const AddDialog = () => {
       setAdding(false);
       setSuccess(true);
 
+      userDispatch({ type: ADD_REGION, label: label });
+
       setTimeout(async () => {
         setSuccess(false);
 
         refineDispatch({ type: REFINE_SET_ACTION, action: null });
-        userDispatch({ type: ADD_REGION, label: label });
-        refineDispatch({ type: REFINE_SET_ACTIVE_LABEL, label: label });
+
+        sliceView.setActiveLabel(label);
+        sliceView.addRegion();
+
+        refineDispatch({ type: REFINE_SET_TOOL, tool: 'paint' });
       }, 1000);
     }
     catch (error) {

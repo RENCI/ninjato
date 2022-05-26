@@ -45,7 +45,7 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
       { groups.map(group => (
         <ControlGroup key={ group }>
           { tools.filter(tool => tool.group === group).map(({ value, icon, tooltip }, i) => (
-            value === 'paint' || value === 'erase' || value === 'add' ?
+            value === 'paint' || value === 'erase' ?
               <SplitButton
                 key={ i }
                 toggle={ true }

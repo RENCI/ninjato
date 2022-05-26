@@ -238,6 +238,18 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       setColor(handles.paint, color);
       setColor(handles.erase, color);
     },
+    addRegion: async () => {
+      painter.startStroke();
+
+      painter.paintFloodFill(
+        handles.add.getPoints(), 
+        handles.add.getRepresentations()[0].getBrush()
+      );
+
+      await painter.endStroke();
+
+      onEdit();
+    },
     cleanUp: () => {
       console.log('Clean up widgets');
 

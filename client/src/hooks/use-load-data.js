@@ -3,7 +3,7 @@ import {
   UserContext, SET_DATA,
   RefineContext, REFINE_RESET,
   LoadingContext, SET_LOADING, CLEAR_LOADING,
-  ErrorContext, SET_ERROR 
+  ErrorContext, SET_ERROR, REFINE_SET_ACTIVE_LABEL 
 } from 'contexts';
 import { api } from 'utils/api';
 import { decodeTIFF } from 'utils/data-conversion';
@@ -14,7 +14,7 @@ export const useLoadData = ()  => {
   const [, loadingDispatch] = useContext(LoadingContext);
   const [, errorDispatch] = useContext(ErrorContext);
 
-  return async ({ imageId, maskId }) => {
+  return async ({ imageId, maskId, regions }) => {
     try {
       loadingDispatch({ type: SET_LOADING });
 
@@ -44,6 +44,11 @@ export const useLoadData = ()  => {
 
       refineDispatch({
         type: REFINE_RESET
+      });
+
+      refineDispatch({
+        type: REFINE_SET_ACTIVE_LABEL,
+        label: regions.length > 0 ? regions[0].label : null
       });
 
       loadingDispatch({ type: CLEAR_LOADING });
