@@ -14,6 +14,7 @@ import { SliceSlider } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
 import { ClaimDialog } from 'modules/refine/components/claim-dialog';
 import { AddDialog } from 'modules/refine/components/add-dialog';
+import { MergeDialog } from 'modules/refine/components/merge-dialog';
 
 const { Column } = Grid;
 
@@ -43,19 +44,27 @@ export const RefineContainer = () => {
   }
 
   function onSelect(label, type) {
-    if (type === 'select') {
+    switch (type) {
+      case 'select':       
       sliceView.current.setActiveLabel(label);
       volumeView.current.setActiveLabel(label);
       //volumeView.current.render();
-    }
-    else if (type === 'claim') {
-      refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'claim', label: label } });     
-    }    
-    else if (type === 'add') {
-      refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'add' } });  
-    }    
-    else if (type === 'merge') {
-      refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'merge', label: label } });  
+      break;
+
+      case 'claim':
+        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'claim', label: label } });     
+        break;
+
+      case 'add':
+        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'add' } });  
+        break;
+
+      case 'merge': console.log("ELRKEJ");
+        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'merge', label: label } });  
+        break;
+
+      default:
+        console.warn('Unknown select type');
     }    
 
     sliceView.current.setHighlightLabel(null);
@@ -136,6 +145,10 @@ export const RefineContainer = () => {
             sliceView={ sliceView.current } 
             volumeView={ volumeView.current }
            />
+           <MergeDialog 
+             sliceView={ sliceView.current } 
+             volumeView={ volumeView.current }
+            />
         </>
       }
     </>

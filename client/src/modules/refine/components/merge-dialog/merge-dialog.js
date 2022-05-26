@@ -9,22 +9,35 @@ import { api } from 'utils/api';
 
 const { Header, Content, Actions } = Modal;
 
-export const AddDialog = ({ sliceView, volumeView }) => {
+export const MergeDialog = ({ sliceView, volumeView }) => {
   const [{ assignment }, userDispatch] = useContext(UserContext);
-  const [{ action }, refineDispatch] = useContext(RefineContext);
+  const [{ action, activeLabel }, refineDispatch] = useContext(RefineContext);
   const [, errorDispatch] = useContext(ErrorContext);
-  const [adding, setAdding] = useState(false);
+  const [merging, setMerging] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [newLabel, setNewLabel] = useState();
 
   const onConfirm = async () => {
-    setAdding(true);
+    setMerging(true);
 
-    try {
+    console.log("MERGE");
+
+    setMerging(false);
+    setSuccess(true);
+
+    setTimeout(() => {
+      setSuccess(false);
+
+      refineDispatch({ type: REFINE_SET_ACTION, action: null });
+
+      // MERGE
+    }, 1000);
+
+    /*
+    try {      
       const label = await api.getNewLabel(assignment.subvolumeId);
 
       setNewLabel(label);
-      setAdding(false);
+      setMerging(false);
       setSuccess(true);
 
       userDispatch({ type: ADD_REGION, label: label });
@@ -34,10 +47,8 @@ export const AddDialog = ({ sliceView, volumeView }) => {
 
         refineDispatch({ type: REFINE_SET_ACTION, action: null });
 
-        // XXX: Need to keep active label in sync with context
-
         sliceView.setActiveLabel(label);
-        sliceView.addRegion();
+        sliceView.mergeRegion();
         volumeView.setActiveLabel(label);
 
         refineDispatch({ type: REFINE_SET_TOOL, tool: 'paint' });
@@ -47,10 +58,11 @@ export const AddDialog = ({ sliceView, volumeView }) => {
       console.log(error);   
       
       setSuccess(false);
-      setAdding(false);
+      setMerging(false);
 
       errorDispatch({ type: SET_ERROR, error: error });
     }   
+    */
   };
 
   const onCancel = () => {
@@ -60,33 +72,33 @@ export const AddDialog = ({ sliceView, volumeView }) => {
   return (
     <Modal
       dimmer='blurring'
-      open={ action && action.type === 'add' }        
+      open={ action && action.type === 'merge' }        
     >
-      <Header>Add Region</Header>
+      <Header>Merge Region</Header>
       <Content>
-        { adding ?             
+        { merging ?             
           <>Processing</>
         :  success ?
           <>
             <Icon name='check circle outline' color='green' />
-            Now editing with new region label <b>{ newLabel }</b>
+            Merged region <b>{ action.label }</b> with active region <b>{ activeLabel }</b>
           </>
         :
-          action && <p>Add new region?</p>
+          action && <p>Merge region <b>{ action.label }</b> with active region <b>{ activeLabel }</b>?</p>
         }
       </Content>
       <Actions>
         <Button 
           secondary 
-          disabled={ adding || success }
+          disabled={ merging || success }
           onClick={ onCancel }
         >
           Cancel
         </Button>
         <Button 
           primary 
-          disabled={ adding || success }
-          loading={ adding }
+          disabled={ merging || success }
+          loading={ merging }
           onClick={ onConfirm } 
         >
           Confirm
