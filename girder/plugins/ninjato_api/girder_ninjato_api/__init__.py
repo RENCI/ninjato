@@ -5,7 +5,7 @@ from girder.constants import AccessType
 from .utils import get_item_assignment, save_user_annotation_as_item, get_subvolume_item_ids, \
     get_subvolume_item_info, get_region_or_assignment_info, get_available_region_ids, \
     claim_assignment, request_assignment, get_all_avail_items_for_review, \
-    save_user_review_result_as_item, get_await_review_assignment
+    save_user_review_result_as_item, get_await_review_assignment, remove_region_from_item_assignment
 
 
 @access.public
@@ -62,6 +62,27 @@ def get_user_await_review_assign(user, subvolume_id):
 )
 def claim_region_assignment(user, subvolume_id, active_assignment_id, claim_region_id):
     return claim_assignment(user, subvolume_id, active_assignment_id, claim_region_id)
+
+
+@access.public
+@autoDescribeRoute(
+    Description('Request to remove a region from a user\'s assignment. If the action is '
+                'successful, the region will be removed from the user\' assignment and '
+                'available to be assigned to another user')
+    .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
+    .param('subvolume_id', 'subvolume id that includes the region to be removed',
+           required=True)
+    .param('active_assignment_id', 'the active assignment item id from the user to remove the '
+                                   'region from',
+           required=True)
+    .param('region_id', 'region id or label to remove from the assignment',
+           required=True)
+    .errorResponse()
+    .errorResponse('Request action was denied on the user.', 403)
+    .errorResponse('Failed to remove the requested region from the assignment', 500)
+)
+def remove_region_from_assignment(user, subvolume_id, active_assignment_id, region_id):
+    return remove_region_from_item_assignment(user, subvolume_id, active_assignment_id, region_id)
 
 
 @access.public
@@ -221,6 +242,8 @@ class NinjatoPlugin(GirderPlugin):
         info['apiRoot'].user.route('POST', (':id', 'review_result'), save_user_review_result)
         info['apiRoot'].user.route('POST', (':id', 'claim_assignment'),
                                    claim_region_assignment)
+        info['apiRoot'].user.route('POST', (':id', 'remove_region_from_assignment'),
+                                   remove_region_from_assignment)
         info['apiRoot'].user.route('POST', (':id', 'request_assignment'),
                                    request_region_assignment)
         info['apiRoot'].system.route('GET', ('subvolume_ids',), get_subvolume_ids)
