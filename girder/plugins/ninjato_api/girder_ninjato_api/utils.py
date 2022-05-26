@@ -320,20 +320,32 @@ def _remove_region_from_active_assignment(whole_item, assign_item, region_id):
         rid_list = assign_item['meta']['added_region_ids']
         if region_id in rid_list:
             rid_list.remove(region_id)
+        elif region_id == region_levels[0]:
+            # remove the initial assigned region
+            region_levels = rid_list[0]
+            assign_item['meta']['region_label'] = rid_list[0]
+            rid_list = rid_list[1:]
+            assign_item['name'] = f'region{rid_list[0]}'
+            whole_item['meta']['regions'][rid_list[0]]['annotation_assigned_to'] = \
+                whole_item['meta']['regions'][region_id]['annotation_assigned_to']
+            whole_item['meta']['regions'][rid_list[0]]['item_id'] = \
+                whole_item['meta']['regions'][region_id]['item_id']
+            del whole_item['meta']['regions'][region_id]['annotation_assigned_to']
+            del whole_item['meta']['regions'][region_id]['item_id']
+            whole_item = Item.save(whole_item)
+            assign_item = Item.save(assign_item)
+        else:
+            raise RestException('invalid region id', code=400)
+        if rid_list:
             assign_item['meta']['added_region_ids'] = rid_list
             region_levels += rid_list
-        elif region_id == region_levels[0]:
-            raise RestException('input region id to be removed cannot be the initial '
-                                'assigned region', code=400)
         else:
-            raise RestException('input region id to be removed is not in the assigned regions for '
-                                'the requesting user', code=400)
+            del assign_item['meta']['added_region_ids']
     elif region_id == region_levels[0]:
-            raise RestException('input region id to be removed cannot be the initial '
-                                'assigned region', code=400)
+        raise RestException('invalid region id - cannot remove the only region in the assignment',
+                            code=400)
     else:
-        raise RestException('input region id is not in the assigned regions for the requesting '
-                            'user', code=400)
+        raise RestException('invalid region id', code=400)
 
     assign_item_files = File().find({'itemId': assign_item['_id']})
     # initialize min-max box values for x, y, z for subsequent range computation
