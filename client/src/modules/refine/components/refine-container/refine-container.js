@@ -12,7 +12,7 @@ import { VolumeControls } from 'modules/refine/components/volume-controls';
 import { SliceControls } from 'modules/refine/components/slice-controls';
 import { SliceSlider } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
-import { ClaimDialog } from 'modules/assignment/components/claim-dialog';
+import { ClaimDialog } from 'modules/refine/components/claim-dialog';
 import { AddDialog } from 'modules/refine/components/add-dialog';
 
 const { Column } = Grid;
