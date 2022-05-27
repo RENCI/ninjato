@@ -2,7 +2,7 @@ import { useContext, useRef, useCallback, useState } from 'react';
 import { Grid } from 'semantic-ui-react';
 import { 
   UserContext, 
-  RefineContext, REFINE_SET_TOOL, REFINE_SET_ACTION
+  RefineContext, REFINE_SET_TOOL, REFINE_SET_ACTION, REFINE_SET_ACTIVE_LABEL
 } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
@@ -46,10 +46,8 @@ export const RefineContainer = () => {
   function onSelect(label, type) {
     switch (type) {
       case 'select':       
-      sliceView.current.setActiveLabel(label);
-      volumeView.current.setActiveLabel(label);
-      //volumeView.current.render();
-      break;
+        refineDispatch({ type: REFINE_SET_ACTIVE_LABEL, label });
+        break;
 
       case 'claim':
         refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'claim', label: label } });     
@@ -59,7 +57,7 @@ export const RefineContainer = () => {
         refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'add' } });  
         break;
 
-      case 'merge': console.log("ELRKEJ");
+      case 'merge':
         refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'merge', label: label } });  
         break;
 

@@ -79,7 +79,8 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
     setShowContours: show => {
       mask.getActor().setVisibility(show);
     },
-    addRegion: () => {
+    addRegion: label => {
+      mask.setActiveLabel(label);
       widgets.addRegion();
       onEdit();
     },
