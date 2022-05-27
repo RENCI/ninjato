@@ -20,7 +20,7 @@ export const Assignment = ({ assignment }) => {
       assignmentType: 'refine' 
     });
 
-    loadData(assignment);
+    loadData(assignment); 
   };
 
   return (

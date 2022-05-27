@@ -66,6 +66,8 @@ export const RefineContainer = () => {
     }    
 
     sliceView.current.setHighlightLabel(null);
+
+    refineDispatch({ type: REFINE_SET_TOOL, tool: 'paint' });
   }
 
   function onHighlight(label) {

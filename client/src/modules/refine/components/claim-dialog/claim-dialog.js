@@ -1,9 +1,9 @@
 import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { 
-  UserContext, UPDATE_ASSIGNMENT,//, SET_ASSIGNMENT, CLEAR_DATA,
+  UserContext, UPDATE_ASSIGNMENT,
   RefineContext, REFINE_SET_ACTION,
-  ErrorContext, SET_ERROR
+  ErrorContext, SET_ERROR, REFINE_SET_ACTIVE_LABEL
 } from 'contexts';
 import { useLoadData } from 'hooks';
 import { api } from 'utils/api';
@@ -30,21 +30,17 @@ export const ClaimDialog = () => {
       setTimeout(async () => {
         setSuccess(false);
 
-        refineDispatch({ type: REFINE_SET_ACTION, action: null });
-        
-        const update = await api.updateAssignment(assignment);
+        const update = await api.updateAssignment(assignment.id, assignment.subvolumeId, assignment.assignmentKey);
 
         userDispatch({
           type: UPDATE_ASSIGNMENT,
           assignment: update
         });
-  
-        loadData(update);    
-/*
-        userDispatch({ type: CLEAR_DATA });
-        userDispatch({ type: SET_ASSIGNMENT, assignment: update, assignmentType: 'refine' });
-        loadData(update); 
-*/        
+
+        loadData(update, false);   
+
+        refineDispatch({ type: REFINE_SET_ACTION, action: null }); 
+        refineDispatch({ type: REFINE_SET_ACTIVE_LABEL, label: action.label });
       }, 1000); 
     }
     catch (error) {

@@ -14,7 +14,7 @@ export const useLoadData = ()  => {
   const [, loadingDispatch] = useContext(LoadingContext);
   const [, errorDispatch] = useContext(ErrorContext);
 
-  return async ({ imageId, maskId, regions }) => {
+  return async ({ imageId, maskId, regions }, reset = true) => {
     try {
       loadingDispatch({ type: SET_LOADING });
 
@@ -42,14 +42,16 @@ export const useLoadData = ()  => {
         maskData: maskData
       });
 
-      refineDispatch({
-        type: REFINE_RESET
-      });
+      if (reset) {
+        refineDispatch({
+          type: REFINE_RESET
+        });
 
-      refineDispatch({
-        type: REFINE_SET_ACTIVE_LABEL,
-        label: regions.length > 0 ? regions[0].label : null
-      });
+        refineDispatch({
+          type: REFINE_SET_ACTIVE_LABEL,
+          label: regions.length > 0 ? regions[0].label : null
+        });
+      }
 
       loadingDispatch({ type: CLEAR_LOADING });
     }

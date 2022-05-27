@@ -21,6 +21,8 @@ const getStatus = info => (
 );
 
 const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
+  console.log(itemId, subvolumeId, assignmentKey);
+
   // Get assignment info
   const infoResponse = await axios.get(`/item/${ subvolumeId }/subvolume_assignment_info`, {
     params: {
@@ -187,7 +189,7 @@ export const api = {
 
     return response.data;
   },
-  updateAssignment: async ({ userId, subvolumeId, assignmentKey }) => {
+  updateAssignment: async (userId, subvolumeId, assignmentKey) => {
     const assignment = await getAssignment(userId, subvolumeId, assignmentKey);
 
     return assignment;
