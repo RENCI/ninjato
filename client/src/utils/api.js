@@ -21,8 +21,6 @@ const getStatus = info => (
 );
 
 const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
-  console.log(itemId, subvolumeId, assignmentKey);
-
   // Get assignment info
   const infoResponse = await axios.get(`/item/${ subvolumeId }/subvolume_assignment_info`, {
     params: {
@@ -260,7 +258,7 @@ export const api = {
     });
 
     if (response.data.length === 0) throw new Error('No new region label returned');
-    else if (response.data.length > 0) console.warn(`${ response.data.length } new region labels returned (should only be 1)`);
+    else if (response.data.length > 1) console.warn(`${ response.data.length } new region labels returned (should only be 1)`);
 
     return response.data[0];
   }

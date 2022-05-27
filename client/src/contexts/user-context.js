@@ -9,6 +9,7 @@ export const UPDATE_ASSIGNMENT = 'user/UPDATE_ASSIGNMENT';
 export const SET_DATA = 'user/SET_DATA';
 export const CLEAR_DATA = 'user/CLEAR_DATA';
 export const ADD_REGION = 'user/ADD_REGION';
+export const REMOVE_REGION = 'user/REMOVE_REGION';
 export const CLEAR_SAVE_LABELS = 'user/CLEAR_SAVE_LABELS';
 
 const initialState = {
@@ -125,6 +126,16 @@ const reducer = (state, action) => {
         addedLabels: state.addedLabels.concat(action.label)
       };
     }
+
+    case REMOVE_REGION: 
+      return {
+        ...state,
+        assignment: {
+          ...state.assignment,
+          regions: state.assignment.regions.filter(({ label }) => label !== action.label)
+        },
+        removedLabels: state.removedLabels.concat(action.label)
+      };
 
     case CLEAR_SAVE_LABELS:
       return {

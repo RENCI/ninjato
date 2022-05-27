@@ -203,6 +203,10 @@ function handleCrop({ p1, p2 }) {
   }
 };
 
+function handleMerge({ labels, mergeLabel }) {
+  globals.buffer.set(labels.map(d => d === mergeLabel ? 1 : 0));
+}
+
 // --------------------------------------------------------------------------
 
 registerWebworker()
@@ -219,6 +223,7 @@ registerWebworker()
   .operation('paintFloodFill', handlePaintFloodFill)
   .operation('erase', handleErase)
   .operation('crop', handleCrop)
+  .operation('merge', handleMerge)
   .operation('end', () => {
     const response = new registerWebworker.TransferableResponse(
       globals.buffer.buffer,

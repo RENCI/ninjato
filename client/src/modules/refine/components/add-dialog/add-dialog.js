@@ -2,7 +2,7 @@ import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { 
   UserContext, ADD_REGION,
-  RefineContext, REFINE_SET_ACTION, REFINE_SET_TOOL,
+  RefineContext, REFINE_SET_ACTION,
   ErrorContext, SET_ERROR, REFINE_SET_ACTIVE_LABEL
 } from 'contexts';
 import { api } from 'utils/api';
@@ -29,15 +29,13 @@ export const AddDialog = ({ sliceView, volumeView }) => {
 
       userDispatch({ type: ADD_REGION, label: label });
 
+      sliceView.addRegion(label);
+      
+      refineDispatch({ type: REFINE_SET_ACTIVE_LABEL, label });
+
       setTimeout(async () => {
         setSuccess(false);
-
         refineDispatch({ type: REFINE_SET_ACTION, action: null });
-        refineDispatch({ type: REFINE_SET_ACTIVE_LABEL, label });
-
-        sliceView.addRegion(label);
-
-        refineDispatch({ type: REFINE_SET_TOOL, tool: 'paint' });
       }, 1000);
     }
     catch (error) {

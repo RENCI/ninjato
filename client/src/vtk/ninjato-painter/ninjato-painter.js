@@ -231,6 +231,13 @@ function vtkNinjatoPainter(publicAPI, model) {
     });
   };
 
+  publicAPI.merge = (mergeLabel) => {
+    workerPromise.exec('merge', {
+      labels: model.labelMap.getPointData().getScalars().getData(),
+      mergeLabel: mergeLabel,
+    });
+  };
+
   // --------------------------------------------------------------------------
 
   publicAPI.applyLabelMap = (labelMap) => {

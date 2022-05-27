@@ -1,68 +1,40 @@
 import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { 
-  UserContext, ADD_REGION,
-  RefineContext, REFINE_SET_ACTION, REFINE_SET_TOOL,
-  ErrorContext, SET_ERROR
+  UserContext, REMOVE_REGION,
+  RefineContext, REFINE_SET_ACTION
 } from 'contexts';
-import { api } from 'utils/api';
 
 const { Header, Content, Actions } = Modal;
 
-export const MergeDialog = ({ sliceView, volumeView }) => {
-  const [{ assignment }, userDispatch] = useContext(UserContext);
+
+// XXX: Think about how undo/redo interacts with add/remove, and how they interact with each other.
+// E.g. adding and then merging a region is not handled correctly right now.
+// Perhaps keep this info in the painter where undo/redo is already handled?
+
+// XXX: Split: add a split tool, than can only overwrite current region.
+
+
+export const MergeDialog = ({ sliceView }) => {
+  const [, userDispatch] = useContext(UserContext);
   const [{ action, activeLabel }, refineDispatch] = useContext(RefineContext);
-  const [, errorDispatch] = useContext(ErrorContext);
   const [merging, setMerging] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const onConfirm = async () => {
     setMerging(true);
 
-    console.log("MERGE");
-
     setMerging(false);
     setSuccess(true);
 
+    userDispatch({ type: REMOVE_REGION, label: action.label });
+
+    sliceView.mergeRegion(action.label);
+
     setTimeout(() => {
       setSuccess(false);
-
       refineDispatch({ type: REFINE_SET_ACTION, action: null });
-
-      // MERGE
     }, 1000);
-
-    /*
-    try {      
-      const label = await api.getNewLabel(assignment.subvolumeId);
-
-      setNewLabel(label);
-      setMerging(false);
-      setSuccess(true);
-
-      userDispatch({ type: ADD_REGION, label: label });
-
-      setTimeout(async () => {
-        setSuccess(false);
-
-        refineDispatch({ type: REFINE_SET_ACTION, action: null });
-
-        sliceView.setActiveLabel(label);
-        sliceView.mergeRegion();
-        volumeView.setActiveLabel(label);
-
-        refineDispatch({ type: REFINE_SET_TOOL, tool: 'paint' });
-      }, 1000);
-    }
-    catch (error) {
-      console.log(error);   
-      
-      setSuccess(false);
-      setMerging(false);
-
-      errorDispatch({ type: SET_ERROR, error: error });
-    }   
-    */
   };
 
   const onCancel = () => {

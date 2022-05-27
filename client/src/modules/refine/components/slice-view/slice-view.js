@@ -84,6 +84,15 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
       widgets.addRegion();
       onEdit();
     },
+    mergeRegion: async label => {
+      const painter = mask.getPainter();
+
+      painter.startStroke();      
+      painter.merge(label);
+      await painter.endStroke();    
+
+      onEdit();
+    },
     undo: () => {
       mask.getPainter().undo();
       onEdit();
