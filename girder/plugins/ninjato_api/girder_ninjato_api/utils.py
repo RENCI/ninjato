@@ -320,6 +320,16 @@ def _remove_region_from_active_assignment(whole_item, assign_item, region_id):
     :return: True if succeed and False otherwise
     """
     region_levels = [str(assign_item['meta']['region_label'])]
+    if 'removed_region_ids' in assign_item['meta']:
+        rid_list = assign_item['meta']['removed_region_ids']
+        if region_id in rid_list:
+            rid_list.remove(region_id)
+            if rid_list:
+                assign_item['meta']['removed_region_ids'] = rid_list
+            else:
+                del assign_item['meta']['removed_region_ids']
+            Item().save(assign_item)
+            return True
     if 'added_region_ids' in assign_item['meta']:
         rid_list = assign_item['meta']['added_region_ids']
         if region_id in rid_list:
