@@ -76,8 +76,12 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
     },
     setBrush: (type, brush) => widgets.setBrush(type, brush),
     setSlice: slice => image.getMapper().setSlice(slice),
-    setShowContours: show => {
-      mask.getActor().setVisibility(show);
+    setShowContours: show => mask.getActor().setVisibility(show),
+    setSplit: split => {
+      const painter = mask.getPainter();
+
+      if (split) painter.setLabelConstraint(mask.getActiveLabel());
+      else painter.setLabelConstraint(null);
     },
     addRegion: label => {
       mask.setActiveLabel(label);

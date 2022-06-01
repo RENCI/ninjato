@@ -111,7 +111,7 @@ function floodFillScanlineStack({ buffer, w, h, seed }) {
 } 
 
 // XXX: Currently assuming z slice
-function handlePaintFloodFill({ labels, label, pointList, brush }) {
+function handlePaintFloodFill({ labels, label, labelConstraint, pointList, brush }) {
   if (pointList.length === 0) return;
 
   globals.buffer.set(labels.map(d => d === label ? 1 : 0));
@@ -170,6 +170,15 @@ function handlePaintFloodFill({ labels, label, pointList, brush }) {
     for (let y = 0; y < h; y++) {
       if (buffer[x + jStride * y] === 0) globals.buffer[x + jStride * y + kStride * z] = 1;
     }
+  }  
+
+  if (labelConstraint !== null) {
+    for (let x = 0; x < w; x++) {
+      for (let y = 0; y < h; y++) {
+        const i = x + jStride * y + kStride * z;
+        globals.buffer[i] = globals.buffer[i] === 1 && labels[i] === labelConstraint ? 1 : 0;
+      }
+    }  
   }
 }
 

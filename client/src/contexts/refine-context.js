@@ -60,6 +60,7 @@ const initialState = {
   addBrush: 3,
   showBackground: true,
   showContours: true,
+  split: false,
   action: null
 };
 

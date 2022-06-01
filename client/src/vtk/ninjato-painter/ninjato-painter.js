@@ -180,6 +180,7 @@ function vtkNinjatoPainter(publicAPI, model) {
       workerPromise.exec('paintFloodFill', { 
         labels: model.labelMap.getPointData().getScalars().getData(),
         label: model.label,
+        labelConstraint: model.labelConstraint,
         pointList: points, 
         brush
       });
@@ -205,6 +206,7 @@ function vtkNinjatoPainter(publicAPI, model) {
       }
 
       workerPromise.exec('erase', {
+        labelConstraint: model.labelConstraint,
         pointList: points, 
         brush 
       });
@@ -227,14 +229,15 @@ function vtkNinjatoPainter(publicAPI, model) {
 
     workerPromise.exec('crop', {
       p1: ijk1,
-      p2: ijk2
+      p2: ijk2,
+      labelConstraint: model.labelConstraint,
     });
   };
 
   publicAPI.merge = (mergeLabel) => {
     workerPromise.exec('merge', {
       labels: model.labelMap.getPointData().getScalars().getData(),
-      mergeLabel: mergeLabel,
+      mergeLabel: mergeLabel
     });
   };
 
@@ -400,7 +403,8 @@ const DEFAULT_VALUES = {
   voxelFunc: null,
   radius: 1,
   label: 0,
-  slicingMode: null,
+  labelConstraint: null,
+  slicingMode: null
 };
 
 // ----------------------------------------------------------------------------
@@ -420,7 +424,8 @@ export function extend(publicAPI, model, initialValues = {}) {
     'voxelFunc',
     'label',
     'radius',
-    'slicingMode',
+    'labelConstraint',
+    'slicingMode'
   ]);
 
   // Object specific methods

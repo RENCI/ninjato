@@ -6,7 +6,7 @@ import { SplitButton } from 'modules/common/components/split-button';
 import { BrushOptions } from './brush-options';
 
 export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
-  const [{ tools, tool, showContours }, dispatch] = useContext(RefineContext);
+  const [{ tools, tool, showContours, split }, dispatch] = useContext(RefineContext);
 
   const onToolClick = value => {
     dispatch({ type: REFINE_SET_TOOL, tool: value });
@@ -14,6 +14,10 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
 
   const onShowContoursClick = () => {
     dispatch({ type: REFINE_SET_CONTROL, name: 'showContours', value: !showContours });
+  };
+
+  const onSplitClick = () => {
+    dispatch({ type: REFINE_SET_CONTROL, name: 'split', value: !split });
   };
 
   const onUndoClick = () => {
@@ -31,7 +35,7 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
 
   return (
     <ControlBar>
-      <ControlLabel>view</ControlLabel>
+      <ControlLabel>options</ControlLabel>
       <ControlGroup>
         <ControlButton
           toggle={ true }
@@ -39,6 +43,13 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
           active={ showContours  }
           tooltip='show contours'
           onClick={ onShowContoursClick }              
+        />
+        <ControlButton
+          toggle={ true }
+          icon={ 'share alternate' }
+          active={ split  }
+          tooltip='split'
+          onClick={ onSplitClick }              
         />
       </ControlGroup>
       <ControlLabel>tool</ControlLabel>
