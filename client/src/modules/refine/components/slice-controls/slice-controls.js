@@ -16,10 +16,6 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
     dispatch({ type: REFINE_SET_CONTROL, name: 'showContours', value: !showContours });
   };
 
-  const onSplitClick = () => {
-    dispatch({ type: REFINE_SET_CONTROL, name: 'split', value: !split });
-  };
-
   const onUndoClick = () => {
     sliceView.undo();
   };
@@ -43,13 +39,6 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
           active={ showContours  }
           tooltip='show contours'
           onClick={ onShowContoursClick }              
-        />
-        <ControlButton
-          toggle={ true }
-          icon={ 'share alternate' }
-          active={ split  }
-          tooltip='split'
-          onClick={ onSplitClick }              
         />
       </ControlGroup>
       <ControlLabel>tool</ControlLabel>

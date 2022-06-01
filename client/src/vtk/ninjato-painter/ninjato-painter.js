@@ -206,7 +206,6 @@ function vtkNinjatoPainter(publicAPI, model) {
       }
 
       workerPromise.exec('erase', {
-        labelConstraint: model.labelConstraint,
         pointList: points, 
         brush 
       });
@@ -229,8 +228,7 @@ function vtkNinjatoPainter(publicAPI, model) {
 
     workerPromise.exec('crop', {
       p1: ijk1,
-      p2: ijk2,
-      labelConstraint: model.labelConstraint,
+      p2: ijk2
     });
   };
 
