@@ -25,8 +25,9 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
     crop: createWidget(vtkCropWidget),
     select: createWidget(vtkRegionSelectWidget),
     claim: createWidget(vtkRegionSelectWidget),
-    add: createWidget(vtkBrushWidget),
-    merge: createWidget(vtkRegionSelectWidget)
+    split: createWidget(vtkRegionSelectWidget),
+    merge: createWidget(vtkRegionSelectWidget),
+    add: createWidget(vtkBrushWidget)
   }; 
 
   widgets.add.setShowTrail(false);
@@ -84,6 +85,23 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
           (startLabel === null || label === startLabel) &&   
           label !== 0 &&
           !labels.includes(label)
+        ) {          
+          onHover(label);
+        }
+        else {
+          onHover(null);
+        }
+      });
+
+      handles.split.onInteractionEvent(() => {
+        const widget = widgets.split;
+
+        const startLabel = widget.getStartLabel();
+        const label = widget.getLabel();
+
+        if (
+          (startLabel === null || label === startLabel) &&           
+          labels.includes(label)
         ) {          
           onHover(label);
         }
@@ -181,8 +199,19 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
         }
       });
 
-      handles.add.onEndInteractionEvent(() => {
-        onSelect(null, 'add');
+      handles.split.onEndInteractionEvent(() => {
+        const widget = widgets.split;
+
+        const startLabel = widget.getStartLabel();
+        const label = widget.getLabel();
+
+        if (
+          startLabel !== null && 
+          label === startLabel &&           
+          labels.includes(label)
+        ) {
+          onSelect(label, 'split');
+        }
       });
 
       handles.merge.onEndInteractionEvent(() => {
@@ -199,6 +228,10 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
         ) {
           onSelect(label, 'merge');
         }
+      });
+
+      handles.add.onEndInteractionEvent(() => {
+        onSelect(null, 'add');
       });
     },
     update: (position, spacing) => {      

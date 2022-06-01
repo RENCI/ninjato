@@ -16,8 +16,9 @@ const tools = [
   { group: 'edit', value: 'erase', icon: 'eraser', cursor: getCursor('eraser.png', 12, 22), tooltip: 'erase' },
   { group: 'edit', value: 'crop', icon: 'crop', cursor: getCursor('crop.png', 11, 21), tooltip: 'crop' },
 
-  { group: 'region', value: 'add', icon: 'add circle', cursor: getCursor('add.png', 15, 16), tooltip: 'add' },
-  { group: 'region', value: 'merge', icon: 'sign-in', cursor: getCursor('merge.png', 12, 16), tooltip: 'merge' }
+  { group: 'region', value: 'split', icon: 'share alternate', cursor: getCursor('split.png', 12, 16), tooltip: 'split' },
+  { group: 'region', value: 'merge', icon: 'sign-in', cursor: getCursor('merge.png', 12, 16), tooltip: 'merge' },
+  { group: 'region', value: 'add', icon: 'add circle', cursor: getCursor('add.png', 15, 16), tooltip: 'add' }
 ];
 
 const brushes = [
@@ -60,7 +61,6 @@ const initialState = {
   addBrush: 3,
   showBackground: true,
   showContours: true,
-  split: false,
   action: null
 };
 
@@ -90,7 +90,7 @@ const reducer = (state, action) => {
         [action.name]: action.value
       };
 
-    case REFINE_SET_ACTION:       
+    case REFINE_SET_ACTION:
       return {
         ...state,
         action: action.action

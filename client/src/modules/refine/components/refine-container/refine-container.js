@@ -12,9 +12,7 @@ import { VolumeControls } from 'modules/refine/components/volume-controls';
 import { SliceControls } from 'modules/refine/components/slice-controls';
 import { SliceSlider } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
-import { ClaimDialog } from 'modules/refine/components/claim-dialog';
-import { AddDialog } from 'modules/refine/components/add-dialog';
-import { MergeDialog } from 'modules/refine/components/merge-dialog';
+import { ClaimDialog, SplitDialog, MergeDialog, AddDialog } from 'modules/refine/components/dialogs';
 
 const { Column } = Grid;
 
@@ -53,12 +51,16 @@ export const RefineContainer = () => {
         refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'claim', label: label } });     
         break;
 
-      case 'add':
-        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'add' } });  
+      case 'split':
+        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'split', label: label } });  
         break;
 
       case 'merge':
         refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'merge', label: label } });  
+        break;
+
+      case 'add':
+        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'add' } });  
         break;
 
       default:
@@ -141,14 +143,9 @@ export const RefineContainer = () => {
         <>
           <SaveButtons /> 
           <ClaimDialog />
-          <AddDialog 
-            sliceView={ sliceView.current } 
-            volumeView={ volumeView.current }
-           />
-           <MergeDialog 
-             sliceView={ sliceView.current } 
-             volumeView={ volumeView.current }
-            />
+          <SplitDialog sliceView={ sliceView.current } />
+          <MergeDialog sliceView={ sliceView.current } />
+          <AddDialog sliceView={ sliceView.current } />
         </>
       }
     </>

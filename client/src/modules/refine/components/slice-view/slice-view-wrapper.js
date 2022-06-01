@@ -69,13 +69,6 @@ export const SliceViewWrapper = ({ sliceView }) => {
     }
   }, [initialized, sliceView, showContours]);
 
-  // Split
-  useEffect(() => {
-    if (initialized) {
-      sliceView.setSplit(split);      
-    }
-  }, [initialized, sliceView, split]);
-
   // Clean up
   useEffect(() => {
     return () => sliceView.cleanUp();

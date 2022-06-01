@@ -232,6 +232,14 @@ function vtkNinjatoPainter(publicAPI, model) {
     });
   };
 
+  publicAPI.split = (splitLabel, slice) => {
+    workerPromise.exec('split', {
+      labels: model.labelMap.getPointData().getScalars().getData(),
+      splitLabel: splitLabel,
+      slice: slice
+    });
+  };
+
   publicAPI.merge = (mergeLabel) => {
     workerPromise.exec('merge', {
       labels: model.labelMap.getPointData().getScalars().getData(),

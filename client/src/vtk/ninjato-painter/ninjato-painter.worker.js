@@ -212,6 +212,24 @@ function handleCrop({ p1, p2 }) {
   }
 };
 
+function handleSplit({ labels, splitLabel, slice }) {
+  const x = globals.dimensions[0];
+  const y = globals.dimensions[1];
+  const z = globals.dimensions[2];
+
+  const jStride = x;
+  const kStride = x * y;
+
+  for (let i = 0; i < x; i++) {
+    for (let j = 0; j < y; j++) {
+      for (let k = slice; k < z; k++) {
+        const index = i + jStride * j + kStride * k;
+        if (labels[index] === splitLabel) globals.buffer[index] = 1;
+      }
+    }
+  }
+}
+
 function handleMerge({ labels, mergeLabel }) {
   globals.buffer.set(labels.map(d => d === mergeLabel ? 1 : 0));
 }
@@ -232,6 +250,7 @@ registerWebworker()
   .operation('paintFloodFill', handlePaintFloodFill)
   .operation('erase', handleErase)
   .operation('crop', handleCrop)
+  .operation('split', handleSplit)
   .operation('merge', handleMerge)
   .operation('end', () => {
     const response = new registerWebworker.TransferableResponse(

@@ -77,15 +77,16 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
     setBrush: (type, brush) => widgets.setBrush(type, brush),
     setSlice: slice => image.getMapper().setSlice(slice),
     setShowContours: show => mask.getActor().setVisibility(show),
-    setSplit: split => {
+    splitRegion: async (splitLabel, newLabel, splitMode) => {
       const painter = mask.getPainter();
 
-      if (split) painter.setLabelConstraint(mask.getActiveLabel());
-      else painter.setLabelConstraint(null);
-    },
-    addRegion: label => {
-      mask.setActiveLabel(label);
-      widgets.addRegion();
+      const slice = image.getMapper().getSlice();
+            
+      painter.setLabel(newLabel);
+      painter.startStroke();      
+      painter.split(splitLabel, splitMode === 'top' ? slice + 1: slice);
+      await painter.endStroke();
+
       onEdit();
     },
     mergeRegion: async label => {
@@ -95,6 +96,11 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
       painter.merge(label);
       await painter.endStroke();    
 
+      onEdit();
+    },
+    addRegion: label => {
+      mask.setActiveLabel(label);
+      widgets.addRegion();
       onEdit();
     },
     undo: () => {
