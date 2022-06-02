@@ -11,7 +11,7 @@ const download = false;
 
 export const useSaveAnnotations = () => {
   const [{ id, assignment, maskData, addedLabels, removedLabels }, userDispatch] = useContext(UserContext);
-  const [errorDispatch] = useContext(ErrorContext);
+  const [, errorDispatch] = useContext(ErrorContext);
 
   return async (done = false) => {
     try {

@@ -38,6 +38,8 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
     return info;
   }, {});
 
+  console.log(info);
+
   // Copy info and rename to be more concise
   return {
     id: itemId,
@@ -113,6 +115,8 @@ export const api = {
   },
   getVolumes: async () => {
     const response = await axios.get('/system/subvolume_ids');
+
+    console.log(response);
 
     const volumes = [];
     for (const volume of response.data) {
@@ -217,10 +221,12 @@ export const api = {
   saveAnnotations: async (userId, itemId, buffer, addedLabels, removedLabels, done = false) => {
     const blob = new Blob([buffer], { type: 'image/tiff' });
 
+    const stringify = ids => JSON.stringify(ids.map(id => id.toString()));
+
     // Set form data
     const formData = new FormData();
-    formData.append('added_region_ids', JSON.stringify(addedLabels));
-    formData.append('removed_region_ids', JSON.stringify(removedLabels));
+    formData.append('added_region_ids', stringify(addedLabels));
+    formData.append('removed_region_ids', stringify(removedLabels));
     formData.append('content_data', blob);    
 
     await axios.post(`/user/${ userId }/annotation`, 

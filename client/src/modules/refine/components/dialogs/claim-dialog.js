@@ -21,7 +21,7 @@ export const ClaimDialog = () => {
   const onConfirm = async () => {
     setClaiming(true);
 
-    try {
+    try {      
       await api.claimRegion(id, assignment.subvolumeId, assignment.id, action.label);
 
       setClaiming(false);

@@ -70,12 +70,12 @@ export const SplitDialog = ({ sliceView }) => {
         :
           action && 
           <>
-            <p>Split region <b>{ action.label }</b> at current slice?</p>      
+            <p>Split region <b>{ action.label }</b> at current slice?</p>
             <Select 
               value={ splitMode }
-              options={[,
-                { key: 'bottom', value: 'bottom', text: 'Include current slice in bottom region' },
-                { key: 'top', value: 'top', text: 'Include current slice in top region' }
+              options={[
+                { key: 'bottom', value: 'bottom', text: 'Include slice in bottom (new) region' },
+                { key: 'top', value: 'top', text: 'Include slice in top (current) region' }
               ]}
               onChange={ (evt, item) => setSplitMode(item.value) }
             />    

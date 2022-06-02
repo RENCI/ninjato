@@ -7,9 +7,10 @@ import {
 } from 'contexts';
 import { api } from 'utils/api';
 import { decodeTIFF } from 'utils/data-conversion';
+import { combineMasks } from 'utils/data';
 
 export const useLoadData = ()  => {
-  const [, userDispatch] = useContext(UserContext);
+  const [{ maskData }, userDispatch] = useContext(UserContext);
   const [, refineDispatch] = useContext(RefineContext);
   const [, loadingDispatch] = useContext(LoadingContext);
   const [, errorDispatch] = useContext(ErrorContext);
@@ -20,12 +21,12 @@ export const useLoadData = ()  => {
 
       const data = await api.getData(imageId, maskId);
 
-      const imageData = decodeTIFF(data.imageBuffer);
-      const maskData = decodeTIFF(data.maskBuffer);
+      const newImageData = decodeTIFF(data.imageBuffer);
+      const newMaskData = decodeTIFF(data.maskBuffer);
 
       // Some sanity checking
-      const iDims = imageData.getDimensions();
-      const mDims = maskData.getDimensions();
+      const iDims = newImageData.getDimensions();
+      const mDims = newMaskData.getDimensions();
 
       const same = iDims.reduce((same, dim, i) => same && dim === mDims[i], true);
 
@@ -36,13 +37,13 @@ export const useLoadData = ()  => {
         throw new Error(`Returned volume dimensions are (${ iDims }).\nAll dimensions must be greater than 1.\nPlease contact the site administrator`);
       }
 
-      userDispatch({
-        type: SET_DATA,
-        imageData: imageData,
-        maskData: maskData
-      });
-
       if (reset) {
+        userDispatch({
+          type: SET_DATA,
+          imageData: newImageData,
+          maskData: newMaskData
+        });
+  
         refineDispatch({
           type: REFINE_RESET
         });
@@ -50,6 +51,13 @@ export const useLoadData = ()  => {
         refineDispatch({
           type: REFINE_SET_ACTIVE_LABEL,
           label: regions.length > 0 ? regions[0].label : null
+        });
+      }
+      else {
+        userDispatch({
+          type: SET_DATA,
+          imageData: newImageData,
+          maskData: combineMasks(newMaskData, maskData)
         });
       }
 
