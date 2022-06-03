@@ -15,7 +15,7 @@ export const useLoadData = ()  => {
   const [, loadingDispatch] = useContext(LoadingContext);
   const [, errorDispatch] = useContext(ErrorContext);
 
-  return async ({ imageId, maskId, regions }, reset = true) => {
+  return async ({ imageId, maskId, regions, location }, assignmentToUpate = null) => {
     try {
       loadingDispatch({ type: SET_LOADING });
 
@@ -37,7 +37,7 @@ export const useLoadData = ()  => {
         throw new Error(`Returned volume dimensions are (${ iDims }).\nAll dimensions must be greater than 1.\nPlease contact the site administrator`);
       }
 
-      if (reset) {
+      if (!assignmentToUpate) {
         userDispatch({
           type: SET_DATA,
           imageData: newImageData,
@@ -57,7 +57,7 @@ export const useLoadData = ()  => {
         userDispatch({
           type: SET_DATA,
           imageData: newImageData,
-          maskData: combineMasks(newMaskData, maskData)
+          maskData: combineMasks(newMaskData, location, maskData, assignmentToUpate.location)
         });
       }
 

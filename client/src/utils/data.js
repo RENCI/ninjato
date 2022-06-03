@@ -1,18 +1,23 @@
 export const getUniqueLabels = imageData => 
   [...new Set(imageData.getPointData().getScalars().getData().filter(d => d !== 0))].sort((a, b) => a - b);
 
-export const combineMasks = (mask1, mask2) => {
-  const ext1 = mask1.getExtent();
-  const ext2 = mask2.getExtent();
+export const combineMasks = (mask1, extent1, mask2, extent2) => {
+  console.log(extent1, extent2);
+
+  console.log(mask1);
 
   // Mask 2 should fit inside mask 1
-  if (ext2[0] < ext1[0] || ext2[1] > ext1[1] || 
-      ext2[2] < ext1[2] || ext2[3] > ext1[3] ||
-      ext2[4] < ext1[4] || ext2[4] > ext1[5]) {
-    throw new Error(`Extent mismatch: ${ ext1 }, ${ ext2 }`);
+  if (extent2.x_min < extent1.x_min || extent2[1] > extent1[1] || 
+      extent2.y_min < extent1.y_min || extent2[3] > extent1[3] ||
+      extent2.z_min < extent1.z_min || extent2.z_min > extent1[5]) {
+    throw new Error(`Extent mismatch: ${ extent1 }, ${ extent2 }`);
   }
 
-  const offset = [ext2[0] - ext1[0], ext2[2] - ext1[2], ext2[4] - ext1[4]];
+  console.log(extent1, extent2);
+
+  const offset = [extent2.x_min - extent1.x_min, extent2.y_min - extent1.y_min, extent2.z_min - extent1.z_min];
+
+  console.log(offset);
 
   const [x1, y1] = mask1.getDimensions();
   const [x2, y2, z2] = mask2.getDimensions();

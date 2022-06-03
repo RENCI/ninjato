@@ -37,7 +37,7 @@ export const ClaimDialog = () => {
           assignment: update
         });
 
-        loadData(update, false);   
+        loadData(update, assignment);   
 
         refineDispatch({ type: REFINE_SET_ACTION, action: null }); 
         refineDispatch({ type: REFINE_SET_ACTIVE_LABEL, label: action.label });

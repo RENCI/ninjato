@@ -194,6 +194,8 @@ export const api = {
   updateAssignment: async (userId, subvolumeId, assignmentKey) => {
     const assignment = await getAssignment(userId, subvolumeId, assignmentKey);
 
+    console.log(assignment);
+
     return assignment;
   },
   getData: async (imageId, maskId) => {
