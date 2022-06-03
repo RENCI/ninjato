@@ -12,9 +12,6 @@ const { Header, Content, Actions } = Modal;
 // E.g. adding and then merging a region is not handled correctly right now.
 // Perhaps keep this info in the painter where undo/redo is already handled?
 
-// XXX: Split: add a split tool, that can only overwrite current region.
-// Either go back to separate split mode, or just have a toggle to constrain edits to current region.
-
 // XXX: Region color: Set initially based on index, then store per region. Pass regions into view instead of labels.
 
 // XXX: Don't allow editing of unclaimed regions?

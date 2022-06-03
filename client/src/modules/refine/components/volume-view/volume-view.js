@@ -90,13 +90,25 @@ const centerCamera = (renderWindow, surface, volume) => {
 };
 
 const applyActiveLabel = (label, regions) => {
-  Object.entries(regions).forEach(([key, region], i) => region.setOpaqueColor(regionSurfaceColor(i, key === label)));
+  regions.forEach((region, i) => {
+    const labels = region.getLabels();
+    region.setOpaqueColor(regionSurfaceColor(i, labels.length === 1 && labels[0] === label));
+  });
 };
 
 export function VolumeView() {
   const renderWindow = RenderWindow();
 
-  let regions = {};
+  let regions = [];
+  const getRegion = label => regions.find(region => {
+    const labels = region.getLabels();
+
+    console.log(labels);
+    console.log(label);
+
+    if (labels.length !== 1) return null;
+    return labels[0] === label;
+  });
 
   const background = Surface();
   background.setTranslucentColors(...regionSurfaceColor());
@@ -120,18 +132,18 @@ export function VolumeView() {
 
         background.setLabels(allLabels.filter(label => !labels.includes(label)));
 
-        Object.values(regions).forEach(region => region.setInputData(maskData));
+        regions.forEach(region => region.setInputData(maskData));
         background.setInputData(maskData);
         boundingBox.setData(maskData);
 
         const renderer = renderWindow.getRenderer();
-        Object.values(regions).forEach(region => renderer.addActor(region.getActor()));
+        regions.forEach(region => renderer.addActor(region.getActor()));
         renderer.addActor(background.getActor());
         renderer.addActor(boundingBox.getActor());
       } 
       else {
         const renderer = renderWindow.getRenderer();
-        Object.values(regions).forEach(region => renderer.removeActor(region.getActor()));
+        regions.forEach(region => renderer.removeActor(region.getActor()));
         renderer.removeActor(background.getActor());
         renderer.removeActor(boundingBox.getActor());
       }
@@ -141,42 +153,39 @@ export function VolumeView() {
 
         applyActiveLabel(activeLabel, regions);
 
-        resetCamera(renderWindow.getRenderer(), regions[activeLabel].getOutput());
+        resetCamera(renderWindow.getRenderer(), getRegion(activeLabel).getOutput());
       }
     },
     setLabels: regionLabels => {
       // Clean up any old regions
-      Object.values(regions).forEach(region => region.cleanUp());
+      regions.forEach(region => region.cleanUp());
 
       labels = regionLabels;
 
       // Create surfaces for each label
-      regions = labels.reduce((regions, label, i) => {
+      regions = labels.map((label, i) => {
         const region = Surface();
         region.setOpaqueColor(regionSurfaceColor(i));
         region.setSliceHighlight(true);
         region.setLabels([label]);
 
-        regions[label] = region;
-
-        return regions;
-      }, {});
+        return region;
+      });
     },
     setActiveLabel: label => {
       activeLabel = label;
       applyActiveLabel(label, regions, renderWindow);
-      centerCamera(renderWindow, regions[label].getOutput(), background.getInputData());
-      regions[label].getOutput();
+      centerCamera(renderWindow, getRegion(label).getOutput(), background.getInputData());
     },
     //setHighlightLabel: label => mask.setHighlightLabel(label),
     setSlice: slice => {
-      Object.values(regions).forEach((region, i) => region.setSlice(slice, regionSurfaceColor(i, 'slice')));
+      regions.forEach((region, i) => region.setSlice(slice, regionSurfaceColor(i, 'slice')));
     },
     setShowBackground: show => {
       background.getActor().setVisibility(show);
     },
     centerCamera: () => {
-      centerCamera(renderWindow, regions[activeLabel].getOutput(), background.getInputData());
+      centerCamera(renderWindow, getRegion(activeLabel).getOutput(), background.getInputData());
     },
     render: onRendered => {
       render();
@@ -187,7 +196,7 @@ export function VolumeView() {
 
       // Clean up anything we instantiated
       renderWindow.cleanUp();      
-      Object.values(regions).forEach(region => region.cleanUp());
+      regions.forEach(region => region.cleanUp());
       background.cleanUp();
       boundingBox.cleanUp();
     }

@@ -5,7 +5,6 @@ import { FieldDataTypes } from '@kitware/vtk.js/Common/DataModel/DataSet/Constan
 import vtkCalculator from 'vtk/calculator';
 import vtkDiscreteFlyingEdges3D from 'vtk/discrete-flying-edges-3D';
 import { SliceHighlightVP, SliceHighlightFP } from 'vtk/shaders';
-import { regionSliceHighlightColors } from 'utils/colors';
 
 export function Surface() {
   const maskCalculator = vtkCalculator.newInstance();
@@ -84,6 +83,7 @@ export function Surface() {
 
       flyingEdges.setValues(labels);
     },
+    getLabels: () => flyingEdges.getValues(),
     setSlice: (slice, colors) => {      
       if (!sliceCalculator) return;
 
