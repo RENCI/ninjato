@@ -14,7 +14,9 @@ const { Header, Content, Actions } = Modal;
 
 // XXX: Region color: Set initially based on index, then store per region. Pass regions into view instead of labels.
 
-// XXX: Don't allow editing of unclaimed regions?
+// XXX: Don't allow editing of unclaimed regions? This would mean getting rid of the "background"
+// image for editing, which could fix some issues when splitting and then erasing the new region, for example.
+// Otherwise, need to only include background voxels in background image, and update as needed.
 
 
 export const MergeDialog = ({ sliceView }) => {
