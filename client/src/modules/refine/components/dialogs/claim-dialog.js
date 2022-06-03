@@ -3,7 +3,7 @@ import { Button, Modal, Icon } from 'semantic-ui-react';
 import { 
   UserContext, UPDATE_ASSIGNMENT,
   RefineContext, REFINE_SET_ACTION,
-  ErrorContext, SET_ERROR, REFINE_SET_ACTIVE_LABEL
+  ErrorContext, SET_ERROR
 } from 'contexts';
 import { useLoadData } from 'hooks';
 import { api } from 'utils/api';
@@ -40,7 +40,6 @@ export const ClaimDialog = () => {
         loadData(update, assignment);   
 
         refineDispatch({ type: REFINE_SET_ACTION, action: null }); 
-        refineDispatch({ type: REFINE_SET_ACTIVE_LABEL, label: action.label });
       }, 1000); 
     }
     catch (error) {

@@ -17,16 +17,22 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
     }
   }, [initialized, div, width, volumeView]);
 
-  // Data
+  // Labels
   useEffect(() => {
-    if (initialized && maskData) {
+    if (initialized) {
       const labels = assignment.regions.map(({ label }) => label);
 
       volumeView.setLabels(labels);
+    }
+  }, [initialized, volumeView, assignment]); 
+
+  // Data
+  useEffect(() => {
+    if (initialized && maskData) {
       volumeView.setData(maskData);
       volumeView.render(onLoaded);
     }
-  }, [initialized, volumeView, maskData, assignment, onLoaded]);   
+  }, [initialized, volumeView, maskData]);   
 
   // Active label
   useEffect(() => {

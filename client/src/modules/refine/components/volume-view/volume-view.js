@@ -34,10 +34,6 @@ const centerCamera = (renderWindow, surface, volume) => {
     const camera = renderer.getActiveCamera();
     const start = camera.getFocalPoint();
 
-
-    console.log(surface.getPoints().getBounds());
-
-
     const [x1, x2, y1, y2, z1, z2] = surface.getPoints().getBounds();
     const end = [
       (x2 + x1) / 2,
@@ -158,6 +154,8 @@ export function VolumeView() {
       }
     },
     setLabels: regionLabels => {
+      console.log(regionLabels);
+
       // Clean up any old regions
       regions.forEach(region => region.cleanUp());
 
@@ -176,13 +174,6 @@ export function VolumeView() {
     setActiveLabel: label => {
       activeLabel = label;
       applyActiveLabel(label, regions, renderWindow);
-
-      render();
-
-
-      console.log(regions);
-      console.log(getRegion(label));
-      console.log(getRegion(label).getValues());
 
       centerCamera(renderWindow, getRegion(label).getOutput(), background.getInputData());
     },

@@ -59,6 +59,11 @@ export const useLoadData = ()  => {
           imageData: newImageData,
           maskData: combineMasks(newMaskData, location, maskData, assignmentToUpate.location)
         });
+
+        refineDispatch({
+          type: REFINE_SET_ACTIVE_LABEL,
+          label: regions.length > 0 ? regions[regions.length - 1].label : null
+        });
       }
 
       loadingDispatch({ type: CLEAR_LOADING });
