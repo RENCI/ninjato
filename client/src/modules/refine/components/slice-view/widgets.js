@@ -270,6 +270,7 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       const color = regionContourColor(labels.indexOf(label));
       setColor(handles.paint, color);
       setColor(handles.erase, color);
+      setColor(handles.crop, color);
     },
     addRegion: async () => {
       painter.startStroke();
