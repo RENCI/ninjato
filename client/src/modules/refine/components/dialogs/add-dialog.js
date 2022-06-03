@@ -29,7 +29,7 @@ export const AddDialog = ({ sliceView }) => {
 
       userDispatch({ type: ADD_REGION, label: label });
 
-      sliceView.addRegion(label);
+      await sliceView.addRegion(label);
       
       refineDispatch({ type: REFINE_SET_ACTIVE_LABEL, label: label });
 

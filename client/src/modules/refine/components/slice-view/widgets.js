@@ -280,9 +280,12 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
         handles.add.getRepresentations()[0].getBrush()
       );
 
-      await painter.endStroke();
+      const promise = painter.endStroke();    
+      await promise;
 
       onEdit();
+
+      return promise;
     },
     cleanUp: () => {
       console.log('Clean up widgets');
