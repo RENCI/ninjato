@@ -116,34 +116,38 @@ export const api = {
   getVolumes: async () => {
     const response = await axios.get('/system/subvolume_ids');
 
-    console.log(response);
-
     const volumes = [];
+
     for (const volume of response.data) {
-      const infoResponse = await axios.get(`/item/${ volume.id }/subvolume_info`);
+      try {
+        const infoResponse = await axios.get(`/item/${ volume.id }/subvolume_info`);
 
-      const { data } = infoResponse;
+        const { data } = infoResponse;
 
-      // Copy info and rename to be more concise
-      volumes.push({
-        id: data.id,
-        name: data.name,
-        description: data.description,
-        location: {...data.location},
-        numRegions: data.total_regions,
-        annotations: {
-          active: data.total_annotation_active_regions,
-          available: data.total_annotation_available_regions,
-          completed: data.total_annotation_completed_regions
-        },
-        reviews: {
-          active: data.total_review_active_regions,
-          available: data.total_review_available_regions,
-          approved: data.total_review_approved_regions,
-          completed: data.total_review_completed_regions
-        },
-        rejected: data.rejected_regions
-      });      
+        // Copy info and rename to be more concise
+        volumes.push({
+          id: data.id,
+          name: data.name,
+          description: data.description,
+          location: {...data.location},
+          numRegions: data.total_regions,
+          annotations: {
+            active: data.total_annotation_active_regions,
+            available: data.total_annotation_available_regions,
+            completed: data.total_annotation_completed_regions
+          },
+          reviews: {
+            active: data.total_review_active_regions,
+            available: data.total_review_available_regions,
+            approved: data.total_review_approved_regions,
+            completed: data.total_review_completed_regions
+          },
+          rejected: data.rejected_regions
+        });      
+      }      
+      catch (error) {
+        console.log(error);
+      }
     }
 
     return volumes;

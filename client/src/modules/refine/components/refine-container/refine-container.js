@@ -2,7 +2,7 @@ import { useContext, useRef, useCallback, useState } from 'react';
 import { Grid } from 'semantic-ui-react';
 import { 
   UserContext, 
-  RefineContext, REFINE_SET_TOOL, REFINE_SET_ACTION, REFINE_SET_ACTIVE_LABEL
+  RefineContext, REFINE_SET_TOOL, REFINE_SET_ACTION, REFINE_SET_ACTIVE_LABEL, REFINE_CHANGE_BRUSH_SIZE,
 } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
@@ -18,7 +18,7 @@ const { Column } = Grid;
 
 export const RefineContainer = () => {
   const [{ imageData }] = useContext(UserContext);
-  const [, refineDispatch] = useContext(RefineContext);
+  const [{ tool }, refineDispatch] = useContext(RefineContext);
   const volumeView = useRef(VolumeView());
   const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDown, onKeyUp));
   const [loading, setLoading] = useState(true);
@@ -82,10 +82,26 @@ export const RefineContainer = () => {
     }
   }
 
-  function onKeyUp(evt) {
-    if (evt.key === 'Control') {
-      refineDispatch({ type: REFINE_SET_TOOL, tool: 'paint' });
+  const handleKeyUp = key => {
+    switch (key) {
+      case 'Control': 
+        refineDispatch({ type: REFINE_SET_TOOL, tool: 'paint' });
+        break;
+
+      case 'ArrowLeft':
+        refineDispatch({ type: REFINE_CHANGE_BRUSH_SIZE, direction: 'down' });
+        break;
+
+      case 'ArrowRight':
+        refineDispatch({ type: REFINE_CHANGE_BRUSH_SIZE, direction: 'up' });
+        break;
+
+      default:
     }
+  };
+
+  function onKeyUp(evt) {
+    handleKeyUp(evt.key);
   }
 
   // Other callbacks

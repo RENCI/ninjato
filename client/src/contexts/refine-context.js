@@ -3,6 +3,7 @@ import { getCursor } from 'utils/cursor';
 
 export const REFINE_SET_TOOL = 'refine/SET_TOOL';
 export const REFINE_SET_BRUSH = 'refine/REFINE_SET_BRUSH';
+export const REFINE_CHANGE_BRUSH_SIZE = 'refine/REFINE_CHANGE_BRUSH_SIZE';
 export const REFINE_SET_CONTROL = 'refine/SET_SHOW_BACKGROUND';
 export const REFINE_SET_ACTION = 'refine/SET_ACTION';
 export const REFINE_SET_ACTIVE_LABEL = 'refine/SET_ACTIVE_LABEL';
@@ -83,6 +84,24 @@ const reducer = (state, action) => {
         ...state,
         [`${ action.which }Brush`]: action.brush
       };
+
+    case REFINE_CHANGE_BRUSH_SIZE: {
+      if (!(state.tool === 'paint' || state.tool === 'erase')) return state;
+
+      const brushName = state.tool + 'Brush';
+
+      let brush = state[brushName];
+
+      console.log(brushName);
+
+      brush += action.direction === 'down' ? -1 : 1;
+      brush = Math.max(0, Math.min(brush, brushes.length - 1));
+
+      return {
+        ...state,
+        [brushName]: brush
+      };
+    }
 
     case REFINE_SET_CONTROL:
       return {
