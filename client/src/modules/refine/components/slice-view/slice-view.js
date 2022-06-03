@@ -84,19 +84,25 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
             
       painter.setLabel(newLabel);
       painter.startStroke();      
-      painter.split(splitLabel, splitMode === 'top' ? slice + 1: slice);
-      await painter.endStroke();
+      painter.split(splitLabel, splitMode === 'top' ? slice + 1: slice);            
+      const promise = painter.endStroke();    
+      await promise;
 
       onEdit();
+
+      return promise;
     },
     mergeRegion: async label => {
       const painter = mask.getPainter();
 
       painter.startStroke();      
       painter.merge(label);
-      await painter.endStroke();    
+      const promise = painter.endStroke();    
+      await promise;
 
       onEdit();
+
+      return promise;
     },
     addRegion: label => {
       mask.setActiveLabel(label);
