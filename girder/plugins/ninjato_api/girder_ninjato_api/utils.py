@@ -469,10 +469,6 @@ def _merge_region_to_active_assignment(whole_item, active_assign_id, region_id):
 
     Item().save(assign_item)
 
-    if "item_id" in val:
-        # remove the old region assignment item if any
-        Item().remove(Item().findOne({'_id': ObjectId(val['item_id'])}))
-
     # update assign_item based on updated extent that includes claimed region
     _create_region_files(assign_item, whole_item)
 
