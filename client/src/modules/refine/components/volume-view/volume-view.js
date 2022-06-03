@@ -34,6 +34,10 @@ const centerCamera = (renderWindow, surface, volume) => {
     const camera = renderer.getActiveCamera();
     const start = camera.getFocalPoint();
 
+
+    console.log(surface.getPoints().getBounds());
+
+
     const [x1, x2, y1, y2, z1, z2] = surface.getPoints().getBounds();
     const end = [
       (x2 + x1) / 2,
@@ -100,14 +104,11 @@ export function VolumeView() {
   const renderWindow = RenderWindow();
 
   let regions = [];
+
   const getRegion = label => regions.find(region => {
     const labels = region.getLabels();
 
-    console.log(labels);
-    console.log(label);
-
-    if (labels.length !== 1) return null;
-    return labels[0] === label;
+    return labels.length === 1 ? labels[0] === label : false;
   });
 
   const background = Surface();
@@ -126,7 +127,7 @@ export function VolumeView() {
 
       renderWindow.initialize(rootNode);      
     },
-    setData: (maskData, onRendered) => {
+    setData: maskData => {
       if (maskData) {
         const allLabels = getUniqueLabels(maskData);
 
@@ -175,6 +176,14 @@ export function VolumeView() {
     setActiveLabel: label => {
       activeLabel = label;
       applyActiveLabel(label, regions, renderWindow);
+
+      render();
+
+
+      console.log(regions);
+      console.log(getRegion(label));
+      console.log(getRegion(label).getValues());
+
       centerCamera(renderWindow, getRegion(label).getOutput(), background.getInputData());
     },
     //setHighlightLabel: label => mask.setHighlightLabel(label),
