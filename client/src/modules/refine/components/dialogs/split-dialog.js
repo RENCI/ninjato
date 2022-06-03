@@ -30,9 +30,12 @@ export const SplitDialog = ({ sliceView }) => {
 
       userDispatch({ type: ADD_REGION, label: label });
 
-      sliceView.splitRegion(action.label, label, splitMode);
+      await sliceView.splitRegion(action.label, label, splitMode);
 
-      refineDispatch({ type: REFINE_SET_ACTIVE_LABEL, label: label });
+      refineDispatch({ 
+        type: REFINE_SET_ACTIVE_LABEL, 
+        label: splitMode === 'top' ? action.label : label 
+      });
 
       setTimeout(() => {
         setSuccess(false);

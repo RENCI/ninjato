@@ -34,7 +34,7 @@ export const MergeDialog = ({ sliceView }) => {
 
     userDispatch({ type: REMOVE_REGION, label: action.label });
 
-    sliceView.mergeRegion(action.label);
+    await sliceView.mergeRegion(action.label);
 
     setTimeout(() => {
       setSuccess(false);

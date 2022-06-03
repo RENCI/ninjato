@@ -80,6 +80,8 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
     splitRegion: async (splitLabel, newLabel, splitMode) => {
       const painter = mask.getPainter();
 
+      const currentLabel = painter.getLabel();
+
       const slice = image.getMapper().getSlice();
             
       painter.setLabel(newLabel);
@@ -87,6 +89,8 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
       painter.split(splitLabel, splitMode === 'top' ? slice + 1: slice);            
       const promise = painter.endStroke();    
       await promise;
+
+      painter.setLabel(currentLabel);
 
       onEdit();
 
@@ -106,8 +110,7 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
     },
     addRegion: label => {
       mask.setActiveLabel(label);
-      widgets.addRegion();
-      onEdit();
+      return widgets.addRegion();      
     },
     undo: () => {
       mask.getPainter().undo();
