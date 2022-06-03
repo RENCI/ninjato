@@ -2,6 +2,7 @@ import { RenderWindow, Surface, BoundingBox } from 'modules/view/components';
 import { getUniqueLabels } from 'utils/data';
 import { regionSurfaceColor } from 'utils/colors';
 import { interpolate, distance } from 'utils/math';
+import regionSelectRepresentation from 'vtk/region-select-representation';
 
 const resetCamera = (renderer, surface) => {
   const [x1, x2, y1, y2, z1, z2] = surface.getPoints().getBounds();
@@ -117,6 +118,8 @@ export function VolumeView() {
   let labels = [];
   let activeLabel = null;
 
+  let slice = -1;
+
   return {
     initialize: rootNode => {
       if (renderWindow.initialized()) return;
@@ -154,8 +157,6 @@ export function VolumeView() {
       }
     },
     setLabels: regionLabels => {
-      console.log(regionLabels);
-
       // Clean up any old regions
       regions.forEach(region => region.cleanUp());
 
@@ -170,6 +171,21 @@ export function VolumeView() {
 
         return region;
       });
+
+      const data = background.getInputData();
+
+      if (data) {
+        const renderer = renderWindow.getRenderer();
+
+        regions.forEach((region, i) => {
+          region.setInputData(data);     
+          renderer.addActor(region.getActor());
+
+          if (slice >= 0) {
+            region.setSlice(slice, regionSurfaceColor(i, 'slice'));
+          }
+        });
+      }
     },
     setActiveLabel: label => {
       activeLabel = label;
@@ -178,7 +194,8 @@ export function VolumeView() {
       centerCamera(renderWindow, getRegion(label).getOutput(), background.getInputData());
     },
     //setHighlightLabel: label => mask.setHighlightLabel(label),
-    setSlice: slice => {
+    setSlice: sliceNumber => {
+      slice = sliceNumber;
       regions.forEach((region, i) => region.setSlice(slice, regionSurfaceColor(i, 'slice')));
     },
     setShowBackground: show => {
