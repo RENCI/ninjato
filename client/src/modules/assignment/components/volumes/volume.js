@@ -20,11 +20,7 @@ export const Volume = ({ volume, enabled }) => {
     try {
       const assignment = await api.getNewAssignment(id, volume.id);
 
-      userDispatch({ 
-        type: SET_ASSIGNMENT, 
-        assignment: assignment, 
-        assignmentType: 'refine' 
-      });
+      userDispatch({ type: SET_ASSIGNMENT, assignment: assignment });
 
       loadData(assignment);
     }

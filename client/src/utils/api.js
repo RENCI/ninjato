@@ -38,8 +38,6 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
     return info;
   }, {});
 
-  console.log(info);
-
   // Copy info and rename to be more concise
   return {
     id: itemId,
@@ -64,7 +62,8 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
       reviewRejectedBy: info.review_rejected_by
     },
     imageId: imageInfo._id,
-    maskId: maskInfo._id
+    maskId: maskInfo._id,
+    type: 'refine'
   };
 };
 

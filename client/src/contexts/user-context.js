@@ -17,12 +17,40 @@ const initialState = {
   admin: false,
   login: null,
   volumes: null,
-  assignments: null, 
+  assignments: null,  // From server. May be stale if updating current assignment
   assignment: null,
   imageData: null,
   maskData: null,
   addedLabels: [],
   removedLabels: []
+};
+
+const addRegion = (regions, label) => {
+  return [
+    ...regions,
+    {
+      label: label,
+      index: regions.length
+    }
+  ];
+};
+
+const removeRegion = ({ regions }, label) => {
+  regions.filter(region => region.label !== label);
+};
+
+const updateAssignment = (a1, a2) => {
+  const assignment = {
+    ...a1,
+    ...a2
+  };
+
+  assignment.regions = a1.regions.concat(a2.regions).reduce((regions, region) => {
+    if (!regions.find(({ label }) => label === region.label)) regions.push(region);
+    return regions;
+  }, []);
+
+  return assignment;
 };
 
 const reducer = (state, action) => {
@@ -44,7 +72,7 @@ const reducer = (state, action) => {
       return {
         ...state,
         volumes: action.volumes
-      }
+      };
 
     case SET_ASSIGNMENTS:
       return {
@@ -52,47 +80,24 @@ const reducer = (state, action) => {
         assignments: action.assignments
       };
 
-    case SET_ASSIGNMENT:
+    case SET_ASSIGNMENT: {  
       return {
         ...state,
-        assignment: {
-          ...action.assignment,
-          type: action.assignmentType
-        }
+        assignment: action.assignment
       };
+    }
 
     case UPDATE_ASSIGNMENT: {
-      const assignments = [...state.assignments];
-
-      const index = assignments.findIndex(({ id }) => id === action.assignment.id);
-      const isActive = state.assignment.id === action.assignment.id;
-
-      if (index === -1) {
-        console.warn(`Could not find assignment ${ action.assignment.id }`);
-
-        if (!isActive) return state;
+      // Should be the current assignment
+      if (state.assignment.id !== action.assignment.id) {
+        console.warn(`Current assignment id ${ state.assignment.id } different from update id ${ action.assignment.id }`);
       }
-
-      const update = {};
-
-      if (index !== -1) {
-        update.assignments = [...state.assignments];
-        update.assignments[index] = {
-          ...update.assignments[index],
-          ...action.assignment
-        };
-      }
-
-      if (isActive) {
-        update.assignment = {
-          ...state.assignment,
-          ...action.assignment
-        };
-      }
+      
+      const assignment = updateAssignment(state.assignment, action.assignment);
 
       return {
         ...state,
-        ...update
+        assignment: assignment
       };
     };
 
@@ -111,17 +116,11 @@ const reducer = (state, action) => {
       };
 
     case ADD_REGION: {
-      const regions = state.assignment.regions;
-      regions.push({
-        label: action.label,
-        index: regions.length
-      });
-
       return {
         ...state,
         assignment: {
           ...state.assignment,
-          regions: regions
+          regions: addRegion(state.assignment.regions, action.label)
         },
         addedLabels: state.addedLabels.concat(action.label)
       };
@@ -132,7 +131,7 @@ const reducer = (state, action) => {
         ...state,
         assignment: {
           ...state.assignment,
-          regions: state.assignment.regions.filter(({ label }) => label !== action.label)
+          regions: removeRegion(state.assignment.regions, action.label)
         },
         removedLabels: state.removedLabels.concat(action.label)
       };

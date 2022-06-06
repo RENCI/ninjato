@@ -17,15 +17,15 @@ import { ClaimDialog, SplitDialog, MergeDialog, AddDialog } from 'modules/refine
 const { Column } = Grid;
 
 export const RefineContainer = () => {
-  const [{ imageData }] = useContext(UserContext);
-  const [{ tool }, refineDispatch] = useContext(RefineContext);
+  const [{ imageData, assignments }] = useContext(UserContext);
+  const [, refineDispatch] = useContext(RefineContext);
   const volumeView = useRef(VolumeView());
   const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDown, onKeyUp));
   const [loading, setLoading] = useState(true);
   const [slice, setSlice] = useState(0);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
-  
+
   // Slice view callbacks
   function onEdit() {
     volumeView.current.centerCamera();

@@ -14,11 +14,7 @@ export const Assignment = ({ assignment }) => {
   const enabled = isActive(assignment);
 
   const onLoadClick = () => {
-    userDispatch({ 
-      type: SET_ASSIGNMENT, 
-      assignment: assignment, 
-      assignmentType: 'refine' 
-    });
+    userDispatch({ type: SET_ASSIGNMENT, assignment: assignment });
 
     loadData(assignment); 
   };
