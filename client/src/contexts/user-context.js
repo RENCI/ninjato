@@ -35,8 +35,8 @@ const addRegion = (regions, label) => {
   ];
 };
 
-const removeRegion = ({ regions }, label) => {
-  regions.filter(region => region.label !== label);
+const removeRegion = (regions, label) => {
+  return regions.filter(region => region.label !== label);
 };
 
 const updateAssignment = (a1, a2) => {

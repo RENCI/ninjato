@@ -12,7 +12,7 @@ const { Header, Content, Actions } = Modal;
 // E.g. adding and then merging a region is not handled correctly right now.
 // Perhaps keep this info in the painter where undo/redo is already handled?
 
-// XXX: Region color: Set initially based on index, then store per region. Pass regions into view instead of labels.
+// XXX: Region color: Set initially based on index, then store per region. Pass regions into view instead of labels?
 
 
 export const MergeDialog = ({ sliceView }) => {

@@ -79,6 +79,9 @@ function vtkNinjatoPainter(publicAPI, model) {
   };
 
   publicAPI.applyBinaryMask = (maskBuffer, erase = false) => {
+
+    console.log(model.labelMap);
+
     const scalars = model.labelMap.getPointData().getScalars();
     const data = scalars.getData();
     const maskLabelMap = new Uint16Array(maskBuffer);
