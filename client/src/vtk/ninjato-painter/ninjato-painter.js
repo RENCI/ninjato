@@ -293,10 +293,12 @@ function vtkNinjatoPainter(publicAPI, model) {
     }
   };
 
-  publicAPI.setBackgroundImage = (image) => {
+  publicAPI.setBackgroundImage = (image, labels) => {
     model.backgroundImage = image;
 
-    initialData = new Uint16Array(image.getPointData().getScalars().getData());
+    initialData = new Uint16Array(image.getPointData().getScalars().getData().map(label => 
+      labels && labels.includes(label) ? 0 : label
+    ));
   };
 
   // --------------------------------------------------------------------------
