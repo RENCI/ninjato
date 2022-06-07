@@ -2,7 +2,6 @@ import { RenderWindow, Surface, BoundingBox } from 'modules/view/components';
 import { getUniqueLabels } from 'utils/data';
 import { regionSurfaceColor } from 'utils/colors';
 import { interpolate, distance } from 'utils/math';
-import regionSelectRepresentation from 'vtk/region-select-representation';
 
 const resetCamera = (renderer, surface) => {
   const [x1, x2, y1, y2, z1, z2] = surface.getPoints().getBounds();

@@ -3,7 +3,7 @@ import { Modal, Button, Form, Menu, Message } from 'semantic-ui-react';
 import { LOGIN, UserContext } from 'contexts';
 import { AutoFocusForm } from 'modules/common/components/auto-focus-form';
 import { api } from 'utils/api';
-import { useModal, useGetAssignments } from 'hooks';
+import { useModal } from 'hooks';
 import styles from './styles.module.css';
 
 const { Header, Content, Actions } = Modal;

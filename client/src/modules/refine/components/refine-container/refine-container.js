@@ -1,7 +1,7 @@
 import { useContext, useRef, useCallback, useState } from 'react';
 import { Grid } from 'semantic-ui-react';
 import { 
-  UserContext, 
+  UserContext, PUSH_REGION_HISTORY,
   RefineContext, REFINE_SET_TOOL, REFINE_SET_ACTION, REFINE_SET_ACTIVE_LABEL, REFINE_CHANGE_BRUSH_SIZE,
 } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
@@ -17,7 +17,7 @@ import { ClaimDialog, SplitDialog, MergeDialog, AddDialog } from 'modules/refine
 const { Column } = Grid;
 
 export const RefineContainer = () => {
-  const [{ imageData, assignments }] = useContext(UserContext);
+  const [{ imageData }, userDispatch] = useContext(UserContext);
   const [, refineDispatch] = useContext(RefineContext);
   const volumeView = useRef(VolumeView());
   const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDown, onKeyUp));
@@ -33,6 +33,8 @@ export const RefineContainer = () => {
 
     setCanUndo(sliceView.current.canUndo());
     setCanRedo(sliceView.current.canRedo());
+
+    userDispatch({ type: PUSH_REGION_HISTORY });
   }
 
   function onSliceChange(slice) {

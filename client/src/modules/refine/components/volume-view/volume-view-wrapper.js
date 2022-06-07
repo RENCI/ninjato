@@ -32,12 +32,12 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
       volumeView.setData(maskData);
       volumeView.render(onLoaded);
     }
-  }, [initialized, volumeView, maskData]);   
+  }, [initialized, volumeView, maskData, onLoaded]);   
 
   // Active label
   useEffect(() => {
     if (initialized) volumeView.setActiveLabel(activeLabel);
-  }, [initialized, activeLabel]);
+  }, [initialized, volumeView, activeLabel]);
 
   // Show background
   useEffect(() => {

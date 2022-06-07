@@ -224,6 +224,9 @@ export const api = {
     };   
   },
   saveAnnotations: async (userId, itemId, buffer, addedLabels, removedLabels, done = false) => {
+
+    console.log(userId, itemId, buffer, addedLabels, removedLabels, done);
+
     const blob = new Blob([buffer], { type: 'image/tiff' });
 
     const stringify = ids => JSON.stringify(ids.map(id => id.toString()));

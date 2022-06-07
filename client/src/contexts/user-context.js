@@ -1,4 +1,5 @@
 import { createContext, useReducer } from 'react';
+import { history } from 'utils/history';
 
 export const LOGIN = 'user/LOGIN';
 export const LOGOUT = 'user/LOGOUT';
@@ -11,7 +12,11 @@ export const CLEAR_DATA = 'user/CLEAR_DATA';
 export const ADD_REGION = 'user/ADD_REGION';
 export const REMOVE_REGION = 'user/REMOVE_REGION';
 export const CLEAR_SAVE_LABELS = 'user/CLEAR_SAVE_LABELS';
-
+export const PUSH_REGION_HISTORY = 'user/PUSH_REGION_HISTORY';
+export const UNDO_REGION_HISTORY = 'user/UNDO_REGION_HISTORY';
+export const REDO_REGION_HISTORY = 'user/REDO_REGION_HISTORY';
+export const SAVE_REGION_HISTORY = 'user/SAVE_REGION_HISTORY';
+ 
 const initialState = {
   id: null,
   admin: false,
@@ -21,8 +26,7 @@ const initialState = {
   assignment: null,
   imageData: null,
   maskData: null,
-  addedLabels: [],
-  removedLabels: []
+  regionHistory: history()
 };
 
 const addRegion = (regions, label) => {
@@ -66,7 +70,7 @@ const reducer = (state, action) => {
     case LOGOUT:
       return {
         ...initialState
-      };    
+      };
 
     case SET_VOLUMES:
       return {
@@ -81,6 +85,8 @@ const reducer = (state, action) => {
       };
 
     case SET_ASSIGNMENT: {  
+      state.regionHistory.set(action.assignment.regions);
+
       return {
         ...state,
         assignment: action.assignment
@@ -92,8 +98,10 @@ const reducer = (state, action) => {
       if (state.assignment.id !== action.assignment.id) {
         console.warn(`Current assignment id ${ state.assignment.id } different from update id ${ action.assignment.id }`);
       }
-      
+
       const assignment = updateAssignment(state.assignment, action.assignment);
+      
+      state.history.set(assignment.regions);
 
       return {
         ...state,
@@ -121,8 +129,7 @@ const reducer = (state, action) => {
         assignment: {
           ...state.assignment,
           regions: addRegion(state.assignment.regions, action.label)
-        },
-        addedLabels: state.addedLabels.concat(action.label)
+        }
       };
     }
 
@@ -132,8 +139,7 @@ const reducer = (state, action) => {
         assignment: {
           ...state.assignment,
           regions: removeRegion(state.assignment.regions, action.label)
-        },
-        removedLabels: state.removedLabels.concat(action.label)
+        }
       };
 
     case CLEAR_SAVE_LABELS:
@@ -142,6 +148,35 @@ const reducer = (state, action) => {
         addedLabels: [],
         removedLabels: []
       };
+
+    case PUSH_REGION_HISTORY:
+      state.regionHistory.push(state.assignment.regions);
+
+      return state;
+
+    case UNDO_REGION_HISTORY:
+      return {
+        ...state,
+        assignment: {
+          ...state.assignment,
+          regions: state.regionHistory.undo()
+        }
+      };
+
+    case REDO_REGION_HISTORY:
+      return {
+        ...state,
+        assignment: {
+          ...state.assignment,
+          regions: state.regionHistory.redo()
+        }
+      };
+
+    case SAVE_REGION_HISTORY:
+      state.regionHistory.updateSaveIndex()
+
+      return state;
+      
 
     default: 
       throw new Error(`Invalid user context action: ${ action.type }`);

@@ -1,27 +1,32 @@
 import { useContext } from 'react';
-import { Divider } from 'semantic-ui-react';
-import { RefineContext, REFINE_SET_TOOL, REFINE_SET_CONTROL } from 'contexts';
+import { 
+  UserContext, UNDO_REGION_HISTORY, REDO_REGION_HISTORY, 
+  RefineContext, REFINE_SET_TOOL, REFINE_SET_CONTROL
+} from 'contexts';
 import { ControlBar, ControlGroup, ControlButton, ControlLabel } from 'modules/common/components/control-bar';
 import { SplitButton } from 'modules/common/components/split-button';
 import { BrushOptions } from './brush-options';
 
 export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
-  const [{ tools, tool, showContours, split }, dispatch] = useContext(RefineContext);
+  const [, userDispatch] = useContext(UserContext);
+  const [{ tools, tool, showContours }, refineDispatch] = useContext(RefineContext);
 
   const onToolClick = value => {
-    dispatch({ type: REFINE_SET_TOOL, tool: value });
+    refineDispatch({ type: REFINE_SET_TOOL, tool: value });
   };
 
   const onShowContoursClick = () => {
-    dispatch({ type: REFINE_SET_CONTROL, name: 'showContours', value: !showContours });
+    refineDispatch({ type: REFINE_SET_CONTROL, name: 'showContours', value: !showContours });
   };
 
   const onUndoClick = () => {
     sliceView.undo();
+    userDispatch({ type: UNDO_REGION_HISTORY });
   };
 
   const onRedoClick = () => {
     sliceView.redo();
+    userDispatch({ type: REDO_REGION_HISTORY });
   };
 
   const groups = tools.reduce((groups, { group }) => {

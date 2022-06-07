@@ -1,7 +1,7 @@
 import { useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu } from 'semantic-ui-react';
-import { UserContext, LOGIN, LOGOUT, CLEAR_DATA } from 'contexts';
+import { UserContext, LOGIN, LOGOUT } from 'contexts';
 import { RegisterForm } from './register-form';
 import { LoginForm } from './login-form';
 import { api } from 'utils/api';
