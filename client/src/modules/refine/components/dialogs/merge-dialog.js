@@ -7,14 +7,6 @@ import {
 
 const { Header, Content, Actions } = Modal;
 
-
-// XXX: Think about how undo/redo interacts with add/remove, and how they interact with each other.
-// E.g. adding and then merging a region is not handled correctly right now.
-// Perhaps keep this info in the painter where undo/redo is already handled?
-
-// XXX: Region color: Set initially based on index, then store per region. Pass regions into view instead of labels?
-
-
 export const MergeDialog = ({ sliceView }) => {
   const [, userDispatch] = useContext(UserContext);
   const [{ action, activeLabel }, refineDispatch] = useContext(RefineContext);
