@@ -281,8 +281,6 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       Object.values(widgets).forEach(widget => widget.setImageData(imageData))    
     },
     setTool: tool => {
-      console.log(tool);
-
       const position = activeWidget.getPosition();
 
       activeWidget = widgets[tool];

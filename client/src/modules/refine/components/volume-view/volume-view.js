@@ -188,6 +188,9 @@ export function VolumeView() {
     },
     setActiveLabel: label => {
       activeLabel = label;
+      
+      if (!getRegion(label)) return;
+
       applyActiveLabel(label, regions, renderWindow);
 
       centerCamera(renderWindow, getRegion(label).getOutput(), background.getInputData());
@@ -201,6 +204,8 @@ export function VolumeView() {
       background.getActor().setVisibility(show);
     },
     centerCamera: () => {
+      if (!getRegion(activeLabel)) return;
+
       centerCamera(renderWindow, getRegion(activeLabel).getOutput(), background.getInputData());
     },
     render: onRendered => {
