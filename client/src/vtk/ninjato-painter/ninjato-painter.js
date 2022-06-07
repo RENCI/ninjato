@@ -247,6 +247,10 @@ function vtkNinjatoPainter(publicAPI, model) {
     });
   };
 
+  publicAPI.delete = () => {
+    workerPromise.exec('delete');
+  };
+
   // --------------------------------------------------------------------------
 
   publicAPI.applyLabelMap = (labelMap) => {

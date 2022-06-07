@@ -112,6 +112,23 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
       mask.setActiveLabel(label);
       return widgets.createRegion();      
     },
+    deleteRegion: async label => {
+      const painter = mask.getPainter();
+
+      const currentLabel = painter.getLabel();
+
+      painter.setLabel(label);
+      painter.startStroke();      
+      painter.delete();
+      const promise = painter.endStroke(true);    
+      await promise;
+
+      painter.setLabel(currentLabel);
+
+      onEdit();
+
+      return promise;
+    },
     undo: () => {
       mask.getPainter().undo();
       onEdit();

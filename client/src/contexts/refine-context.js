@@ -20,7 +20,7 @@ const tools = [
   { group: 'region', value: 'split', icon: 'share alternate', cursor: getCursor('split.png', 12, 16), tooltip: 'split' },
   { group: 'region', value: 'merge', icon: 'sign-in', cursor: getCursor('merge.png', 12, 16), tooltip: 'merge' },
   { group: 'region', value: 'create', icon: 'plus circle', cursor: getCursor('create.png', 15, 16), tooltip: 'create' },
-  { group: 'region', value: 'delete', icon: 'minus circle', cursor: getCursor('create.png', 15, 16), tooltip: 'delete' }
+  { group: 'region', value: 'delete', icon: 'minus circle', cursor: getCursor('delete.png', 15, 16), tooltip: 'delete' }
 ];
 
 const brushes = [
