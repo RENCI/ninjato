@@ -9,7 +9,7 @@ import { BrushOptions } from './brush-options';
 
 export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
   const [, userDispatch] = useContext(UserContext);
-  const [{ tools, tool, showContours }, refineDispatch] = useContext(RefineContext);
+  const [{ activeLabel, tools, tool, showContours }, refineDispatch] = useContext(RefineContext);
 
   const onToolClick = value => {
     refineDispatch({ type: REFINE_SET_TOOL, tool: value });
@@ -49,7 +49,7 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
       <ControlLabel>tool</ControlLabel>
       { groups.map(group => (
         <ControlGroup key={ group }>
-          { tools.filter(tool => tool.group === group).map(({ value, icon, tooltip }, i) => (
+          { tools.filter(tool => tool.group === group).map(({ value, icon, tooltip, alwaysEnabled }, i) => (
             value === 'paint' || value === 'erase' ?
               <SplitButton
                 key={ i }
@@ -57,6 +57,7 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
                 icon={ icon }
                 tooltip={ tooltip }
                 active={ value === tool }
+                disabled={ !alwaysEnabled && !activeLabel }
                 content={ <BrushOptions which={ value } /> }
                 onClick={ () => onToolClick(value)}
               />
@@ -67,6 +68,7 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
                 icon={ icon }
                 tooltip={ tooltip }
                 active={ value === tool  }
+                disabled={ !alwaysEnabled && !activeLabel }
                 onClick={ () => onToolClick(value) }              
               />
           ))}

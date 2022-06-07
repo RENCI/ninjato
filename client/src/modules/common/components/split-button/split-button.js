@@ -9,6 +9,7 @@ export const SplitButton = ({
   icon, 
   tooltip = null,
   active = true, 
+  disabled = false, 
   position = 'top right',
   content,
   onClick 
@@ -21,6 +22,7 @@ export const SplitButton = ({
       icon
       compact
       color={ active ? 'grey' : null }
+      disabled={ disabled }
       onClick={ onClick } 
     >
       <div className={ styles.iconDiv }>
