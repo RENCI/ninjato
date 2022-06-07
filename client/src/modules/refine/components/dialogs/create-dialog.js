@@ -9,27 +9,27 @@ import { api } from 'utils/api';
 
 const { Header, Content, Actions } = Modal;
 
-export const AddDialog = ({ sliceView }) => {
+export const CreateDialog = ({ sliceView }) => {
   const [{ assignment }, userDispatch] = useContext(UserContext);
   const [{ action }, refineDispatch] = useContext(RefineContext);
   const [, errorDispatch] = useContext(ErrorContext);
-  const [adding, setAdding] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [success, setSuccess] = useState(false);
   const [newLabel, setNewLabel] = useState();
 
   const onConfirm = async () => {
-    setAdding(true);
+    setCreating(true);
 
     try {
       const label = await api.getNewLabel(assignment.subvolumeId);
 
       setNewLabel(label);
-      setAdding(false);
+      setCreating(false);
       setSuccess(true);
 
       userDispatch({ type: ADD_REGION, label: label });
 
-      await sliceView.addRegion(label);
+      await sliceView.createRegion(label);
       
       refineDispatch({ type: REFINE_SET_ACTIVE_LABEL, label: label });
 
@@ -42,7 +42,7 @@ export const AddDialog = ({ sliceView }) => {
       console.log(error);   
       
       setSuccess(false);
-      setAdding(false);
+      setCreating(false);
 
       errorDispatch({ type: SET_ERROR, error: error });
     }   
@@ -55,11 +55,11 @@ export const AddDialog = ({ sliceView }) => {
   return (
     <Modal
       dimmer='blurring'
-      open={ action && action.type === 'add' }        
+      open={ action && action.type === 'create' }        
     >
-      <Header>Add Region</Header>
+      <Header>Create Region</Header>
       <Content>
-        { adding ?             
+        { creating ?             
           <>Processing</>
         :  success ?
           <>
@@ -67,21 +67,21 @@ export const AddDialog = ({ sliceView }) => {
             Now editing with new region label <b>{ newLabel }</b>
           </>
         :
-          action && <p>Add new region?</p>
+          action && <p>Create new region?</p>
         }
       </Content>
       <Actions>
         <Button 
           secondary 
-          disabled={ adding || success }
+          disabled={ creating || success }
           onClick={ onCancel }
         >
           Cancel
         </Button>
         <Button 
           primary 
-          disabled={ adding || success }
-          loading={ adding }
+          disabled={ creating || success }
+          loading={ creating }
           onClick={ onConfirm } 
         >
           Confirm

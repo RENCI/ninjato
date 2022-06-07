@@ -29,7 +29,7 @@ const initialState = {
   regionHistory: history()
 };
 
-const addRegion = (regions, label) => {
+const createRegion = (regions, label) => {
   return [
     ...regions,
     {
@@ -128,7 +128,7 @@ const reducer = (state, action) => {
         ...state,
         assignment: {
           ...state.assignment,
-          regions: addRegion(state.assignment.regions, action.label)
+          regions: createRegion(state.assignment.regions, action.label)
         }
       };
     }

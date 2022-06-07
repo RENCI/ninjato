@@ -6,7 +6,8 @@ import vtkCropWidget from 'vtk/crop-widget';
 import vtkRegionSelectWidget from 'vtk/region-select-widget';
 import { regionContourColor } from 'utils/colors';
 
-const setBrush = (handle, brush) => {
+const setBrush = (handle, brush) => {  
+  console.log(handle, brush);
   handle.getRepresentations()[0].setBrush(brush);
 };
 
@@ -27,10 +28,11 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
     claim: createWidget(vtkRegionSelectWidget),
     split: createWidget(vtkRegionSelectWidget),
     merge: createWidget(vtkRegionSelectWidget),
-    add: createWidget(vtkBrushWidget)
+    create: createWidget(vtkBrushWidget),
+    delete: createWidget(vtkRegionSelectWidget) 
   }; 
 
-  widgets.add.setShowTrail(false);
+  widgets.create.setShowTrail(false);
 
   let handles = null;
 
@@ -230,8 +232,8 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
         }
       });
 
-      handles.add.onEndInteractionEvent(() => {
-        onSelect(null, 'add');
+      handles.create.onEndInteractionEvent(() => {
+        onSelect(null, 'create');
       });
     },
     update: (position, spacing) => {      
@@ -240,7 +242,7 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
 
       Object.values(widgets).forEach(widget => widget.getManipulator().setOrigin(position));
 
-      [widgets.paint, widgets.erase, widgets.add].forEach(widget => widget.setRadius(radius));
+      [widgets.paint, widgets.erase, widgets.create].forEach(widget => widget.setRadius(radius));
 
       Object.values(handles).forEach(handle => handle.updateRepresentationForRender());
     },
@@ -272,12 +274,12 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       setColor(handles.erase, color);
       setColor(handles.crop, color);
     },
-    addRegion: async () => {
+    createRegion: async () => {
       painter.startStroke();
 
       painter.paintFloodFill(
-        handles.add.getPoints(), 
-        handles.add.getRepresentations()[0].getBrush()
+        handles.create.getPoints(), 
+        handles.create.getRepresentations()[0].getBrush()
       );
 
       const promise = painter.endStroke();    

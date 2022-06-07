@@ -19,7 +19,8 @@ const tools = [
 
   { group: 'region', value: 'split', icon: 'share alternate', cursor: getCursor('split.png', 12, 16), tooltip: 'split' },
   { group: 'region', value: 'merge', icon: 'sign-in', cursor: getCursor('merge.png', 12, 16), tooltip: 'merge' },
-  { group: 'region', value: 'add', icon: 'add circle', cursor: getCursor('add.png', 15, 16), tooltip: 'add' }
+  { group: 'region', value: 'create', icon: 'plus circle', cursor: getCursor('create.png', 15, 16), tooltip: 'create' },
+  { group: 'region', value: 'remove', icon: 'minus circle', cursor: getCursor('create.png', 15, 16), tooltip: 'delete' }
 ];
 
 const brushes = [
@@ -59,7 +60,7 @@ const initialState = {
   brushes: brushes,
   paintBrush: 0,
   eraseBrush: 2,
-  addBrush: 3,
+  createBrush: 3,
   showBackground: true,
   showContours: true,
   action: null
@@ -120,7 +121,7 @@ const reducer = (state, action) => {
         ...initialState,
         paintBrush: state.paintBrush,
         eraseBrush: state.eraseBrush,
-        addBrush: state.addBrush
+        createBrush: state.createBrush
       };
 
     default: 

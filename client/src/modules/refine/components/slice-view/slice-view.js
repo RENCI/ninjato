@@ -108,9 +108,9 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
 
       return promise;
     },
-    addRegion: label => {
+    createRegion: label => {
       mask.setActiveLabel(label);
-      return widgets.addRegion();      
+      return widgets.createRegion();      
     },
     undo: () => {
       mask.getPainter().undo();

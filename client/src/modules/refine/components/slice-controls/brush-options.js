@@ -15,7 +15,7 @@ const iconSize = brush => (
 );
 
 export const BrushOptions = ({ which }) => {
-  const [{ brushes, paintBrush, eraseBrush, addBrush }, dispatch] = useContext(RefineContext);
+  const [{ brushes, paintBrush, eraseBrush, createBrush }, dispatch] = useContext(RefineContext);
 
   const onClick = (brush, which) => {
     dispatch({ type: REFINE_SET_BRUSH, brush: brush, which: which });
@@ -29,7 +29,7 @@ export const BrushOptions = ({ which }) => {
       color={ 
         (which === 'paint' && i === paintBrush) || 
         (which === 'erase' && i === eraseBrush) ||
-        (which === 'add' && i === addBrush) ?
+        (which === 'add' && i === createBrush) ?
         'grey' : null 
       }
       onClick={ () => onClick(i, which) }
