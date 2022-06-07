@@ -101,7 +101,7 @@ const reducer = (state, action) => {
 
       const assignment = updateAssignment(state.assignment, action.assignment);
       
-      state.history.set(assignment.regions);
+      state.regionHistory.set(assignment.regions);
 
       return {
         ...state,
