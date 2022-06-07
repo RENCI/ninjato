@@ -7,7 +7,6 @@ import vtkRegionSelectWidget from 'vtk/region-select-widget';
 import { regionContourColor } from 'utils/colors';
 
 const setBrush = (handle, brush) => {  
-  console.log(handle, brush);
   handle.getRepresentations()[0].setBrush(brush);
 };
 
@@ -130,6 +129,23 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
         }
       });
 
+      handles.delete.onInteractionEvent(() => {
+        const widget = widgets.delete;
+
+        const startLabel = widget.getStartLabel();
+        const label = widget.getLabel();
+
+        if (
+          (startLabel === null || label === startLabel) &&           
+          labels.includes(label)
+        ) {          
+          onHover(label);
+        }
+        else {
+          onHover(null);
+        }
+      });
+
       // End
       handles.paint.onEndInteractionEvent(async () => {
         painter.paintFloodFill(
@@ -235,6 +251,21 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       handles.create.onEndInteractionEvent(() => {
         onSelect(null, 'create');
       });
+
+      handles.delete.onEndInteractionEvent(() => {
+        const widget = widgets.delete;
+
+        const startLabel = widget.getStartLabel();
+        const label = widget.getLabel();
+
+        if (
+          startLabel !== null && 
+          label === startLabel &&           
+          labels.includes(label)
+        ) {
+          onSelect(label, 'delete');
+        }
+      });
     },
     update: (position, spacing) => {      
       // XXX: Why is the 0.85 necessary here?
@@ -250,6 +281,8 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       Object.values(widgets).forEach(widget => widget.setImageData(imageData))    
     },
     setTool: tool => {
+      console.log(tool);
+
       const position = activeWidget.getPosition();
 
       activeWidget = widgets[tool];
