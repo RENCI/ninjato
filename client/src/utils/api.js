@@ -245,7 +245,7 @@ export const api = {
         params: { 
           item_id: itemId,
           done: done,
-          comment: ''
+          comment: 'TEST COMMENT'
         },
         headers: { 
           'Content-Type': 'multipart/form-data' 

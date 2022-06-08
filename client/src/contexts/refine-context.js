@@ -10,9 +10,7 @@ export const REFINE_SET_ACTIVE_LABEL = 'refine/SET_ACTIVE_LABEL';
 export const REFINE_RESET = 'refine/RESET';
 
 const tools = [
-  { group: 'select', value: 'select', icon: 'map marker alternate', cursor: getCursor('map-marker-alternate.png', 16, 23), tooltip: 'select region' },
-  { group: 'select', value: 'claim', icon: 'flag', cursor: getCursor('flag.png', 10, 23), tooltip: 'claim region', alwaysEnabled: true },
-
+  { group: 'edit', value: 'select', icon: 'map marker alternate', cursor: getCursor('map-marker-alternate.png', 16, 23), tooltip: 'select region' },
   { group: 'edit', value: 'paint', icon: 'paint brush', cursor: getCursor('paint-brush.png', 11, 23), tooltip: 'paint' },
   { group: 'edit', value: 'erase', icon: 'eraser', cursor: getCursor('eraser.png', 12, 22), tooltip: 'erase' },
   { group: 'edit', value: 'crop', icon: 'crop', cursor: getCursor('crop.png', 11, 21), tooltip: 'crop' },
@@ -20,7 +18,10 @@ const tools = [
   { group: 'region', value: 'split', icon: 'share alternate', cursor: getCursor('split.png', 12, 16), tooltip: 'split' },
   { group: 'region', value: 'merge', icon: 'sign-in', cursor: getCursor('merge.png', 12, 16), tooltip: 'merge' },
   { group: 'region', value: 'create', icon: 'plus circle', cursor: getCursor('create.png', 15, 16), tooltip: 'create', alwaysEnabled: true  },
-  { group: 'region', value: 'delete', icon: 'minus circle', cursor: getCursor('delete.png', 15, 16), tooltip: 'delete' }
+  { group: 'region', value: 'delete', icon: 'minus circle', cursor: getCursor('delete.png', 15, 16), tooltip: 'delete' },
+
+  { group: 'claim', value: 'claim', icon: 'flag', cursor: getCursor('flag.png', 10, 23), tooltip: 'claim', alwaysEnabled: true },
+  { group: 'claim', value: 'remove', icon: 'share', cursor: getCursor('remove.png', 23, 14), tooltip: 'remove', alwaysEnabled: true }
 ];
 
 const brushes = [

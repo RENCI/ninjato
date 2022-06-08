@@ -25,6 +25,7 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
     crop: createWidget(vtkCropWidget),
     select: createWidget(vtkRegionSelectWidget),
     claim: createWidget(vtkRegionSelectWidget),
+    remove: createWidget(vtkRegionSelectWidget),
     split: createWidget(vtkRegionSelectWidget),
     merge: createWidget(vtkRegionSelectWidget),
     create: createWidget(vtkBrushWidget),
@@ -86,6 +87,24 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
           (startLabel === null || label === startLabel) &&   
           label !== 0 &&
           !labels.includes(label)
+        ) {          
+          onHover(label);
+        }
+        else {
+          onHover(null);
+        }
+      });
+
+      handles.remove.onInteractionEvent(() => {
+        const widget = widgets.remove;
+
+        const startLabel = widget.getStartLabel();
+        const label = widget.getLabel();
+
+        if (
+          (startLabel === null || label === startLabel) &&   
+          label !== 0 &&
+          labels.includes(label)
         ) {          
           onHover(label);
         }
@@ -214,6 +233,22 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
           !labels.includes(label)
         ) {
           onSelect(label, 'claim');
+        }
+      });
+
+      handles.remove.onEndInteractionEvent(() => {
+        const widget = widgets.remove;
+
+        const startLabel = widget.getStartLabel();
+        const label = widget.getLabel();
+
+        if (
+          startLabel !== null && 
+          label === startLabel && 
+          label !== 0 &&
+          labels.includes(label)
+        ) {
+          onSelect(label, 'remove');
         }
       });
 
