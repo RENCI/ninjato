@@ -58,3 +58,11 @@ export const regionSurfaceColor = (index = null, type = null) => (
       'surface'
     ]
 );
+
+
+
+// XXX: TODO
+// Store base color per region
+// Store color objects as an object with base color key
+// Decorate regions with color object
+// Update colors function to add color to regions as necessary, and potentially reassign if two have the same color and a different one is available
