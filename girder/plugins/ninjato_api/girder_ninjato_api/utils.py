@@ -39,7 +39,7 @@ def get_available_region_ids(whole_item, count=1):
     :param count: number of available ids to get
     :return: available count number of region ids
     """
-    max_id = int(whole_item['meta']['max_region_id'])
+    max_id = _get_max_region_id(whole_item)
     if 'removed_region_ids' in whole_item['meta'] and whole_item['meta']['removed_region_ids']:
         id_list =  whole_item['meta']['removed_region_ids']
         id_list_cnt = len(id_list)
@@ -63,6 +63,13 @@ def get_available_region_ids(whole_item, count=1):
     return id_list
 
 
+def _get_max_region_id(whole_item):
+    if 'max_region_id' in whole_item['meta']:
+        return int(whole_item['meta']['max_region_id'])
+    else:
+        return _set_max_region_id(whole_item)
+
+
 def _set_max_region_id(whole_item, max_level=None):
     if not max_level:
         max_level = len(whole_item['meta']['regions'])
@@ -70,6 +77,7 @@ def _set_max_region_id(whole_item, max_level=None):
         'max_region_id': max_level
     }
     Item().setMetadata(whole_item, add_meta)
+    return max_level
 
 
 def _get_tif_file_content_and_path(item_file):
@@ -1101,7 +1109,6 @@ def get_subvolume_item_ids():
             for folder in folders:
                 whole_item = Item().findOne({'folderId': ObjectId(folder['_id']),
                                              'name': 'whole'})
-                _set_max_region_id(whole_item)
                 ret_data.append({
                     'id': whole_item['_id'],
                     'parent_id': folder['_id']
