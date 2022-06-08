@@ -119,7 +119,7 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
 
       painter.setLabel(label);
       painter.startStroke();      
-      painter.delete();
+      painter.deleteRegion();
       const promise = painter.endStroke(true);    
       await promise;
 

@@ -247,7 +247,8 @@ function vtkNinjatoPainter(publicAPI, model) {
     });
   };
 
-  publicAPI.delete = () => {
+  // Already has a delete method
+  publicAPI.deleteRegion = () => {
     workerPromise.exec('delete');
   };
 
