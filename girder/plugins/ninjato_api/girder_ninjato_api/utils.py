@@ -297,6 +297,19 @@ def _update_assignment_in_whole_item(whole_item, assign_item_id):
                         code=500)
 
 
+def _find_region_from_label(whole_item, region_label):
+    """
+    return the region from the region label in a whole item
+    :param whole_item: the whole item to find the region from
+    :param region_label: the region label in the whole item to find the region for
+    :return: the region object
+    """
+    if 'item_id' in whole_item['meta']['regions'][region_label]:
+        return Item.findOne({'_id':
+                                 ObjectId(whole_item['meta']['regions'][region_label]['item_id'])})
+    return None
+
+
 def _remove_regions(region_list, whole_item):
     """
     remove all regions in region_list
@@ -309,11 +322,12 @@ def _remove_regions(region_list, whole_item):
     else:
         whole_item['meta']['removed_region_ids'] = region_list
 
-    item_list = [Item().findOne({'_id': ObjectId(rid)}) for rid in region_list]
+    item_list = [_find_region_from_label(whole_item, str(rid)) for rid in region_list]
 
     # delete all the other regions in region_list to be merged
     for i, rid in enumerate(region_list):
-        Item().remove(item_list[i])
+        if item_list[i]:
+            Item().remove(item_list[i])
         del whole_item['meta']['regions'][str(rid)]
 
     return
@@ -534,6 +548,36 @@ def _add_meta_to_region(item, label, key, val):
     return
 
 
+def _add_meta_to_history(item, label, key, val):
+    """
+    add meta to whole item metadata history key with val added as a list so that
+    if key already exists, val is appended to the existing value list
+    :param item: whole subvolume item to add metadata to
+    :param label: region label
+    :param key: key to add as metadata
+    :param val: value to add corresponding to key as key-value metadata
+    :return:
+    """
+    if 'history' not in item['meta']:
+        item['meta']['history'] = {
+            label: {
+                key: [val]
+            }
+        }
+    elif label not in item['meta']['history']:
+        item['meta']['history'][label] = {
+            key: [val]
+        }
+    elif key not in item['meta']['history'][label]:
+        item['meta']['history'][label][key] = [val]
+    else:
+        key_val = item['meta']['history'][label][key]
+        key_val.append(val)
+        item['meta']['history'][label][key] = key_val
+    Item().save(item)
+    return
+
+
 def _reject_assignment(user, item, whole_item, has_files, comment, task='annotation'):
     """
     reject the item assignment by the user
@@ -566,11 +610,11 @@ def _reject_assignment(user, item, whole_item, has_files, comment, task='annotat
 
     reject_info = {
         'user': uname,
-        'timestamp': datetime.now().strftime("%m/%d/%Y %H:%M")
+        'time': datetime.now().strftime("%m/%d/%Y %H:%M")
     }
     if comment:
         reject_info['comment'] = comment
-    _add_meta_to_region(whole_item, region_label, f'{task}_rejected_by', reject_info)
+    _add_meta_to_history(whole_item, region_label, f'{task}_rejected_by', reject_info)
     return
 
 
@@ -768,6 +812,14 @@ def request_assignment(user, subvolume_id, assignment_key):
             raise RestException('request assigment key is invalid')
 
 
+def _get_rejected_by_info(whole_item, region_label, type='annotation'):
+    key_str = 'annotation_rejected_by' if type == 'annotation' else 'review_rejected_by'
+    if 'history' in whole_item['meta'] and region_label in whole_item['meta']['history'] and \
+        key_str in whole_item['meta']['history'][region_label]:
+        return whole_item['meta']['history'][region_label][key_str]
+    return []
+
+
 def get_item_assignment(user, subvolume_id):
     """
     get region assignment in a subvolume for annotation task. If user has multiple active
@@ -842,9 +894,10 @@ def get_item_assignment(user, subvolume_id):
             # if a region is done, continue to check another region
             continue
         # if a region is rejected by the user, continue to check another region
-        if 'annotation_rejected_by' in val:
-            is_rejected = False
-            for reject_dict in val['annotation_rejected_by']:
+        reject_by_info = _get_rejected_by_info(whole_item, key)
+        is_rejected = False
+        if reject_by_info:
+            for reject_dict in reject_by_info:
                 if reject_dict['user'] == str(user['login']):
                     is_rejected = True
             if is_rejected:
@@ -993,9 +1046,10 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, added_reg
     if done:
         if added_region_ids:
             for id in added_region_ids:
-                reg_item = Item().findOne({'_id': ObjectId(id)})
-                # remove the item now that it has been added into the assignment item
-                Item().remove(reg_item)
+                reg_item = _find_region_from_label(whole_item, str(id))
+                if reg_item:
+                    # remove the item now that it has been added into the assignment item
+                    Item().remove(reg_item)
                 # remove the corresponding region in subvolume whole item since it is added
                 # into the assignment item
                 del whole_item['meta']['regions'][str(id)]
@@ -1009,7 +1063,7 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, added_reg
         region_key = item['meta']['region_label']
         info = {
             'user': uname,
-            'timestamp': datetime.now().strftime("%m/%d/%Y %H:%M")
+            'time': datetime.now().strftime("%m/%d/%Y %H:%M")
         }
         _add_meta_to_region(whole_item, region_key, 'annotation_completed_by', info)
         # check if all regions for the partition is done, and if so add done metadata to whole item
@@ -1075,7 +1129,7 @@ def save_user_review_result_as_item(user, item_id, reject, comment, approve):
     whole_item = Item().save(whole_item)
     info = {
         'user': uname,
-        'timestamp': datetime.now().strftime("%m/%d/%Y %H:%M")
+        'time': datetime.now().strftime("%m/%d/%Y %H:%M")
     }
     _add_meta_to_region(whole_item, region_key, 'review_completed_by', info)
     # check if all regions for the partition is done, and if so add done metadata to whole item
@@ -1135,6 +1189,8 @@ def get_subvolume_item_info(item):
         'description': item['description'],
         'location': item['meta']['coordinates'],
         'total_regions': total_regions,
+        'intensity_ranges': item['meta']['intensity_range_per_slice'],
+        'history': item['meta']['history'] if 'history' in item['meta'] else {}
     }
     annot_done_key = 'annotation_done'
     review_done_key = 'review_done'
@@ -1160,18 +1216,21 @@ def get_subvolume_item_info(item):
     total_regions_at_work = 0
     total_regions_review_approved = 0
     regions_rejected = []
+    if ret_dict['history']:
+        for reg_lbl, history_info in ret_dict['history'].items():
+            if 'annotation_rejected_by' in history_info:
+                for reject_info in history_info['annotation_rejected_by']:
+                    regions_rejected.append({
+                        'info': reject_info,
+                        'id': reg_lbl
+                    })
+    ret_dict['rejected_regions'] = regions_rejected
     annot_completed_key = 'annotation_completed_by'
     review_completed_key = 'review_completed_by'
     total_reviewed_regions_done = 0
     total_reviewed_regions_at_work = 0
+
     for key, val in region_dict.items():
-        if 'annotation_rejected_by' in val:
-            region_item = Item().findOne({'folderId': item['folderId'],
-                                          'name': f'region{key}'})
-            regions_rejected.append({
-                'info': val['annotation_rejected_by'],
-                'id': region_item['_id']
-            })
         if not annot_done:
             if annot_completed_key in val and val[annot_completed_key] == 'true':
                 total_regions_done += 1
@@ -1188,7 +1247,6 @@ def get_subvolume_item_info(item):
             if review_approved_key in val and val[review_approved_key] == 'true':
                 total_regions_review_approved += 1
 
-    ret_dict['rejected_regions'] = regions_rejected
     if annot_done and review_done and review_approved:
         return ret_dict
     if annot_done and review_done:
@@ -1250,14 +1308,12 @@ def get_region_or_assignment_info(item, assignment_key):
             if 'annotation_assigned_to' in region_dict else '',
             'annotation_completed_by': region_dict['annotation_completed_by']
             if 'annotation_completed_by' in region_dict else '',
-            'annotation_rejected_by': region_dict['annotation_rejected_by']
-            if 'annotation_rejected_by' in region_dict else '',
+            'annotation_rejected_by': _get_rejected_by_info(item, region_label_str),
             'review_assigned_to': region_dict['review_assigned_to']
             if 'review_assigned_to' in region_dict else '',
             'review_completed_by': region_dict['review_completed_by']
             if 'review_completed_by' in region_dict else '',
-            'review_rejected_by': region_dict['review_rejected_by']
-            if 'review_rejected_by' in region_dict else '',
+            'review_rejected_by': _get_rejected_by_info(item, region_label_str, type='review'),
         }
     else:
         ret_dict = {
@@ -1269,10 +1325,10 @@ def get_region_or_assignment_info(item, assignment_key):
             'regions': [],
             'annotation_assigned_to': '',
             'annotation_completed_by': '',
-            'annotation_rejected_by': '',
+            'annotation_rejected_by': _get_rejected_by_info(item, region_label_str),
             'review_assigned_to': '',
             'review_completed_by': '',
-            'review_rejected_by': ''
+            'review_rejected_by': _get_rejected_by_info(item, region_label_str, type='review')
         }
 
     if 'removed_region_ids' in item['meta'] and \
@@ -1308,10 +1364,15 @@ def get_region_or_assignment_info(item, assignment_key):
         ret_dict['annotation_assigned_to'] = val['annotation_assigned_to']
         ret_dict['annotation_completed_by'] = val['annotation_completed_by'] \
             if 'annotation_completed_by' in val else ''
-        ret_dict['annotation_rejected_by'] = val['annotation_rejected_by'] \
-            if 'annotation_rejected_by' in val else ''
+        ret_dict['annotation_rejected_by'] = _get_rejected_by_info(item,
+                                                                   str(reg_item['region_label']))
+        ret_dict['review_rejected_by'] = _get_rejected_by_info(item,
+                                                               str(reg_item['region_label']),
+                                                               type='review')
         ret_dict['review_completed_by'] = val['review_completed_by'] \
             if 'review_completed_by' in val else ''
+        ret_dict['review_assigned_to'] = val['review_assigned_to'] \
+            if 'review_assigned_to' in val else ''
         return ret_dict
 
     return ret_dict
@@ -1330,8 +1391,8 @@ def get_all_avail_items_for_review(item):
             avail_item_list.append({
                 'id': val['item_id'],
                 'annotation_completed_by': val['annotation_completed_by'],
-                'annotation_rejected_by': val['annotation_rejected_by']
-                if 'annotation_rejected_by' in val else '',
+                'annotation_rejected_by': _get_rejected_by_info(item, key),
+                'review_rejected_by': _get_rejected_by_info(item, key, type='review'),
                 'annotation_assigned_to': val['annotation_assigned_to']
             })
     return avail_item_list
