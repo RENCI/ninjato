@@ -30,8 +30,6 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
 
   const info = infoResponse.data;
 
-  console.log(info);
-
   // Get files
   const filesResponse = await axios.get(`/item/${ itemId }/files`);
 
@@ -143,7 +141,8 @@ export const api = {
             approved: data.total_review_approved_regions,
             completed: data.total_review_completed_regions
           },
-          rejected: data.rejected_regions
+          rejected: data.rejected_regions,
+          sliceRanges: data.intensity_ranges.map(({ min, max }) => [min, max])
         });      
       }      
       catch (error) {

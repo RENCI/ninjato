@@ -30,7 +30,7 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
 
       widgets.setRenderer(renderWindow.getRenderer());
     },
-    setData: (imageData, maskData) => {
+    setData: (imageData, maskData, sliceRanges) => {
       image.setInputData(imageData);    
       mask.setInputData(maskData);
 
@@ -51,7 +51,7 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
         onSliceChange(z);
       }
 
-      slice.setImage(image.getActor(), renderWindow.getCamera(), onUpdateSlice);
+      slice.setImage(image.getActor(), renderWindow.getCamera(), sliceRanges, onUpdateSlice);
       slice.setSliceByLabel(image.getMapper(), maskData, mask.getActiveLabel());
     },
     setLabels: labels => {

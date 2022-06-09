@@ -3,7 +3,7 @@ import { UserContext, RefineContext } from 'contexts';
 import { useResize } from 'hooks';
 
 export const SliceViewWrapper = ({ sliceView }) => {
-  const [{ imageData, maskData, assignment }] = useContext(UserContext);
+  const [{ imageData, maskData, assignment, volumes }] = useContext(UserContext);
   const [
     { activeLabel, tool, tools, brushes, paintBrush, eraseBrush, createBrush, showContours }
   ] = useContext(RefineContext);
@@ -19,7 +19,7 @@ export const SliceViewWrapper = ({ sliceView }) => {
     }
   }, [initialized, div, width, sliceView]);
 
-  // Labels
+  // Assignment
   useEffect(() => {
     if (initialized) {
       const labels = assignment.regions.map(({ label }) => label);
@@ -30,8 +30,13 @@ export const SliceViewWrapper = ({ sliceView }) => {
 
   // Data
   useEffect(() => {
-    if (initialized && imageData && maskData) sliceView.setData(imageData, maskData);
-  }, [initialized, sliceView, imageData, maskData]);   
+    if (initialized && imageData && maskData) {
+      const volume = volumes.find(({ id }) => id === assignment.subvolumeId);
+      const sliceRanges = volume.sliceRanges.slice(assignment.location.z_min, assignment.location.z_max + 1);
+
+      sliceView.setData(imageData, maskData, sliceRanges);
+    }
+  }, [initialized, sliceView, imageData, maskData, volumes]);   
 
   // Active label
   useEffect(() => {

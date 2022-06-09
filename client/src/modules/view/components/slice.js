@@ -97,13 +97,13 @@ export function Slice(onKeyDown, onKeyUp) {
     
       interactor.onKeyUp(onKeyUp);
     },
-    setImage: (imageActor, camera, onSliceChange) => {
+    setImage: (imageActor, camera, volumeSliceRanges, onSliceChange) => {
       const firstTime = !imageMapper;
 
       imageMapper = imageActor.getMapper();
       const imageData = imageMapper.getInputData(); 
 
-      sliceRanges = getSliceRanges(imageData);      
+      sliceRanges = volumeSliceRanges ?? getSliceRanges(imageData);      
 
       resetCamera(camera, imageData);
 
