@@ -120,6 +120,7 @@ export const api = {
     for (const volume of response.data) {
       try {
         const infoResponse = await axios.get(`/item/${ volume.id }/subvolume_info`);
+console.log(infoResponse);
 
         const { data } = infoResponse;
 
@@ -142,7 +143,8 @@ export const api = {
             completed: data.total_review_completed_regions
           },
           rejected: data.rejected_regions,
-          sliceRanges: data.intensity_ranges.map(({ min, max }) => [min, max])
+          sliceRanges: data.intensity_ranges.map(({ min, max }) => [min, max]),
+          history: data.history
         });      
       }      
       catch (error) {
