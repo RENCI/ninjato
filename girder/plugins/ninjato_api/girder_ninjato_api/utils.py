@@ -310,11 +310,12 @@ def _find_region_from_label(whole_item, region_label):
     return None
 
 
-def _remove_regions(region_list, whole_item):
+def _remove_regions(region_list, whole_item, assigned_item_id):
     """
     remove all regions in region_list
     :param region_list: list of all region ids to be removed
     :param whole_item: whole subvolume item to remove regions from
+    :param assigned_item_id: originally assigned item id
     :return:
     """
     if 'removed_region_ids' in whole_item['meta'] and whole_item['meta']['removed_region_ids']:
@@ -327,8 +328,11 @@ def _remove_regions(region_list, whole_item):
     # delete all the other regions in region_list to be merged
     for i, rid in enumerate(region_list):
         if item_list[i]:
-            Item().remove(item_list[i])
-        del whole_item['meta']['regions'][str(rid)]
+            if str(item_list[i]['_id']) != str(assigned_item_id):
+                Item().remove(item_list[i])
+                del whole_item['meta']['regions'][str(rid)]
+        else:
+            del whole_item['meta']['regions'][str(rid)]
 
     return
 
@@ -1055,7 +1059,7 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, added_reg
                 del whole_item['meta']['regions'][str(id)]
 
         if removed_region_ids:
-            _remove_regions(removed_region_ids, whole_item)
+            _remove_regions(removed_region_ids, whole_item, item_id)
             del item['meta']['removed_region_ids']
 
         del whole_item['meta'][str(uid)]
