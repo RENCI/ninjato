@@ -57,14 +57,14 @@ if __name__ == '__main__':
             # imarray should be in order of ZYX
             imarray = np.array(images)
             print(imarray.shape)
-            range_per_slice = {}
+            range_per_slice = []
             for slice in range(int(imarray.shape[0])):
                 min_intensity = np.min(imarray[slice::])
                 max_intensity = np.max(imarray[slice::])
-                range_per_slice[str(slice)] = {
+                range_per_slice.append({
                     "min": int(min_intensity),
                     "max": int(max_intensity)
-                }
+                })
             meta_dict = {'intensity_range_per_slice': range_per_slice}
             file_name = os.path.basename(file_name_with_path)
             if file_name in file_to_item_id:
