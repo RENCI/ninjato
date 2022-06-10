@@ -7,7 +7,9 @@ const rgb2vtk = ({ r, g, b }) => [r, g, b].map(c => c / 255);
 // Colorbrewer 8-class Set1
 const set1 = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628', '#f781bf'];
 
-const regionColors = set1.map(color => {
+const colors = set1;
+
+const regionColors = colors.map(color => {
   const c = d3.hsl(color);
   
   return {
@@ -66,3 +68,29 @@ export const regionSurfaceColor = (index = null, type = null) => (
 // Store color objects as an object with base color key
 // Decorate regions with color object
 // Update colors function to add color to regions as necessary, and potentially reassign if two have the same color and a different one is available
+
+export const updateColors = regions => {
+  // 1. Remove any colors not in the color palette
+  regions.forEach(region => {
+    if (!colors.includes(region.color)) region.color = null;
+  });
+
+  // 2. Get counts 
+  const counts = colors.map((color, i) => ({ 
+    color: color, 
+    index: i,
+    count: 0
+  }));
+
+  regions.forEach(({ color }) => {
+    count = counts.find(count => count.color === color);
+    if (count) count.count++;
+  });
+
+  // 3. Sort by count, then index
+  counts.sort((a, b) => a.count === b.count ? b.index - a.index : b.count - a.count);
+
+  // 4. Assign colors
+  const index = 0;
+  
+};
