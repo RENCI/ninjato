@@ -83,7 +83,7 @@ export const updateColors = regions => {
   }));
 
   regions.forEach(({ color }) => {
-    count = counts.find(count => count.color === color);
+    const count = counts.find(count => count.color === color);
     if (count) count.count++;
   });
 
