@@ -15,16 +15,16 @@ export const RemoveDialog = () => {
   const [{ action }, refineDispatch] = useContext(RefineContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const loadData = useLoadData();
-  const [claiming, setClaiming] = useState(false);
+  const [removing, setRemoving] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const onConfirm = async () => {
-    setClaiming(true);
+    setRemoving(true);
 
     try {      
-      await api.claimRegion(id, assignment.subvolumeId, assignment.id, action.label);
+      await api.removeRegion(id, assignment.subvolumeId, assignment.id, action.label);
 
-      setClaiming(false);
+      setRemoving(false);
       setSuccess(true);
       
       setTimeout(async () => {
@@ -46,7 +46,7 @@ export const RemoveDialog = () => {
       console.log(error);   
       
       setSuccess(false);
-      setClaiming(false);
+      setRemoving(false);
 
       errorDispatch({ type: SET_ERROR, error: error });
     } 
@@ -59,33 +59,33 @@ export const RemoveDialog = () => {
   return (
     <Modal
       dimmer='blurring'
-      open={ action && action.type === 'claim' }        
+      open={ action && action.type === 'remove' }        
     >
-      <Header>Claim Region</Header>
+      <Header>Remove Region</Header>
       <Content>
-        { claiming ?             
+        { removing ?             
           <>Processing</>
         :  success ?
           <>
             <Icon name='check circle outline' color='green' />
-            Claimed successfully
+            Removed successfully
           </>
         :
-          action && <p>Add region <b>{ action && action.label }</b> to this assignment?</p>
+          action && <p>Remove region <b>{ action && action.label }</b> from this assignment?</p>
         }
       </Content>
       <Actions>
         <Button 
           secondary 
-          disabled={ claiming || success }
+          disabled={ removing || success }
           onClick={ onCancel }
         >
           Cancel
         </Button>
         <Button 
           primary 
-          disabled={ claiming || success }
-          loading={ claiming }
+          disabled={ removing || success }
+          loading={ removing }
           onClick={ onConfirm } 
         >
           Confirm

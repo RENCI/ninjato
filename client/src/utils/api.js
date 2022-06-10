@@ -30,6 +30,8 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
 
   const info = infoResponse.data;
 
+  console.log(info);
+
   // Get files
   const filesResponse = await axios.get(`/item/${ itemId }/files`);
 
@@ -120,6 +122,7 @@ export const api = {
     for (const volume of response.data) {
       try {
         const infoResponse = await axios.get(`/item/${ volume.id }/subvolume_info`);
+
 console.log(infoResponse);
 
         const { data } = infoResponse;
@@ -142,7 +145,6 @@ console.log(infoResponse);
             approved: data.total_review_approved_regions,
             completed: data.total_review_completed_regions
           },
-          rejected: data.rejected_regions,
           sliceRanges: data.intensity_ranges.map(({ min, max }) => [min, max]),
           history: data.history
         });      
@@ -264,6 +266,19 @@ console.log(infoResponse);
     });
 
     if (response.data.status !== 'success') throw new Error(`Error adding region ${ label }`);
+
+    return response.data;
+  },
+  removeRegion: async (userId, subvolumeId, assignmentId, label) => {
+    const response = await axios.post(`/user/${ userId }/remove_region_from_assignment`, null, {
+      params: {
+        subvolume_id: subvolumeId,
+        active_assignment_id: assignmentId,
+        region_id: label
+      }
+    });
+
+    if (response.data.status !== 'success') throw new Error(`Error removing region ${ label }`);
 
     return response.data;
   },

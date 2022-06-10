@@ -49,11 +49,6 @@ const updateAssignment = (a1, a2) => {
     ...a2
   };
 
-  assignment.regions = a1.regions.concat(a2.regions).reduce((regions, region) => {
-    if (!regions.find(({ label }) => label === region.label)) regions.push(region);
-    return regions;
-  }, []);
-
   return assignment;
 };
 
