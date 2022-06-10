@@ -117,7 +117,8 @@ def request_region_assignment(user, subvolume_id, assignment_key):
     .param('reject', 'A boolean True or False to indicate whether the user wants to reject '
                      'annotation assignment. If set to False, annotation will be saved. '
                      'The default is False.', dataType='boolean', default=False, required=False)
-    .param('comment', 'annotation comment added by the user', default='', required=False)
+    .jsonParam('comment', 'annotation comment per region added by the user', required=False)
+    .jsonParam('color', 'color string per region added by the user', required=False)
     .jsonParam('added_region_ids', 'list of region ids to be added. Make sure the list does not '
                                'include the ids of regions in the assignment', required=False,
                requireArray=True, paramType='formData')
@@ -130,14 +131,18 @@ def request_region_assignment(user, subvolume_id, assignment_key):
     .errorResponse('Save action was denied on the user.', 403)
     .errorResponse('Failed to save user annotations', 500)
 )
-def save_user_annotation(user, item_id, done, reject, comment, added_region_ids, removed_region_ids,
-                         content_data):
+def save_user_annotation(user, item_id, done, reject, comment, color, added_region_ids,
+                         removed_region_ids, content_data):
     if added_region_ids is None:
         added_region_ids = []
     if removed_region_ids is None:
         removed_region_ids = []
-    return save_user_annotation_as_item(user, item_id, done, reject, comment, added_region_ids,
-                                        removed_region_ids, content_data)
+    if comment is None:
+        comment = {}
+    if color is None:
+        color = {}
+    return save_user_annotation_as_item(user, item_id, done, reject, comment, color,
+                                        added_region_ids, removed_region_ids, content_data)
 
 
 @access.public
@@ -148,11 +153,13 @@ def save_user_annotation(user, item_id, done, reject, comment, added_region_ids,
     .param('reject', 'A boolean True or False to indicate whether the user wants to reject review '
                      'assignment. If set to False, review result will be saved. '
                      'The default is False.', dataType='boolean', default=False, required=False)
-    .param('comment', 'review comment added by the user', default='', required=False)
+    .jsonParam('comment', 'review comment per region added by the user', required=False)
     .param('approve', 'A boolean True or False to indicate whether the review user approves '
                       'the annotation', dataType='boolean', required=True)
 )
 def save_user_review_result(user, item_id, reject, comment, approve):
+    if comment is None:
+        comment = {}
     return save_user_review_result_as_item(user, item_id, reject, comment, approve)
 
 
