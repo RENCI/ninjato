@@ -388,9 +388,11 @@ def _remove_region_from_active_assignment(whole_item, assign_item, region_id, us
         else:
             del assign_item['meta']['added_region_ids']
     elif region_id == region_levels[0]:
+        print('before raising exception: region_id is the only one being removed', flush=True)
         raise RestException('invalid region id - cannot remove the only region in the assignment',
                             code=400)
     else:
+        print('region id is invalid', flush=True)
         raise RestException('invalid region id', code=400)
 
     item_files = File().find({'itemId': whole_item['_id']})
@@ -542,7 +544,9 @@ def _check_subvolume_done(whole_item, task='annotation'):
 def _remove_assignment_from_history(item, region_id, assign_key):
     for meta_dict in item['meta']['history'][region_id]:
         if meta_dict['type'] == assign_key:
-            del meta_dict['type']
+            item['meta']['history'][region_id].remove(meta_dict)
+            if not item['meta']['history'][region_id]:
+                del item['meta']['history'][region_id]
             return
     return
 
