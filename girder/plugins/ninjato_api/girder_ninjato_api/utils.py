@@ -542,7 +542,9 @@ def _check_subvolume_done(whole_item, task='annotation'):
 def _remove_assignment_from_history(item, region_id, assign_key):
     for meta_dict in item['meta']['history'][region_id]:
         if meta_dict['type'] == assign_key:
-            del meta_dict['type']
+            item['meta']['history'][region_id].remove(meta_dict)
+            if not item['meta']['history'][region_id]:
+                del item['meta']['history'][region_id]
             return
     return
 
