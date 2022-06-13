@@ -5,6 +5,7 @@ import {
   ErrorContext, SET_ERROR
 } from 'contexts';
 import { api } from 'utils/api';
+import { updateColors } from 'utils/colors';
 
 export const useGetAssignments = () => {
   const [, userDispatch] = useContext(UserContext);
@@ -17,6 +18,9 @@ export const useGetAssignments = () => {
         loadingDispatch({ type: SET_LOADING }); 
 
         const assignments = await api.getAssignments(id);
+
+        assignments.forEach(({ regions }) => updateColors(regions));
+
         const volumes = await api.getVolumes();
 
         userDispatch({

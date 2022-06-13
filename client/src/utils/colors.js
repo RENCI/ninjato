@@ -9,10 +9,13 @@ const set1 = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', 
 
 const colors = set1;
 
+// XXX: Conver to object after getting everything implemented
 const regionColors = colors.map(color => {
   const c = d3.hsl(color);
   
   return {
+    base: color,
+
     contour: rgb2vtk(c.brighter(0.8).rgb()),
     contourActive: rgb2vtk(c.rgb()),
     contourHighlight: rgb2vtk(c.brighter(1.2).rgb()),
@@ -20,8 +23,7 @@ const regionColors = colors.map(color => {
     surface: rgb2vtk(c.brighter(0.8).rgb()),
     surfaceActive: rgb2vtk(c.darker(1).rgb()),
     surfaceHighlight: rgb2vtk(c.brighter(1).rgb()),
-    surfaceSlice: [rgb2vtk(c.rgb()), rgb2vtk(c.darker(1).rgb())],
-    hex: color
+    surfaceSlice: [rgb2vtk(c.rgb()), rgb2vtk(c.darker(1).rgb())]
   };
 });
 
@@ -88,9 +90,21 @@ export const updateColors = regions => {
   });
 
   // 3. Sort by count, then index
-  counts.sort((a, b) => a.count === b.count ? b.index - a.index : b.count - a.count);
+  counts.sort((a, b) => a.count === b.count ? b.index - a.index : a.count - b.count);
 
   // 4. Assign colors
-  const index = 0;
-  
+  let index = 0;
+  regions.forEach(region => {
+    if (!region.color) {
+      region.color = counts[index].color;
+      index = (index + 1) % colors.length;
+    }
+  });
+
+  // 5. Decorate with color object
+  regions.forEach(region => {
+    region.colors = regionColors.find(({ base }) => base === region.color);
+  });
+
+  console.log(regions);
 };
