@@ -5,7 +5,7 @@ import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 
 import vtkNinjatoPainter from 'vtk/ninjato-painter';
 import vtkImageContour from 'vtk/image-contour';
-import { backgroundColor } from 'utils/colors';
+import { backgroundColors } from 'utils/colors';
 
 const sliceMode = vtkImageMapper.SlicingMode.K;
 
@@ -32,19 +32,21 @@ export function MaskPainter() {
   actor.getProperty().setLighting(false);
 
   const updateColors = () => {
+    const backgroundColor = backgroundColors.contour;
+
     // Initialize
     color.removeAllPoints();
     color.addRGBPoint(0, 0, 0, 0);
-    color.addRGBPoint(1, ...backgroundColor);
+    color.addRGBPoint(1, ...backgroundColors.contour);
 
     // Set background start and end points between labels
     [...regions, highlightRegion].filter(region => region !== null).forEach(({ label }) => {
-      if (label > 1) color.addRGBPoint(label - 1, ...backgroundColor.contour);
-      color.addRGBPoint(label + 1, ...backgroundColor.contour);
+      if (label > 1) color.addRGBPoint(label - 1, ...backgroundColor);
+      color.addRGBPoint(label + 1, ...backgroundColor);
     });
 
     // Set labels
-    regions.forEach(({ label, colors }) => color.addRGBPoint(label, colors[label === activeLabel ? 'contourActive' : 'contour']));
+    regions.forEach(({ label, colors }) => color.addRGBPoint(label, colors[label === activeRegion.label ? 'contourActive' : 'contour']));
     if (highlightRegion) color.addRGBPoint(highlightRegion.label, highlightRegion.colors.contourHighlight);
 
     // Set z offsets
@@ -72,7 +74,6 @@ export function MaskPainter() {
     },
     setRegions: regionArray => {
       regions = regionArray;
-
       updateColors();
     },
     setActiveRegion: region => {
@@ -84,8 +85,7 @@ export function MaskPainter() {
     },
     getActiveRegion: () => activeRegion,
     setHighlightRegion: region => {
-      highlightRegion = region;
-      
+      highlightRegion = region;      
       updateColors();
     },
     setSlice: slice => contour.setSliceRange([slice, slice]),

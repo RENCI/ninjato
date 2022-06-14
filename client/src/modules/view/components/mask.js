@@ -3,7 +3,7 @@ import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 
 import vtkImageContour from 'vtk/image-contour';
-import { regionContourColor } from 'utils/colors';
+import { backgroundColors } from 'utils/colors';
 
 export function Mask() {      
   let labels = [];
@@ -24,23 +24,23 @@ export function Mask() {
   actor.getProperty().setLighting(false);
 
   const updateColors = () => {
-    const backgroundColor = regionContourColor();
+    const backgroundColor = backgroundColors.contour;
 
     // Initialize
     color.removeAllPoints();
     color.addRGBPoint(0, 0, 0, 0);
-    color.addRGBPoint(1, ...backgroundColor);
+    color.addRGBPoint(1, ...backgroundColors.contour);
 
     // Set background start and end points between labels
-    [...labels, activeLabel, highlightLabel].filter(label => label !== null).forEach(label => {
+    [...regions, highlightRegion].filter(region => region !== null).forEach(({ label }) => {
       if (label > 1) color.addRGBPoint(label - 1, ...backgroundColor);
       color.addRGBPoint(label + 1, ...backgroundColor);
     });
 
-    
     // Set labels
-    labels.forEach((label, i) => color.addRGBPoint(label, ...regionContourColor(i, label === activeLabel ? 'active' : null )));
-    if (highlightLabel) color.addRGBPoint(highlightLabel, ...regionContourColor(labels.indexOf(highlightLabel), 'highlight'));
+    regions.forEach(({ label, colors }) => color.addRGBPoint(label, colors[label === activeLabel ? 'contourActive' : 'contour']));
+    if (highlightRegion) color.addRGBPoint(highlightRegion.label, highlightRegion.colors.contourHighlight);
+
   };
 
   return {
@@ -52,18 +52,18 @@ export function Mask() {
       const [w, h] = maskData.getDimensions();
       contour.setWidth(Math.max(w, h) / 200);
     },
-    setActiveLabel: label => {
-      activeLabel = label;
-      updateColors();
-      contour.setLabelOffsets({[label]: -0.01 });
-    },
-    getActiveLabel: () => activeLabel,
-    setLabels: regionLabels => {
-      labels = regionLabels;
+    setRegions: regionArray => {
+      regions = regionArray;
       updateColors();
     },
-    setHighlightLabel: label => {
-      highlightLabel = label;
+    setActiveRegion: region => {
+      activeRegion = region;
+      updateColors();
+      contour.setLabelOffsets({[region.label]: -0.01 });
+    },
+    getActiveRegion: () => activeRegion,
+    setHighlightRegion: region => {
+      highlightRegion = region;      
       updateColors();
     },
     setSlice: slice => contour.setSliceRange([slice, slice]),

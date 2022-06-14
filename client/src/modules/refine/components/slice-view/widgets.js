@@ -178,7 +178,7 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       handles.select.onEndInteractionEvent(() => {
         const { inRegion, region } = getSelectInfo(widgets.select);
 
-        if (inRegion && region && region !== activeLabel) {
+        if (inRegion && region && region !== activeRegion) {
           onSelect(region, 'select');
         }
       });
@@ -195,7 +195,7 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
         const { inRegion, region } = getSelectInfo(widgets.remove);
 
         if (inRegion && region) {
-          onSelect(label, 'remove');
+          onSelect(region, 'remove');
         }
       });
 
@@ -211,7 +211,7 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
         const { inRegion, region } = getSelectInfo(widgets.split);
 
         if (inRegion && region && region !== activeRegion) {
-          onSelect(label, 'merge');
+          onSelect(region, 'merge');
         }
       });
 

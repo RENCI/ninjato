@@ -1,6 +1,6 @@
 import { RenderWindow, Surface, BoundingBox } from 'modules/view/components';
 import { getUniqueLabels } from 'utils/data';
-import { regionSurfaceColor } from 'utils/colors';
+import { backgroundColors } from 'utils/colors';
 import { interpolate, distance } from 'utils/math';
 
 const resetCamera = (renderer, surface) => {
@@ -89,33 +89,41 @@ const centerCamera = (renderWindow, surface, volume) => {
   }
 };
 
-const applyActiveLabel = (label, regions) => {
-  regions.forEach((region, i) => {
+/*
+const applyActiveRegion = (region, surfaces) => {
+  surfaces.forEach((surface, i) => {
     const labels = region.getLabels();
-    region.setOpaqueColor(regionSurfaceColor(i, labels.length === 1 && labels[0] === label));
+    region.setOpaqueColor(region.color[
+      labels.length === 1 && labels[0] === region.label ? 'surfaceActive' : region.colors[labels.length === 1 && labels[0] === label));
+    ];
   });
 };
+*/
 
 export function VolumeView() {
   const renderWindow = RenderWindow();
 
-  let regions = [];
+  let surfaces = [];
 
-  const getRegion = label => regions.find(region => {
-    const labels = region.getLabels();
-
-    return labels.length === 1 ? labels[0] === label : false;
+  const getSurface = region => surfaces.find(surface => {
+    const labels = surface.getLabels();
+    return labels.length === 1 ? labels[0] === region.label : false;
   });
 
   const background = Surface();
-  background.setTranslucentColors(...regionSurfaceColor());
+  background.setTranslucentColors([...backgroundColors.surface1, ...backgroundColors.surface2]);
 
   const boundingBox = BoundingBox();
 
   const render = renderWindow.render;
 
-  let labels = [];
-  let activeLabel = null;
+  let regions = [];
+  let activeRegion = null;
+
+  const getRegion = surface => {
+    const labels = surface.getLabels();
+    return labels.length === 1 ? regions.find(({ label }) => label === labels[0]) : null;
+  };
 
   let slice = -1;
 
@@ -129,46 +137,46 @@ export function VolumeView() {
       if (maskData) {
         const allLabels = getUniqueLabels(maskData);
 
-        background.setLabels(allLabels.filter(label => !labels.includes(label)));
+        background.setLabels(allLabels.filter(label => !regions.find(region => region.label === label)));
 
-        regions.forEach(region => region.setInputData(maskData));
+        surfaces.forEach(surface => surface.setInputData(maskData));
         background.setInputData(maskData);
         boundingBox.setData(maskData);
 
         const renderer = renderWindow.getRenderer();
-        regions.forEach(region => renderer.addActor(region.getActor()));
+        surfaces.forEach(surface => renderer.addActor(surface.getActor()));
         renderer.addActor(background.getActor());
         renderer.addActor(boundingBox.getActor());
       } 
       else {
         const renderer = renderWindow.getRenderer();
-        regions.forEach(region => renderer.removeActor(region.getActor()));
+        surfaces.forEach(surface => renderer.removeActor(surface.getActor()));
         renderer.removeActor(background.getActor());
         renderer.removeActor(boundingBox.getActor());
       }
 
-      if (!activeLabel && labels.length > 0) {
-        activeLabel = labels[0];
+      if (!activeRegion && regions.length > 0) {
+        activeRegion = regions[0];
 
-        applyActiveLabel(activeLabel, regions);
+//        applyActiveRegion(activeRegion, surfaces);
 
-        resetCamera(renderWindow.getRenderer(), getRegion(activeLabel).getOutput());
+        resetCamera(renderWindow.getRenderer(), getSurface(activeRegion).getOutput());
       }
     },
-    setLabels: regionLabels => {
-      // Clean up any old regions
-      regions.forEach(region => region.cleanUp());
+    setRegions: regionArray => {
+      // Clean up any old surfaces
+      surfaces.forEach(surface => surface.cleanUp());
 
-      labels = regionLabels;
+      regions = regionArray;
 
-      // Create surfaces for each label
-      regions = labels.map((label, i) => {
-        const region = Surface();
-        region.setOpaqueColor(regionSurfaceColor(i));
-        region.setSliceHighlight(true);
-        region.setLabels([label]);
+      // Create surfaces for each region
+      surfaces = regions.map(region => {
+        const surface = Surface();
+        surface.setOpaqueColor(region.colors.surface);
+        surface.setSliceHighlight(true);
+        surface.setLabels([region.label]);
 
-        return region;
+        return surface;
       });
 
       const data = background.getInputData();
@@ -176,37 +184,45 @@ export function VolumeView() {
       if (data) {
         const renderer = renderWindow.getRenderer();
 
-        regions.forEach((region, i) => {
-          region.setInputData(data);     
-          renderer.addActor(region.getActor());
+        surfaces.forEach((surface, i) => {
+          surface.setInputData(data);     
+          renderer.addActor(surface.getActor());
 
           if (slice >= 0) {
-            region.setSlice(slice, regionSurfaceColor(i, 'slice'));
+            const region = getRegion(surface);
+            if (region) surface.setSlice(slice, region.colors.slice);
           }
         });
       }
     },
-    setActiveLabel: label => {
-      activeLabel = label;
+    setActiveRegion: region => {
+      activeRegion = region;
+
+      const surface = getSurface(region);
       
-      if (!getRegion(label)) return;
+      if (!surface) return;
 
-      applyActiveLabel(label, regions, renderWindow);
+//      applyActiveRegion(, regions, renderWindow);
 
-      centerCamera(renderWindow, getRegion(label).getOutput(), background.getInputData());
+      centerCamera(renderWindow, surface.getOutput(), background.getInputData());
     },
     //setHighlightLabel: label => mask.setHighlightLabel(label),
     setSlice: sliceNumber => {
       slice = sliceNumber;
-      regions.forEach((region, i) => region.setSlice(slice, regionSurfaceColor(i, 'slice')));
+      surfaces.forEach(surface => {
+        const region = getRegion(surface);
+        if (region) surface.setSlice(slice, region.colors.slice);
+      });
     },
     setShowBackground: show => {
       background.getActor().setVisibility(show);
     },
     centerCamera: () => {
-      if (!getRegion(activeLabel)) return;
+      const surface = getSurface(activeRegion);
 
-      centerCamera(renderWindow, getRegion(activeLabel).getOutput(), background.getInputData());
+      if (!surface) return;
+
+      centerCamera(renderWindow, surface.getOutput(), background.getInputData());
     },
     render: onRendered => {
       render();

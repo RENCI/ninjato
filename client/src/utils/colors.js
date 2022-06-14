@@ -29,7 +29,7 @@ const regionColors = colors.reduce((colors, color) => {
   };
 }, {});
 
-export const backgroundColor = {
+export const backgroundColors = {
   contour: [0.5, 0.5, 0.5],
   contourHighlight: [0.8, 0.8, 0.8],
   surface1: [0.2, 0.2, 0.2],
