@@ -5,14 +5,14 @@ import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 
 import vtkNinjatoPainter from 'vtk/ninjato-painter';
 import vtkImageContour from 'vtk/image-contour';
-import { regionContourColor } from 'utils/colors';
+import { backgroundColor } from 'utils/colors';
 
 const sliceMode = vtkImageMapper.SlicingMode.K;
 
 export function MaskPainter() {      
-  let labels = [];
-  let activeLabel = null;
-  let highlightLabel = null;
+  let regions = [];
+  let activeRegion = null;
+  let highlightRegion = null;
 
   const painter = vtkNinjatoPainter.newInstance();
   painter.setSlicingMode(sliceMode);
@@ -32,31 +32,29 @@ export function MaskPainter() {
   actor.getProperty().setLighting(false);
 
   const updateColors = () => {
-    const backgroundColor = regionContourColor();
-
     // Initialize
     color.removeAllPoints();
     color.addRGBPoint(0, 0, 0, 0);
     color.addRGBPoint(1, ...backgroundColor);
 
     // Set background start and end points between labels
-    [...labels, highlightLabel].filter(label => label !== null).forEach(label => {
-      if (label > 1) color.addRGBPoint(label - 1, ...backgroundColor);
-      color.addRGBPoint(label + 1, ...backgroundColor);
+    [...regions, highlightRegion].filter(region => region !== null).forEach(({ label }) => {
+      if (label > 1) color.addRGBPoint(label - 1, ...backgroundColor.contour);
+      color.addRGBPoint(label + 1, ...backgroundColor.contour);
     });
 
     // Set labels
-    labels.forEach((label, i) => color.addRGBPoint(label, ...regionContourColor(i, label === activeLabel ? 'active' : null )));
-    if (highlightLabel) color.addRGBPoint(highlightLabel, ...regionContourColor(labels.indexOf(highlightLabel), 'highlight'));
+    regions.forEach(({ label, colors }) => color.addRGBPoint(label, colors[label === activeLabel ? 'contourActive' : 'contour']));
+    if (highlightRegion) color.addRGBPoint(highlightRegion.label, highlightRegion.colors.contourHighlight);
 
     // Set z offsets
-    const offsets = labels.reduce((offsets, label) => {
+    const offsets = regions.reduce((offsets, { label }) => {
       offsets[label] = -0.01;
       return offsets;
     }, {});
 
-    if (activeLabel) offsets[activeLabel] = -0.02;
-    if (highlightLabel) offsets[highlightLabel] = -0.03;
+    if (activeRegion) offsets[activeRegion.label] = -0.02;
+    if (highlightRegion) offsets[highlightRegion.label] = -0.03;
 
     contour.setLabelOffsets(offsets);
   };
@@ -66,27 +64,27 @@ export function MaskPainter() {
     getActor: () => actor,
     getMapper: () => mapper,
     setInputData: maskData => {
-      painter.setBackgroundImage(maskData, labels);
+      painter.setBackgroundImage(maskData, regions.map(({ label }) => label));
       painter.setLabelMap(maskData);
 
       const [w, h] = maskData.getDimensions();
       contour.setWidth(Math.max(w, h) / 200);
     },
-    setLabels: regionLabels => {
-      labels = regionLabels;
+    setRegions: regionArray => {
+      regions = regionArray;
 
       updateColors();
     },
-    setActiveLabel: label => {
-      activeLabel = label;
+    setActiveRegion: region => {
+      activeRegion = region;
 
-      painter.setLabel(label);
+      painter.setLabel(region.label);
 
       updateColors();            
     },
-    getActiveLabel: () => activeLabel,
-    setHighlightLabel: label => {
-      highlightLabel = label;
+    getActiveRegion: () => activeRegion,
+    setHighlightRegion: region => {
+      highlightRegion = region;
       
       updateColors();
     },

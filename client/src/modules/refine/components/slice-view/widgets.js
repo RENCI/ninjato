@@ -4,7 +4,6 @@ import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants'
 import vtkBrushWidget from 'vtk/brush-widget';
 import vtkCropWidget from 'vtk/crop-widget';
 import vtkRegionSelectWidget from 'vtk/region-select-widget';
-import { regionContourColor } from 'utils/colors';
 
 const setBrush = (handle, brush) => {  
   handle.getRepresentations()[0].setBrush(brush);
@@ -38,8 +37,20 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
 
   let activeWidget = null; 
 
-  let labels = [];
-  let activeLabel = null;
+  let regions = [];
+  let activeRegion = null;
+
+  const getRegion = label => regions.find(region => region.label === label);
+
+  const getSelectInfo = widget => {
+    const startLabel = widget.getStartLabel();
+    const label = widget.getLabel();
+
+    return {
+      inRegion: (startLabel === null || label === startLabel) && label !== 0,
+      region: getRegion(label)
+    };
+  };
 
   return {
     setRenderer: renderer => {
@@ -60,17 +71,10 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
 
       // Interaction
       handles.select.onInteractionEvent(() => {
-        const widget = widgets.select;
+        const { inRegion, region } = getSelectInfo(widgets.select);
 
-        const startLabel = widget.getStartLabel();
-        const label = widget.getLabel();
-
-        if (
-          (startLabel === null || label === startLabel) &&           
-          labels.includes(label) && 
-          label !== activeLabel
-        ) {
-          onHover(label);
+        if (inRegion && region && region !== activeRegion) {
+          onHover(region);
         }
         else {
           onHover(null);
@@ -78,17 +82,10 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       });
 
       handles.claim.onInteractionEvent(() => {
-        const widget = widgets.claim;
+        const { inRegion, region } = getSelectInfo(widgets.claim);
 
-        const startLabel = widget.getStartLabel();
-        const label = widget.getLabel();
-
-        if (
-          (startLabel === null || label === startLabel) &&   
-          label !== 0 &&
-          !labels.includes(label)
-        ) {          
-          onHover(label);
+        if (inRegion && !region) {          
+          onHover(region);
         }
         else {
           onHover(null);
@@ -96,17 +93,10 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       });
 
       handles.remove.onInteractionEvent(() => {
-        const widget = widgets.remove;
+        const { inRegion, region } = getSelectInfo(widgets.remove);
 
-        const startLabel = widget.getStartLabel();
-        const label = widget.getLabel();
-
-        if (
-          (startLabel === null || label === startLabel) &&   
-          label !== 0 &&
-          labels.includes(label)
-        ) {          
-          onHover(label);
+        if (inRegion && region) {          
+          onHover(region);
         }
         else {
           onHover(null);
@@ -114,16 +104,10 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       });
 
       handles.split.onInteractionEvent(() => {
-        const widget = widgets.split;
+        const { inRegion, region } = getSelectInfo(widgets.split);
 
-        const startLabel = widget.getStartLabel();
-        const label = widget.getLabel();
-
-        if (
-          (startLabel === null || label === startLabel) &&           
-          labels.includes(label)
-        ) {          
-          onHover(label);
+        if (inRegion && region) {          
+          onHover(region);
         }
         else {
           onHover(null);
@@ -131,17 +115,10 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       });
 
       handles.merge.onInteractionEvent(() => {
-        const widget = widgets.merge;
+        const { inRegion, region } = getSelectInfo(widgets.split);
 
-        const startLabel = widget.getStartLabel();
-        const label = widget.getLabel();
-
-        if (
-          (startLabel === null || label === startLabel) &&           
-          labels.includes(label) && 
-          label !== activeLabel
-        ) {          
-          onHover(label);
+        if (inRegion && region && region !== activeRegion) {          
+          onHover(region);
         }
         else {
           onHover(null);
@@ -149,16 +126,10 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       });
 
       handles.delete.onInteractionEvent(() => {
-        const widget = widgets.delete;
+        const { inRegion, region } = getSelectInfo(widgets.split);
 
-        const startLabel = widget.getStartLabel();
-        const label = widget.getLabel();
-
-        if (
-          (startLabel === null || label === startLabel) &&           
-          labels.includes(label)
-        ) {          
-          onHover(label);
+        if (inRegion && region) {          
+          onHover(region);
         }
         else {
           onHover(null);
@@ -205,80 +176,41 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       });
 
       handles.select.onEndInteractionEvent(() => {
-        const widget = widgets.select;
+        const { inRegion, region } = getSelectInfo(widgets.select);
 
-        const startLabel = widget.getStartLabel();
-        const label = widget.getLabel();
-
-        if (
-          startLabel !== null && 
-          label === startLabel &&           
-          labels.includes(label) && 
-          label !== activeLabel
-        ) {
-          onSelect(label, 'select');
+        if (inRegion && region && region !== activeLabel) {
+          onSelect(region, 'select');
         }
       });
 
       handles.claim.onEndInteractionEvent(() => {
-        const widget = widgets.claim;
+        const { inRegion, region } = getSelectInfo(widgets.claim);
 
-        const startLabel = widget.getStartLabel();
-        const label = widget.getLabel();
-
-        if (
-          startLabel !== null && 
-          label === startLabel && 
-          label !== 0 &&
-          !labels.includes(label)
-        ) {
-          onSelect(label, 'claim');
+        if (inRegion && !region) {
+          onSelect(region, 'claim');
         }
       });
 
       handles.remove.onEndInteractionEvent(() => {
-        const widget = widgets.remove;
+        const { inRegion, region } = getSelectInfo(widgets.remove);
 
-        const startLabel = widget.getStartLabel();
-        const label = widget.getLabel();
-
-        if (
-          startLabel !== null && 
-          label === startLabel && 
-          label !== 0 &&
-          labels.includes(label)
-        ) {
+        if (inRegion && region) {
           onSelect(label, 'remove');
         }
       });
 
       handles.split.onEndInteractionEvent(() => {
-        const widget = widgets.split;
+        const { inRegion, region } = getSelectInfo(widgets.split);
 
-        const startLabel = widget.getStartLabel();
-        const label = widget.getLabel();
-
-        if (
-          startLabel !== null && 
-          label === startLabel &&           
-          labels.includes(label)
-        ) {
-          onSelect(label, 'split');
+        if (inRegion && region) {
+          onSelect(region, 'split');
         }
       });
 
       handles.merge.onEndInteractionEvent(() => {
-        const widget = widgets.merge;
+        const { inRegion, region } = getSelectInfo(widgets.split);
 
-        const startLabel = widget.getStartLabel();
-        const label = widget.getLabel();
-
-        if (
-          startLabel !== null && 
-          label === startLabel &&           
-          labels.includes(label) && 
-          label !== activeLabel
-        ) {
+        if (inRegion && region && region !== activeRegion) {
           onSelect(label, 'merge');
         }
       });
@@ -288,17 +220,10 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       });
 
       handles.delete.onEndInteractionEvent(() => {
-        const widget = widgets.delete;
+        const { inRegion, region } = getSelectInfo(widgets.split);
 
-        const startLabel = widget.getStartLabel();
-        const label = widget.getLabel();
-
-        if (
-          startLabel !== null && 
-          label === startLabel &&           
-          labels.includes(label)
-        ) {
-          onSelect(label, 'delete');
+        if (inRegion && region) {
+          onSelect(region, 'delete');
         }
       });
     },
@@ -329,13 +254,13 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       });      
     },
     setBrush: (type, brush) => setBrush(handles[type], brush),
-    setLabels: regionLabels => {
-      labels = regionLabels;
+    setRegions: regionArray => {
+      regions = regionArray;
     },
-    setActiveLabel: label => {
-      activeLabel = label;
+    setActiveRegion: region => {
+      activeRegion = region;
 
-      const color = regionContourColor(labels.indexOf(label));
+      const color = region.colors.contourActive;
       setColor(handles.paint, color);
       setColor(handles.erase, color);
       setColor(handles.crop, color);

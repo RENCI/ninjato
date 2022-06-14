@@ -9,33 +9,34 @@ const set1 = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', 
 
 const colors = set1;
 
-// XXX: Conver to object after getting everything implemented
-const regionColors = colors.map(color => {
+const regionColors = colors.reduce((colors, color) => {
   const c = d3.hsl(color);
   
   return {
-    base: color,
+    ...colors,
+    color: {
+      base: color,
 
-    contour: rgb2vtk(c.brighter(0.8).rgb()),
-    contourActive: rgb2vtk(c.rgb()),
-    contourHighlight: rgb2vtk(c.brighter(1.2).rgb()),
+      contour: rgb2vtk(c.brighter(0.8).rgb()),
+      contourActive: rgb2vtk(c.rgb()),
+      contourHighlight: rgb2vtk(c.brighter(1.2).rgb()),
 
-    surface: rgb2vtk(c.brighter(0.8).rgb()),
-    surfaceActive: rgb2vtk(c.darker(1).rgb()),
-    surfaceHighlight: rgb2vtk(c.brighter(1).rgb()),
-    surfaceSlice: [rgb2vtk(c.rgb()), rgb2vtk(c.darker(1).rgb())]
+      surface: rgb2vtk(c.brighter(0.8).rgb()),
+      surfaceActive: rgb2vtk(c.darker(1).rgb()),
+      surfaceHighlight: rgb2vtk(c.brighter(1).rgb()),
+      surfaceSlice: [rgb2vtk(c.rgb()), rgb2vtk(c.darker(1).rgb())]
+    }
   };
-});
+}, {});
 
-const getIndexColor = index => regionColors[index % regionColors.length];
-
-const backgroundColor = {
+export const backgroundColor = {
   contour: [0.5, 0.5, 0.5],
   contourHighlight: [0.8, 0.8, 0.8],
   surface1: [0.2, 0.2, 0.2],
   surface2: [0.8, 0.8, 0.8]
 };
 
+/*
 // Contour
 
 export const regionContourColor = (index = null, type = null) => (
@@ -63,13 +64,7 @@ export const regionSurfaceColor = (index = null, type = null) => (
     ]
 );
 
-
-
-// XXX: TODO
-// Store base color per region
-// Store color objects as an object with base color key
-// Decorate regions with color object
-// Update colors function to add color to regions as necessary, and potentially reassign if two have the same color and a different one is available
+*/
 
 export const updateColors = regions => {
   // 1. Remove any colors not in the color palette
@@ -77,16 +72,26 @@ export const updateColors = regions => {
     if (!colors.includes(region.color)) region.color = null;
   });
 
-  // 2. Get counts 
+  // 2. Get counts and remove excess colors
   const counts = colors.map((color, i) => ({ 
     color: color, 
     index: i,
     count: 0
   }));
 
-  regions.forEach(({ color }) => {
-    const count = counts.find(count => count.color === color);
-    if (count) count.count++;
+  const maxCount = Math.ceil(regions.length / colors.length);
+
+  regions.forEach(region => {
+    const count = counts.find(count => count.color === region.color);
+
+    if (!count) return;
+
+    if (count.count < maxCount) {
+      count.count++;
+    }
+    else {
+      region.color = null;
+    }
   });
 
   // 3. Sort by count, then index
@@ -103,8 +108,6 @@ export const updateColors = regions => {
 
   // 5. Decorate with color object
   regions.forEach(region => {
-    region.colors = regionColors.find(({ base }) => base === region.color);
+    region.colors = regionColors[region.color];
   });
-
-  console.log(regions);
 };
