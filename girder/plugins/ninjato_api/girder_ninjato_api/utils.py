@@ -357,12 +357,12 @@ def _remove_region_from_active_assignment(whole_item, assign_item, region_id, us
             Item().save(assign_item)
             return True
     if 'added_region_ids' in assign_item['meta']:
-        rid_list = assign_item['meta']['added_region_ids']
-        if region_id in rid_list:
-            rid_list.remove(region_id)
+        aid_list = assign_item['meta']['added_region_ids']
+        if region_id in aid_list:
+            aid_list.remove(region_id)
         elif region_id == region_levels[0]:
             # remove the initial assigned region
-            region_levels[0] = str(rid_list[0])
+            region_levels[0] = str(aid_list[0])
             assign_item['meta']['region_label'] = region_levels[0]
             assign_item['name'] = f'region{region_levels[0]}'
             # update history to replace assignment metaata for remove region with the first
@@ -379,12 +379,12 @@ def _remove_region_from_active_assignment(whole_item, assign_item, region_id, us
             del whole_item['meta']['regions'][region_id]['item_id']
             whole_item = Item().save(whole_item)
             assign_item = Item().save(assign_item)
-            rid_list = rid_list[1:]
+            aid_list = aid_list[1:]
         else:
             raise RestException('invalid region id', code=400)
-        if rid_list:
-            assign_item['meta']['added_region_ids'] = rid_list
-            region_levels += rid_list
+        if aid_list:
+            assign_item['meta']['added_region_ids'] = aid_list
+            region_levels += aid_list
         else:
             del assign_item['meta']['added_region_ids']
     elif region_id == region_levels[0]:
@@ -413,40 +413,38 @@ def _remove_region_from_active_assignment(whole_item, assign_item, region_id, us
         min_x_ary = []
         max_x_ary = []
         # find the range after the region is removed from the assigned item
+        x_range, y_range, z_range = _get_range(whole_item)
         for lev in range(min_level, max_level + 1):
             if str(lev) not in region_levels:
                 continue
             level_indices = np.where(imarray == lev)
-            min_z_ary.append(min(level_indices[0]))
-            max_z_ary.append(max(level_indices[0]))
-            min_y_ary.append(min(level_indices[1]))
-            max_y_ary.append(max(level_indices[1]))
-            min_x_ary.append(min(level_indices[2]))
-            max_x_ary.append(max(level_indices[2]))
+            min_z = min(level_indices[0])
+            max_z = max(level_indices[0])
+            min_y = min(level_indices[1])
+            max_y = max(level_indices[1])
+            min_x = min(level_indices[2])
+            max_x = max(level_indices[2])
+            min_x, max_x, min_y, max_y, min_z, max_z = _get_buffered_extent(
+                min_x, max_x, min_y, max_y, min_z, max_z, x_range, y_range, z_range)
+            min_z_ary.append(min_z)
+            max_z_ary.append(max_z)
+            min_y_ary.append(min_y)
+            max_y_ary.append(max_y)
+            min_x_ary.append(min_x)
+            max_x_ary.append(max_x)
         min_z = min(min_z_ary)
         max_z = max(max_z_ary)
         min_y = min(min_y_ary)
         max_y = max(max_y_ary)
         min_x = min(min_x_ary)
         max_x = max(max_x_ary)
-        x_range, y_range, z_range = _get_range(whole_item)
-        min_x, max_x, min_y, max_y, min_z, max_z = _get_buffered_extent(
-            min_x, max_x, min_y, max_y, min_z, max_z, x_range, y_range, z_range)
-
-        ori_min_x = assign_item['meta']['coordinates']['x_min']
-        ori_max_x = assign_item['meta']['coordinates']['x_max']
-        ori_min_y = assign_item['meta']['coordinates']['y_min']
-        ori_max_y = assign_item['meta']['coordinates']['y_max']
-        ori_min_z = assign_item['meta']['coordinates']['z_min']
-        ori_max_z = assign_item['meta']['coordinates']['z_max']
-
         assign_item['meta']['coordinates'] = {
-            "x_max": min(max_x, ori_max_x),
-            "x_min": max(min_x , ori_min_x),
-            "y_max": min(max_y, ori_max_y),
-            "y_min": max(min_y, ori_min_y),
-            "z_max": min(max_z, ori_max_z),
-            "z_min": max(min_z, ori_min_z)
+            "x_max": max_x,
+            "x_min": min_x,
+            "y_max": max_y,
+            "y_min": min_y,
+            "z_max": max_z,
+            "z_min": min_z
         }
         assign_item = Item().save(assign_item)
         # update assign_item based on updated extent that has region removed
