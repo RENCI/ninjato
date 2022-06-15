@@ -95,7 +95,7 @@ export const updateColors = regions => {
   });
 
   // 3. Sort by count, then index
-  counts.sort((a, b) => a.count === b.count ? b.index - a.index : a.count - b.count);
+  counts.sort((a, b) => a.count === b.count ? a.index - b.index : a.count - b.count);
 
   // 4. Assign colors
   let index = 0;
