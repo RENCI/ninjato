@@ -2,7 +2,7 @@ import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { 
   UserContext, REMOVE_REGION,
-  RefineContext, REFINE_SET_ACTION, REFINE_SET_ACTIVE_LABEL, REFINE_SET_TOOL
+  RefineContext, REFINE_SET_ACTION, REFINE_SET_ACTIVE_REGION, REFINE_SET_TOOL
 } from 'contexts';
 
 const { Header, Content, Actions } = Modal;
@@ -30,13 +30,13 @@ export const DeleteDialog = ({ sliceView }) => {
       const { regions } = assignment;
 
       if (regions.length === 1) {
-        refineDispatch({ type: REFINE_SET_ACTIVE_LABEL, label: null });
+        refineDispatch({ type: REFINE_SET_ACTIVE_REGION, region: null });
         refineDispatch({ type: REFINE_SET_TOOL, tool: 'create' });
       }
       else if (action.label === activeLabel) {
-        const newLabel = regions.length > 0 ? regions[0].label : null;
+        const region = regions.length > 0 ? regions[0] : null;
 
-        refineDispatch({ type: REFINE_SET_ACTIVE_LABEL, label: newLabel })
+        refineDispatch({ type: REFINE_SET_ACTIVE_REGION, region: region })
       }
     }, 1000);
   };

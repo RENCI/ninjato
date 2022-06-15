@@ -3,7 +3,7 @@ import {
   UserContext, SET_DATA,
   RefineContext, REFINE_RESET,
   LoadingContext, SET_LOADING, CLEAR_LOADING,
-  ErrorContext, SET_ERROR, REFINE_SET_ACTIVE_LABEL 
+  ErrorContext, SET_ERROR, REFINE_SET_ACTIVE_REGION 
 } from 'contexts';
 import { api } from 'utils/api';
 import { decodeTIFF } from 'utils/data-conversion';
@@ -49,8 +49,8 @@ export const useLoadData = ()  => {
         });
 
         refineDispatch({
-          type: REFINE_SET_ACTIVE_LABEL,
-          label: regions.length > 0 ? regions[0].label : null
+          type: REFINE_SET_ACTIVE_REGION,
+          region: regions.length > 0 ? regions[0] : null
         });
       }
       else {
@@ -61,8 +61,8 @@ export const useLoadData = ()  => {
         });
 
         refineDispatch({
-          type: REFINE_SET_ACTIVE_LABEL,
-          label: regions.length > 0 ? regions[regions.length - 1].label : null
+          type: REFINE_SET_ACTIVE_REGION,
+          region: regions.length > 0 ? regions[regions.length - 1] : null
         });
       }
 

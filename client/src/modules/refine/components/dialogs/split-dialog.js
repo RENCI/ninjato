@@ -2,7 +2,7 @@ import { useContext, useState } from 'react';
 import { Button, Modal, Icon, Select } from 'semantic-ui-react';
 import { 
   UserContext, ADD_REGION,
-  RefineContext, REFINE_SET_ACTION, REFINE_SET_ACTIVE_LABEL,
+  RefineContext, REFINE_SET_ACTION, REFINE_SET_ACTIVE_REGION,
   ErrorContext, SET_ERROR
 } from 'contexts';
 import { api } from 'utils/api';
@@ -32,10 +32,14 @@ export const SplitDialog = ({ sliceView }) => {
 
       await sliceView.splitRegion(action.label, label, splitMode);
 
+/*
+XXX: Move to useEffect?
+
       refineDispatch({ 
-        type: REFINE_SET_ACTIVE_LABEL, 
+        type: REFINE_SET_ACTIVE_REGION, 
         label: splitMode === 'top' ? action.label : label 
       });
+*/
 
       setTimeout(() => {
         setSuccess(false);

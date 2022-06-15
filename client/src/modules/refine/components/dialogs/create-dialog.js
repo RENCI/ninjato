@@ -1,8 +1,8 @@
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { 
   UserContext, ADD_REGION,
-  RefineContext, REFINE_SET_ACTION, REFINE_SET_ACTIVE_LABEL,
+  RefineContext, REFINE_SET_ACTION, REFINE_SET_ACTIVE_REGION,
   ErrorContext, SET_ERROR
 } from 'contexts';
 import { api } from 'utils/api';
@@ -17,6 +17,15 @@ export const CreateDialog = ({ sliceView }) => {
   const [success, setSuccess] = useState(false);
   const [newLabel, setNewLabel] = useState();
 
+  useEffect(() => {  
+    // Set active region after it is created   
+    const region = assignment.regions.find(({ label }) => label === newLabel);
+    
+    if (region) {
+      refineDispatch({ type: REFINE_SET_ACTIVE_REGION, region: region });
+    }
+  }, [newLabel, assignment, refineDispatch]);
+
   const onConfirm = async () => {
     setCreating(true);
 
@@ -30,8 +39,6 @@ export const CreateDialog = ({ sliceView }) => {
       userDispatch({ type: ADD_REGION, label: label });
 
       await sliceView.createRegion(label);
-      
-      refineDispatch({ type: REFINE_SET_ACTIVE_LABEL, label: label });
 
       setTimeout(async () => {
         setSuccess(false);

@@ -4,7 +4,7 @@ import { useResize } from 'hooks';
 
 export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
   const [{ maskData, assignment }] = useContext(UserContext);
-  const [{ activeLabel, showBackground }] = useContext(RefineContext);
+  const [{ activeRegion, showBackground }] = useContext(RefineContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);
   const { width } = useResize(div);
@@ -17,12 +17,10 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
     }
   }, [initialized, div, width, volumeView]);
 
-  // Labels
+  // Regions
   useEffect(() => {
     if (initialized) {
-      const labels = assignment.regions.map(({ label }) => label);
-
-      volumeView.setLabels(labels);
+      volumeView.setRegions(assignment.regions);
     }
   }, [initialized, volumeView, assignment]); 
 
@@ -36,8 +34,8 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
 
   // Active label
   useEffect(() => {
-    if (initialized) volumeView.setActiveLabel(activeLabel);
-  }, [initialized, volumeView, activeLabel]);
+    if (initialized) volumeView.setActiveRegion(activeRegion);
+  }, [initialized, volumeView, activeRegion]);
 
   // Show background
   useEffect(() => {

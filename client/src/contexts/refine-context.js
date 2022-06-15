@@ -6,7 +6,7 @@ export const REFINE_SET_BRUSH = 'refine/REFINE_SET_BRUSH';
 export const REFINE_CHANGE_BRUSH_SIZE = 'refine/REFINE_CHANGE_BRUSH_SIZE';
 export const REFINE_SET_CONTROL = 'refine/SET_SHOW_BACKGROUND';
 export const REFINE_SET_ACTION = 'refine/SET_ACTION';
-export const REFINE_SET_ACTIVE_LABEL = 'refine/SET_ACTIVE_LABEL';
+export const REFINE_SET_ACTIVE_REGION = 'refine/SET_ACTIVE_REGION';
 export const REFINE_RESET = 'refine/RESET';
 
 const tools = [
@@ -55,7 +55,7 @@ const brushes = [
 ];
 
 const initialState = {
-  activeLabel: null,
+  activeRegion: null,
   tool: 'paint',
   tools: tools,
   brushes: brushes,
@@ -69,10 +69,10 @@ const initialState = {
 
 const reducer = (state, action) => {
   switch (action.type) {
-    case REFINE_SET_ACTIVE_LABEL:
+    case REFINE_SET_ACTIVE_REGION:
       return {
         ...state,
-        activeLabel: action.label
+        activeRegion: action.region
       };
 
     case REFINE_SET_TOOL:

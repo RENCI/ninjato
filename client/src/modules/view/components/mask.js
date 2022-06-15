@@ -5,10 +5,10 @@ import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 import vtkImageContour from 'vtk/image-contour';
 import { backgroundColors } from 'utils/colors';
 
-export function Mask() {      
-  let labels = [];
-  let activeLabel = null;
-  let highlightLabel = null;
+export function Mask() {        
+  let regions = [];
+  let activeRegion = null;
+  let highlightRegion = null;
 
   const contour = vtkImageContour.newInstance();
 
@@ -38,9 +38,8 @@ export function Mask() {
     });
 
     // Set labels
-    regions.forEach(({ label, colors }) => color.addRGBPoint(label, colors[label === activeLabel ? 'contourActive' : 'contour']));
+    regions.forEach(({ label, colors }) => color.addRGBPoint(label, colors[label === activeRegion.label ? 'contourActive' : 'contour']));
     if (highlightRegion) color.addRGBPoint(highlightRegion.label, highlightRegion.colors.contourHighlight);
-
   };
 
   return {

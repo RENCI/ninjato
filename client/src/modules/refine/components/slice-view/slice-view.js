@@ -52,24 +52,24 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
       }
 
       slice.setImage(image.getActor(), renderWindow.getCamera(), sliceRanges, onUpdateSlice);
-      slice.setSliceByLabel(image.getMapper(), maskData, mask.getActiveLabel());
+      slice.setSliceByLabel(image.getMapper(), maskData, mask.getActiveRegion().label);
     },
-    setLabels: labels => {
-      mask.setLabels(labels);
-      widgets.setLabels(labels);
+    setRegions: regions => {
+      mask.setRegions(regions);
+      widgets.setRegions(regions);
 
-      if (!mask.getActiveLabel() && labels.length > 0) {
-        const label = labels[0];
+      if (!mask.getActiveRegion() && regions.length > 0) {
+        const region = regions[0];
         
-        mask.setActiveLabel(label);
-        widgets.setActiveLabel(label);
+        mask.setActiveRegion(region);
+        widgets.setActiveRegion(region);
       }
     },
-    setActiveLabel: label => {
-      mask.setActiveLabel(label);
-      widgets.setActiveLabel(label);
+    setActiveRegion: region => {
+      mask.setActiveRegion(region);
+      widgets.setActiveRegion(region);
     },
-    setHighlightLabel: label => mask.setHighlightLabel(label),
+    setHighlightRegion: region => mask.setHighlightRegion(region),
     setTool: (tool, cursor) => {
       widgets.setTool(tool)
       renderWindow.setCursor(cursor);

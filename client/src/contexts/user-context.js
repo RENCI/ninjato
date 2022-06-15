@@ -1,5 +1,6 @@
 import { createContext, useReducer } from 'react';
 import { history } from 'utils/history';
+import { colors, updateColors } from 'utils/colors';
 
 export const LOGIN = 'user/LOGIN';
 export const LOGOUT = 'user/LOGOUT';
@@ -80,7 +81,10 @@ const reducer = (state, action) => {
       };
 
     case SET_ASSIGNMENT: {  
-      state.regionHistory.set(action.assignment.regions);
+      const { regions } = action.assignment;
+
+      state.regionHistory.set(regions);
+      updateColors(regions);
 
       return {
         ...state,

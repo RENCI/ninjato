@@ -14,7 +14,7 @@ const regionColors = colors.reduce((colors, color) => {
   
   return {
     ...colors,
-    color: {
+    [color]: {
       base: color,
 
       contour: rgb2vtk(c.brighter(0.8).rgb()),

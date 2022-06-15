@@ -2,7 +2,7 @@ import { useContext, useRef, useCallback, useState } from 'react';
 import { Grid } from 'semantic-ui-react';
 import { 
   UserContext, PUSH_REGION_HISTORY,
-  RefineContext, REFINE_SET_TOOL, REFINE_SET_ACTION, REFINE_SET_ACTIVE_LABEL, REFINE_CHANGE_BRUSH_SIZE,
+  RefineContext, REFINE_SET_TOOL, REFINE_SET_ACTION, REFINE_SET_ACTIVE_REGION, REFINE_CHANGE_BRUSH_SIZE,
 } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
@@ -43,26 +43,26 @@ export const RefineContainer = () => {
     setSlice(slice);
   }
 
-  function onSelect(label, type) {
+  function onSelect(region, type) {
     switch (type) {
       case 'select':       
-        refineDispatch({ type: REFINE_SET_ACTIVE_LABEL, label });
+        refineDispatch({ type: REFINE_SET_ACTIVE_REGION, region: region });
         break;
 
       case 'claim':
-        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'claim', label: label } });     
+        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'claim', label: region.label } });     
         break;
 
       case 'remove':
-        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'remove', label: label } });     
+        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'remove', label: region.label  } });     
         break;
 
       case 'split':
-        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'split', label: label } });  
+        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'split', label: region.label  } });  
         break;
 
       case 'merge':
-        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'merge', label: label } });  
+        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'merge', label: region.label  } });  
         break;
 
       case 'create':
@@ -70,20 +70,20 @@ export const RefineContainer = () => {
         break;
 
       case 'delete':
-        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'delete', label: label } });  
+        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'delete', label: region.label  } });  
         break;
 
       default:
         console.warn('Unknown select type');
     }    
 
-    sliceView.current.setHighlightLabel(null);
+    sliceView.current.setHighlightRegion(null);
 
     refineDispatch({ type: REFINE_SET_TOOL, tool: 'paint' });
   }
 
   function onHighlight(label) {
-    sliceView.current.setHighlightLabel(label);
+    sliceView.current.setHighlightRegion(label);
   }
 
   function onKeyDown(evt) {

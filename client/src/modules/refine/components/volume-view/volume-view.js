@@ -105,13 +105,13 @@ export function VolumeView() {
 
   let surfaces = [];
 
-  const getSurface = region => surfaces.find(surface => {
+  const getSurface = region => !region ? null : surfaces.find(surface => {
     const labels = surface.getLabels();
     return labels.length === 1 ? labels[0] === region.label : false;
   });
 
   const background = Surface();
-  background.setTranslucentColors([...backgroundColors.surface1, ...backgroundColors.surface2]);
+  background.setTranslucentColors(backgroundColors.surface1, backgroundColors.surface2);
 
   const boundingBox = BoundingBox();
 
@@ -169,6 +169,8 @@ export function VolumeView() {
 
       regions = regionArray;
 
+      console.log(regions);
+
       // Create surfaces for each region
       surfaces = regions.map(region => {
         const surface = Surface();
@@ -190,7 +192,8 @@ export function VolumeView() {
 
           if (slice >= 0) {
             const region = getRegion(surface);
-            if (region) surface.setSlice(slice, region.colors.slice);
+
+            if (region) surface.setSlice(slice, region.colors.surfaceSlice);
           }
         });
       }
@@ -211,7 +214,7 @@ export function VolumeView() {
       slice = sliceNumber;
       surfaces.forEach(surface => {
         const region = getRegion(surface);
-        if (region) surface.setSlice(slice, region.colors.slice);
+        if (region) surface.setSlice(slice, region.colors.surfaceSlice);
       });
     },
     setShowBackground: show => {
