@@ -85,7 +85,7 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
         const { inRegion, region } = getSelectInfo(widgets.claim);
 
         if (inRegion && !region) {          
-          onHover(region);
+          onHover({ label: widgets.claim.getLabel() });
         }
         else {
           onHover(null);
@@ -115,7 +115,7 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       });
 
       handles.merge.onInteractionEvent(() => {
-        const { inRegion, region } = getSelectInfo(widgets.split);
+        const { inRegion, region } = getSelectInfo(widgets.merge);
 
         if (inRegion && region && region !== activeRegion) {          
           onHover(region);
@@ -126,7 +126,7 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       });
 
       handles.delete.onInteractionEvent(() => {
-        const { inRegion, region } = getSelectInfo(widgets.split);
+        const { inRegion, region } = getSelectInfo(widgets.delete);
 
         if (inRegion && region) {          
           onHover(region);
@@ -187,7 +187,7 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
         const { inRegion, region } = getSelectInfo(widgets.claim);
 
         if (inRegion && !region) {
-          onSelect(region, 'claim');
+          onSelect({ label: widgets.claim.getLabel() }, 'claim');
         }
       });
 
@@ -208,7 +208,7 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       });
 
       handles.merge.onEndInteractionEvent(() => {
-        const { inRegion, region } = getSelectInfo(widgets.split);
+        const { inRegion, region } = getSelectInfo(widgets.merge);
 
         if (inRegion && region && region !== activeRegion) {
           onSelect(region, 'merge');
@@ -220,7 +220,7 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       });
 
       handles.delete.onEndInteractionEvent(() => {
-        const { inRegion, region } = getSelectInfo(widgets.split);
+        const { inRegion, region } = getSelectInfo(widgets.delete);
 
         if (inRegion && region) {
           onSelect(region, 'delete');

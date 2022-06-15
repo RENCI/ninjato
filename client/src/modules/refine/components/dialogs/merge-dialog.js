@@ -9,16 +9,16 @@ const { Header, Content, Actions } = Modal;
 
 export const MergeDialog = ({ sliceView }) => {
   const [, userDispatch] = useContext(UserContext);
-  const [{ action, activeLabel }, refineDispatch] = useContext(RefineContext);
+  const [{ action, activeRegion }, refineDispatch] = useContext(RefineContext);
   const [merging, setMerging] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const onConfirm = async () => {
     setMerging(true);
 
-    userDispatch({ type: REMOVE_REGION, label: action.label });
+    userDispatch({ type: REMOVE_REGION, region: action.region });
 
-    await sliceView.mergeRegion(action.label);
+    await sliceView.mergeRegion(action.region);
 
     setMerging(false);
     setSuccess(true);
@@ -33,6 +33,8 @@ export const MergeDialog = ({ sliceView }) => {
     refineDispatch({ type: REFINE_SET_ACTION, action: null });
   };
 
+  console.log(action);
+
   return (
     <Modal
       dimmer='blurring'
@@ -45,10 +47,10 @@ export const MergeDialog = ({ sliceView }) => {
         :  success ?
           <>
             <Icon name='check circle outline' color='green' />
-            Merged region <b>{ action.label }</b> with active region <b>{ activeLabel }</b>
+            Merged region <b>{ action.region?.label }</b> with active region <b>{ activeRegion?.label }</b>
           </>
         :
-          action && <p>Merge region <b>{ action.label }</b> with active region <b>{ activeLabel }</b>?</p>
+          action && <p>Merge region <b>{ action.region?.label }</b> with active region <b>{ activeRegion?.label }</b>?</p>
         }
       </Content>
       <Actions>

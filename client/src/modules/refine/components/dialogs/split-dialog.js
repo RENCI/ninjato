@@ -30,7 +30,7 @@ export const SplitDialog = ({ sliceView }) => {
 
       userDispatch({ type: ADD_REGION, label: label });
 
-      await sliceView.splitRegion(action.label, label, splitMode);
+      await sliceView.splitRegion(action.region.label, label, splitMode);
 
 /*
 XXX: Move to useEffect?
@@ -77,7 +77,7 @@ XXX: Move to useEffect?
         :
           action && 
           <>
-            <p>Split region <b>{ action.label }</b> at current slice?</p>
+            <p>Split region <b>{ action.region?.label }</b> at current slice?</p>
             <Select 
               value={ splitMode }
               options={[

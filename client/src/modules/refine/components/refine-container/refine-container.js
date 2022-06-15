@@ -50,19 +50,19 @@ export const RefineContainer = () => {
         break;
 
       case 'claim':
-        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'claim', label: region.label } });     
+        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'claim', region: region } });     
         break;
 
       case 'remove':
-        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'remove', label: region.label  } });     
+        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'remove', region: region  } });     
         break;
 
       case 'split':
-        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'split', label: region.label  } });  
+        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'split', region: region  } });  
         break;
 
       case 'merge':
-        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'merge', label: region.label  } });  
+        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'merge', region: region  } });  
         break;
 
       case 'create':
@@ -70,7 +70,7 @@ export const RefineContainer = () => {
         break;
 
       case 'delete':
-        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'delete', label: region.label  } });  
+        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'delete', region: region  } });  
         break;
 
       default:

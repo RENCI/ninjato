@@ -1,6 +1,6 @@
 import { createContext, useReducer } from 'react';
 import { history } from 'utils/history';
-import { colors, updateColors } from 'utils/colors';
+import { updateColors } from 'utils/colors';
 
 export const LOGIN = 'user/LOGIN';
 export const LOGOUT = 'user/LOGOUT';
@@ -31,16 +31,20 @@ const initialState = {
 };
 
 const createRegion = (regions, label) => {
-  return [
+  const newRegions = [
     ...regions,
     {
       label: label,
       index: regions.length
     }
   ];
+
+  updateColors(newRegions);
+
+  return newRegions;
 };
 
-const removeRegion = (regions, label) => {
+const removeRegion = (regions, { label }) => {
   return regions.filter(region => region.label !== label);
 };
 
@@ -49,6 +53,8 @@ const updateAssignment = (a1, a2) => {
     ...a1,
     ...a2
   };
+
+  updateColors(assignment.regions);
 
   return assignment;
 };
@@ -137,7 +143,7 @@ const reducer = (state, action) => {
         ...state,
         assignment: {
           ...state.assignment,
-          regions: removeRegion(state.assignment.regions, action.label)
+          regions: removeRegion(state.assignment.regions, action.region)
         }
       };
 

@@ -22,7 +22,7 @@ export const RemoveDialog = () => {
     setRemoving(true);
 
     try {      
-      await api.removeRegion(id, assignment.subvolumeId, assignment.id, action.label);
+      await api.removeRegion(id, assignment.subvolumeId, assignment.id, action.region.label);
 
       setRemoving(false);
       setSuccess(true);
@@ -71,7 +71,7 @@ export const RemoveDialog = () => {
             Removed successfully
           </>
         :
-          action && <p>Remove region <b>{ action && action.label }</b> from this assignment?</p>
+          action && <p>Remove region <b>{ action.region?.label }</b> from this assignment?</p>
         }
       </Content>
       <Actions>

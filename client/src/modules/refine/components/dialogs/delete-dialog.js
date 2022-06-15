@@ -9,16 +9,16 @@ const { Header, Content, Actions } = Modal;
 
 export const DeleteDialog = ({ sliceView }) => {
   const [{ assignment }, userDispatch] = useContext(UserContext);
-  const [{ activeLabel, action }, refineDispatch] = useContext(RefineContext);
+  const [{ activeRegion, action }, refineDispatch] = useContext(RefineContext);
   const [deleting, setDeleting] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const onConfirm = async () => {
     setDeleting(true);
 
-    userDispatch({ type: REMOVE_REGION, label: action.label });
+    userDispatch({ type: REMOVE_REGION, region: action.region });
 
-    await sliceView.deleteRegion(action.label);
+    await sliceView.deleteRegion(action.region);
 
     setDeleting(false);
     setSuccess(true);
@@ -33,7 +33,7 @@ export const DeleteDialog = ({ sliceView }) => {
         refineDispatch({ type: REFINE_SET_ACTIVE_REGION, region: null });
         refineDispatch({ type: REFINE_SET_TOOL, tool: 'create' });
       }
-      else if (action.label === activeLabel) {
+      else if (action.region === activeRegion) {
         const region = regions.length > 0 ? regions[0] : null;
 
         refineDispatch({ type: REFINE_SET_ACTIVE_REGION, region: region })
@@ -60,7 +60,7 @@ export const DeleteDialog = ({ sliceView }) => {
             Deleted region <b>{ action.label }</b>
           </>
         : 
-          action && <p>Delete region <b>{ action.label }</b>?</p>
+          action && <p>Delete region <b>{ action.region?.label }</b>?</p>
         }
       </Content>
       <Actions>

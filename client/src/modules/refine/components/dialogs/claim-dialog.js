@@ -22,7 +22,7 @@ export const ClaimDialog = () => {
     setClaiming(true);
 
     try {      
-      await api.claimRegion(id, assignment.subvolumeId, assignment.id, action.label);
+      await api.claimRegion(id, assignment.subvolumeId, assignment.id, action.region.label);
 
       setClaiming(false);
       setSuccess(true);
@@ -71,7 +71,7 @@ export const ClaimDialog = () => {
             Claimed successfully
           </>
         :
-          action && <p>Add region <b>{ action && action.label }</b> to this assignment?</p>
+          action && <p>Add region <b>{ action.region?.label }</b> to this assignment?</p>
         }
       </Content>
       <Actions>

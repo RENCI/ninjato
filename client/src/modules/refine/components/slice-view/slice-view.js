@@ -96,11 +96,11 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
 
       return promise;
     },
-    mergeRegion: async label => {
+    mergeRegion: async region => {
       const painter = mask.getPainter();
 
       painter.startStroke();      
-      painter.merge(label);
+      painter.merge(region.label);
       const promise = painter.endStroke();    
       await promise;
 
@@ -108,16 +108,16 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
 
       return promise;
     },
-    createRegion: label => {
-      mask.setActiveLabel(label);
+    createRegion: region => {
+      mask.setActiveRegion(region);
       return widgets.createRegion();      
     },
-    deleteRegion: async label => {
+    deleteRegion: async region => {
       const painter = mask.getPainter();
 
       const currentLabel = painter.getLabel();
 
-      painter.setLabel(label);
+      painter.setLabel(region.label);
       painter.startStroke();      
       painter.deleteRegion();
       const promise = painter.endStroke(true);    

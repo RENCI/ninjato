@@ -46,9 +46,9 @@ export function MaskPainter() {
     });
 
     // Set labels
-    regions.forEach(({ label, colors }) => 
+    regions.forEach(({ label, colors }) =>       
       color.addRGBPoint(label, ...colors[label === activeRegion?.label ? 'contourActive' : 'contour']));
-    if (highlightRegion) color.addRGBPoint(highlightRegion.label, ...highlightRegion.colors.contourHighlight);
+    if (highlightRegion) color.addRGBPoint(highlightRegion.label, ...(highlightRegion.colors?.contourHighlight ?? backgroundColors.contourHighlight));
 
     // Set z offsets
     const offsets = regions.reduce((offsets, { label }) => {
