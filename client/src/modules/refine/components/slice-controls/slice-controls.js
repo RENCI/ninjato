@@ -9,7 +9,7 @@ import { BrushOptions } from './brush-options';
 
 export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
   const [, userDispatch] = useContext(UserContext);
-  const [{ activeLabel, tools, tool, showContours }, refineDispatch] = useContext(RefineContext);
+  const [{ activeRegion, tools, tool, showContours }, refineDispatch] = useContext(RefineContext);
 
   const onToolClick = value => {
     refineDispatch({ type: REFINE_SET_TOOL, tool: value });
@@ -57,7 +57,7 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
                 icon={ icon }
                 tooltip={ tooltip }
                 active={ value === tool }
-                disabled={ !alwaysEnabled && !activeLabel }
+                disabled={ !alwaysEnabled && !activeRegion }
                 content={ <BrushOptions which={ value } /> }
                 onClick={ () => onToolClick(value)}
               />
@@ -68,7 +68,7 @@ export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
                 icon={ icon }
                 tooltip={ tooltip }
                 active={ value === tool  }
-                disabled={ !alwaysEnabled && !activeLabel }
+                disabled={ !alwaysEnabled && !activeRegion }
                 onClick={ () => onToolClick(value) }              
               />
           ))}
