@@ -82,8 +82,8 @@ export const RefineContainer = () => {
     refineDispatch({ type: REFINE_SET_TOOL, tool: 'paint' });
   }
 
-  function onHighlight(label) {
-    sliceView.current.setHighlightRegion(label);
+  function onHighlight(region) {
+    sliceView.current.setHighlightRegion(region);
   }
 
   function onKeyDown(evt) {
