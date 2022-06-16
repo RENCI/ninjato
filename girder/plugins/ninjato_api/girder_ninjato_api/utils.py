@@ -833,6 +833,29 @@ def _get_history_info(whole_item, region_label, type, is_array=True):
     return return_info
 
 
+def _get_assignment_status(whole_item, region_label):
+    assign_info = _get_history_info(whole_item, region_label, 'annotation_assigned_to',
+                                    is_array=False)
+    complete_info = _get_history_info(whole_item, region_label, 'annotation_completed_by',
+                                      is_array=False)
+    if not assign_info:
+        return 'inactive'
+    if not complete_info:
+        return 'active'
+
+    review_assign_info = _get_history_info(whole_item, region_label, 'review_assigned_to',
+                                           is_array=False)
+    review_complete_info = _get_history_info(whole_item, region_label, 'review_completed_by',
+                                             is_array=False)
+    if not review_assign_info:
+        return 'awaiting review'
+
+    if not review_complete_info:
+        return 'under review'
+
+    return 'completed'
+
+
 def get_item_assignment(user, subvolume_id):
     """
     get region assignment in a subvolume for annotation task. If user has multiple active
@@ -1328,17 +1351,7 @@ def get_region_or_assignment_info(item, assignment_key):
             'location': region_item['meta']['coordinates'] if region_item else {},
             'last_updated_time': region_item['updated'] if region_item else '',
             'regions': regions,
-            'annotation_assigned_to': _get_history_info(item, region_label_str,
-                                                        'annotation_assigned_to', is_array=False),
-            'annotation_completed_by': _get_history_info(item, region_label_str,
-                                                         'annotation_completed_by', is_array=False),
-            'annotation_rejected_by': _get_history_info(item, region_label_str,
-                                                        'annotation_rejected_by'),
-            'review_assigned_to': _get_history_info(item, region_label_str, 'review_assigned_to',
-                                                    is_array=False),
-            'review_completed_by': _get_history_info(item, region_label_str,
-                                                     'review_completed_by', is_array=False),
-            'review_rejected_by': _get_history_info(item, region_label_str, 'review_rejected_by'),
+            'status': _get_assignment_status(item, region_label_str)
         }
     else:
         ret_dict = {
@@ -1348,13 +1361,7 @@ def get_region_or_assignment_info(item, assignment_key):
             'location': {},
             'last_updated_time': '',
             'regions': [],
-            'annotation_assigned_to': '',
-            'annotation_completed_by': '',
-            'annotation_rejected_by': _get_history_info(item, region_label_str,
-                                                        'annotation_rejected_by'),
-            'review_assigned_to': '',
-            'review_completed_by': '',
-            'review_rejected_by': _get_history_info(item, region_label_str, 'review_rejected_by')
+            'status': _get_assignment_status(item, region_label_str)
         }
 
     if 'removed_region_ids' in item['meta'] and \
@@ -1387,20 +1394,7 @@ def get_region_or_assignment_info(item, assignment_key):
             'z_min': val['z_min'],
             },
         ret_dict['item_id'] = val['item_id']
-        ret_dict['annotation_assigned_to'] = _get_history_info(item, str(reg_item['region_label']),
-                                                               'annotation_assigned_to',
-                                                               is_array=False),
-        ret_dict['annotation_completed_by'] = _get_history_info(item, str(reg_item['region_label']),
-                                                                'annotation_completed_by',
-                                                                is_array=False),
-        ret_dict['annotation_rejected_by'] = _get_history_info(item, str(reg_item['region_label']),
-                                                               'annotation_rejected_by'),
-        ret_dict['review_rejected_by'] = _get_history_info(item, str(reg_item['region_label']),
-                                                           'review_rejected_by'),
-        ret_dict['review_completed_by'] = _get_history_info(item, str(reg_item['region_label']),
-                                                            'review_completed_by', is_array=False),
-        ret_dict['review_assigned_to'] = _get_history_info(item, str(reg_item['region_label']),
-                                                           'review_assigned_to', is_array=False)
+        ret_dict['status'] = _get_assignment_status(item, str(reg_item['region_label']))
         return ret_dict
 
     return ret_dict
