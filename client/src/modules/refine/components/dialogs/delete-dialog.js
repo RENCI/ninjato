@@ -4,6 +4,7 @@ import {
   UserContext, REMOVE_REGION,
   RefineContext, REFINE_SET_ACTION, REFINE_SET_ACTIVE_REGION, REFINE_SET_TOOL
 } from 'contexts';
+import { RegionLabel } from 'modules/common/components/region-label';
 
 const { Header, Content, Actions } = Modal;
 
@@ -53,14 +54,14 @@ export const DeleteDialog = ({ sliceView }) => {
       <Header>Delete Region</Header>
       <Content>
         { deleting ?             
-          <>Processing</>
+          <>Processing...</>
         : success ?
           <>
             <Icon name='check circle outline' color='green' />
-            Deleted region <b>{ action.label }</b>
+            Deleted region <RegionLabel region={ action.region } />.
           </>
         : 
-          action && <p>Delete region <b>{ action.region?.label }</b>?</p>
+          action && <>Delete region <RegionLabel region={ action.region } />?</>
         }
       </Content>
       <Actions>

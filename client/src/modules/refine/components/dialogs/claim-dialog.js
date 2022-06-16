@@ -5,6 +5,7 @@ import {
   RefineContext, REFINE_SET_ACTION,
   ErrorContext, SET_ERROR
 } from 'contexts';
+import { RegionLabel } from 'modules/common/components/region-label';
 import { useLoadData } from 'hooks';
 import { api } from 'utils/api';
 
@@ -64,14 +65,14 @@ export const ClaimDialog = () => {
       <Header>Claim Region</Header>
       <Content>
         { claiming ?             
-          <>Processing</>
+          <>Processing...</>
         :  success ?
           <>
             <Icon name='check circle outline' color='green' />
-            Claimed successfully
+            Claimed region successfully.
           </>
         :
-          action && <p>Add region <b>{ action.region?.label }</b> to this assignment?</p>
+          action && <p>Add region <RegionLabel region={ action.region } /> to this assignment?</p>
         }
       </Content>
       <Actions>

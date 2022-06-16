@@ -5,6 +5,7 @@ import {
   RefineContext, REFINE_SET_ACTION,
   ErrorContext, SET_ERROR
 } from 'contexts';
+import { RegionLabel } from 'modules/common/components/region-label';
 import { useLoadData } from 'hooks';
 import { api } from 'utils/api';
 
@@ -64,14 +65,14 @@ export const RemoveDialog = () => {
       <Header>Remove Region</Header>
       <Content>
         { removing ?             
-          <>Processing</>
+          <>Processing...</>
         :  success ?
           <>
             <Icon name='check circle outline' color='green' />
-            Removed successfully
+            Removed successfully.
           </>
         :
-          action && <p>Remove region <b>{ action.region?.label }</b> from this assignment?</p>
+          action && <p>Remove region <RegionLabel region={ action.region } /> from this assignment?</p>
         }
       </Content>
       <Actions>

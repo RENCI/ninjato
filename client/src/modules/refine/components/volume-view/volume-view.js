@@ -169,8 +169,6 @@ export function VolumeView() {
 
       regions = regionArray;
 
-      console.log(regions);
-
       // Create surfaces for each region
       surfaces = regions.map(region => {
         const surface = Surface();

@@ -1,10 +1,11 @@
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { Button, Modal, Icon, Select } from 'semantic-ui-react';
 import { 
   UserContext, ADD_REGION,
   RefineContext, REFINE_SET_ACTION, REFINE_SET_ACTIVE_REGION,
   ErrorContext, SET_ERROR
 } from 'contexts';
+import { RegionLabel } from 'modules/common/components/region-label';
 import { api } from 'utils/api';
 
 const { Header, Content, Actions } = Modal;
@@ -17,6 +18,20 @@ export const SplitDialog = ({ sliceView }) => {
   const [success, setSuccess] = useState(false);
   const [splitMode, setSplitMode] = useState('bottom');
   const [newLabel, setNewLabel] = useState();
+  const [newRegion, setNewRegion] = useState();
+
+  useEffect(() => {  
+    // Set active region after it is created   
+    const region = assignment.regions.find(({ label }) => label === newLabel);
+    
+    if (region) {
+      setNewRegion(region);
+      refineDispatch({ 
+        type: REFINE_SET_ACTIVE_REGION, 
+        region: splitMode === 'top' ? action.region : region
+      });
+    }
+  }, [newLabel, assignment, refineDispatch]);
 
   const onConfirm = async () => {
     setSplitting(true);
@@ -68,16 +83,16 @@ XXX: Move to useEffect?
       <Header>Split Region</Header>
       <Content>
         { splitting ?             
-          <>Processing</>
+          <>Processing...</>
         :  success ?
           <>
             <Icon name='check circle outline' color='green' />
-            Split region <b>{ action.label }</b>, creating new region <b>{ newLabel }</b>.
+            Split region <RegionLabel region={ action.region } />, creating new region <RegionLabel region={ newRegion } />.
           </>
         :
           action && 
           <>
-            <p>Split region <b>{ action.region?.label }</b> at current slice?</p>
+            <p>Split region <RegionLabel region={ action.region } /> at current slice?</p>
             <Select 
               value={ splitMode }
               options={[

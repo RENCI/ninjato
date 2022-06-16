@@ -5,6 +5,7 @@ import {
   RefineContext, REFINE_SET_ACTION, REFINE_SET_ACTIVE_REGION,
   ErrorContext, SET_ERROR
 } from 'contexts';
+import { RegionLabel } from 'modules/common/components/region-label';
 import { api } from 'utils/api';
 
 const { Header, Content, Actions } = Modal;
@@ -16,12 +17,14 @@ export const CreateDialog = ({ sliceView }) => {
   const [creating, setCreating] = useState(false);
   const [success, setSuccess] = useState(false);
   const [newLabel, setNewLabel] = useState();
+  const [newRegion, setNewRegion] = useState();
 
   useEffect(() => {  
     // Set active region after it is created   
     const region = assignment.regions.find(({ label }) => label === newLabel);
     
     if (region) {
+      setNewRegion(region);
       refineDispatch({ type: REFINE_SET_ACTIVE_REGION, region: region });
     }
   }, [newLabel, assignment, refineDispatch]);
@@ -67,11 +70,11 @@ export const CreateDialog = ({ sliceView }) => {
       <Header>Create Region</Header>
       <Content>
         { creating ?             
-          <>Processing</>
+          <>Processing...</>
         :  success ?
           <>
             <Icon name='check circle outline' color='green' />
-            Now editing with new region label <b>{ newLabel }</b>
+            Now editing with new region <RegionLabel region={ newRegion } />.
           </>
         :
           action && <p>Create new region?</p>

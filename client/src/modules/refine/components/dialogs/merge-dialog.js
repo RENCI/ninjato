@@ -4,6 +4,7 @@ import {
   UserContext, REMOVE_REGION,
   RefineContext, REFINE_SET_ACTION
 } from 'contexts';
+import { RegionLabel } from 'modules/common/components/region-label';
 
 const { Header, Content, Actions } = Modal;
 
@@ -33,8 +34,6 @@ export const MergeDialog = ({ sliceView }) => {
     refineDispatch({ type: REFINE_SET_ACTION, action: null });
   };
 
-  console.log(action);
-
   return (
     <Modal
       dimmer='blurring'
@@ -43,14 +42,14 @@ export const MergeDialog = ({ sliceView }) => {
       <Header>Merge Region</Header>
       <Content>
         { merging ?             
-          <>Processing</>
+          <>Processing...</>
         :  success ?
           <>
             <Icon name='check circle outline' color='green' />
-            Merged region <b>{ action.region?.label }</b> with active region <b>{ activeRegion?.label }</b>
+            Merged region <RegionLabel region={ action.region } /> with active region <RegionLabel region={ activeRegion } />.
           </>
         :
-          action && <p>Merge region <b>{ action.region?.label }</b> with active region <b>{ activeRegion?.label }</b>?</p>
+          action && <>Merge region <RegionLabel region={ action.region } /> with active region <RegionLabel region={ activeRegion } />?</>
         }
       </Content>
       <Actions>
