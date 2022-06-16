@@ -32,10 +32,6 @@ export const SliceViewWrapper = ({ sliceView }) => {
       const volume = volumes.find(({ id }) => id === assignment.subvolumeId);
       const sliceRanges = volume.sliceRanges.slice(assignment.location.z_min, assignment.location.z_max + 1);
 
-      console.log(assignment);
-      console.log(assignment.location);
-      console.log(sliceRanges);
-
       sliceView.setData(imageData, maskData, sliceRanges);
     }
   }, [initialized, sliceView, imageData, maskData, volumes]);   

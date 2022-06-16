@@ -29,8 +29,6 @@ export const RemoveDialog = () => {
       setSuccess(true);
       
       setTimeout(async () => {
-        setSuccess(false);
-
         const update = await api.updateAssignment(assignment.id, assignment.subvolumeId, assignment.assignmentKey);
 
         userDispatch({
@@ -40,6 +38,7 @@ export const RemoveDialog = () => {
 
         loadData(update, assignment);   
 
+        setSuccess(false);
         refineDispatch({ type: REFINE_SET_ACTION, action: null }); 
       }, 1000); 
     }
