@@ -234,7 +234,7 @@ export function VolumeView() {
 
       // Clean up anything we instantiated
       renderWindow.cleanUp();      
-      surfaces.forEach(surface => surfaces.cleanUp());
+      surfaces.forEach(surface => surface.cleanUp());
       background.cleanUp();
       boundingBox.cleanUp();
     }
