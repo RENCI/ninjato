@@ -343,7 +343,7 @@ def _remove_region_from_active_assignment(whole_item, assign_item, region_id, us
     :param whole_item: whole subvolume item
     :param active_assign_id: a user's active assignment item id
     :param region_id: region id/label to be removed from the active assignment
-    :return: True if succeed and False otherwise
+    :return: assignment key after the region is removed if succeed and None otherwise
     """
     region_levels = [str(assign_item['meta']['region_label'])]
     if 'removed_region_ids' in assign_item['meta']:
@@ -355,7 +355,7 @@ def _remove_region_from_active_assignment(whole_item, assign_item, region_id, us
             else:
                 del assign_item['meta']['removed_region_ids']
             Item().save(assign_item)
-            return True
+            return assign_item['meta']['region_label']
     if 'added_region_ids' in assign_item['meta']:
         aid_list = assign_item['meta']['added_region_ids']
         if region_id in aid_list:
@@ -449,9 +449,9 @@ def _remove_region_from_active_assignment(whole_item, assign_item, region_id, us
         assign_item = Item().save(assign_item)
         # update assign_item based on updated extent that has region removed
         _create_region_files(assign_item, whole_item)
-        return True
+        return assign_item['meta']['region_label']
 
-    return False
+    return None
 
 
 def _merge_region_to_active_assignment(whole_item, active_assign_id, region_id):
@@ -543,6 +543,7 @@ def _remove_assignment_from_history(item, region_id, assign_key):
             item['meta']['history'][region_id].remove(meta_dict)
             if not item['meta']['history'][region_id]:
                 del item['meta']['history'][region_id]
+            Item().save(item)
             return
     return
 
@@ -592,7 +593,7 @@ def _reject_assignment(user, item, whole_item, has_files, comment, task='annotat
         Item().save(whole_item)
     region_label = item['meta']['region_label']
     # remove the user's assignment
-    _remove_assignment_from_history(whole_item, region_label, [f"{task}_assigned_to"])
+    _remove_assignment_from_history(whole_item, str(region_label), f"{task}_assigned_to")
     uname = user["login"]
     if task == 'annotation' and has_files:
         files = File().find({'itemId': item['_id']})
@@ -699,9 +700,11 @@ def remove_region_from_item_assignment(user, subvolume_id, active_assignment_id,
             ret = _remove_region_from_active_assignment(whole_item, assign_item, region_id,
                                                         user['login'])
             if ret:
+                ret_dict['assignment_region_key'] = ret
                 ret_dict['status'] = 'success'
             else:
                 ret_dict['status'] = 'failure'
+                ret_dict['assignment_region_key'] = ''
             return ret_dict
         else:
             raise RestException('input region id to be removed is not currently assigned to the '
@@ -826,9 +829,10 @@ def _get_history_info(whole_item, region_label, type, is_array=True):
     if 'history' in whole_item['meta'] and region_label in whole_item['meta']['history']:
         for info in whole_item['meta']['history'][region_label]:
             if info['type'] == type:
-                if not is_array:
+                if is_array:
+                    return_info.append(info)
+                else:
                     return info
-                return_info.append(info)
 
     return return_info
 
