@@ -23,13 +23,13 @@ export const RemoveDialog = () => {
     setRemoving(true);
 
     try {      
-      await api.removeRegion(id, assignment.subvolumeId, assignment.id, action.region.label);
+      const key = await api.removeRegion(id, assignment.subvolumeId, assignment.id, action.region.label);
 
       setRemoving(false);
       setSuccess(true);
       
       setTimeout(async () => {
-        const update = await api.updateAssignment(assignment.id, assignment.subvolumeId, assignment.assignmentKey);
+        const update = await api.updateAssignment(assignment.id, assignment.subvolumeId, key);
 
         userDispatch({
           type: UPDATE_ASSIGNMENT,

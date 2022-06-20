@@ -283,7 +283,9 @@ console.log(infoResponse);
 
     if (response.data.status !== 'success') throw new Error(`Error removing region ${ label }`);
 
-    return response.data;
+    console.log(response.data);
+
+    return response.data.assignment_region_key;
   },
   getNewLabel: async subvolumeId => {
     const response = await axios.get(`/item/${ subvolumeId }/new_region_ids`, {
