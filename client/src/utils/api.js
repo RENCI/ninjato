@@ -250,8 +250,7 @@ console.log(infoResponse);
       {
         params: { 
           item_id: itemId,
-          done: done,
-          comment: 'TEST COMMENT'
+          done: done
         },
         headers: { 
           'Content-Type': 'multipart/form-data' 
