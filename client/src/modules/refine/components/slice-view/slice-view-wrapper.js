@@ -1,10 +1,12 @@
 import { useContext, useState, useRef, useEffect } from 'react';
-import { DataContext, RefineContext } from 'contexts';
+import { UserContext, RefineContext } from 'contexts';
 import { useResize } from 'hooks';
 
 export const SliceViewWrapper = ({ sliceView }) => {
-  const [{ imageData, maskData, label }] = useContext(DataContext);
-  const [{ editMode, editModes, brushes, paintBrush, eraseBrush }] = useContext(RefineContext);
+  const [{ imageData, maskData, assignment, volumes }] = useContext(UserContext);
+  const [
+    { activeRegion, tool, tools, brushes, paintBrush, eraseBrush, createBrush, showContours }
+  ] = useContext(RefineContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);
   const { width } = useResize(div);
@@ -17,31 +19,58 @@ export const SliceViewWrapper = ({ sliceView }) => {
     }
   }, [initialized, div, width, sliceView]);
 
-  // Update data
-  useEffect(() => {
-    if (initialized && imageData && maskData) {
-      sliceView.setLabel(label);
-      sliceView.setData(imageData, maskData);
-    }
-  }, [initialized, sliceView, imageData, maskData, label]);   
-
-  // Edit mode
+  // Assignment
   useEffect(() => {
     if (initialized) {
-      const mode = editModes.find(({ value }) => value === editMode);
-      sliceView.setEditMode(editMode, mode.cursor);
+      sliceView.setRegions(assignment.regions);
     }
-  }, [initialized, sliceView, editMode, editModes]);
+  }, [initialized, sliceView, assignment]);   
+
+  // Data
+  useEffect(() => {
+    if (initialized && assignment?.id && imageData && maskData) {
+      const volume = volumes.find(({ id }) => id === assignment.subvolumeId);
+      const sliceRanges = volume.sliceRanges.slice(assignment.location.z_min, assignment.location.z_max + 1);
+
+      sliceView.setData(imageData, maskData, sliceRanges);
+    }
+  }, [initialized, sliceView, imageData, maskData, volumes]);   
+
+  // Active region
+  useEffect(() => {
+    if (initialized) sliceView.setActiveRegion(activeRegion);
+  }, [initialized, sliceView, activeRegion]);
+
+  // Tool
+  useEffect(() => {
+    if (initialized) {
+      const toolObject = tools.find(({ value }) => value === tool);
+      sliceView.setTool(tool, toolObject.cursor);
+    }
+  }, [initialized, sliceView, tool, tools]);
 
   // Paint brush
   useEffect(() => {
-    if (initialized) sliceView.setPaintBrush(brushes[paintBrush]);
+    if (initialized) sliceView.setBrush('paint', brushes[paintBrush]);
   }, [initialized, sliceView, brushes, paintBrush]);
 
   // Erase brush
   useEffect(() => {
-    if (initialized) sliceView.setEraseBrush(brushes[eraseBrush]);
+    if (initialized) sliceView.setBrush('erase', brushes[eraseBrush]);
   }, [initialized, sliceView, brushes, eraseBrush]);
+
+  // Add brush
+  useEffect(() => {
+    if (initialized) sliceView.setBrush('create', brushes[createBrush]);
+  }, [initialized, sliceView, brushes, createBrush]);
+
+  // Show contours
+  useEffect(() => {
+    if (initialized) {
+      sliceView.setShowContours(showContours);
+      //sliceView.render();
+    }
+  }, [initialized, sliceView, showContours]);
 
   // Clean up
   useEffect(() => {

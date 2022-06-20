@@ -3,17 +3,12 @@ import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 
 import vtkImageContour from 'vtk/image-contour';
-import { Reds, Blues, Purples } from 'utils/colors';
+import { backgroundColors } from 'utils/colors';
 
-export function Mask() {      
-  let label = null;
-  let activeLabels = [];
-  let highlightLabel = null;
-
-  const backgroundColor = Blues[7];
-  const regionColor = Reds[5];
-  const activeColor = Purples[6]
-  const highlightColor = Purples[5];
+export function Mask() {        
+  let regions = [];
+  let activeRegion = null;
+  let highlightRegion = null;
 
   const contour = vtkImageContour.newInstance();
 
@@ -29,21 +24,22 @@ export function Mask() {
   actor.getProperty().setLighting(false);
 
   const updateColors = () => {
+    const backgroundColor = backgroundColors.contour;
+
     // Initialize
     color.removeAllPoints();
     color.addRGBPoint(0, 0, 0, 0);
-    color.addRGBPoint(1, ...backgroundColor);
+    color.addRGBPoint(1, ...backgroundColors.contour);
 
-    // Set background start and end points between special labels
-    [label, ...activeLabels, highlightLabel].filter(label => label !== null).forEach(label => {
+    // Set background start and end points between labels
+    [...regions, highlightRegion].filter(region => region !== null).forEach(({ label }) => {
       if (label > 1) color.addRGBPoint(label - 1, ...backgroundColor);
       color.addRGBPoint(label + 1, ...backgroundColor);
     });
 
-    // Set special labels
-    activeLabels.forEach(label => color.addRGBPoint(label, ...activeColor));
-    color.addRGBPoint(label, ...regionColor);
-    if (highlightLabel) color.addRGBPoint(highlightLabel, ...highlightColor); 
+    // Set labels
+    regions.forEach(({ label, colors }) => color.addRGBPoint(label, colors[label === activeRegion.label ? 'contourActive' : 'contour']));
+    if (highlightRegion) color.addRGBPoint(highlightRegion.label, highlightRegion.colors.contourHighlight);
   };
 
   return {
@@ -55,18 +51,18 @@ export function Mask() {
       const [w, h] = maskData.getDimensions();
       contour.setWidth(Math.max(w, h) / 200);
     },
-    setLabel: regionLabel => {
-      label = regionLabel;
-      updateColors();
-      contour.setLabelOffsets({[label]: -0.01 });
-    },
-    getLabel: () => label,
-    setActiveLabels: labels => {
-      activeLabels = labels;
+    setRegions: regionArray => {
+      regions = regionArray;
       updateColors();
     },
-    setHighlightLabel: label => {
-      highlightLabel = label;
+    setActiveRegion: region => {
+      activeRegion = region;
+      updateColors();
+      contour.setLabelOffsets({[region.label]: -0.01 });
+    },
+    getActiveRegion: () => activeRegion,
+    setHighlightRegion: region => {
+      highlightRegion = region;      
       updateColors();
     },
     setSlice: slice => contour.setSliceRange([slice, slice]),

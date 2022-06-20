@@ -1,34 +1,3 @@
-.volumeName {
-  font-weight: bold;
-  text-align: center;
-}
-
-.progress {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.progress .stage {
-  flex: 1 0 auto;
-  text-align: center;
-  color: #999;
-}
-
-.progress .stage.active {
-  font-weight: bold;
-  color: #000;
-}
-
-.progress .divider {
-  color: #999;
-}
-
-.assignment {
-  margin-bottom: 5px;
-  margin-top: 5px;
-}
-
-.assignment .number {
-  font-weight: bold;
+.container {
+  padding: 2em;
 }

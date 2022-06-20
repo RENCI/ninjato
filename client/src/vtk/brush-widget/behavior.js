@@ -20,11 +20,13 @@ export default function widgetBehavior(publicAPI, model) {
     }
 
     model.painting = true;
-    const trail = model.widgetState.addTrail();
-    trail.set(
-      model.activeState.get('origin', 'up', 'right', 'direction')
-    );
-    trail.setScale1(model.factory.getImageData().getSpacing()[0]);
+    if (model.factory.getShowTrail()) {
+      const trail = model.widgetState.addTrail();
+      trail.set(
+        model.activeState.get('origin', 'up', 'right', 'direction')
+      );
+      trail.setScale1(model.factory.getImageData().getSpacing()[0]);
+    }
     publicAPI.invokeStartInteractionEvent();
     return macro.EVENT_ABORT;
   };
@@ -73,7 +75,7 @@ export default function widgetBehavior(publicAPI, model) {
 
           model.activeState.setOrigin(...worldCoords);
 
-          if (model.painting) {
+          if (model.factory.getShowTrail() && model.painting) {
             const trail = model.widgetState.addTrail();
             trail.set(
               model.activeState.get(

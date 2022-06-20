@@ -23,9 +23,14 @@ function vtkCropRepresentation(publicAPI, model) {
 
   model.mapper.setInputConnection(publicAPI.getOutputPort());
   model.actor.setMapper(model.mapper);
-  model.actor.getProperty().setColor(1, 1, 1);
 
   publicAPI.addActor(model.actor);  
+
+  publicAPI.setColor = (color) => {
+    model.actor.getProperty().setColor(...color);
+  };
+
+  publicAPI.setColor([1, 1, 1]);
 
   // --------------------------------------------------------------------------
 

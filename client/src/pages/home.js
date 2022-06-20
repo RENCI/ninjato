@@ -1,19 +1,21 @@
 import { useContext } from 'react';
-import { DataContext, UserContext } from 'contexts';
+import { Message } from 'semantic-ui-react';
+import { UserContext } from 'contexts';
 import { AssignmentSelection } from 'modules/assignment/components/assignment-selection';
 import { RefineContainer } from 'modules/refine/components/refine-container';
-import { FlagContainer } from 'modules/flag/components/flag-container';
 
 export const Home = () => {
-  const [{ assignment }] = useContext(UserContext);
-  const [{ imageData }] = useContext(DataContext);
+  const [{ id, assignment }] = useContext(UserContext);
+  const [{ imageData }] = useContext(UserContext);
 
   return (
     <>
-      { imageData ? 
-          assignment.type === 'flag' ? 
-            <FlagContainer /> :
-            <RefineContainer />        
+      { !id ? null
+      : imageData ? 
+          assignment.type === 'refine' ? 
+            <RefineContainer />
+          : 
+            <Message>Unknown assignment type { assignment.type }</Message>
       : 
         <AssignmentSelection />
       }

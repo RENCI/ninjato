@@ -1,20 +1,20 @@
 import { useContext, useState } from 'react';
-import { Button, Form, Menu, Message, Modal } from 'semantic-ui-react';
+import { Modal, Button, Form, Menu, Message } from 'semantic-ui-react';
 import { LOGIN, UserContext } from 'contexts';
 import { AutoFocusForm } from 'modules/common/components/auto-focus-form';
 import { api } from 'utils/api';
-import { useModal, useGetAssignment } from 'hooks';
+import { useModal } from 'hooks';
 import styles from './styles.module.css';
 
 const { Header, Content, Actions } = Modal;
+const { Input } = Form;
 
 export const LoginForm = () => {
   const [, userDispatch] = useContext(UserContext);
   const [open, openModal, closeModal] = useModal();
-  const getAssignment = useGetAssignment();
   const [values, setValues] = useState({
-    username: null,
-    password: null
+    username: '',
+    password: ''
   });
   const [errorMessage, setErrorMessage] = useState(null);
 
@@ -26,7 +26,7 @@ export const LoginForm = () => {
   const onSubmit = async () => {
     const { username, password } = values;
 
-    closeModal();
+    setErrorMessage();
 
     try {
       const user = await api.login(username, password);
@@ -40,7 +40,7 @@ export const LoginForm = () => {
         admin: user.admin
       });
 
-      getAssignment(id);
+      closeModal();
     }
     catch (error) {
       console.log(error);      
@@ -70,14 +70,16 @@ export const LoginForm = () => {
           error 
           onSubmit={ onSubmit }
         >
-          <Form.Input label='Login or email' name='username' onChange={ onChange } />
-          <Form.Input label='Password' type='password' name='password' onChange={ onChange } />
+          <Input label='Login or email' name='username' onChange={ onChange } />
+          <Input label='Password' type='password' name='password' onChange={ onChange } />
           <Message
             error
             content={ errorMessage }
           />
           <div className={ styles.hide }>
-            <Button content='Submit' />
+            <Button>
+              Submit
+            </Button>
           </div>
         </AutoFocusForm>
       </Content>
@@ -85,7 +87,11 @@ export const LoginForm = () => {
         <Button onClick={ closeModal }>
           Cancel
         </Button>
-        <Button primary onClick={ onSubmit }>
+        <Button 
+          primary 
+          disabled={ values.username === '' || values.password === ''}
+          onClick={ onSubmit }
+        >
           Log in
         </Button>
       </Actions>

@@ -1,10 +1,10 @@
 import { useContext, useState, useRef, useEffect } from 'react';
-import { DataContext, RefineContext } from 'contexts';
+import { UserContext, RefineContext } from 'contexts';
 import { useResize } from 'hooks';
 
 export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
-  const [{ maskData, label }] = useContext(DataContext);
-  const [{ showBackground }] = useContext(RefineContext);
+  const [{ maskData, assignment }] = useContext(UserContext);
+  const [{ activeRegion, showBackground }] = useContext(RefineContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);
   const { width } = useResize(div);
@@ -17,14 +17,25 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
     }
   }, [initialized, div, width, volumeView]);
 
-  // Update data
+  // Regions
+  useEffect(() => {
+    if (initialized) {
+      volumeView.setRegions(assignment.regions);
+    }
+  }, [initialized, volumeView, assignment]); 
+
+  // Data
   useEffect(() => {
     if (initialized && maskData) {
       volumeView.setData(maskData);
-      volumeView.setLabel(label);
       volumeView.render(onLoaded);
     }
-  }, [initialized, volumeView, maskData, label, onLoaded]);   
+  }, [initialized, volumeView, maskData, onLoaded]);   
+
+  // Active label
+  useEffect(() => {
+    if (initialized) volumeView.setActiveRegion(activeRegion);
+  }, [initialized, volumeView, activeRegion]);
 
   // Show background
   useEffect(() => {

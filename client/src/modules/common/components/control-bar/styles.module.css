@@ -25,6 +25,11 @@
   }
 }
 
-.controlBar > *:not(:last-child) {
+.controlBar > div:not(:last-child) {
   margin-bottom: .5rem;
+}
+
+.controlLabel {
+  text-align: center;
+  color: #999;
 }

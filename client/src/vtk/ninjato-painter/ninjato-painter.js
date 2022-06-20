@@ -180,6 +180,7 @@ function vtkNinjatoPainter(publicAPI, model) {
       workerPromise.exec('paintFloodFill', { 
         labels: model.labelMap.getPointData().getScalars().getData(),
         label: model.label,
+        labelConstraint: model.labelConstraint,
         pointList: points, 
         brush
       });
@@ -231,6 +232,26 @@ function vtkNinjatoPainter(publicAPI, model) {
     });
   };
 
+  publicAPI.split = (splitLabel, slice) => {
+    workerPromise.exec('split', {
+      labels: model.labelMap.getPointData().getScalars().getData(),
+      splitLabel: splitLabel,
+      slice: slice
+    });
+  };
+
+  publicAPI.merge = (mergeLabel) => {
+    workerPromise.exec('merge', {
+      labels: model.labelMap.getPointData().getScalars().getData(),
+      mergeLabel: mergeLabel
+    });
+  };
+
+  // Already has a delete method
+  publicAPI.deleteRegion = () => {
+    workerPromise.exec('delete');
+  };
+
   // --------------------------------------------------------------------------
 
   publicAPI.applyLabelMap = (labelMap) => {
@@ -277,10 +298,12 @@ function vtkNinjatoPainter(publicAPI, model) {
     }
   };
 
-  publicAPI.setBackgroundImage = (image) => {
+  publicAPI.setBackgroundImage = (image, labels) => {
     model.backgroundImage = image;
 
-    initialData = new Uint16Array(image.getPointData().getScalars().getData());
+    initialData = new Uint16Array(image.getPointData().getScalars().getData().map(label => 
+      labels && labels.includes(label) ? 0 : label
+    ));
   };
 
   // --------------------------------------------------------------------------
@@ -393,7 +416,8 @@ const DEFAULT_VALUES = {
   voxelFunc: null,
   radius: 1,
   label: 0,
-  slicingMode: null,
+  labelConstraint: null,
+  slicingMode: null
 };
 
 // ----------------------------------------------------------------------------
@@ -413,7 +437,8 @@ export function extend(publicAPI, model, initialValues = {}) {
     'voxelFunc',
     'label',
     'radius',
-    'slicingMode',
+    'labelConstraint',
+    'slicingMode'
   ]);
 
   // Object specific methods

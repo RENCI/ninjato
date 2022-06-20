@@ -15,7 +15,7 @@ const iconSize = brush => (
 );
 
 export const BrushOptions = ({ which }) => {
-  const [{ brushes, paintBrush, eraseBrush }, dispatch] = useContext(RefineContext);
+  const [{ brushes, paintBrush, eraseBrush, createBrush }, dispatch] = useContext(RefineContext);
 
   const onClick = (brush, which) => {
     dispatch({ type: REFINE_SET_BRUSH, brush: brush, which: which });
@@ -28,7 +28,8 @@ export const BrushOptions = ({ which }) => {
       compact
       color={ 
         (which === 'paint' && i === paintBrush) || 
-        (which === 'erase' && i === eraseBrush) ?
+        (which === 'erase' && i === eraseBrush) ||
+        (which === 'add' && i === createBrush) ?
         'grey' : null 
       }
       onClick={ () => onClick(i, which) }
@@ -43,7 +44,7 @@ export const BrushOptions = ({ which }) => {
 
   return (        
     <>
-      { which === 'erase' ? 'Eraser' : 'Paint brush' }
+      { which === 'erase' ? 'Eraser' : 'add' ? 'New region shape' : 'Paint brush' }
       <Group>
         { brushes.map((d, i) => brush(d, i)) }
       </Group>

@@ -72,8 +72,8 @@ def claim_region_assignment(user, subvolume_id, active_assignment_id, claim_regi
     .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
     .param('subvolume_id', 'subvolume id that includes the region to be removed',
            required=True)
-    .param('active_assignment_id', 'the active assignment item id from the user to remove the '
-                                   'region from',
+    .param('active_assignment_id', 'the active assignment item id from which the user to remove '
+                                   'the region',
            required=True)
     .param('region_id', 'region id or label to remove from the assignment',
            required=True)

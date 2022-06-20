@@ -1,28 +1,30 @@
-import { useContext } from 'react';
-import { Grid } from 'semantic-ui-react';
+import { useContext, useEffect } from 'react';
 import { UserContext } from 'contexts';
-import { AssignmentMessage } from 'modules/common/components/assignment-message'
-import { Volume } from './volume';
-
-const { Column } = Grid;
+import { AssignmentMessage } from 'modules/common/components/assignment-message';
+import { Assignments } from 'modules/assignment/components/assignments';
+import { Volumes } from 'modules/assignment/components/volumes';
+import { useGetAssignments } from 'hooks';
+import styles from './styles.module.css';
 
 export const AssignmentSelection = () => {
-  const [{ login, volumes }] = useContext(UserContext);
+  const [{ id, assignments, volumes }] = useContext(UserContext);
+  const getAssignments = useGetAssignments();
+
+  useEffect(() => {  
+    if (id) getAssignments(id);    
+  }, [id, getAssignments]);
 
   return (
     <>
-      { login &&
+      { (assignments && volumes) &&
         <>
           <AssignmentMessage>
             Select assignment
           </AssignmentMessage>
-          <Grid centered padded stretched doubling columns={ 4 }>
-            { volumes.map((volume, i) => (
-              <Column key={ i }>
-                <Volume volume={ volume } />
-              </Column>
-            ))}
-          </Grid>
+          <div className={ styles.container }>
+            <Assignments />
+            <Volumes />
+          </div>
         </>
       }
     </>

@@ -1,20 +1,16 @@
 import { useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu } from 'semantic-ui-react';
-import { 
-  LOGIN, LOGOUT, UserContext,
-  CLEAR_DATA, DataContext 
-} from 'contexts';
+import { UserContext, LOGIN, LOGOUT } from 'contexts';
 import { RegisterForm } from './register-form';
 import { LoginForm } from './login-form';
 import { api } from 'utils/api';
-import { useGetAssignment } from 'hooks';
+import { useGetAssignments } from 'hooks';
 
 export const UserControls = () => {
   const [{ login }, userDispatch] = useContext(UserContext);
-  const [, dataDispatch] = useContext(DataContext);
   const navigate = useNavigate();
-  const getAssignment = useGetAssignment();
+  const getAssignment = useGetAssignments();
 
   useEffect(() => {
     const checkUserLogin = async () => {
@@ -31,7 +27,7 @@ export const UserControls = () => {
             admin: user.admin
           });
 
-          getAssignment(id);
+          //getAssignment(id);
         }
       }
       catch (error) {
@@ -47,10 +43,6 @@ export const UserControls = () => {
 
     userDispatch({
       type: LOGOUT
-    });
-
-    dataDispatch({
-      type: CLEAR_DATA
     });
 
     navigate('/');

@@ -1,50 +1,36 @@
-import { useContext, useState, useRef } from 'react';
+import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
-import { UserContext, DataContext, CLEAR_DATA } from 'contexts';
-import { useModal, useGetAssignment } from 'hooks';
-import { api } from 'utils/api';
-import { encodeTIFF } from 'utils/data-conversion';
+import { UserContext, CLEAR_DATA } from 'contexts';
+import { useModal, useSaveAnnotations } from 'hooks';
 
 const { Header, Content, Actions } = Modal;
 
 export const SubmitButton = ({ disabled }) => {
-  const [{ id, assignment }] = useContext(UserContext);
-  const [{ maskData }, dataDispatch] = useContext(DataContext);
+  const [, userDispatch] = useContext(UserContext);
   const [open, openModal, closeModal] = useModal();
-  const getAssignment = useGetAssignment();
+  const saveAnnotations = useSaveAnnotations();
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
-  const ref = useRef();
 
   const onConfirm = async () => {
     setSubmitting(true);
 
-    const buffer = encodeTIFF(maskData);
+    await saveAnnotations(true);
 
-    try {
-      await api.saveAnnotations(id, assignment.itemId, buffer, true);
+    setSubmitting(false);
+    setSuccess(true);
 
-      setSuccess(true);
-      setTimeout(() => {        
-        setSuccess(false);
-        closeModal();
+    setTimeout(() => {        
+      setSuccess(false);
+      closeModal();
 
-        dataDispatch({ type: CLEAR_DATA });
-      }, 1000);
-
-      getAssignment(id);
-    }
-    catch (error) {
-      console.log(error);        
-    }
-
-    setSubmitting(false);   
+      userDispatch({ type: CLEAR_DATA });
+    }, 1000);   
   };
 
   return (
     <>
       <Button 
-        ref={ ref }
         primary
         disabled={ disabled }
         onClick={ openModal }

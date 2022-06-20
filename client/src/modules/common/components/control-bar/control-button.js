@@ -1,21 +1,15 @@
 import { Button } from 'semantic-ui-react';
-
-export const ControlGroup = ({ children }) => {
-  return (
-    <Button.Group vertical>
-      { children }
-    </Button.Group>
-  );
-};
+import { ControlPopup } from './control-popup';
 
 export const ControlButton = ({ 
   toggle = false, 
-  icon, 
+  icon,
+  tooltip = null, 
   active = false,
   disabled = false,
   onClick 
 }) => {
-  return (
+  const button = (
     <Button
       toggle={ toggle }
       icon={ icon }
@@ -23,5 +17,15 @@ export const ControlButton = ({
       disabled={ disabled }
       onClick={ onClick } 
     />
+  );
+
+  return (
+    <>
+      { tooltip ? 
+        <ControlPopup content={ tooltip } trigger={ button } />
+      :
+        <>{ button }</>
+      }
+    </>
   );
 };

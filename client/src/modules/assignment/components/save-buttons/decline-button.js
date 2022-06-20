@@ -1,37 +1,44 @@
-import { useContext, useState, useRef } from 'react';
+import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
-import { UserContext, DataContext, CLEAR_DATA } from 'contexts';
-import { useModal, useGetAssignment } from 'hooks';
+import { 
+  UserContext, CLEAR_DATA,
+  ErrorContext, SET_ERROR
+} from 'contexts';
+import { useModal } from 'hooks';
 import { api } from 'utils/api';
 
 const { Header, Content, Actions } = Modal;
 
 export const DeclineButton = ({ disabled }) => {
-  const [{ id, assignment }] = useContext(UserContext);
-  const [, dataDispatch] = useContext(DataContext);
+  const [{ id, assignment }, userDispatch] = useContext(UserContext);
+  const [, errorDispatch] = useContext(ErrorContext);
   const [open, openModal, closeModal] = useModal();
-  const getAssignment = useGetAssignment();
   const [declining, setDeclining] = useState(false);
   const [success, setSuccess] = useState(false);
-  const ref = useRef();
 
   const onConfirm = async () => {
     setDeclining(true);
 
     try {
-      await api.declineAssignment(id, assignment.itemId);
+      const { status } = await api.declineAssignment(id, assignment.id);
+
+      if (status !== 'success') throw new Error(`Error declining assignment ${ assignment.id }`); 
 
       setSuccess(true);
       setTimeout(() => {        
         setSuccess(false);
         openModal(false);
 
-        getAssignment(id);
-        dataDispatch({ type: CLEAR_DATA });
+        userDispatch({ type: CLEAR_DATA });
       }, 1000);
     }
     catch (error) {
       console.log(error);        
+      
+      setDeclining(false);
+      setSuccess(false);
+
+      errorDispatch({ type: SET_ERROR, error: error });
     }
 
     setDeclining(false); 
@@ -40,7 +47,6 @@ export const DeclineButton = ({ disabled }) => {
   return (
     <>
       <Button 
-        ref={ ref }
         secondary
         disabled={ disabled }
         onClick={ openModal }

@@ -87,35 +87,31 @@ function floodFillScanlineStack({ buffer, w, h, seed }) {
     x1++;
 
     spanAbove = spanBelow = 0;
-    while(x1 < w && buffer[y * w + x1] === 0)
-    {
+    while(x1 < w && buffer[y * w + x1] === 0) {
       buffer[y * w + x1] = 1;
 
-      if(!spanAbove && y > 0 && buffer[(y - 1) * w + x1] === 0)
-      {
+      if(!spanAbove && y > 0 && buffer[(y - 1) * w + x1] === 0) {
         stack.push([x1, y - 1]);
         spanAbove = 1;
       }
-      else if(spanAbove && y > 0 && buffer[(y - 1) * w + x1] !== 0)
-      {
+      else if(spanAbove && y > 0 && buffer[(y - 1) * w + x1] !== 0) {
         spanAbove = 0;
       }
-      if(!spanBelow && y < h - 1 && buffer[(y + 1) * w + x1] === 0)
-      {
+      if(!spanBelow && y < h - 1 && buffer[(y + 1) * w + x1] === 0) {
         stack.push([x1, y + 1]);
         spanBelow = 1;
       }
-      else if(spanBelow && y < h - 1 && buffer[(y + 1) * w + x1] !== 0)
-      {
+      else if(spanBelow && y < h - 1 && buffer[(y + 1) * w + x1] !== 0) {
         spanBelow = 0;
       }
+      
       x1++;
     }
   }
 } 
 
 // XXX: Currently assuming z slice
-function handlePaintFloodFill({ labels, label, pointList, brush }) {
+function handlePaintFloodFill({ labels, label, labelConstraint, pointList, brush }) {
   if (pointList.length === 0) return;
 
   globals.buffer.set(labels.map(d => d === label ? 1 : 0));
@@ -174,6 +170,15 @@ function handlePaintFloodFill({ labels, label, pointList, brush }) {
     for (let y = 0; y < h; y++) {
       if (buffer[x + jStride * y] === 0) globals.buffer[x + jStride * y + kStride * z] = 1;
     }
+  }  
+
+  if (labelConstraint !== null) {
+    for (let x = 0; x < w; x++) {
+      for (let y = 0; y < h; y++) {
+        const i = x + jStride * y + kStride * z;
+        globals.buffer[i] = globals.buffer[i] === 1 && labels[i] === labelConstraint ? 1 : 0;
+      }
+    }  
   }
 }
 
@@ -207,6 +212,32 @@ function handleCrop({ p1, p2 }) {
   }
 };
 
+function handleSplit({ labels, splitLabel, slice }) {
+  const x = globals.dimensions[0];
+  const y = globals.dimensions[1];
+  const z = globals.dimensions[2];
+
+  const jStride = x;
+  const kStride = x * y;
+
+  for (let i = 0; i < x; i++) {
+    for (let j = 0; j < y; j++) {
+      for (let k = slice; k < z; k++) {
+        const index = i + jStride * j + kStride * k;
+        if (labels[index] === splitLabel) globals.buffer[index] = 1;
+      }
+    }
+  }
+}
+
+function handleMerge({ labels, mergeLabel }) {
+  globals.buffer.set(labels.map(d => d === mergeLabel ? 1 : 0));
+}
+
+function handleDelete() {
+  globals.buffer.fill(1);
+}
+
 // --------------------------------------------------------------------------
 
 registerWebworker()
@@ -223,6 +254,9 @@ registerWebworker()
   .operation('paintFloodFill', handlePaintFloodFill)
   .operation('erase', handleErase)
   .operation('crop', handleCrop)
+  .operation('split', handleSplit)
+  .operation('merge', handleMerge)
+  .operation('delete', handleDelete)
   .operation('end', () => {
     const response = new registerWebworker.TransferableResponse(
       globals.buffer.buffer,

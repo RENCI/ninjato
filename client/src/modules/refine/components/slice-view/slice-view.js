@@ -2,12 +2,24 @@ import { RenderWindow, Slice, Image } from 'modules/view/components';
 import { Widgets } from 'modules/refine/components/slice-view/widgets';
 import { MaskPainter } from 'modules/refine/components/slice-view/mask-painter';
 
-export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
+export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDown, onKeyUp) {
   const renderWindow = RenderWindow();
-  const slice = Slice();
   const image = Image();
-  const mask = MaskPainter();  
-  const widgets = Widgets(mask.getPainter(), onEdit);
+  const slice = Slice(evt => evt.key === 'i' ? image.toggleInterpolation() : onKeyDown(evt), onKeyUp);
+  const mask = MaskPainter();
+
+  const isValid = label => label !== null && label !== 0;
+
+  const onHover = label => {
+    if (isValid(label)) {
+      onHighlight(label);
+    }
+    else {
+      onHighlight(null);
+    }
+  };
+
+  const widgets = Widgets(mask.getPainter(), onEdit, onSelect, onHover);
 
   return {
     initialize: rootNode => {
@@ -16,15 +28,9 @@ export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
       renderWindow.initialize(rootNode);      
       slice.initialize(renderWindow);
 
-      const interactor = renderWindow.getInteractor();
-      interactor.onKeyDown(evt => (
-        evt.key === 'i' ? image.toggleInterpolation() : onKeyDown(evt)
-      ));
-      interactor.onKeyUp(onKeyUp);
-
       widgets.setRenderer(renderWindow.getRenderer());
     },
-    setData: (imageData, maskData) => {
+    setData: (imageData, maskData, sliceRanges) => {
       image.setInputData(imageData);    
       mask.setInputData(maskData);
 
@@ -45,20 +51,89 @@ export function SliceView(onEdit, onSliceChange, onKeyDown, onKeyUp) {
         onSliceChange(z);
       }
 
-      slice.setImage(image.getActor(), renderWindow.getCamera(), onUpdateSlice);
-      slice.setSliceByLabel(image.getMapper(), maskData, mask.getLabel());
+      slice.setImage(image.getActor(), renderWindow.getCamera(), sliceRanges, onUpdateSlice);
+      slice.setSliceByLabel(image.getMapper(), maskData, mask.getActiveRegion().label);
     },
-    setLabel: label => mask.setLabel(label),
-    setEditMode: (editMode, cursor) => {
-      widgets.setEditMode(editMode)
+    setRegions: regions => {
+      mask.setRegions(regions);
+      widgets.setRegions(regions);
+
+      if (!mask.getActiveRegion() && regions.length > 0) {
+        const region = regions[0];
+        
+        mask.setActiveRegion(region);
+        widgets.setActiveRegion(region);
+      }
+    },
+    setActiveRegion: region => {
+      mask.setActiveRegion(region);
+      widgets.setActiveRegion(region);
+    },
+    setHighlightRegion: region => mask.setHighlightRegion(region),
+    setTool: (tool, cursor) => {
+      widgets.setTool(tool)
       renderWindow.setCursor(cursor);
     },
-    setPaintBrush: brush => widgets.setPaintBrush(brush),
-    setEraseBrush: brush => widgets.setEraseBrush(brush),
+    setBrush: (type, brush) => widgets.setBrush(type, brush),
     setSlice: slice => image.getMapper().setSlice(slice),
+    setShowContours: show => mask.getActor().setVisibility(show),
+    splitRegion: async (splitLabel, newLabel, splitMode) => {
+      const painter = mask.getPainter();
+
+      const currentLabel = painter.getLabel();
+
+      const slice = image.getMapper().getSlice();
+            
+      painter.setLabel(newLabel);
+      painter.startStroke();      
+      painter.split(splitLabel, splitMode === 'top' ? slice + 1: slice);            
+      const promise = painter.endStroke();    
+      await promise;
+
+      painter.setLabel(currentLabel);
+
+      onEdit();
+
+      return promise;
+    },
+    mergeRegion: async region => {
+      const painter = mask.getPainter();
+
+      console.log(region);
+
+      painter.startStroke();      
+      painter.merge(region.label);
+      const promise = painter.endStroke();    
+      await promise;
+
+      onEdit();
+
+      return promise;
+    },
+    createRegion: region => {
+      mask.setActiveRegion(region);
+      return widgets.createRegion();      
+    },
+    deleteRegion: async region => {
+      const painter = mask.getPainter();
+
+      const currentLabel = painter.getLabel();
+
+      painter.setLabel(region.label);
+      painter.startStroke();      
+      painter.deleteRegion();
+      const promise = painter.endStroke(true);    
+      await promise;
+
+      painter.setLabel(currentLabel);
+
+      onEdit();
+
+      return promise;
+    },
     undo: () => {
       mask.getPainter().undo();
-      onEdit()
+      onEdit();
     },
     redo: () => {
       mask.getPainter().redo();

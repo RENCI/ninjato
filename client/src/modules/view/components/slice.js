@@ -64,7 +64,8 @@ const setWindowLevel = (actor, range) => {
   actor.getProperty().set({ colorLevel, colorWindow });
 };
 
-export function Slice() { 
+export function Slice(onKeyDown, onKeyUp) { 
+  let interactor = null;
   let imageMapper = null;
   let sliceRanges = null;
 
@@ -78,18 +79,35 @@ export function Slice() {
   return {
     initialize: renderWindow => {
       renderWindow.getCamera().setParallelProjection(true);
-      renderWindow.getInteractor().setInteractorStyle(interactorStyle);
-    },
-    setImage: (imageActor, camera, onSliceChange) => {
-      imageMapper = imageActor.getMapper();
-      const imageData = imageMapper.getInputData();
 
-      sliceRanges = getSliceRanges(imageData);
+      interactor = renderWindow.getInteractor();
+      interactor.setInteractorStyle(interactorStyle);
+
+      interactor.onKeyDown(evt => {
+        if (!imageMapper) return;
+
+        const extent = imageMapper.getInputData().getExtent();
+        const kMin = extent[4];
+        const kMax = extent[5];
     
+        evt.key === 'ArrowUp' ? imageMapper.setSlice(Math.min(kMax, imageMapper.getSlice() + 1)) : 
+        evt.key === 'ArrowDown' ? imageMapper.setSlice(Math.max(kMin, imageMapper.getSlice() - 1)) :
+        onKeyDown(evt)
+      });
+    
+      interactor.onKeyUp(onKeyUp);
+    },
+    setImage: (imageActor, camera, volumeSliceRanges, onSliceChange) => {
+      const firstTime = !imageMapper;
+
+      imageMapper = imageActor.getMapper();
+      const imageData = imageMapper.getInputData(); 
+
+      sliceRanges = volumeSliceRanges ?? getSliceRanges(imageData);      
+
       resetCamera(camera, imageData);
 
-      const extent = imageData.getExtent(); 
-
+      const extent = imageData.getExtent();
       const kMin = extent[4];
       const kMax = extent[5];
       const kGet = imageMapper.getSlice;
@@ -97,22 +115,24 @@ export function Slice() {
 
       manipulator.setScrollListener(kMin, kMax, -1, kGet, kSet, 1);
     
-      const updateSlice = () => {  
-        // Get slice position
-        const ijk = [0, 0, 0];
-        const position = [0, 0, 0];
-  
-        ijk[slicingMode] = imageMapper.getSlice();
-        imageData.indexToWorld(ijk, position);
+      if (firstTime) {
+        const updateSlice = () => {  
+          // Get slice position
+          const ijk = [0, 0, 0];
+          const position = [0, 0, 0];
+    
+          ijk[slicingMode] = imageMapper.getSlice();
+          imageData.indexToWorld(ijk, position);
 
-        // Update window/level
-        const z = Math.floor(ijk[slicingMode]);
-        setWindowLevel(imageActor, sliceRanges[z]);
+          // Update window/level
+          const z = Math.floor(ijk[slicingMode]);
+          setWindowLevel(imageActor, sliceRanges[z]);
 
-        if (onSliceChange) onSliceChange(z, position);
-      };
+          if (onSliceChange) onSliceChange(z, position);
+        };
 
-      imageMapper.onModified(updateSlice);
+        imageMapper.onModified(updateSlice);
+      }
     },
     setSliceByLabel: (imageMapper, maskData, label) => {
       imageMapper.setSlice(findFirstSlice(maskData, label));

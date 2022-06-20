@@ -1,43 +1,20 @@
-import { useContext, useState, useRef } from 'react';
+import { useState } from 'react';
 import { Popup, Button, Icon } from 'semantic-ui-react';
-import { UserContext, DataContext } from 'contexts';
-import { api } from 'utils/api';
-import { encodeTIFF, saveTIFF } from 'utils/data-conversion';
-
-// Download for testing
-const download = false;
+import { useSaveAnnotations } from 'hooks';
 
 export const SaveButton = ({ disabled, onSaving }) => {
-  const [{ id, assignment }] = useContext(UserContext);
-  const [{ maskData }] = useContext(DataContext);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
-  const ref = useRef();
+  const saveAnnotations = useSaveAnnotations();
 
   const onSave = async () => {
     setSaving(true);
     onSaving(true);
 
-    const buffer = encodeTIFF(maskData);
+    await saveAnnotations();
 
-    if (download) {  
-      saveTIFF(buffer, 'testTiff.tif');
-
-      setSaving(false);      
-      onSaving(false);
-
-      return;
-    }
-
-    try {
-      await api.saveAnnotations(id, assignment.itemId, buffer);
-
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 1000);
-    }
-    catch (error) {
-      console.log(error);        
-    }
+    setSuccess(true);
+    setTimeout(() => setSuccess(false), 1000);
 
     setSaving(false);
     onSaving(false);
@@ -49,7 +26,6 @@ export const SaveButton = ({ disabled, onSaving }) => {
       open={ success }
       trigger={ 
         <Button 
-          ref={ ref }
           basic
           primary
           disabled={ disabled}

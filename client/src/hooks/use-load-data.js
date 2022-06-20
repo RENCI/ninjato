@@ -1,29 +1,32 @@
 import { useContext } from 'react';
 import { 
-  DataContext, SET_DATA,
+  UserContext, SET_DATA,
   RefineContext, REFINE_RESET,
-  FlagContext, FLAG_RESET,
-  ErrorContext, SET_ERROR 
+  LoadingContext, SET_LOADING, CLEAR_LOADING,
+  ErrorContext, SET_ERROR, REFINE_SET_ACTIVE_REGION 
 } from 'contexts';
 import { api } from 'utils/api';
 import { decodeTIFF } from 'utils/data-conversion';
+import { combineMasks } from 'utils/data';
 
 export const useLoadData = ()  => {
-  const [, dataDispatch] = useContext(DataContext);
+  const [{ maskData }, userDispatch] = useContext(UserContext);
   const [, refineDispatch] = useContext(RefineContext);
-  const [, flagDispatch] = useContext(FlagContext);
+  const [, loadingDispatch] = useContext(LoadingContext);
   const [, errorDispatch] = useContext(ErrorContext);
 
-  return async ({ imageId, maskId, label }) => {
+  return async ({ imageId, maskId, regions, location }, assignmentToUpdate = null) => {
     try {
+      loadingDispatch({ type: SET_LOADING });
+
       const data = await api.getData(imageId, maskId);
 
-      const imageData = decodeTIFF(data.imageBuffer);
-      const maskData = decodeTIFF(data.maskBuffer);
+      const newImageData = decodeTIFF(data.imageBuffer);
+      const newMaskData = decodeTIFF(data.maskBuffer);
 
       // Some sanity checking
-      const iDims = imageData.getDimensions();
-      const mDims = maskData.getDimensions();
+      const iDims = newImageData.getDimensions();
+      const mDims = newMaskData.getDimensions();
 
       const same = iDims.reduce((same, dim, i) => same && dim === mDims[i], true);
 
@@ -34,25 +37,43 @@ export const useLoadData = ()  => {
         throw new Error(`Returned volume dimensions are (${ iDims }).\nAll dimensions must be greater than 1.\nPlease contact the site administrator`);
       }
 
-      dataDispatch({
-        type: SET_DATA,
-        imageData: imageData,
-        maskData: maskData,
-        label: label
-      });
+      if (!assignmentToUpdate) {
+        userDispatch({
+          type: SET_DATA,
+          imageData: newImageData,
+          maskData: newMaskData
+        });
+  
+        refineDispatch({
+          type: REFINE_RESET
+        });
 
-      refineDispatch({
-        type: REFINE_RESET
-      });
+        refineDispatch({
+          type: REFINE_SET_ACTIVE_REGION,
+          region: regions.length > 0 ? regions[0] : null
+        });
+      }
+      else {
+        userDispatch({
+          type: SET_DATA,
+          imageData: newImageData,
+          maskData: combineMasks(newMaskData, location, maskData, assignmentToUpdate.location)
+        });
 
-      flagDispatch({
-        type: FLAG_RESET
-      });
+        refineDispatch({
+          type: REFINE_SET_ACTIVE_REGION,
+          region: regions.length > 0 ? regions[regions.length - 1] : null
+        });
+      }
+
+      loadingDispatch({ type: CLEAR_LOADING });
     }
     catch (error) {
       console.log(error);
 
       // XXX: Potentialy decline to get a new assignment?
+
+      loadingDispatch({ type: CLEAR_LOADING });
 
       errorDispatch({ type: SET_ERROR, error: error });
     }      

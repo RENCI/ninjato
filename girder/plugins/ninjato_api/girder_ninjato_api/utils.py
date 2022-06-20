@@ -343,7 +343,7 @@ def _remove_region_from_active_assignment(whole_item, assign_item, region_id, us
     :param whole_item: whole subvolume item
     :param active_assign_id: a user's active assignment item id
     :param region_id: region id/label to be removed from the active assignment
-    :return: True if succeed and False otherwise
+    :return: assignment key after the region is removed if succeed and None otherwise
     """
     region_levels = [str(assign_item['meta']['region_label'])]
     if 'removed_region_ids' in assign_item['meta']:
@@ -355,14 +355,14 @@ def _remove_region_from_active_assignment(whole_item, assign_item, region_id, us
             else:
                 del assign_item['meta']['removed_region_ids']
             Item().save(assign_item)
-            return True
+            return assign_item['meta']['region_label']
     if 'added_region_ids' in assign_item['meta']:
-        rid_list = assign_item['meta']['added_region_ids']
-        if region_id in rid_list:
-            rid_list.remove(region_id)
+        aid_list = assign_item['meta']['added_region_ids']
+        if region_id in aid_list:
+            aid_list.remove(region_id)
         elif region_id == region_levels[0]:
             # remove the initial assigned region
-            region_levels[0] = str(rid_list[0])
+            region_levels[0] = str(aid_list[0])
             assign_item['meta']['region_label'] = region_levels[0]
             assign_item['name'] = f'region{region_levels[0]}'
             # update history to replace assignment metaata for remove region with the first
@@ -379,12 +379,12 @@ def _remove_region_from_active_assignment(whole_item, assign_item, region_id, us
             del whole_item['meta']['regions'][region_id]['item_id']
             whole_item = Item().save(whole_item)
             assign_item = Item().save(assign_item)
-            rid_list = rid_list[1:]
+            aid_list = aid_list[1:]
         else:
             raise RestException('invalid region id', code=400)
-        if rid_list:
-            assign_item['meta']['added_region_ids'] = rid_list
-            region_levels += rid_list
+        if aid_list:
+            assign_item['meta']['added_region_ids'] = aid_list
+            region_levels += aid_list
         else:
             del assign_item['meta']['added_region_ids']
     elif region_id == region_levels[0]:
@@ -413,47 +413,45 @@ def _remove_region_from_active_assignment(whole_item, assign_item, region_id, us
         min_x_ary = []
         max_x_ary = []
         # find the range after the region is removed from the assigned item
+        x_range, y_range, z_range = _get_range(whole_item)
         for lev in range(min_level, max_level + 1):
             if str(lev) not in region_levels:
                 continue
             level_indices = np.where(imarray == lev)
-            min_z_ary.append(min(level_indices[0]))
-            max_z_ary.append(max(level_indices[0]))
-            min_y_ary.append(min(level_indices[1]))
-            max_y_ary.append(max(level_indices[1]))
-            min_x_ary.append(min(level_indices[2]))
-            max_x_ary.append(max(level_indices[2]))
+            min_z = min(level_indices[0])
+            max_z = max(level_indices[0])
+            min_y = min(level_indices[1])
+            max_y = max(level_indices[1])
+            min_x = min(level_indices[2])
+            max_x = max(level_indices[2])
+            min_x, max_x, min_y, max_y, min_z, max_z = _get_buffered_extent(
+                min_x, max_x, min_y, max_y, min_z, max_z, x_range, y_range, z_range)
+            min_z_ary.append(min_z)
+            max_z_ary.append(max_z)
+            min_y_ary.append(min_y)
+            max_y_ary.append(max_y)
+            min_x_ary.append(min_x)
+            max_x_ary.append(max_x)
         min_z = min(min_z_ary)
         max_z = max(max_z_ary)
         min_y = min(min_y_ary)
         max_y = max(max_y_ary)
         min_x = min(min_x_ary)
         max_x = max(max_x_ary)
-        x_range, y_range, z_range = _get_range(whole_item)
-        min_x, max_x, min_y, max_y, min_z, max_z = _get_buffered_extent(
-            min_x, max_x, min_y, max_y, min_z, max_z, x_range, y_range, z_range)
-
-        ori_min_x = assign_item['meta']['coordinates']['x_min']
-        ori_max_x = assign_item['meta']['coordinates']['x_max']
-        ori_min_y = assign_item['meta']['coordinates']['y_min']
-        ori_max_y = assign_item['meta']['coordinates']['y_max']
-        ori_min_z = assign_item['meta']['coordinates']['z_min']
-        ori_max_z = assign_item['meta']['coordinates']['z_max']
-
         assign_item['meta']['coordinates'] = {
-            "x_max": min(max_x, ori_max_x),
-            "x_min": max(min_x , ori_min_x),
-            "y_max": min(max_y, ori_max_y),
-            "y_min": max(min_y, ori_min_y),
-            "z_max": min(max_z, ori_max_z),
-            "z_min": max(min_z, ori_min_z)
+            "x_max": max_x,
+            "x_min": min_x,
+            "y_max": max_y,
+            "y_min": min_y,
+            "z_max": max_z,
+            "z_min": min_z
         }
         assign_item = Item().save(assign_item)
         # update assign_item based on updated extent that has region removed
         _create_region_files(assign_item, whole_item)
-        return True
+        return assign_item['meta']['region_label']
 
-    return False
+    return None
 
 
 def _merge_region_to_active_assignment(whole_item, active_assign_id, region_id):
@@ -545,6 +543,7 @@ def _remove_assignment_from_history(item, region_id, assign_key):
             item['meta']['history'][region_id].remove(meta_dict)
             if not item['meta']['history'][region_id]:
                 del item['meta']['history'][region_id]
+            Item().save(item)
             return
     return
 
@@ -594,7 +593,7 @@ def _reject_assignment(user, item, whole_item, has_files, comment, task='annotat
         Item().save(whole_item)
     region_label = item['meta']['region_label']
     # remove the user's assignment
-    _remove_assignment_from_history(whole_item, region_label, [f"{task}_assigned_to"])
+    _remove_assignment_from_history(whole_item, str(region_label), f"{task}_assigned_to")
     uname = user["login"]
     if task == 'annotation' and has_files:
         files = File().find({'itemId': item['_id']})
@@ -701,9 +700,11 @@ def remove_region_from_item_assignment(user, subvolume_id, active_assignment_id,
             ret = _remove_region_from_active_assignment(whole_item, assign_item, region_id,
                                                         user['login'])
             if ret:
+                ret_dict['assignment_region_key'] = ret
                 ret_dict['status'] = 'success'
             else:
                 ret_dict['status'] = 'failure'
+                ret_dict['assignment_region_key'] = ''
             return ret_dict
         else:
             raise RestException('input region id to be removed is not currently assigned to the '
@@ -828,11 +829,35 @@ def _get_history_info(whole_item, region_label, type, is_array=True):
     if 'history' in whole_item['meta'] and region_label in whole_item['meta']['history']:
         for info in whole_item['meta']['history'][region_label]:
             if info['type'] == type:
-                if not is_array:
+                if is_array:
+                    return_info.append(info)
+                else:
                     return info
-                return_info.append(info)
 
     return return_info
+
+
+def _get_assignment_status(whole_item, region_label):
+    assign_info = _get_history_info(whole_item, region_label, 'annotation_assigned_to',
+                                    is_array=False)
+    complete_info = _get_history_info(whole_item, region_label, 'annotation_completed_by',
+                                      is_array=False)
+    if not assign_info:
+        return 'inactive'
+    if not complete_info:
+        return 'active'
+
+    review_assign_info = _get_history_info(whole_item, region_label, 'review_assigned_to',
+                                           is_array=False)
+    review_complete_info = _get_history_info(whole_item, region_label, 'review_completed_by',
+                                             is_array=False)
+    if not review_assign_info:
+        return 'awaiting review'
+
+    if not review_complete_info:
+        return 'under review'
+
+    return 'completed'
 
 
 def get_item_assignment(user, subvolume_id):
@@ -1330,17 +1355,7 @@ def get_region_or_assignment_info(item, assignment_key):
             'location': region_item['meta']['coordinates'] if region_item else {},
             'last_updated_time': region_item['updated'] if region_item else '',
             'regions': regions,
-            'annotation_assigned_to': _get_history_info(item, region_label_str,
-                                                        'annotation_assigned_to', is_array=False),
-            'annotation_completed_by': _get_history_info(item, region_label_str,
-                                                         'annotation_completed_by', is_array=False),
-            'annotation_rejected_by': _get_history_info(item, region_label_str,
-                                                        'annotation_rejected_by'),
-            'review_assigned_to': _get_history_info(item, region_label_str, 'review_assigned_to',
-                                                    is_array=False),
-            'review_completed_by': _get_history_info(item, region_label_str,
-                                                     'review_completed_by', is_array=False),
-            'review_rejected_by': _get_history_info(item, region_label_str, 'review_rejected_by'),
+            'status': _get_assignment_status(item, region_label_str)
         }
     else:
         ret_dict = {
@@ -1350,13 +1365,7 @@ def get_region_or_assignment_info(item, assignment_key):
             'location': {},
             'last_updated_time': '',
             'regions': [],
-            'annotation_assigned_to': '',
-            'annotation_completed_by': '',
-            'annotation_rejected_by': _get_history_info(item, region_label_str,
-                                                        'annotation_rejected_by'),
-            'review_assigned_to': '',
-            'review_completed_by': '',
-            'review_rejected_by': _get_history_info(item, region_label_str, 'review_rejected_by')
+            'status': _get_assignment_status(item, region_label_str)
         }
 
     if 'removed_region_ids' in item['meta'] and \
@@ -1389,20 +1398,7 @@ def get_region_or_assignment_info(item, assignment_key):
             'z_min': val['z_min'],
             },
         ret_dict['item_id'] = val['item_id']
-        ret_dict['annotation_assigned_to'] = _get_history_info(item, str(reg_item['region_label']),
-                                                               'annotation_assigned_to',
-                                                               is_array=False),
-        ret_dict['annotation_completed_by'] = _get_history_info(item, str(reg_item['region_label']),
-                                                                'annotation_completed_by',
-                                                                is_array=False),
-        ret_dict['annotation_rejected_by'] = _get_history_info(item, str(reg_item['region_label']),
-                                                               'annotation_rejected_by'),
-        ret_dict['review_rejected_by'] = _get_history_info(item, str(reg_item['region_label']),
-                                                           'review_rejected_by'),
-        ret_dict['review_completed_by'] = _get_history_info(item, str(reg_item['region_label']),
-                                                            'review_completed_by', is_array=False),
-        ret_dict['review_assigned_to'] = _get_history_info(item, str(reg_item['region_label']),
-                                                           'review_assigned_to', is_array=False)
+        ret_dict['status'] = _get_assignment_status(item, str(reg_item['region_label']))
         return ret_dict
 
     return ret_dict

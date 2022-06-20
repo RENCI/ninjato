@@ -66,6 +66,7 @@ const DEFAULT_VALUES = {
   painting: false,
   color: [1],
   imageData: null,
+  showTrail: true
 };
 
 // ----------------------------------------------------------------------------
@@ -76,7 +77,7 @@ export function extend(publicAPI, model, initialValues = {}) {
   vtkAbstractWidgetFactory.extend(publicAPI, model, initialValues);
 
   macro.get(publicAPI, model, ['painting']);
-  macro.setGet(publicAPI, model, ['manipulator', 'radius', 'color', 'imageData']);
+  macro.setGet(publicAPI, model, ['manipulator', 'radius', 'color', 'imageData', 'showTrail']);
 
   vtkBrushWidget(publicAPI, model);
 }
