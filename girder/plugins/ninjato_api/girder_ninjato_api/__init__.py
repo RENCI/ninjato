@@ -5,7 +5,8 @@ from girder.constants import AccessType
 from .utils import get_item_assignment, save_user_annotation_as_item, get_subvolume_item_ids, \
     get_subvolume_item_info, get_region_or_assignment_info, get_available_region_ids, \
     claim_assignment, request_assignment, get_all_avail_items_for_review, \
-    save_user_review_result_as_item, get_await_review_assignment, remove_region_from_item_assignment
+    get_region_comment_info, save_user_review_result_as_item, get_await_review_assignment, \
+    remove_region_from_item_assignment
 
 
 @access.public
@@ -117,10 +118,14 @@ def request_region_assignment(user, subvolume_id, assignment_key):
     .param('reject', 'A boolean True or False to indicate whether the user wants to reject '
                      'annotation assignment. If set to False, annotation will be saved. '
                      'The default is False.', dataType='boolean', default=False, required=False)
-    .jsonParam('comment', 'annotation comment per region added by the user', required=False)
-    .jsonParam('color', 'color string per region added by the user', required=False)
+    .jsonParam('comment', 'a JSON object with region label as key to save annotation comment per '
+                          'region added by the user',
+               paramType='form', requireObject=True, required=False)
+    .jsonParam('color', 'a JSON object with region label as key to save color string per region '
+                        'added by the user',
+               paramType='form', requireObject=True, required=False)
     .jsonParam('added_region_ids', 'list of region ids to be added. Make sure the list does not '
-                               'include the ids of regions in the assignment', required=False,
+                                   'include the ids of regions in the assignment', required=False,
                requireArray=True, paramType='formData')
     .jsonParam('removed_region_ids', 'list of region ids to be removed', required=False,
                requireArray=True, paramType='formData')
@@ -218,6 +223,19 @@ def get_region_info(item, assignment_key):
 
 @access.public
 @autoDescribeRoute(
+    Description('Get region comments info.')
+    .modelParam('id', 'The item ID', model='item', level=AccessType.READ)
+    .param('region_label', 'region label to get comments for', dataType=str, required=True)
+    .errorResponse()
+    .errorResponse('Get action was denied on the user.', 403)
+    .errorResponse('Failed to get region info', 500)
+)
+def get_region_comments(item, region_label):
+    return get_region_comment_info(item, region_label)
+
+
+@access.public
+@autoDescribeRoute(
     Description('Get max region id from a subvolume. For region splitting, after getting max '
                 'region id, number of split regions needs to be passed in so that server can leave '
                 'enough region ids for use by split regions. Note this opeation has to be atomic '
@@ -257,5 +275,6 @@ class NinjatoPlugin(GirderPlugin):
         info['apiRoot'].item.route('GET', (':id', 'subvolume_info'), get_subvolume_info)
         info['apiRoot'].item.route('GET', (':id', 'new_region_ids'), get_new_region_ids)
         info['apiRoot'].item.route('GET', (':id', 'subvolume_assignment_info'), get_region_info)
+        info['apiRoot'].item.route('GET', (':id', 'region_comments'), get_region_comments)
         info['apiRoot'].item.route('GET', (':id', 'available_items_for_review'),
                                    get_avail_items_for_review)
