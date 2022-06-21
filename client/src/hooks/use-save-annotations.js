@@ -30,7 +30,7 @@ export const useSaveAnnotations = () => {
         return;
       }
 
-      await api.saveAnnotations(id, assignment.id, buffer, added, removed, done);      
+      await api.saveAnnotations(id, assignment.id, buffer, assignment.regions, added, removed, done);      
 
       userDispatch({ type: CLEAR_SAVE_LABELS });
     }

@@ -43,6 +43,22 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
     return info;
   }, {});
 
+  // Get region comments
+  const comments = {};
+  for (const { label } of info.regions) {
+    const result = await axios.get(`/item/${ itemId }/region_comments`, { 
+      params: {
+        region_label: label 
+      }
+    });
+
+    console.log(comments);
+
+    comments[label] = result.data;
+  };
+
+  console.log(comments);
+
   // Copy info and rename to be more concise
   return {
     id: itemId,
@@ -55,6 +71,7 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
     regions: info.regions.map((region, i) => ({
       ...region,
       label: +region.label,
+      comments: comments[region.label],
       index: i
     })),
     status: getStatus(info),
@@ -231,10 +248,7 @@ console.log(infoResponse);
       maskBuffer: responses[1].data
     };   
   },
-  saveAnnotations: async (userId, itemId, buffer, addedLabels, removedLabels, done = false) => {
-
-    console.log(userId, itemId, buffer, addedLabels, removedLabels, done);
-
+  saveAnnotations: async (userId, itemId, buffer, regions, addedLabels, removedLabels, done = false) => {
     const blob = new Blob([buffer], { type: 'image/tiff' });
 
     const stringify = ids => JSON.stringify(ids.map(id => id.toString()));
@@ -250,6 +264,12 @@ console.log(infoResponse);
       {
         params: { 
           item_id: itemId,
+          comment: regions.reduce((comments, region) => {
+            return {
+              ...comments,
+              [region.label]: region.comment
+            }
+          }, {}),
           done: done
         },
         headers: { 
@@ -281,8 +301,6 @@ console.log(infoResponse);
     });
 
     if (response.data.status !== 'success') throw new Error(`Error removing region ${ label }`);
-
-    console.log(response.data);
 
     return response.data.assignment_region_key;
   },

@@ -17,6 +17,7 @@ export const PUSH_REGION_HISTORY = 'user/PUSH_REGION_HISTORY';
 export const UNDO_REGION_HISTORY = 'user/UNDO_REGION_HISTORY';
 export const REDO_REGION_HISTORY = 'user/REDO_REGION_HISTORY';
 export const SAVE_REGION_HISTORY = 'user/SAVE_REGION_HISTORY';
+export const SET_REGION_COMMENT = 'user/SET_REGION_COMMENT';
  
 const initialState = {
   id: null,
@@ -182,6 +183,26 @@ const reducer = (state, action) => {
 
       return state;
       
+    case SET_REGION_COMMENT: {
+      const regions = state.assignment.regions;
+
+      const index = regions.findIndex(({ label }) => label === action.region.label);
+
+      if (index === -1) return state;
+
+      regions[index] = {
+        ...regions[index],
+        comment: action.comment
+      }
+
+      return {
+        ...state,
+        assignment: {
+          ...state.assignment,
+          regions: [...regions]
+        }
+      };
+    }
 
     default: 
       throw new Error(`Invalid user context action: ${ action.type }`);

@@ -1,12 +1,12 @@
 import { useContext } from 'react';
-import { Button, Modal, Tab, Menu } from 'semantic-ui-react';
+import { Button, Modal, Tab, Menu, Header } from 'semantic-ui-react';
 import { 
   UserContext, 
   RefineContext, REFINE_SET_ACTIVE_REGION 
 } from 'contexts';
 import { CommentHistory } from 'modules/comment/components/comment-history';
 
-const { Header, Content } = Modal;
+const {  Content } = Modal;
 
 export const CommentContainer = () => {
   const [{ assignment }, userDispatch] = useContext(UserContext);
@@ -25,15 +25,23 @@ export const CommentContainer = () => {
     >
       <Header>Comments</Header>
       <Content>
+      <Header sub>Select region</Header>
         <Tab           
-          activeIndex={ regions.indexOf(activeRegion) }
+          activeIndex={ regions.findIndex(({ label }) => label === activeRegion?.label) }
           menu={{ secondary: true, pointing: true }}
-          panes={ regions.map(({ label, color, comments }) => (
+          panes={ regions.map(region => (
             { 
-              menuItem: <Menu.Item key={ label } style={{ color: color }}>{ label }</Menu.Item>,
+              menuItem: (
+                <Menu.Item 
+                  key={ region.label } 
+                  style={{ color: region.color }}
+                >
+                  { region.label }
+                </Menu.Item>
+              ),
               render: () => (
                 <Tab.Pane>
-                  <CommentHistory comments={ comments } />
+                  <CommentHistory region={ region } />
                 </Tab.Pane>
               )
             } 
