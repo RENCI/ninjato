@@ -548,25 +548,26 @@ def _remove_assignment_from_history(item, region_id, assign_key):
     return
 
 
-def _add_meta_to_history(item, label, info):
+def _add_meta_to_history(item, label, info, key='history'):
     """
     add meta to whole item metadata history key with val added as a list so that
     if key already exists, val is appended to the existing value list
     :param item: whole subvolume item to add metadata to
     :param label: region label
     :param info: reject info dict to be added
+    :param key: history or comment_history to store meta to
     :return:
     """
-    if 'history' not in item['meta']:
-        item['meta']['history'] = {
+    if key not in item['meta']:
+        item['meta'][key] = {
             label: [info]
         }
-    elif label not in item['meta']['history']:
-        item['meta']['history'][label] = [info]
+    elif label not in item['meta'][key]:
+        item['meta'][key][label] = [info]
     else:
-        key_val = item['meta']['history'][label]
+        key_val = item['meta'][key][label]
         key_val.append(info)
-        item['meta']['history'][label] = key_val
+        item['meta'][key][label] = key_val
 
     Item().save(item)
     return
@@ -860,6 +861,13 @@ def _get_assignment_status(whole_item, region_label):
     return 'completed'
 
 
+def get_region_comment_info(item, region_label):
+    if 'comment_history' in item['meta'] and region_label in item['meta']['comment_history']:
+        return item['meta']['comment_history'][region_label]
+    else:
+        return []
+
+
 def get_item_assignment(user, subvolume_id):
     """
     get region assignment in a subvolume for annotation task. If user has multiple active
@@ -1075,10 +1083,14 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, ad
     else:
         add_meta = {done_key: 'false'}
 
-    if comment:
-        comment['user'] = uname
-        comment['time'] = datetime.now().strftime("%m/%d/%Y %H:%M")
-        add_meta['annotation_comment'] = comment
+    for comment_key, comment_val in comment.items():
+        _add_meta_to_history(whole_item,
+                             str(comment_key),
+                             {'comment': comment_val,
+                              'user': uname,
+                              'time': datetime.now().strftime("%m/%d/%Y %H:%M")},
+                             key='comment_history')
+
     if color:
         add_meta['color'] = color
 
@@ -1164,10 +1176,13 @@ def save_user_review_result_as_item(user, item_id, reject, comment, approve):
 
     add_meta = {'review_done': 'true'}
 
-    if comment:
-        comment['user'] = uname
-        comment['time'] = datetime.now().strftime("%m/%d/%Y %H:%M")
-        add_meta['review_comment'] = comment
+    for comment_key, comment_val in comment.items():
+        _add_meta_to_history(whole_item,
+                             str(comment_key),
+                             {'comment': comment_val,
+                              'user': uname,
+                              'time': datetime.now().strftime("%m/%d/%Y %H:%M")},
+                             key='comment_history')
 
     if approve:
         add_meta['review_approved'] = 'true'
@@ -1355,6 +1370,8 @@ def get_region_or_assignment_info(item, assignment_key):
             'location': region_item['meta']['coordinates'] if region_item else {},
             'last_updated_time': region_item['updated'] if region_item else '',
             'regions': regions,
+            'color': region_item['meta']['color'] if region_item and \
+                                                     'color' in region_item['meta'] else {},
             'status': _get_assignment_status(item, region_label_str)
         }
     else:
@@ -1365,6 +1382,7 @@ def get_region_or_assignment_info(item, assignment_key):
             'location': {},
             'last_updated_time': '',
             'regions': [],
+            'color': {},
             'status': _get_assignment_status(item, region_label_str)
         }
 
