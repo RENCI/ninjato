@@ -5,7 +5,6 @@ import {
   RefineContext, REFINE_SET_TOOL, REFINE_SET_ACTION, REFINE_SET_ACTIVE_REGION, REFINE_CHANGE_BRUSH_SIZE,
 } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
-import { RegionSelect } from 'modules/common/components/region-select';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
 import { VolumeViewWrapper, VolumeView } from 'modules/refine/components/volume-view';
 import { SliceViewWrapper, SliceView } from 'modules/refine/components/slice-view';
@@ -13,13 +12,12 @@ import { VolumeControls } from 'modules/refine/components/volume-controls';
 import { SliceControls } from 'modules/refine/components/slice-controls';
 import { SliceSlider } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
-import { CommentContainer } from 'modules/comment/components/comment-container';
 import { ClaimDialog, RemoveDialog, SplitDialog, MergeDialog, CreateDialog, DeleteDialog } from 'modules/refine/components/dialogs';
 
 const { Column } = Grid;
 
 export const RefineContainer = () => {
-  const [{ assignment, imageData }, userDispatch] = useContext(UserContext);
+  const [{ imageData }, userDispatch] = useContext(UserContext);
   const [, refineDispatch] = useContext(RefineContext);
   const volumeView = useRef(VolumeView());
   const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDown, onKeyUp));
@@ -132,10 +130,7 @@ export const RefineContainer = () => {
   return (
     <> 
       <VisualizationLoader loading={ loading } />
-      <AssignmentMessage>
-        Refining { assignment.regions.length } regions: <RegionSelect />
-        <CommentContainer />
-      </AssignmentMessage>
+      <AssignmentMessage />
       <Grid columns='equal' verticalAlign='middle' padded stackable reversed='mobile'>
         { !loading && 
           <VolumeControls />

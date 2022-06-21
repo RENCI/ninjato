@@ -1,0 +1,10 @@
+.message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.message > :not(:last-child) {
+  margin-right: .5rem;
+}
