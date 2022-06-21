@@ -13,6 +13,7 @@ import { VolumeControls } from 'modules/refine/components/volume-controls';
 import { SliceControls } from 'modules/refine/components/slice-controls';
 import { SliceSlider } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
+import { CommentContainer } from 'modules/comment/components/comment-container';
 import { ClaimDialog, RemoveDialog, SplitDialog, MergeDialog, CreateDialog, DeleteDialog } from 'modules/refine/components/dialogs';
 
 const { Column } = Grid;
@@ -133,6 +134,7 @@ export const RefineContainer = () => {
       <VisualizationLoader loading={ loading } />
       <AssignmentMessage>
         Refining { assignment.regions.length } regions: <RegionSelect />
+        <CommentContainer />
       </AssignmentMessage>
       <Grid columns='equal' verticalAlign='middle' padded stackable reversed='mobile'>
         { !loading && 
