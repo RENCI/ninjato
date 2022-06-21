@@ -1370,7 +1370,8 @@ def get_region_or_assignment_info(item, assignment_key):
             'location': region_item['meta']['coordinates'] if region_item else {},
             'last_updated_time': region_item['updated'] if region_item else '',
             'regions': regions,
-            'color': region_item['meta']['color'],
+            'color': region_item['meta']['color'] if region_item and \
+                                                     'color' in region_item['meta'] else {},
             'status': _get_assignment_status(item, region_label_str)
         }
     else:
