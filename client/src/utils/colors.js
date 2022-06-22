@@ -5,7 +5,7 @@ import * as d3 from "d3-color";
 const rgb2vtk = ({ r, g, b }) => [r, g, b].map(c => c / 255);
 
 // Colorbrewer 8-class Set1
-const set1 = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628', '#f781bf'];
+const set1 = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', /*'#ffff33'*/'#e6e600', '#a65628', '#f781bf'];
 
 const colors = set1;
 
