@@ -239,15 +239,21 @@ export const api = {
       maskBuffer: responses[1].data
     };   
   },
-  saveAnnotations: async (userId, itemId, buffer, regions, addedLabels, removedLabels, done = false) => {
+  saveAnnotations: async (userId, itemId, buffer, regions, done = false) => {
     const blob = new Blob([buffer], { type: 'image/tiff' });
 
-    const stringify = ids => JSON.stringify(ids.map(id => id.toString()));
+    const regionObject = key => regions.reduce((object, region) => {
+      return {
+        ...object,
+        [region.label]: region[key]
+      }
+    }, {});
 
     // Set form data
     const formData = new FormData();
-    formData.append('added_region_ids', stringify(addedLabels));
-    formData.append('removed_region_ids', stringify(removedLabels));
+    formData.append('current_region_ids', JSON.stringify(regions.map(({ label }) => label.toString())));
+    formData.append('comment', JSON.stringify(regionObject('comment')));
+    formData.append('color', JSON.stringify(regionObject('color')));
     formData.append('content_data', blob);    
 
     await axios.post(`/user/${ userId }/annotation`, 
@@ -255,12 +261,6 @@ export const api = {
       {
         params: { 
           item_id: itemId,
-          comment: regions.reduce((comments, region) => {
-            return {
-              ...comments,
-              [region.label]: region.comment
-            }
-          }, {}),
           done: done
         },
         headers: { 
