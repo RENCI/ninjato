@@ -1,0 +1,8 @@
+.region {
+  display: flex;
+  align-items: center;
+}
+
+.region > :not(:last-child) {
+  margin-right: .4rem;
+}

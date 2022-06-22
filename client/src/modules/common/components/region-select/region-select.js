@@ -1,6 +1,7 @@
 import { useContext } from 'react';
 import { Select, Label } from 'semantic-ui-react';
 import { UserContext, RefineContext, REFINE_SET_ACTIVE_REGION } from 'contexts';
+import styles from './styles.module.css';
 
 export const RegionSelect = () => {
   const [{ assignment }] = useContext(UserContext);
@@ -24,10 +25,10 @@ export const RegionSelect = () => {
         { 
           key: label,
           value: label,
-          text: <>
+          text: <div className={ styles.region }>
             <Label style={{ background: color }} circular={ true } empty={ true } />
-            { label }
-          </>
+            <div>{ label }</div>
+          </div>
         }
       ))}
     />
