@@ -124,11 +124,8 @@ def request_region_assignment(user, subvolume_id, assignment_key):
     .jsonParam('color', 'a JSON object with region label as key to save color string per region '
                         'added by the user',
                paramType='form', requireObject=True, required=False)
-    .jsonParam('added_region_ids', 'list of region ids to be added. Make sure the list does not '
-                                   'include the ids of regions in the assignment', required=False,
-               requireArray=True, paramType='formData')
-    .jsonParam('removed_region_ids', 'list of region ids to be removed', required=False,
-               requireArray=True, paramType='formData')
+    .jsonParam('current_region_ids', 'list of region ids that are included in the annotated mask',
+               required=False, requireArray=True, paramType='formData')
     .param('content_data', 'annotation content blob data to be saved on server. If reject is False'
                            ' this content_data needs to be saved',
            required=False, paramType='formData')
@@ -136,18 +133,16 @@ def request_region_assignment(user, subvolume_id, assignment_key):
     .errorResponse('Save action was denied on the user.', 403)
     .errorResponse('Failed to save user annotations', 500)
 )
-def save_user_annotation(user, item_id, done, reject, comment, color, added_region_ids,
-                         removed_region_ids, content_data):
-    if added_region_ids is None:
-        added_region_ids = []
-    if removed_region_ids is None:
-        removed_region_ids = []
+def save_user_annotation(user, item_id, done, reject, comment, color, current_region_ids,
+                         content_data):
+    if current_region_ids is None:
+        current_region_ids = []
     if comment is None:
         comment = {}
     if color is None:
         color = {}
     return save_user_annotation_as_item(user, item_id, done, reject, comment, color,
-                                        added_region_ids, removed_region_ids, content_data)
+                                        current_region_ids, content_data)
 
 
 @access.public
