@@ -45,6 +45,7 @@ export const CreateDialog = ({ sliceView }) => {
 
       setTimeout(async () => {
         setSuccess(false);
+        setNewLabel(null);
         refineDispatch({ type: REFINE_SET_ACTION, action: null });
       }, 1000);
     }
