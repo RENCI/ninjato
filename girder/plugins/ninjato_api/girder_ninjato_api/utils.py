@@ -323,6 +323,7 @@ def _remove_regions(region_list, whole_item, assigned_item_id):
     else:
         whole_item['meta']['removed_region_ids'] = region_list
 
+    whole_item['meta']['removed_region_ids'] = list(set(whole_item['meta']['removed_region_ids']))
     item_list = [_find_region_from_label(whole_item, str(rid)) for rid in region_list]
 
     # delete all the other regions in region_list to be merged
@@ -334,6 +335,34 @@ def _remove_regions(region_list, whole_item, assigned_item_id):
         else:
             del whole_item['meta']['regions'][str(rid)]
 
+    return
+
+
+def _replace_initial_assigned_region(whole_item, assign_item, initial_region_id, new_region_id,
+                                    username):
+    """
+    remove the initial assigned region id and replace it with a new region id
+    :param whole_item: whole subvolume item
+    :param assign_item: assignment item
+    :param initial_region_id: initially assigned region for the assignment
+    :param new_region_id: new region id to replace initially assignment region for the assignment
+    :return:
+    """
+    assign_item['meta']['region_label'] = new_region_id
+    assign_item['name'] = f'region{new_region_id}'
+    # update history to replace assignment metaata for remove region with the new_region_id
+    _remove_assignment_from_history(whole_item, initial_region_id, 'annotation_assigned_to')
+    _add_meta_to_history(whole_item, new_region_id,
+                         {
+                             'type': 'annotation_assigned_to',
+                             'user': username,
+                             'time': datetime.now().strftime("%m/%d/%Y %H:%M")
+                         })
+    whole_item['meta']['regions'][new_region_id]['item_id'] = \
+        whole_item['meta']['regions'][initial_region_id]['item_id']
+    del whole_item['meta']['regions'][initial_region_id]['item_id']
+    Item().save(whole_item)
+    Item().save(assign_item)
     return
 
 
@@ -362,23 +391,9 @@ def _remove_region_from_active_assignment(whole_item, assign_item, region_id, us
             aid_list.remove(region_id)
         elif region_id == region_levels[0]:
             # remove the initial assigned region
+            _replace_initial_assigned_region(whole_item, assign_item, region_id, str(aid_list[0]),
+                                            username)
             region_levels[0] = str(aid_list[0])
-            assign_item['meta']['region_label'] = region_levels[0]
-            assign_item['name'] = f'region{region_levels[0]}'
-            # update history to replace assignment metaata for remove region with the first
-            # added region
-            _remove_assignment_from_history(whole_item, region_id, 'annotation_assigned_to')
-            _add_meta_to_history(whole_item, region_levels[0],
-                                 {
-                                     'type': 'annotation_assigned_to',
-                                     'user': username,
-                                     'time': datetime.now().strftime("%m/%d/%Y %H:%M")
-                                 })
-            whole_item['meta']['regions'][region_levels[0]]['item_id'] = \
-                whole_item['meta']['regions'][region_id]['item_id']
-            del whole_item['meta']['regions'][region_id]['item_id']
-            whole_item = Item().save(whole_item)
-            assign_item = Item().save(assign_item)
             aid_list = aid_list[1:]
         else:
             raise RestException('invalid region id', code=400)
@@ -1026,8 +1041,8 @@ def get_await_review_assignment(user, subvolume_id):
     return ret_data
 
 
-def save_user_annotation_as_item(user, item_id, done, reject, comment, color, added_region_ids,
-                                 removed_region_ids, content_data):
+def save_user_annotation_as_item(user, item_id, done, reject, comment, color, current_region_ids,
+                                 content_data):
     """
     Save user annotation to item item_id
     :param user: user object who saves annotation
@@ -1036,8 +1051,7 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, ad
     :param reject: whether to reject the annotation rather than save it.
     :param comment: annotation comment per region from the user
     :param color: color per region from the user
-    :param added_region_ids: list of region ids to be added as part of the save action
-    :param removed_region_ids: list of region ids to be removed as part of the save action
+    :param current_region_ids: list of region ids that are included in the annotated mask
     :param content_data: annotation content blob to be saved on server
     :return: success or failure status
     """
@@ -1094,15 +1108,36 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, ad
     if color:
         add_meta['color'] = color
 
-    if added_region_ids:
-        add_meta['added_region_ids'] = added_region_ids
-    if removed_region_ids:
-        add_meta['removed_region_ids'] = removed_region_ids
+    if current_region_ids:
+        add_meta['current_region_ids'] = current_region_ids
 
     Item().setMetadata(item, add_meta)
 
     if done:
-        if added_region_ids:
+        if current_region_ids:
+            # make sure each item is a string
+            current_region_ids = [str(item) for item in current_region_ids]
+            exist_region_ids = item['meta']['added_region_ids'] \
+                if 'added_region_ids' in item['meta'] else []
+            region_key = item['meta']['region_label']
+            # add assignment region key to exist_region_ids while removing potential duplicates
+            exist_region_ids = list(set(exist_region_ids + [region_key]))
+            removed_region_ids = [
+                item for item in exist_region_ids if item not in current_region_ids
+            ]
+            if region_key in removed_region_ids:
+                # region_key is not in current_region_ids meaning region key needs to be removed
+                new_region_key = current_region_ids[0]
+                _replace_initial_assigned_region(whole_item, item, region_key, new_region_key,
+                                                 uname)
+                added_region_ids = current_region_ids[1:]
+            else:
+                added_region_ids = [item for item in current_region_ids if item != region_key]
+
+            if removed_region_ids:
+                _remove_regions(removed_region_ids, whole_item, item_id)
+                del item['meta']['removed_region_ids']
+
             for id in added_region_ids:
                 reg_item = _find_region_from_label(whole_item, str(id))
                 if reg_item:
@@ -1112,9 +1147,7 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, ad
                 # into the assignment item
                 del whole_item['meta']['regions'][str(id)]
 
-        if removed_region_ids:
-            _remove_regions(removed_region_ids, whole_item, item_id)
-            del item['meta']['removed_region_ids']
+
 
         del whole_item['meta'][str(uid)]
         whole_item = Item().save(whole_item)
