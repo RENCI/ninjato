@@ -14,13 +14,10 @@ const fileUrl = id => `/file/${ id }/download`;
 const convertDate = date => new Date(date);
 
 const getStatus = info => (
+  info.status === 'awaiting review' ? 'waiting' :
+  info.status === 'under review' ? 'review' :
+  info.status === 'completed' ? 'completed' :
   'active'
-  /*
-  info.review_completed_by !== '' ? 'completed' :
-  info.review_assigned_to !== '' ? 'review' :
-  info.annotation_completed_by !== '' ? 'waiting' :
-  'active'
-  */
 );
 
 const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
@@ -52,12 +49,8 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
       }
     });
 
-    console.log(result);
-
     comments[label] = result.data;
   };
-
-  console.log(comments);
 
   // Copy info and rename to be more concise
   return {
