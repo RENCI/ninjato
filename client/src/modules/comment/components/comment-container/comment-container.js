@@ -5,6 +5,7 @@ import {
   RefineContext, REFINE_SET_ACTIVE_REGION 
 } from 'contexts';
 import { CommentHistory } from 'modules/comment/components/comment-history';
+import { RegionIcon } from 'modules/common/components/region-icon';
 
 const {  Content } = Modal;
 
@@ -32,11 +33,8 @@ export const CommentContainer = () => {
           panes={ regions.map(region => (
             { 
               menuItem: (
-                <Menu.Item 
-                  key={ region.label } 
-                  style={{ color: region.color }}
-                >
-                  { region.label }
+                <Menu.Item key={ region.label }>
+                  <RegionIcon region={ region } />              
                 </Menu.Item>
               ),
               render: () => (
