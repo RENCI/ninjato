@@ -45,6 +45,9 @@ export const CommentHistory = ({ region }) => {
     setComment(region.comment);
   }, [region.comment]);
 
+  console.log(region.comments);
+  console.log(comment);
+
   return (
     <Group style={{ maxWidth: 'none' }}>
       { region.comments?.map(({ user, time, comment }, i) => (
@@ -52,7 +55,7 @@ export const CommentHistory = ({ region }) => {
           <Content>
             <Author as='span'>{ user }</Author>
             <Metadata><div>{ time.toLocaleString() }</div></Metadata>
-            <Text>{ comment }</Text>
+            <Text style={{ whiteSpace: 'pre-line' }}>{ comment }</Text>
           </Content>
         </Comment>
       ))}
@@ -84,7 +87,7 @@ export const CommentHistory = ({ region }) => {
                 <>
                   <Author as='span'>{ login }</Author>
                   <Metadata><div>{ time.toLocaleString() }</div></Metadata>
-                  <Text>{ comment }</Text>
+                  <Text style={{ whiteSpace: 'pre-line' }}>{ comment }</Text>
                   <Actions>
                     <Action onClick={ onEditClick }>
                       <Icon name='edit' />
