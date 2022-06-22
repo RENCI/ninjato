@@ -46,13 +46,13 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
   // Get region comments
   const comments = {};
   for (const { label } of info.regions) {
-    const result = await axios.get(`/item/${ itemId }/region_comments`, { 
+    const result = await axios.get(`/item/${ subvolumeId }/region_comments`, { 
       params: {
-        region_label: label 
+        region_label: label
       }
     });
 
-    console.log(comments);
+    console.log(result);
 
     comments[label] = result.data;
   };
@@ -142,8 +142,6 @@ export const api = {
     for (const volume of response.data) {
       try {
         const infoResponse = await axios.get(`/item/${ volume.id }/subvolume_info`);
-
-console.log(infoResponse);
 
         const { data } = infoResponse;
 

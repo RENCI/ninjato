@@ -1,13 +1,13 @@
 import { useContext, useState, useRef, useEffect } from 'react';
-import { Comment, Icon, Divider, Form, Ref } from 'semantic-ui-react';
+import { Comment, Icon, Divider, Form, TextArea } from 'semantic-ui-react';
 import { UserContext, SET_REGION_COMMENT } from 'contexts';
 
 const { Group, Content, Author, Metadata, Text, Actions, Action } = Comment;
-const { TextArea } = Form;
 
 export const CommentHistory = ({ region }) => {
   const [{ login } , assignmentDispatch] = useContext(UserContext);
   const [comment, setComment] = useState(null);
+  const [time, setTime] = useState(new Date());
   const [editing, setEditing] = useState(false);
   const textAreaRef = useRef();
 
@@ -31,8 +31,11 @@ export const CommentHistory = ({ region }) => {
 
   const onEditEnd = () => {
     setEditing(false);
+    setTime(new Date());
     assignmentDispatch({ type: SET_REGION_COMMENT, region: region, comment: comment });
   };
+
+  const stopPropagation = evt => evt.stopPropagation();
 
   useEffect(() => {
     textAreaRef.current?.focus();
@@ -58,34 +61,39 @@ export const CommentHistory = ({ region }) => {
           <Divider horizontal>New</Divider>
           <Comment>
             <Content>
-              <Author as='span'>{ login }</Author>
-              <Metadata><div>{ (new Date()).toLocaleString() }</div></Metadata>
-              <Text>
-                { editing ? 
-                  <Form reply>
-                    <Ref innerRef={ textAreaRef }>
+              { editing ?
+                <>
+                  <Author as='span'>{ login }</Author>
+                  <Metadata><div>Now</div></Metadata>
+                  <Text>
+                    <Form reply>
                       <TextArea
-                        as='textarea'
+                        ref={ textAreaRef }
                         style={{ width: '100%', minHeight: 50 }}
                         value={ comment }
                         onChange={ onCommentChange }
                         onBlur={ onEditEnd }
+                        onKeyDown={ stopPropagation }
+                        onKeyUp={ stopPropagation }
+                        onKeyPress={ stopPropagation }
                       />
-                    </Ref>
-                  </Form>
-                :
-                  <>{ comment }</>
-                }
-              </Text>
-              { !editing &&
-                <Actions>
-                  <Action onClick={ onEditClick }>
-                    <Icon name='edit' />
-                  </Action>
-                  <Action onClick={ onClearClick }>
-                    <Icon name='cancel' />
-                  </Action>
-                </Actions>
+                    </Form>
+                  </Text>
+                </>
+              :
+                <>
+                  <Author as='span'>{ login }</Author>
+                  <Metadata><div>{ time.toLocaleString() }</div></Metadata>
+                  <Text>{ comment }</Text>
+                  <Actions>
+                    <Action onClick={ onEditClick }>
+                      <Icon name='edit' />
+                    </Action>
+                    <Action onClick={ onClearClick }>
+                      <Icon name='cancel' />
+                    </Action>
+                  </Actions>
+                </>
               }
             </Content>
           </Comment>

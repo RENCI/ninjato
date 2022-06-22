@@ -86,10 +86,20 @@ export const RefineContainer = () => {
     sliceView.current.setHighlightRegion(region);
   }
 
-  function onKeyDown(evt) {
-    if (evt.key === 'Control') {
-      refineDispatch({ type: REFINE_SET_TOOL, tool: 'erase' });
+  const handleKeyDown = key => {
+    switch (key) {
+      case 'Control':
+        refineDispatch({ type: REFINE_SET_TOOL, tool: 'erase' });
+        break;
+
+      case 'Alt':
+        refineDispatch({ type: REFINE_SET_TOOL, tool: 'select' });
+        break;
     }
+  };
+
+  function onKeyDown(evt) {
+    handleKeyDown(evt.key);
   }
 
   const handleKeyUp = key => {
