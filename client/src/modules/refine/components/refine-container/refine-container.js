@@ -18,7 +18,7 @@ const { Column } = Grid;
 
 export const RefineContainer = () => {
   const [{ imageData }, userDispatch] = useContext(UserContext);
-  const [, refineDispatch] = useContext(RefineContext);
+  const [{ tool }, refineDispatch] = useContext(RefineContext);
   const volumeView = useRef(VolumeView());
   const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDown, onKeyUp));
   const [loading, setLoading] = useState(true);
@@ -87,14 +87,17 @@ export const RefineContainer = () => {
   }
 
   const handleKeyDown = key => {
+    console.log(key);
     switch (key) {
       case 'Control':
-        refineDispatch({ type: REFINE_SET_TOOL, tool: 'erase' });
+        if (tool !== 'erase') refineDispatch({ type: REFINE_SET_TOOL, tool: 'erase' });
         break;
 
-      case 'Alt':
-        refineDispatch({ type: REFINE_SET_TOOL, tool: 'select' });
+      case 'Shift':
+        if (tool !== 'select') refineDispatch({ type: REFINE_SET_TOOL, tool: 'select' });
         break;
+
+      default:
     }
   };
 
@@ -105,6 +108,10 @@ export const RefineContainer = () => {
   const handleKeyUp = key => {
     switch (key) {
       case 'Control': 
+        refineDispatch({ type: REFINE_SET_TOOL, tool: 'paint' });
+        break;
+
+      case 'Shift': 
         refineDispatch({ type: REFINE_SET_TOOL, tool: 'paint' });
         break;
 
