@@ -9,6 +9,7 @@ export const SliceViewWrapper = ({ sliceView }) => {
   ] = useContext(RefineContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);
+  const sliceRanges = useRef();
   const { width } = useResize(div);
   
   // Initialize
@@ -22,19 +23,19 @@ export const SliceViewWrapper = ({ sliceView }) => {
   // Assignment
   useEffect(() => {
     if (initialized) {
+      const volume = volumes.find(({ id }) => id === assignment.subvolumeId);
+      sliceRanges.current = volume.sliceRanges.slice(assignment.location.z_min, assignment.location.z_max + 1);
+
       sliceView.setRegions(assignment.regions);
     }
-  }, [initialized, sliceView, assignment]);   
+  }, [initialized, sliceView, assignment, volumes]);   
 
   // Data
   useEffect(() => {
-    if (initialized && assignment?.id && imageData && maskData) {
-      const volume = volumes.find(({ id }) => id === assignment.subvolumeId);
-      const sliceRanges = volume.sliceRanges.slice(assignment.location.z_min, assignment.location.z_max + 1);
-
-      sliceView.setData(imageData, maskData, sliceRanges);
+    if (initialized && imageData && maskData) {
+      sliceView.setData(imageData, maskData, sliceRanges.current);
     }
-  }, [initialized, sliceView, assignment, imageData, maskData, volumes]);   
+  }, [initialized, sliceView, imageData, maskData, volumes]);   
 
   // Active region
   useEffect(() => {
