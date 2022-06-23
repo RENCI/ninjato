@@ -8,10 +8,12 @@ import styles from './styles.module.css';
 export const AssignmentMessage = () => {
   const [{ assignment }] = useContext(UserContext);
 
+  const n = assignment.regions.length;
+
   return (
     assignment && 
     <Message attached className={ styles.message }>
-      <div>Refining { assignment.regions.length } regions:</div>
+      <div>Refining { n } region{ n > 1 ? 's' : null }:</div>
       <RegionSelect />
       <CommentContainer />
     </Message>
