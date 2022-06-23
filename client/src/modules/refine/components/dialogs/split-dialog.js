@@ -31,7 +31,7 @@ export const SplitDialog = ({ sliceView }) => {
         region: splitMode === 'top' ? action.region : region
       });
     }
-  }, [newLabel, assignment, refineDispatch]);
+  }, [newLabel, assignment, splitMode, action, refineDispatch]);
 
   const onConfirm = async () => {
     setSplitting(true);

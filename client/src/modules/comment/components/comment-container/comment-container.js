@@ -10,7 +10,7 @@ import { RegionIcon } from 'modules/common/components/region-icon';
 const {  Content } = Modal;
 
 export const CommentContainer = () => {
-  const [{ assignment }, userDispatch] = useContext(UserContext);
+  const [{ assignment }] = useContext(UserContext);
   const [{ activeRegion }, refineDispatch] = useContext(RefineContext);
 
   const { regions } = assignment;

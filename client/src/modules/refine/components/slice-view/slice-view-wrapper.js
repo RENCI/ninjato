@@ -34,7 +34,7 @@ export const SliceViewWrapper = ({ sliceView }) => {
 
       sliceView.setData(imageData, maskData, sliceRanges);
     }
-  }, [initialized, sliceView, imageData, maskData, volumes]);   
+  }, [initialized, sliceView, assignment, imageData, maskData, volumes]);   
 
   // Active region
   useEffect(() => {
