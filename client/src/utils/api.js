@@ -64,6 +64,7 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
     regions: info.regions.map((region, i) => ({
       ...region,
       label: +region.label,
+      color: info.color[region.label],
       comments: comments[region.label],
       index: i
     })),
@@ -251,7 +252,7 @@ export const api = {
 
     // Set form data
     const formData = new FormData();
-    formData.append('current_region_ids', JSON.stringify(regions.map(({ label }) => label.toString())));
+    formData.append('current_region_ids', JSON.stringify(regions.map(({ label }) => label)));
     formData.append('comment', JSON.stringify(regionObject('comment')));
     formData.append('color', JSON.stringify(regionObject('color')));
     formData.append('content_data', blob);    
