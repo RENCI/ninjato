@@ -304,7 +304,8 @@ def _find_region_from_label(whole_item, region_label):
     :param region_label: the region label in the whole item to find the region for
     :return: the region object
     """
-    if 'item_id' in whole_item['meta']['regions'][region_label]:
+    if region_label in whole_item['meta']['regions'] and \
+        'item_id' in whole_item['meta']['regions'][region_label]:
         return Item.findOne({'_id':
                                  ObjectId(whole_item['meta']['regions'][region_label]['item_id'])})
     return None
@@ -1109,46 +1110,50 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
         add_meta['color'] = color
 
     if current_region_ids:
-        add_meta['current_region_ids'] = current_region_ids
+        # make sure each item is a string
+        current_region_ids = [str(item) for item in current_region_ids]
+        exist_region_ids = item['meta']['added_region_ids'] \
+            if 'added_region_ids' in item['meta'] else []
+        region_key = item['meta']['region_label']
+        # add assignment region key to exist_region_ids while removing potential duplicates
+        exist_region_ids = list(set(exist_region_ids + [region_key]))
+        removed_region_ids = [
+            item for item in exist_region_ids if item not in current_region_ids
+        ]
+        added_region_ids = [item for item in current_region_ids if item != region_key]
+
+        if added_region_ids:
+            add_meta['added_region_ids'] = added_region_ids
+        if removed_region_ids:
+            add_meta['removed_region_ids'] = removed_region_ids
 
     Item().setMetadata(item, add_meta)
 
     if done:
         if current_region_ids:
-            # make sure each item is a string
-            current_region_ids = [str(item) for item in current_region_ids]
-            exist_region_ids = item['meta']['added_region_ids'] \
-                if 'added_region_ids' in item['meta'] else []
-            region_key = item['meta']['region_label']
-            # add assignment region key to exist_region_ids while removing potential duplicates
-            exist_region_ids = list(set(exist_region_ids + [region_key]))
-            removed_region_ids = [
-                item for item in exist_region_ids if item not in current_region_ids
-            ]
             if region_key in removed_region_ids:
                 # region_key is not in current_region_ids meaning region key needs to be removed
                 new_region_key = current_region_ids[0]
                 _replace_initial_assigned_region(whole_item, item, region_key, new_region_key,
                                                  uname)
                 added_region_ids = current_region_ids[1:]
-            else:
-                added_region_ids = [item for item in current_region_ids if item != region_key]
+                item['meta']['added_region_ids'] = added_region_ids
+                Item().save(item)
 
             if removed_region_ids:
                 _remove_regions(removed_region_ids, whole_item, item_id)
                 del item['meta']['removed_region_ids']
 
             for id in added_region_ids:
-                reg_item = _find_region_from_label(whole_item, str(id))
+                str_id = str(id)
+                reg_item = _find_region_from_label(whole_item, str_id)
                 if reg_item:
                     # remove the item now that it has been added into the assignment item
                     Item().remove(reg_item)
                 # remove the corresponding region in subvolume whole item since it is added
                 # into the assignment item
-                del whole_item['meta']['regions'][str(id)]
-
-
-
+                if str_id in whole_item['meta']['regions']:
+                    del whole_item['meta']['regions'][str_id]
         del whole_item['meta'][str(uid)]
         whole_item = Item().save(whole_item)
         region_key = item['meta']['region_label']
@@ -1378,7 +1383,7 @@ def get_region_or_assignment_info(item, assignment_key):
     """
     get region info or assignment info if the region is part of the assignment
     :param item: subvolume item that contains the region
-    :param assignment_key: region label number such as 1, 2, etc., whick links back to regions
+    :param assignment_key: region label number such as 1, 2, etc., which links back to regions
     metadata in its subvolume regions metadata
     :return: dict of region or assignment info
     """
@@ -1395,7 +1400,11 @@ def get_region_or_assignment_info(item, assignment_key):
                 regions.append({
                     'label': rid
                 })
-
+        if region_item and 'removed_region_ids' in region_item['meta']:
+            for rid in region_item['meta']['removed_region_ids']:
+                current_region = {'label': rid}
+                if current_region in regions:
+                    regions.remove(current_region)
         ret_dict = {
             'item_id': item_id,
             'name': region_item['name'] if region_item else '',
@@ -1421,21 +1430,15 @@ def get_region_or_assignment_info(item, assignment_key):
 
     if 'removed_region_ids' in item['meta'] and \
         region_label_str in item['meta']['removed_region_ids']:
-        ret_dict['merged'] = True
-        ret_dict['split'] = False
         return ret_dict
 
     if region_label_str in item['meta']['regions']:
-        ret_dict['merged'] = False
-        ret_dict['split'] = False
         return ret_dict
 
     # region is added as part of split
     val = _get_added_region_metadata(item, region_label_str)
     if val:
         reg_item = Item().findOne({'_id': ObjectId(val['item_id'])})
-        ret_dict['merged'] = False
-        ret_dict['split'] = True
         ret_dict['name'] = reg_item['name'],
         ret_dict['description'] = reg_item['description']
         ret_dict['location'] = reg_item['meta']['coordinates'],
