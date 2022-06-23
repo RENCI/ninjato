@@ -8,7 +8,7 @@ import styles from './styles.module.css';
 export const AssignmentMessage = () => {
   const [{ assignment }] = useContext(UserContext);
 
-  const n = assignment.regions.length;
+  const n = assignment?.regions.length;
 
   return (
     assignment && 
