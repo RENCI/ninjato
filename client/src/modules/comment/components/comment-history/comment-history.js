@@ -45,9 +45,6 @@ export const CommentHistory = ({ region }) => {
     setComment(region.comment);
   }, [region.comment]);
 
-  console.log(region.comments);
-  console.log(comment);
-
   return (
     <Group style={{ maxWidth: 'none' }}>
       { region.comments?.map(({ user, time, comment }, i) => (
