@@ -5,7 +5,6 @@ import {
   RefineContext, REFINE_SET_TOOL, REFINE_SET_ACTION, REFINE_SET_ACTIVE_REGION, REFINE_CHANGE_BRUSH_SIZE,
 } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
-import { RegionSelect } from 'modules/common/components/region-select';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
 import { VolumeViewWrapper, VolumeView } from 'modules/refine/components/volume-view';
 import { SliceViewWrapper, SliceView } from 'modules/refine/components/slice-view';
@@ -18,8 +17,8 @@ import { ClaimDialog, RemoveDialog, SplitDialog, MergeDialog, CreateDialog, Dele
 const { Column } = Grid;
 
 export const RefineContainer = () => {
-  const [{ assignment, imageData }, userDispatch] = useContext(UserContext);
-  const [, refineDispatch] = useContext(RefineContext);
+  const [{ imageData }, userDispatch] = useContext(UserContext);
+  const [{ tool }, refineDispatch] = useContext(RefineContext);
   const volumeView = useRef(VolumeView());
   const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDown, onKeyUp));
   const [loading, setLoading] = useState(true);
@@ -87,15 +86,32 @@ export const RefineContainer = () => {
     sliceView.current.setHighlightRegion(region);
   }
 
-  function onKeyDown(evt) {
-    if (evt.key === 'Control') {
-      refineDispatch({ type: REFINE_SET_TOOL, tool: 'erase' });
+  const handleKeyDown = key => {
+    console.log(key);
+    switch (key) {
+      case 'Control':
+        if (tool !== 'erase') refineDispatch({ type: REFINE_SET_TOOL, tool: 'erase' });
+        break;
+
+      case 'Shift':
+        if (tool !== 'select') refineDispatch({ type: REFINE_SET_TOOL, tool: 'select' });
+        break;
+
+      default:
     }
+  };
+
+  function onKeyDown(evt) {
+    handleKeyDown(evt.key);
   }
 
   const handleKeyUp = key => {
     switch (key) {
       case 'Control': 
+        refineDispatch({ type: REFINE_SET_TOOL, tool: 'paint' });
+        break;
+
+      case 'Shift': 
         refineDispatch({ type: REFINE_SET_TOOL, tool: 'paint' });
         break;
 
@@ -131,9 +147,7 @@ export const RefineContainer = () => {
   return (
     <> 
       <VisualizationLoader loading={ loading } />
-      <AssignmentMessage>
-        Refining { assignment.regions.length } regions: <RegionSelect />
-      </AssignmentMessage>
+      <AssignmentMessage />
       <Grid columns='equal' verticalAlign='middle' padded stackable reversed='mobile'>
         { !loading && 
           <VolumeControls />

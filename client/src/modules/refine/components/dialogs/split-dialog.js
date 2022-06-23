@@ -23,7 +23,7 @@ export const SplitDialog = ({ sliceView }) => {
   useEffect(() => {  
     // Set active region after it is created   
     const region = assignment.regions.find(({ label }) => label === newLabel);
-    
+
     if (region) {
       setNewRegion(region);
       refineDispatch({ 
@@ -39,25 +39,17 @@ export const SplitDialog = ({ sliceView }) => {
     try {
       const label = await api.getNewLabel(assignment.subvolumeId);
 
+      userDispatch({ type: ADD_REGION, label: label });
+
       setNewLabel(label);
       setSplitting(false);
       setSuccess(true);
 
-      userDispatch({ type: ADD_REGION, label: label });
-
       await sliceView.splitRegion(action.region.label, label, splitMode);
-
-/*
-XXX: Move to useEffect?
-
-      refineDispatch({ 
-        type: REFINE_SET_ACTIVE_REGION, 
-        label: splitMode === 'top' ? action.label : label 
-      });
-*/
 
       setTimeout(() => {
         setSuccess(false);
+        setNewLabel(null);
         refineDispatch({ type: REFINE_SET_ACTION, action: null });
       }, 1000);
     }

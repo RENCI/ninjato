@@ -1,13 +1,16 @@
-import * as d3 from "d3-color";
+import * as d3 from 'd3-color';
 
 // Colors from https://colorbrewer2.org
 
 const rgb2vtk = ({ r, g, b }) => [r, g, b].map(c => c / 255);
 
-// Colorbrewer 8-class Set1
-const set1 = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628', '#f781bf'];
+// Taken from https://observablehq.com/@d3/color-schemes
+const set1 = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#e6e600', '#a65628', '#f781bf'];
+const tableau10 = ['#4e79a7', '#f28e2c', '#e15759', '#76b7b2', '#59a14f', '#edc949', '#af7aa1', '#ff9da7', '#9c755f', '#bab0ab'];
 
-const colors = set1;
+// Do some adjusting
+const colors = set1.slice(0, 6);
+colors[5] = tableau10[5];
 
 const regionColors = colors.reduce((colors, color) => {
   const c = d3.hsl(color);

@@ -14,13 +14,10 @@ const fileUrl = id => `/file/${ id }/download`;
 const convertDate = date => new Date(date);
 
 const getStatus = info => (
+  info.status === 'awaiting review' ? 'waiting' :
+  info.status === 'under review' ? 'review' :
+  info.status === 'completed' ? 'completed' :
   'active'
-  /*
-  info.review_completed_by !== '' ? 'completed' :
-  info.review_assigned_to !== '' ? 'review' :
-  info.annotation_completed_by !== '' ? 'waiting' :
-  'active'
-  */
 );
 
 const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
@@ -43,6 +40,18 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
     return info;
   }, {});
 
+  // Get region comments
+  const comments = {};
+  for (const { label } of info.regions) {
+    const result = await axios.get(`/item/${ subvolumeId }/region_comments`, { 
+      params: {
+        region_label: label
+      }
+    });
+
+    comments[label] = result.data;
+  };
+
   // Copy info and rename to be more concise
   return {
     id: itemId,
@@ -55,6 +64,8 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
     regions: info.regions.map((region, i) => ({
       ...region,
       label: +region.label,
+      color: info.color[region.label],
+      comments: comments[region.label],
       index: i
     })),
     status: getStatus(info),
@@ -125,8 +136,6 @@ export const api = {
     for (const volume of response.data) {
       try {
         const infoResponse = await axios.get(`/item/${ volume.id }/subvolume_info`);
-
-console.log(infoResponse);
 
         const { data } = infoResponse;
 
@@ -231,18 +240,21 @@ console.log(infoResponse);
       maskBuffer: responses[1].data
     };   
   },
-  saveAnnotations: async (userId, itemId, buffer, addedLabels, removedLabels, done = false) => {
-
-    console.log(userId, itemId, buffer, addedLabels, removedLabels, done);
-
+  saveAnnotations: async (userId, itemId, buffer, regions, done = false) => {
     const blob = new Blob([buffer], { type: 'image/tiff' });
 
-    const stringify = ids => JSON.stringify(ids.map(id => id.toString()));
+    const regionObject = key => regions.reduce((object, region) => {
+      return {
+        ...object,
+        [region.label]: region[key]
+      }
+    }, {});
 
     // Set form data
     const formData = new FormData();
-    formData.append('added_region_ids', stringify(addedLabels));
-    formData.append('removed_region_ids', stringify(removedLabels));
+    formData.append('current_region_ids', JSON.stringify(regions.map(({ label }) => label)));
+    formData.append('comment', JSON.stringify(regionObject('comment')));
+    formData.append('color', JSON.stringify(regionObject('color')));
     formData.append('content_data', blob);    
 
     await axios.post(`/user/${ userId }/annotation`, 
@@ -281,8 +293,6 @@ console.log(infoResponse);
     });
 
     if (response.data.status !== 'success') throw new Error(`Error removing region ${ label }`);
-
-    console.log(response.data);
 
     return response.data.assignment_region_key;
   },

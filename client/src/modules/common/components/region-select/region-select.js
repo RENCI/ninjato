@@ -1,6 +1,7 @@
 import { useContext } from 'react';
-import { Select, Label } from 'semantic-ui-react';
+import { Select } from 'semantic-ui-react';
 import { UserContext, RefineContext, REFINE_SET_ACTIVE_REGION } from 'contexts';
+import { RegionIcon } from 'modules/common/components/region-icon';
 
 export const RegionSelect = () => {
   const [{ assignment }] = useContext(UserContext);
@@ -20,14 +21,11 @@ export const RegionSelect = () => {
       basic
       compact
       onChange={ onChange }
-      options={ assignment.regions.map(({ label, color }) => (
+      options={ assignment.regions.map(region => (
         { 
-          key: label,
-          value: label,
-          text: <>
-            <Label style={{ background: color }} circular={ true } empty={ true } />
-            { label }
-          </>
+          key: region.label,
+          value: region.label,
+          text: <RegionIcon region={ region } />
         }
       ))}
     />

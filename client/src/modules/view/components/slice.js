@@ -83,16 +83,21 @@ export function Slice(onKeyDown, onKeyUp) {
       interactor = renderWindow.getInteractor();
       interactor.setInteractorStyle(interactorStyle);
 
-      interactor.onKeyDown(evt => {
-        if (!imageMapper) return;
+      interactor.onKeyDown(evt => {        
+        if (evt.key === 'ArrowUp' || evt.key === 'ArrowDown') {
+          if (!imageMapper) return;
 
-        const extent = imageMapper.getInputData().getExtent();
-        const kMin = extent[4];
-        const kMax = extent[5];
-    
-        evt.key === 'ArrowUp' ? imageMapper.setSlice(Math.min(kMax, imageMapper.getSlice() + 1)) : 
-        evt.key === 'ArrowDown' ? imageMapper.setSlice(Math.max(kMin, imageMapper.getSlice() - 1)) :
-        onKeyDown(evt)
+          const extent = imageMapper.getInputData().getExtent();
+          const kMin = extent[4];
+          const kMax = extent[5];
+      
+          evt.key === 'ArrowUp' ? 
+            imageMapper.setSlice(Math.min(kMax, imageMapper.getSlice() + 1)) :           
+            imageMapper.setSlice(Math.max(kMin, imageMapper.getSlice() - 1));
+        }
+        else {
+          onKeyDown(evt)
+        }
       });
     
       interactor.onKeyUp(onKeyUp);
