@@ -99,8 +99,6 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
     mergeRegion: async region => {
       const painter = mask.getPainter();
 
-      console.log(region);
-
       painter.startStroke();      
       painter.merge(region.label);
       const promise = painter.endStroke();    
