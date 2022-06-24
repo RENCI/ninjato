@@ -45,11 +45,11 @@ export const MissingDialog = ({ missing, onClose }) => {
   };
 
   const regionList = regions => regions.map((region, i, a) => (
-    <>
-      <RegionLabel key={ region.label } region={ region } />
+    <span key={ region.label }>
+      <RegionLabel region={ region } />
       { a.length > 2 && i <= a.length - 2 ? ', ' : null }
       { a.length > 1 && i === a.length - 2 ? 'and ' : null }
-    </>
+    </span>
   ));
 
   const plural = missing?.length > 1;
