@@ -13,7 +13,13 @@ export const AssignmentMessage = () => {
   return (
     assignment && 
     <Message attached className={ styles.message }>
-      <div>Refining { n } region{ n > 1 ? 's' : null }:</div>
+      <div>
+        { n > 0 ?
+          <>Refining { n } region{ n > 1 ? 's' : null }:</>
+        : 
+          <>No regions:</>
+        }
+      </div>
       <RegionSelect />
       <CommentContainer />
     </Message>

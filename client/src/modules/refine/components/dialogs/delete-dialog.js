@@ -35,9 +35,7 @@ export const DeleteDialog = ({ sliceView }) => {
         refineDispatch({ type: REFINE_SET_TOOL, tool: 'create' });
       }
       else if (action.region === activeRegion) {
-        const region = regions.length > 0 ? regions[0] : null;
-
-        refineDispatch({ type: REFINE_SET_ACTIVE_REGION, region: region })
+        refineDispatch({ type: REFINE_SET_ACTIVE_REGION, region: regions[0] })
       }
     }, 1000);
   };

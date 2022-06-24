@@ -80,7 +80,7 @@ export function MaskPainter() {
     setActiveRegion: region => {
       activeRegion = region;
 
-      painter.setLabel(region.label);
+      painter.setLabel(region?.label);
 
       updateColors();            
     },

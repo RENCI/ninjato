@@ -16,10 +16,11 @@ export const RegionSelect = () => {
 
   return (
     <Select 
-      placeholder='No active region'          
-      value={ activeRegion?.label }
+      placeholder='—'      
+      value={ activeRegion?.label }      
       basic
       compact
+      disabled={ !activeRegion }
       onChange={ onChange }
       options={ assignment.regions.map(region => (
         { 

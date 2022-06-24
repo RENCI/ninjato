@@ -12,6 +12,7 @@ export const SET_DATA = 'user/SET_DATA';
 export const CLEAR_DATA = 'user/CLEAR_DATA';
 export const ADD_REGION = 'user/ADD_REGION';
 export const REMOVE_REGION = 'user/REMOVE_REGION';
+export const REMOVE_REGIONS = 'user/REMOVE_REGIONS';
 export const CLEAR_SAVE_LABELS = 'user/CLEAR_SAVE_LABELS';
 export const PUSH_REGION_HISTORY = 'user/PUSH_REGION_HISTORY';
 export const UNDO_REGION_HISTORY = 'user/UNDO_REGION_HISTORY';
@@ -45,8 +46,9 @@ const createRegion = (regions, label) => {
   return newRegions;
 };
 
-const removeRegion = (regions, { label }) => {
-  return regions.filter(region => region.label !== label);
+const removeRegions = (regions, remove) => {
+  const labels = remove.map(({ label }) => label);
+  return regions.filter(region => !labels.includes(region.label));
 };
 
 const updateAssignment = (a1, a2) => {
@@ -144,7 +146,16 @@ const reducer = (state, action) => {
         ...state,
         assignment: {
           ...state.assignment,
-          regions: removeRegion(state.assignment.regions, action.region)
+          regions: removeRegions(state.assignment.regions, [action.region])
+        }
+      };
+
+    case REMOVE_REGIONS: 
+      return {
+        ...state,
+        assignment: {
+          ...state.assignment,
+          regions: removeRegions(state.assignment.regions, action.regions)
         }
       };
 

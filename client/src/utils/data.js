@@ -1,5 +1,5 @@
-export const getUniqueLabels = imageData => 
-  [...new Set(imageData.getPointData().getScalars().getData().filter(d => d !== 0))].sort((a, b) => a - b);
+export const getUniqueLabels = maskData => 
+  [...new Set(maskData.getPointData().getScalars().getData().filter(d => d !== 0))].sort((a, b) => a - b);
 
 export const combineMasks = (newMask, newExtent, oldMask, oldExtent) => {
   // Keep any edits from old mask
@@ -19,8 +19,6 @@ export const combineMasks = (newMask, newExtent, oldMask, oldExtent) => {
   const s1 = newMask.getPointData().getScalars().getData();
   const s2 = oldMask.getPointData().getScalars().getData();
 
-  console.log(s1 === newMask.getPointData().getScalars().getData());
-
   const copyExtent = [
     Math.max(newExtent.x_min, oldExtent.x_min), Math.min(newExtent.x_max, oldExtent.x_max),
     Math.max(newExtent.y_min, oldExtent.y_min), Math.min(newExtent.y_max, oldExtent.y_max),
@@ -39,4 +37,13 @@ export const combineMasks = (newMask, newExtent, oldMask, oldExtent) => {
   }
   
   return newMask;
+};
+
+export const getMissingRegions = (maskData, regions) => {
+  const allLabels = getUniqueLabels(maskData);
+
+  return regions.reduce((missing, region) => {
+    if (!allLabels.includes(region.label)) missing.push(region);
+    return missing;
+  }, []);
 };
