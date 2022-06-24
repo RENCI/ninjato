@@ -220,7 +220,7 @@ def get_region_info(item, assignment_key):
 @autoDescribeRoute(
     Description('Get region comments info.')
     .modelParam('id', 'The item ID', model='item', level=AccessType.READ)
-    .param('region_label', 'region label to get comments for', dataType=str, required=True)
+    .param('region_label', 'region label to get comments for', required=True)
     .errorResponse()
     .errorResponse('Get action was denied on the user.', 403)
     .errorResponse('Failed to get region info', 500)
