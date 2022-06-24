@@ -14,7 +14,7 @@ export const MissingDialog = ({ missing, onClose }) => {
   const [removing, setRemoving] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const onConfirm = async () => {
+  const onConfirm = () => {
     setRemoving(true);
 
     userDispatch({ type: REMOVE_REGIONS, regions: missing });
@@ -32,12 +32,12 @@ export const MissingDialog = ({ missing, onClose }) => {
         refineDispatch({ type: REFINE_SET_ACTIVE_REGION, region: null });
         refineDispatch({ type: REFINE_SET_TOOL, tool: 'create' });
       }
-      else if (!regions.includes(activeRegion)) {
-        refineDispatch({ type: REFINE_SET_ACTIVE_REGION, region: regions[0] })
+      else if (missing.includes(activeRegion)) {
+        refineDispatch({ type: REFINE_SET_ACTIVE_REGION, region: regions.find(region => !missing.includes(region)) });
       }
 
       onClose();
-    });
+    }, 1000);
   };
 
   const onCancel = () => {
