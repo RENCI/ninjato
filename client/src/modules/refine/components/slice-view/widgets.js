@@ -260,7 +260,7 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
     setActiveRegion: region => {
       activeRegion = region;
 
-      const color = region.colors.contourActive;
+      const color = region ? region.colors.contourActive : '#fff';
       setColor(handles.paint, color);
       setColor(handles.erase, color);
       setColor(handles.crop, color);

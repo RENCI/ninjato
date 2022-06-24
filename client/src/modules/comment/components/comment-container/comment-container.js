@@ -10,7 +10,7 @@ import { RegionIcon } from 'modules/common/components/region-icon';
 const {  Content } = Modal;
 
 export const CommentContainer = () => {
-  const [{ assignment }] = useContext(UserContext);
+  const [{ assignment }, userDispatch] = useContext(UserContext);
   const [{ activeRegion }, refineDispatch] = useContext(RefineContext);
 
   const { regions } = assignment;
@@ -22,7 +22,13 @@ export const CommentContainer = () => {
   return (
     <Modal
       dimmer='blurring'
-      trigger={ <Button basic icon='comments outline' /> }
+      trigger={ 
+        <Button 
+          basic 
+          icon='comments outline' 
+          disabled={ regions.length === 0 }
+        /> 
+      }
     >
       <Header>Comments</Header>
       <Content>

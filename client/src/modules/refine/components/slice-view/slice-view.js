@@ -52,7 +52,7 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
       }
 
       slice.setImage(image.getActor(), renderWindow.getCamera(), sliceRanges, onUpdateSlice);
-      slice.setSliceByLabel(image.getMapper(), maskData, mask.getActiveRegion().label);
+      if (mask.getActiveRegion()) slice.setSliceByLabel(image.getMapper(), maskData, mask.getActiveRegion().label);
     },
     setRegions: regions => {
       mask.setRegions(regions);
