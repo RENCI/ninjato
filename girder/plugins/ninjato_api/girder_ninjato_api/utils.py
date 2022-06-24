@@ -704,30 +704,27 @@ def remove_region_from_item_assignment(user, subvolume_id, active_assignment_id,
     ret_dict = {}
     whole_item = Item().findOne({'_id': ObjectId(subvolume_id)})
     region_id = str(region_id)
-    if region_id not in whole_item['meta']['regions']:
-        raise RestException('input region id to be removed is invalid', code=400)
-    else:
-        assign_item = Item().findOne({'_id': ObjectId(active_assignment_id)})
-        assign_region_id = str(assign_item['meta']['region_label'])
-        assign_info = _get_history_info(whole_item, assign_region_id,
-                                        'annotation_assigned_to', is_array=False)
-        if assign_info:
-            assign_user_login = assign_info['user']
-            if assign_user_login != user['login']:
-                raise RestException('input region id to be removed is not currently assigned '
-                                    'to the requesting user', code=400)
-            ret = _remove_region_from_active_assignment(whole_item, assign_item, region_id,
-                                                        user['login'])
-            if ret:
-                ret_dict['assignment_region_key'] = ret
-                ret_dict['status'] = 'success'
-            else:
-                ret_dict['status'] = 'failure'
-                ret_dict['assignment_region_key'] = ''
-            return ret_dict
+    assign_item = Item().findOne({'_id': ObjectId(active_assignment_id)})
+    assign_region_id = str(assign_item['meta']['region_label'])
+    assign_info = _get_history_info(whole_item, assign_region_id,
+                                    'annotation_assigned_to', is_array=False)
+    if assign_info:
+        assign_user_login = assign_info['user']
+        if assign_user_login != user['login']:
+            raise RestException('input region id to be removed is not currently assigned '
+                                'to the requesting user', code=400)
+        ret = _remove_region_from_active_assignment(whole_item, assign_item, region_id,
+                                                    user['login'])
+        if ret:
+            ret_dict['assignment_region_key'] = ret
+            ret_dict['status'] = 'success'
         else:
-            raise RestException('input region id to be removed is not currently assigned to the '
-                                'requesting user', code=400)
+            ret_dict['status'] = 'failure'
+            ret_dict['assignment_region_key'] = ''
+        return ret_dict
+    else:
+        raise RestException('input region id to be removed is not currently assigned to the '
+                            'requesting user', code=400)
 
 
 def claim_assignment(user, subvolume_id, active_assignment_id, claim_region_id):
