@@ -397,7 +397,8 @@ def _remove_region_from_active_assignment(whole_item, assign_item, region_id, us
             region_levels[0] = str(aid_list[0])
             aid_list = aid_list[1:]
         else:
-            raise RestException('invalid region id', code=400)
+            # removed region is not in the assignment, so nothing to remove, return success
+            return assign_item['meta']['region_label']
         if aid_list:
             assign_item['meta']['added_region_ids'] = aid_list
             region_levels += aid_list
@@ -407,7 +408,8 @@ def _remove_region_from_active_assignment(whole_item, assign_item, region_id, us
         raise RestException('invalid region id - cannot remove the only region in the assignment',
                             code=400)
     else:
-        raise RestException('invalid region id', code=400)
+        # removed region is not in the assignment, so nothing to remove, return success
+        return assign_item['meta']['region_label']
 
     item_files = File().find({'itemId': whole_item['_id']})
     # compute updated range after removing the region from the user's assignment
@@ -467,7 +469,7 @@ def _remove_region_from_active_assignment(whole_item, assign_item, region_id, us
         _create_region_files(assign_item, whole_item)
         return assign_item['meta']['region_label']
 
-    return None
+    return assign_item['meta']['region_label']
 
 
 def _merge_region_to_active_assignment(whole_item, active_assign_id, region_id):
