@@ -197,7 +197,7 @@ def get_subvolume_info(item):
 @access.public
 @autoDescribeRoute(
     Description('Get assignment info.')
-    .modelParam('id', 'The item ID', model='item', level=AccessType.READ)
+    .modelParam('id', 'The whole subvolume item ID', model='item', level=AccessType.READ)
     .param('region_id', 'region id, e.g., 1, 2, 3, etc., to get the info of the assignment the '
                         'region belongs to', required=True)
     .errorResponse()

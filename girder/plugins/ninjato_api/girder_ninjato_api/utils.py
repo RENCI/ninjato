@@ -183,7 +183,6 @@ def _create_region_files(region_item, whole_item):
         File().remove(file)
 
     item_files = File().find({'itemId': whole_item['_id']})
-    region_key = region_item['meta']['region_label']
     min_x = region_item['meta']['coordinates']['x_min']
     max_x = region_item['meta']['coordinates']['x_max']
     min_y = region_item['meta']['coordinates']['y_min']
@@ -197,7 +196,7 @@ def _create_region_files(region_item, whole_item):
         file_name = os.path.basename(file_res_path)
         file_base_name, file_ext = os.path.splitext(file_name)
         out_dir_path = os.path.join(DATA_PATH, str(region_item['_id']))
-        output_file_name = f'{file_base_name}_region_{region_key}{file_ext}'
+        output_file_name = f'{file_base_name}_regions{file_ext}'
         out_path = os.path.join(out_dir_path, output_file_name)
         if not os.path.isdir(out_dir_path):
             os.makedirs(out_dir_path)
@@ -235,10 +234,10 @@ def _create_region(region_key, whole_item, extent_dict):
         min_x, max_x, min_y, max_y, min_z, max_z, x_range, y_range, z_range)
     folder_id = whole_item['folderId']
     region_item = Item().createItem(
-        f'region{region_key}',
+        'regions',
         creator=admin_user,
         folder=Folder().findOne({'_id': folder_id}),
-        description=f'region{region_key} of the subvolume partition')
+        description=f'regions of the subvolume partition')
 
     add_meta = {
         'coordinates': {
@@ -249,7 +248,7 @@ def _create_region(region_key, whole_item, extent_dict):
             "z_max": max_z,
             "z_min": min_z
         },
-        'region_label': region_key
+        'region_ids': [region_key]
     }
     Item().setMetadata(region_item, add_meta)
 
@@ -310,6 +309,37 @@ def _find_region_item_from_label(whole_item, region_label):
             '_id': ObjectId(whole_item['meta']['regions'][region_label]['item_id'])
         })
     return None
+
+
+def _get_region_extent(whole_item, region_id):
+    item_files = File().find({'itemId': whole_item['_id']})
+    # compute updated range after removing the region from the user's assignment
+    for item_file in item_files:
+        if '_masks' not in item_file['name']:
+            continue
+        tif, _ = _get_tif_file_content_and_path(item_file)
+        images = []
+        for image in tif.iter_images():
+            images.append(image)
+        imarray = np.array(images)
+        level_indices = np.where(imarray == region_id)
+        z_min = min(level_indices[0])
+        z_max = max(level_indices[0])
+        y_min = min(level_indices[1])
+        y_max = max(level_indices[1])
+        x_min = min(level_indices[2])
+        x_max = max(level_indices[2])
+        # need to convert extent values to int from int64, otherwise, JSON serialization
+        # will raise exception when adding metadata to item
+        return {
+            "x_max": int(x_max),
+            "x_min": int(x_min),
+            "y_max": int(y_max),
+            "y_min": int(y_min),
+            "z_max": int(z_max),
+            "z_min": int(z_min)
+        }
+    return {}
 
 
 def _remove_regions(region_list, whole_item, assigned_item_id):
@@ -473,9 +503,9 @@ def _merge_region_to_active_assignment(whole_item, active_assign_id, region_id):
     region_ids = assign_item['meta']['region_ids']
     region_ids.append(region_id)
     assign_item['meta']['region_ids'] = region_ids
-
     Item().save(assign_item)
-
+    val['item_id'] = str(assign_item['_id'])
+    Item().save(whole_item)
     # update assign_item based on updated extent that includes claimed region
     _create_region_files(assign_item, whole_item)
 
@@ -516,6 +546,7 @@ def _check_subvolume_done(whole_item, task='annotation'):
 
 
 def _remove_assignment_from_history(item, assign_item_id, assign_key):
+    assign_item_id = str(assign_item_id)
     for meta_dict in item['meta']['history'][assign_item_id]:
         if meta_dict['type'] == assign_key:
             item['meta']['history'][assign_item_id].remove(meta_dict)
@@ -536,6 +567,7 @@ def _add_meta_to_history(item, assign_item_id, info, key='history'):
     :param key: history or comment_history to store meta to
     :return:
     """
+    assign_item_id = str(assign_item_id)
     if key not in item['meta']:
         item['meta'][key] = {
             assign_item_id: [info]
@@ -570,7 +602,7 @@ def _reject_assignment(user, item, whole_item, has_files, comment, task='annotat
     else:
         whole_item['meta'][uid].remove(str(item['_id']))
         Item().save(whole_item)
-    assign_item_id = str(item['_id'])
+    assign_item_id = item['_id']
     # remove the user's assignment
     _remove_assignment_from_history(whole_item, assign_item_id, f"{task}_assigned_to")
     uname = user["login"]
@@ -593,6 +625,7 @@ def _reject_assignment(user, item, whole_item, has_files, comment, task='annotat
 
 
 def _set_assignment_meta(whole_item, user, region_item_id, assign_type):
+    region_item_id = str(region_item_id)
     assign_info = {
         "type": assign_type,
         'user': user["login"],
@@ -613,13 +646,14 @@ def _set_assignment_meta(whole_item, user, region_item_id, assign_type):
 
 def _assign_region_to_user(whole_item, user, region_key):
     """
-    assign the region_key to the user, which could already own a region and wants to claim
+    assign the region_key to the user, who could already own a region and wants to claim
     more neighboring regions
     :param whole_item: whole subvolume item that contains the region
     :param user: requesting user
     :param region_key: region label to be assigned to the user
     :return: assigned region item
     """
+    region_key = str(region_key)
     val = whole_item['meta']['regions'][region_key]
     region_item = None
     if 'item_id' in val:
@@ -635,22 +669,10 @@ def _assign_region_to_user(whole_item, user, region_key):
                                         'z_max': val['z_max']
                                      })
     val['item_id'] = str(region_item['_id'])
-    _set_assignment_meta(whole_item, user, str(region_item['_id']),
+    _set_assignment_meta(whole_item, user, region_item['_id'],
                          'annotation_assigned_to')
 
     return region_item
-
-
-def _get_added_region_metadata(whole_item, added_region_id):
-    # check if the region id is part of the added region by split
-    reg_items = Item().find({'folderId': whole_item['folderId']})
-    for reg_item in reg_items:
-        if reg_item['name'] == 'whole':
-            continue
-        if 'added_region_ids' in reg_item['meta'] and added_region_id in \
-                reg_item['meta']['added_region_ids']:
-            return whole_item['meta']['regions'][reg_item['meta']['region_label']]
-    return None
 
 
 def remove_region_from_item_assignment(user, subvolume_id, active_assignment_id, region_id):
@@ -666,8 +688,7 @@ def remove_region_from_item_assignment(user, subvolume_id, active_assignment_id,
     whole_item = Item().findOne({'_id': ObjectId(subvolume_id)})
     region_id = str(region_id)
     assign_item = Item().findOne({'_id': ObjectId(active_assignment_id)})
-    assign_region_id = str(assign_item['meta']['region_label'])
-    assign_info = _get_history_info(whole_item, assign_region_id,
+    assign_info = _get_history_info(whole_item, assign_item['_id'],
                                     'annotation_assigned_to')
     if assign_info:
         assign_user_login = assign_info[0]['user']
@@ -677,7 +698,7 @@ def remove_region_from_item_assignment(user, subvolume_id, active_assignment_id,
         ret = _remove_region_from_active_assignment(whole_item, assign_item, region_id,
                                                     user['login'])
         if ret:
-            ret_dict['assignment_region_key'] = ret
+            ret_dict['assignment_item_id'] = ret
             ret_dict['status'] = 'success'
         else:
             ret_dict['status'] = 'failure'
@@ -705,12 +726,19 @@ def claim_assignment(user, subvolume_id, active_assignment_id, claim_region_id):
     else:
         val = whole_item['meta']['regions'][claim_region_id]
         done_key = 'annotation_completed_by'
-        complete_info = _get_history_info(whole_item, claim_region_id, done_key)
+        if 'item_id' in val:
+            complete_info = _get_history_info(whole_item, val['item_id'], done_key)
+        else:
+            complete_info = None
         if complete_info:
             raise RestException(f'Annotation of the claimed region has been '
                                 f'completed by {complete_info[0]["user"]}', code=400)
 
-        assign_info = _get_history_info(whole_item, claim_region_id, 'annotation_assigned_to')
+        if 'item_id' in val:
+            assign_info = _get_history_info(whole_item, val['item_id'], 'annotation_assigned_to')
+        else:
+            assign_info = None
+
         if assign_info:
             assign_user_login = assign_info[0]['user']
             assigned_user = User().findOne({'login': assign_user_login})
@@ -780,7 +808,7 @@ def request_assignment(user, subvolume_id, region_id):
 
         # available to be assigned
         assign_item = _assign_region_to_user(whole_item, user, region_id_str)
-        assign_info = _get_history_info(whole_item, str(assign_item['_id']),
+        assign_info = _get_history_info(whole_item, assign_item['_id'],
                                         'annotation_assigned_to')
         ret_dict['status'] = 'success'
         ret_dict['assigned_user_info'] = assign_info[0] if assign_info else {}
@@ -790,10 +818,11 @@ def request_assignment(user, subvolume_id, region_id):
         raise RestException('request assigment key is invalid')
 
 
-def _get_history_info(whole_item, region_label, in_type):
+def _get_history_info(whole_item, assign_item_id, in_type):
     return_info = []
-    if 'history' in whole_item['meta'] and region_label in whole_item['meta']['history']:
-        for info in whole_item['meta']['history'][region_label]:
+    assign_item_id = str(assign_item_id)
+    if 'history' in whole_item['meta'] and assign_item_id in whole_item['meta']['history']:
+        for info in whole_item['meta']['history'][assign_item_id]:
             if info['type'] == in_type:
                 return_info.append(info)
 
@@ -801,6 +830,7 @@ def _get_history_info(whole_item, region_label, in_type):
 
 
 def _get_assignment_status(whole_item, assign_item_id):
+    assign_item_id = str(assign_item_id)
     assign_info = _get_history_info(whole_item, assign_item_id, 'annotation_assigned_to')
     complete_info = _get_history_info(whole_item, assign_item_id, 'annotation_completed_by')
     if not assign_info:
@@ -864,11 +894,10 @@ def get_item_assignment(user, subvolume_id):
         if uid in whole_item['meta']:
             for assign_item_id in whole_item['meta'][uid]:
                 assign_item = Item().findOne({'_id': ObjectId(assign_item_id)})
-                assign_key = assign_item['meta']['region_label']
                 item_dict = {
                     'item_id': assign_item_id,
                     'subvolume_id': whole_item['_id'],
-                    'assignment_key': assign_key
+                    'region_ids': assign_item['meta']['region_ids']
                 }
                 ret_data.append(item_dict)
             continue
@@ -881,10 +910,6 @@ def get_item_assignment(user, subvolume_id):
         # return the user's active assignments
         return ret_data
 
-    if not ret_data and not subvolume_id:
-        # the user does not have active assignment, return empty list
-        return ret_data
-
     if not filtered_id_list:
         # there is no available subvolumes to assign to the user, return empty list
         return ret_data
@@ -893,7 +918,6 @@ def get_item_assignment(user, subvolume_id):
     sub_id = filtered_id_list[0]
     whole_item = Item().findOne({'_id': ObjectId(sub_id)})
     assigned_region_id = None
-    assigned_region_label = ''
     # no region has been assigned to the user yet, look into the whole partition
     # item to find a region for assignment
     for key, val in whole_item['meta']['regions'].items():
@@ -901,7 +925,13 @@ def get_item_assignment(user, subvolume_id):
             # if a region is done, continue to check another region
             continue
         # if a region is rejected by the user, continue to check another region
-        reject_by_info = _get_history_info(whole_item, key, 'annotation_rejected_by')
+        if 'item_id' in val:
+            reject_by_info = _get_history_info(whole_item, val['item_id'], 'annotation_rejected_by')
+            assign_info = _get_history_info(whole_item, val['item_id'], 'annotation_assigned_to')
+        else:
+            reject_by_info = None
+            assign_info = None
+
         is_rejected = False
         if reject_by_info:
             for reject_dict in reject_by_info:
@@ -910,19 +940,18 @@ def get_item_assignment(user, subvolume_id):
             if is_rejected:
                 continue
 
-        assign_info = _get_history_info(whole_item, key, 'annotation_assigned_to')
         if not assign_info:
             # this region can be assigned to a user
             region_item = _assign_region_to_user(whole_item, user, key)
             assigned_region_id = region_item['_id']
-            assigned_region_label = region_item['meta']['region_label']
+            assign_regions = region_item['meta']['region_ids']
             break
 
     if assigned_region_id:
         item_dict = {
             'item_id': assigned_region_id,
             'subvolume_id': subvolume_id,
-            'assignment_key': assigned_region_label
+            'regions': assign_regions
         }
         ret_data.append(item_dict)
 
@@ -977,7 +1006,7 @@ def get_await_review_assignment(user, subvolume_id):
             item_dict = {
                 'item_id': str(reg_item['_id']),
                 'subvolume_id': sub_id,
-                'assignment_key': reg_item['meta']['region_label']
+                'regions': reg_item['meta']['region_ids']
             }
             ret_data.append(item_dict)
 
@@ -1052,21 +1081,16 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
     if color:
         add_meta['color'] = color
 
-    region_key = ''
     removed_region_ids = []
     added_region_ids = []
     if current_region_ids:
         # make sure each item is a string
-        current_region_ids = [str(item) for item in current_region_ids]
-        exist_region_ids = item['meta']['added_region_ids'] \
-            if 'added_region_ids' in item['meta'] else []
-        region_key = item['meta']['region_label']
-        # add assignment region key to exist_region_ids while removing potential duplicates
-        exist_region_ids = list(set(exist_region_ids + [region_key]))
+        current_region_ids = [str(rid) for rid in current_region_ids]
+        exist_region_ids = item['meta']['region_ids']
         removed_region_ids = [
-            item for item in exist_region_ids if item not in current_region_ids
+            rid for rid in exist_region_ids if rid not in current_region_ids
         ]
-        added_region_ids = [item for item in current_region_ids if item != region_key]
+        added_region_ids = [rid for rid in current_region_ids if rid not in exist_region_ids]
 
         if added_region_ids:
             add_meta['added_region_ids'] = added_region_ids
@@ -1076,37 +1100,33 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
     Item().setMetadata(item, add_meta)
 
     if done:
-        if current_region_ids:
-            if region_key in removed_region_ids:
-                # region_key is not in current_region_ids meaning region key needs to be removed
-                new_region_key = current_region_ids[0]
-                added_region_ids = current_region_ids[1:]
-                item['meta']['added_region_ids'] = added_region_ids
-                Item().save(item)
+        if removed_region_ids:
+            _remove_regions(removed_region_ids, whole_item, item_id)
+            del item['meta']['removed_region_ids']
 
-            if removed_region_ids:
-                _remove_regions(removed_region_ids, whole_item, item_id)
-                del item['meta']['removed_region_ids']
+        for aid in added_region_ids:
+            reg_item = _find_region_item_from_label(whole_item, aid)
+            if not reg_item:
+                # create the region metadata in the whole subvolume
+                reg_extent = _get_region_extent(whole_item, aid)
+                whole_item['meta']['regions'][aid] = {
+                    "item_id": str(item['_id']),
+                    "x_max": reg_extent['x_max'],
+                    "x_min": reg_extent['x_min'],
+                    "y_max": reg_extent['y_max'],
+                    "y_min": reg_extent['y_min'],
+                    "z_max": reg_extent['z_max'],
+                    "z_min": reg_extent['z_min']
+                }
 
-            for aid in added_region_ids:
-                str_id = str(aid)
-                reg_item = _find_region_item_from_label(whole_item, str_id)
-                if reg_item:
-                    # remove the item now that it has been added into the assignment item
-                    Item().remove(reg_item)
-                # remove the corresponding region in subvolume whole item since it is added
-                # into the assignment item
-                if str_id in whole_item['meta']['regions']:
-                    del whole_item['meta']['regions'][str_id]
-        del whole_item['meta'][str(uid)]
+        whole_item['meta'][str(uid)].remove(str(item['_id']))
         whole_item = Item().save(whole_item)
-        region_key = item['meta']['region_label']
         info = {
             'type': 'annotation_completed_by',
             'user': uname,
             'time': datetime.now().strftime("%m/%d/%Y %H:%M")
         }
-        _add_meta_to_history(whole_item, region_key, info)
+        _add_meta_to_history(whole_item, str(item['_id']), info)
         # check if all regions for the partition is done, and if so add done metadata to whole item
         _check_subvolume_done(whole_item)
 
@@ -1137,10 +1157,9 @@ def save_user_review_result_as_item(user, item_id, reject, comment, approve):
         return {
             "status": "success"
         }
-    region_key = item['meta']['region_label']
     if not approve:
         # update user key with annotation user to get disapproved assignment back to the user
-        complete_info = _get_history_info(whole_item, region_key, 'annotation_completed_by')
+        complete_info = _get_history_info(whole_item, item_id, 'annotation_completed_by')
         uname = complete_info[0]['user']
         annot_user = User().findOne({'login': uname})
         annot_uid = str(annot_user['_id'])
@@ -1179,7 +1198,7 @@ def save_user_review_result_as_item(user, item_id, reject, comment, approve):
         'user': uname,
         'time': datetime.now().strftime("%m/%d/%Y %H:%M")
     }
-    _add_meta_to_history(whole_item, region_key, info)
+    _add_meta_to_history(whole_item, item_id, info)
     # check if all regions for the partition is done, and if so add done metadata to whole item
     _check_subvolume_done(whole_item, task='review')
 
@@ -1276,10 +1295,16 @@ def get_subvolume_item_info(item):
     total_reviewed_regions_at_work = 0
 
     for key, val in region_dict.items():
-        assign_info = _get_history_info(item, key, 'annotation_assigned_to')
-        review_assign_info = _get_history_info(item, key, 'review_assigned_to')
-        complete_info = _get_history_info(item, key, annot_completed_key)
-        review_complete_info = _get_history_info(item, key, review_completed_key)
+        if 'item_id' in val:
+            assign_info = _get_history_info(item, val['item_id'], 'annotation_assigned_to')
+            review_assign_info = _get_history_info(item, val['item_id'], 'review_assigned_to')
+            complete_info = _get_history_info(item, val['item_id'], annot_completed_key)
+            review_complete_info = _get_history_info(item, val['item_id'], review_completed_key)
+        else:
+            assign_info = None
+            review_assign_info = None
+            complete_info = None
+            review_complete_info = None
         if not annot_done:
             if complete_info:
                 total_regions_done += 1
@@ -1340,11 +1365,18 @@ def get_region_or_assignment_info(item, region_id):
                 regions.append({
                     'label': rid
                 })
+            if 'added_region_ids' in region_item['meta']:
+                for rid in region_item['meta']['added_region_ids']:
+                    if rid not in region_item['meta']['region_ids']:
+                        regions.append({
+                            'label': rid
+                        })
             if 'removed_region_ids' in region_item['meta']:
                 for rid in region_item['meta']['removed_region_ids']:
                     current_region = {'label': rid}
                     if current_region in regions:
                         regions.remove(current_region)
+
         ret_dict = {
             'item_id': item_id,
             'name': region_item['name'] if region_item else '',
@@ -1380,8 +1412,13 @@ def get_all_avail_items_for_review(item):
     region_dict = item['meta']['regions']
     avail_item_list = []
     for key, val in region_dict.items():
-        complete_info = _get_history_info(item, key, 'annotation_completed_by')
-        review_complete_info = _get_history_info(item, key, 'review_completed_by')
+        if 'item_id' in val:
+            complete_info = _get_history_info(item, val['item_id'], 'annotation_completed_by')
+            review_complete_info = _get_history_info(item, val['item_id'], 'review_completed_by')
+        else:
+            complete_info = None
+            review_complete_info = None
+
         if complete_info and not review_complete_info:
             avail_item_list.append({
                 'id': val['item_id'],
