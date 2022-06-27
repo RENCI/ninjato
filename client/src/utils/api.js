@@ -20,6 +20,20 @@ const getStatus = info => (
   'active'
 );
 
+const addUserInfo = async user => {
+  user.reviewer = false;
+  for (const group of user.groups) {
+    const response = await axios.get(`/group/${ group }`);
+
+    if (response.data.name === 'reviewers') {
+      user.reviewer = true;
+      break;
+    }
+  }
+
+  return user;
+};
+
 const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
   // Get assignment info
   const infoResponse = await axios.get(`/item/${ subvolumeId }/subvolume_assignment_info`, {
@@ -89,9 +103,9 @@ export const api = {
 
     const response = await axios.get('/user/me');
 
-    console.log(response.data);
+    const user = await addUserInfo(response.data);
 
-    return response.data;
+    return user;
   },
   login: async (username, password) => {
     const auth = 'Basic ' + window.btoa(username + ':' + password); 
@@ -106,9 +120,9 @@ export const api = {
 
     axios.defaults.headers.common['Girder-Token'] = authToken.token;
 
-    console.log(response.data);
+    const user = await addUserInfo(response.data.user);
 
-    return response.data.user;
+    return user;
   },
   logout: async () => {
     await axios.delete('/user/authentication');
@@ -128,7 +142,9 @@ export const api = {
 
     axios.defaults.headers.common['Girder-Token'] = authToken.token;
 
-    return response.data;
+    const user = await addUserInfo(response.data);
+
+    return user;
   },
   getVolumes: async () => {
     const response = await axios.get('/system/subvolume_ids');
