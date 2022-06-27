@@ -5,7 +5,7 @@ import { UserContext, SET_REGION_COMMENT } from 'contexts';
 const { Group, Content, Author, Metadata, Text, Actions, Action } = Comment;
 
 export const CommentHistory = ({ region }) => {
-  const [{ login } , assignmentDispatch] = useContext(UserContext);
+  const [{ user } , assignmentDispatch] = useContext(UserContext);
   const [comment, setComment] = useState(null);
   const [time, setTime] = useState(new Date());
   const [editing, setEditing] = useState(false);
@@ -68,7 +68,7 @@ export const CommentHistory = ({ region }) => {
             <Content>
               { editing ?
                 <>
-                  <Author as='span'>{ login }</Author>
+                  <Author as='span'>{ user.login }</Author>
                   <Metadata>
                     <div>Now</div>
                   </Metadata>
@@ -115,7 +115,7 @@ export const CommentHistory = ({ region }) => {
                 </>
               :
                 <>
-                  <Author as='span'>{ login }</Author>
+                  <Author as='span'>{ user.login }</Author>
                   <Metadata><div>{ time.toLocaleString() }</div></Metadata>
                   <Text style={{ whiteSpace: 'pre-line' }}>{ comment }</Text>
                   <Actions>

@@ -7,12 +7,12 @@ import { useGetAssignments } from 'hooks';
 import styles from './styles.module.css';
 
 export const AssignmentSelection = () => {
-  const [{ id, assignments, volumes }] = useContext(UserContext);
+  const [{ user, assignments, volumes }] = useContext(UserContext);
   const getAssignments = useGetAssignments();
 
   useEffect(() => {  
-    if (id) getAssignments(id);    
-  }, [id, getAssignments]);
+    if (user) getAssignments(user._id);    
+  }, [user, getAssignments]);
 
   return (
     <>

@@ -12,7 +12,7 @@ import { api } from 'utils/api';
 const { Header, Content, Actions } = Modal;
 
 export const RemoveDialog = () => {
-  const [{ id, assignment }, userDispatch] = useContext(UserContext);
+  const [{ user, assignment }, userDispatch] = useContext(UserContext);
   const [{ action }, refineDispatch] = useContext(RefineContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const loadData = useLoadData();
@@ -23,7 +23,7 @@ export const RemoveDialog = () => {
     setRemoving(true);
 
     try {      
-      const key = await api.removeRegion(id, assignment.subvolumeId, assignment.id, action.region.label);
+      const key = await api.removeRegion(user._id, assignment.subvolumeId, assignment.id, action.region.label);
 
       setRemoving(false);
       setSuccess(true);

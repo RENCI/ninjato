@@ -12,7 +12,7 @@ import { api } from 'utils/api';
 const { Header, Content, Actions } = Modal;
 
 export const ClaimDialog = () => {
-  const [{ id, assignment }, userDispatch] = useContext(UserContext);
+  const [{ user, assignment }, userDispatch] = useContext(UserContext);
   const [{ action }, refineDispatch] = useContext(RefineContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const loadData = useLoadData();
@@ -23,7 +23,7 @@ export const ClaimDialog = () => {
     setClaiming(true);
 
     try {      
-      await api.claimRegion(id, assignment.subvolumeId, assignment.id, action.region.label);
+      await api.claimRegion(user._id, assignment.subvolumeId, assignment.id, action.region.label);
 
       setClaiming(false);
       setSuccess(true);

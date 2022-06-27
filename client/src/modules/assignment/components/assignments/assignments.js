@@ -13,7 +13,7 @@ const sortOrder = (a, b) => (
 );
 
 export const Assignments = () => {
-  const [{ login, assignments }] = useContext(UserContext);
+  const [{ user, assignments }] = useContext(UserContext);
 
   const hasActiveAssignment = hasActive(assignments);
 
@@ -22,13 +22,13 @@ export const Assignments = () => {
       { !assignments ? null
       : assignments.length === 0 ? 
         <Header as='h4'>
-          No current assignments for { login }
+          No current assignments for { user.login }
           <Subheader>Select a new assignment from an available volume below</Subheader>
         </Header>        
       :  
         <>
           <Header as='h4'>
-            Current assignments for { login }
+            Current assignments for { user.login }
             <Subheader>
               { hasActiveAssignment ?
                 <>Select an assignment to continue annotating</>

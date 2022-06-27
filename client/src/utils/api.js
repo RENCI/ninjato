@@ -30,8 +30,6 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
 
   const info = infoResponse.data;
 
-  console.log(info);
-
   // Get files
   const filesResponse = await axios.get(`/item/${ itemId }/files`);
 
@@ -91,6 +89,8 @@ export const api = {
 
     const response = await axios.get('/user/me');
 
+    console.log(response.data);
+
     return response.data;
   },
   login: async (username, password) => {
@@ -105,6 +105,8 @@ export const api = {
     const { authToken } = response.data;
 
     axios.defaults.headers.common['Girder-Token'] = authToken.token;
+
+    console.log(response.data);
 
     return response.data.user;
   },

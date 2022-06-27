@@ -21,9 +21,7 @@ export const SAVE_REGION_HISTORY = 'user/SAVE_REGION_HISTORY';
 export const SET_REGION_COMMENT = 'user/SET_REGION_COMMENT';
  
 const initialState = {
-  id: null,
-  admin: false,
-  login: null,
+  user: null,
   volumes: null,
   assignments: null,  // From server. May be stale if updating current assignment
   assignment: null,
@@ -67,9 +65,7 @@ const reducer = (state, action) => {
     case LOGIN:
       return {
         ...initialState,
-        id: action.id,
-        login: action.login,
-        admin: action.admin
+        user: action.user
       };
 
     case LOGOUT:

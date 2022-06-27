@@ -34,13 +34,9 @@ export const RegisterForm = () => {
     try {
       const user = await api.register(username, email, firstname, lastname, password);
 
-      const id = user._id;
-
       userDispatch({
         type: LOGIN,
-        id: id,
-        login: user.login,
-        admin: false
+        user: user
       });
 
       closeModal();

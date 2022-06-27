@@ -10,7 +10,7 @@ import { api } from 'utils/api';
 const { Header, Content, Actions } = Modal;
 
 export const DeclineButton = ({ disabled }) => {
-  const [{ id, assignment }, userDispatch] = useContext(UserContext);
+  const [{ user, assignment }, userDispatch] = useContext(UserContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const [open, openModal, closeModal] = useModal();
   const [declining, setDeclining] = useState(false);
@@ -20,7 +20,7 @@ export const DeclineButton = ({ disabled }) => {
     setDeclining(true);
 
     try {
-      const { status } = await api.declineAssignment(id, assignment.id);
+      const { status } = await api.declineAssignment(user._id, assignment.id);
 
       if (status !== 'success') throw new Error(`Error declining assignment ${ assignment.id }`); 
 

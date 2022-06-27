@@ -31,13 +31,9 @@ export const LoginForm = () => {
     try {
       const user = await api.login(username, password);
 
-      const id = user._id;
-
       userDispatch({
         type: LOGIN,
-        id: id,
-        login: user.login,
-        admin: user.admin
+        user: user
       });
 
       closeModal();
