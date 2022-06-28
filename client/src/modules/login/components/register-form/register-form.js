@@ -19,9 +19,11 @@ export const RegisterForm = ({ trigger }) => {
     lastname: '',
     password: ''
   });
+  const [success, setSuccess] = useState();
   const [errorMessage, setErrorMessage] = useState(null);
 
   const onOpenModal = () => {
+    setSuccess();
     setErrorMessage();
     openModal();
   };
@@ -39,7 +41,11 @@ export const RegisterForm = ({ trigger }) => {
         user: user
       });
 
-      closeModal();
+      setSuccess(true);
+      setTimeout(() => {
+        setSuccess();
+        closeModal();
+      }, 1000);   
     }
     catch (error) {
       console.log(error);      
@@ -75,8 +81,10 @@ export const RegisterForm = ({ trigger }) => {
           <Input label='Enter last name' name='lastname' onChange={ onChange } />
           <Input label='Enter a password' type='password' name='password'  onChange={ onChange } />
           <Message
-            error
-            content={ errorMessage }
+            hidden={ !success && !errorMessage}
+            positive={ success ? true : false }
+            error={ errorMessage ? true : false }
+            content={ success ? 'Success!' : errorMessage ? errorMessage : null }
           />
           <div className={ styles.hide }>
             <Button content='Submit' />

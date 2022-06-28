@@ -16,9 +16,11 @@ export const LoginForm = ({ trigger }) => {
     username: '',
     password: ''
   });
-  const [errorMessage, setErrorMessage] = useState(null);
+  const [success, setSuccess] = useState();
+  const [errorMessage, setErrorMessage] = useState();
 
   const onOpenModal = () => {
+    setSuccess();
     setErrorMessage();
     openModal();
   };
@@ -36,7 +38,11 @@ export const LoginForm = ({ trigger }) => {
         user: user
       });
 
-      closeModal();
+      setSuccess(true);
+      setTimeout(() => {
+        setSuccess();
+        closeModal();
+      }, 1000);      
     }
     catch (error) {
       console.log(error);      
@@ -69,8 +75,10 @@ export const LoginForm = ({ trigger }) => {
           <Input label='Login or email' name='username' onChange={ onChange } />
           <Input label='Password' type='password' name='password' onChange={ onChange } />
           <Message
-            error
-            content={ errorMessage }
+            hidden={ !success && !errorMessage}
+            positive={ success ? true : false }
+            error={ errorMessage ? true : false }
+            content={ success ? 'Success!' : errorMessage ? errorMessage : null }
           />
           <div className={ styles.hide }>
             <Button>

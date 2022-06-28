@@ -103,9 +103,14 @@ export const api = {
 
     const response = await axios.get('/user/me');
 
-    const user = await addUserInfo(response.data);
-
-    return user;
+    if (response.data) {
+      const user = await addUserInfo(response.data);
+  
+      return user;
+    }
+    else {
+      return null;
+    }
   },
   login: async (username, password) => {
     const auth = 'Basic ' + window.btoa(username + ':' + password); 
@@ -120,9 +125,16 @@ export const api = {
 
     axios.defaults.headers.common['Girder-Token'] = authToken.token;
 
-    const user = await addUserInfo(response.data.user);
+    console.log(response);
 
-    return user;
+    if (response.data.user) {
+      const user = await addUserInfo(response.data.user);
+  
+      return user;
+    }
+    else {
+      return null;
+    }
   },
   logout: async () => {
     await axios.delete('/user/authentication');
@@ -142,9 +154,14 @@ export const api = {
 
     axios.defaults.headers.common['Girder-Token'] = authToken.token;
 
-    const user = await addUserInfo(response.data);
-
-    return user;
+    if (response.data) {
+      const user = await addUserInfo(response.data);
+  
+      return user;
+    }
+    else {
+      return null;
+    }
   },
   getVolumes: async () => {
     const response = await axios.get('/system/subvolume_ids');
