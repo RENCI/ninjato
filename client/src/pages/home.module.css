@@ -1,0 +1,103 @@
+.container {
+  width: 100%;
+  text-align: center;
+}
+
+.wrapper {
+  position: relative;
+  display: inline-block;
+  width: auto;
+}
+
+.text {
+  width: 80%;
+  color: #fff;
+  font-family: sans-serif;
+  font-size: 3em;
+  line-height: 1.2em;
+  font-weight: bold;
+  position: absolute; 
+  text-shadow: 0 0 .2em rgb(255, 0, 255), 0 0 .3em rgb(0, 255, 0);
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  animation-duration: 30s;
+  animation-iteration-count: infinite;
+}
+
+.text1 {
+  animation-name: text1;
+}
+
+.text2 {
+  animation-name: text2;
+}
+
+.text3 {
+  animation-name: text3;
+}
+
+.text4 {
+  animation-name: text4;
+}
+
+@keyframes text1 {
+  0% {
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  20% {
+    opacity: 1;
+  }
+  25% {
+    opacity: 0;
+  }
+}
+
+@keyframes text2 {
+  25% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  45% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes text3 {
+  50% {
+    opacity: 0;
+  }
+  55% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 0;
+  }
+}
+
+@keyframes text4 {
+  75% {
+    opacity: 0;
+  }
+  80% {
+    opacity: 1;
+  }
+  95% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

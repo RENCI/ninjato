@@ -14,13 +14,13 @@ export const AssignmentSelection = () => {
     if (user) getAssignments(user._id);    
   }, [user, getAssignments]);
 
+  console.log(assignments);
+
   return (
     <>
       { (assignments && volumes) &&
         <>
-          <AssignmentMessage>
-            Select assignment
-          </AssignmentMessage>
+          <AssignmentMessage />
           <div className={ styles.container }>
             <Assignments />
             <Volumes />

@@ -11,17 +11,22 @@ export const AssignmentMessage = () => {
   const n = assignment?.regions.length;
 
   return (
-    assignment && 
-    <Message attached className={ styles.message }>
-      <div>
-        { n > 0 ?
-          <>Refining { n } region{ n > 1 ? 's' : null }:</>
-        : 
-          <>No regions:</>
+      <Message attached className={ styles.message }>
+        { !assignment ? 
+          <>Select assignment</>
+        :
+          <>
+            <div>
+              { n > 0 ?
+                <>Refining { n } region{ n > 1 ? 's' : null }:</>
+              : 
+                <>No regions:</>
+              }
+            </div>
+            <RegionSelect />
+            <CommentContainer />
+          </>
         }
-      </div>
-      <RegionSelect />
-      <CommentContainer />
-    </Message>
+      </Message>
   );
 };
