@@ -14,6 +14,8 @@ export const Home = () => {
     navigate('/select');
   };
 
+  // XXX: Add navigate to login and register forms
+
   return (
     <>
     <div className={ styles.container }>
