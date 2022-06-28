@@ -9,11 +9,14 @@ import styles from './styles.module.css';
 const { Header, Content, Actions } = Modal;
 const { Input } = Form;
 
-export const LoginForm = () => {
+export const RegisterForm = ({ trigger }) => {
   const [, userDispatch] = useContext(UserContext);
   const [open, openModal, closeModal] = useModal();
   const [values, setValues] = useState({
     username: '',
+    email: '',
+    firstname: '',
+    lastname: '',
     password: ''
   });
   const [errorMessage, setErrorMessage] = useState(null);
@@ -24,12 +27,12 @@ export const LoginForm = () => {
   };
 
   const onSubmit = async () => {
-    const { username, password } = values;
+    const { username, email, firstname, lastname, password } = values;
 
     setErrorMessage();
 
     try {
-      const user = await api.login(username, password);
+      const user = await api.register(username, email, firstname, lastname, password);
 
       userDispatch({
         type: LOGIN,
@@ -55,27 +58,28 @@ export const LoginForm = () => {
   return (
     <Modal
       size='tiny'
-      trigger={ <Menu.Item content='Log in' /> }
+      trigger={ trigger }
       open={ open }
       onOpen={ onOpenModal }
       onClose={ closeModal }
     >
-      <Header>Log in</Header>
+      <Header>Register new user</Header>
       <Content>
         <AutoFocusForm 
           error 
           onSubmit={ onSubmit }
         >
-          <Input label='Login or email' name='username' onChange={ onChange } />
-          <Input label='Password' type='password' name='password' onChange={ onChange } />
+          <Input label='Enter a login name' name='username' onChange={ onChange } />
+          <Input label='Enter email address' name='email' onChange={ onChange } />
+          <Input label='Enter first name' name='firstname' onChange={ onChange } />
+          <Input label='Enter last name' name='lastname' onChange={ onChange } />
+          <Input label='Enter a password' type='password' name='password'  onChange={ onChange } />
           <Message
             error
             content={ errorMessage }
           />
           <div className={ styles.hide }>
-            <Button>
-              Submit
-            </Button>
+            <Button content='Submit' />
           </div>
         </AutoFocusForm>
       </Content>
@@ -84,11 +88,11 @@ export const LoginForm = () => {
           Cancel
         </Button>
         <Button 
-          primary 
-          disabled={ values.username === '' || values.password === ''}
+          primary
+          disabled={ Object.values(values).reduce((blank, value) => blank || value === '', false) } 
           onClick={ onSubmit }
         >
-          Log in
+          Register
         </Button>
       </Actions>
     </Modal>

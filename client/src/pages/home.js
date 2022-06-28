@@ -1,4 +1,6 @@
 import { Image, Segment, Grid, Button, Divider, Menu } from 'semantic-ui-react';
+import { LoginForm } from 'modules/login/components/login-form';
+import { RegisterForm } from 'modules/login/components/register-form';
 import styles from './home.module.css';
 
 export const Home = () => {
@@ -30,11 +32,11 @@ export const Home = () => {
         <Segment basic>
           <Grid columns={2} stackable relaxed='very'>
             <Grid.Column>
-              <Button content='Log in' icon='user' size='big' basic fluid />
+              <LoginForm trigger={ <Button content='Log in' icon='user' size='big' basic fluid /> } />
             </Grid.Column>
 
             <Grid.Column verticalAlign='middle'>
-              <Button content='Register' icon='signup' size='big' basic fluid />
+              <RegisterForm trigger={ <Button content='Register' icon='signup' size='big' basic fluid /> } />
             </Grid.Column>
           </Grid>
           <Divider vertical hidden>Or</Divider>
