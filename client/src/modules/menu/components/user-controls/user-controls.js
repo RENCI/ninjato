@@ -4,6 +4,8 @@ import { Menu } from 'semantic-ui-react';
 import { UserContext, LOGIN, LOGOUT } from 'contexts';
 import { api } from 'utils/api';
 
+const { Item } = Menu;
+
 export const UserControls = () => {
   const [{ user }, userDispatch] = useContext(UserContext);
   const navigate = useNavigate();
@@ -42,8 +44,8 @@ export const UserControls = () => {
     <Menu.Menu position='right'>
       { user && 
         <>
-          <Menu.Item content={ user.login } />
-          <Menu.Item content='Log out' onClick={ onLogout } />
+          <Item content={ user.login } icon='user'/>
+          <Item content='Log out' icon='sign-out' onClick={ onLogout } />
         </>
       }             
     </Menu.Menu>
