@@ -9,6 +9,14 @@
   width: auto;
 }
 
+.credit {
+  color: #fff;
+  opacity: 0.8;
+  position: absolute;
+  left: .2em;
+  bottom: 0;
+}
+
 .text {
   width: 80%;
   color: #fff;

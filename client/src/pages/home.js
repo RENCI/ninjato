@@ -14,8 +14,6 @@ export const Home = () => {
     navigate('/select');
   };
 
-  // XXX: Add navigate to login and register forms
-
   return (
     <>
     <div className={ styles.container }>
@@ -39,6 +37,7 @@ export const Home = () => {
               You can help
             </div>
           </div>
+          <div className={ styles.credit }>Image credit: Oleh Krupa</div>
         </div>
         <Divider hidden>To continue...</Divider>        
         <Segment basic>
@@ -66,8 +65,10 @@ export const Home = () => {
         </div>
     </div>
     <Menu secondary fixed='bottom'>
-      <Menu.Item name='Project Website' link href='https://www.nucleininja.org/' />
-      <Menu.Item name='Github repo' icon='github' link href='https://github.com/RENCI/ninjato' />
+      <Menu.Menu position='right'>
+        <Menu.Item name='Project Website' link href='https://www.nucleininja.org/' />
+        <Menu.Item name='Github repo' icon='github' link href='https://github.com/RENCI/ninjato' />
+      </Menu.Menu>
     </Menu>
     </>
   );
