@@ -1,4 +1,5 @@
 import { useContext, useEffect } from 'react';
+import { Button } from 'semantic-ui-react';
 import { UserContext } from 'contexts';
 import { Assignments } from 'modules/assignment/components/assignments';
 import { Volumes } from 'modules/assignment/components/volumes';
@@ -13,6 +14,10 @@ export const AssignmentSelection = () => {
     if (user) getAssignments(user._id);    
   }, [user, getAssignments]);
 
+  const onRefreshClick = () => {
+    if (user) getAssignments(user._id);
+  };
+
   return (
     <>
       { (assignments && volumes) &&
@@ -20,6 +25,13 @@ export const AssignmentSelection = () => {
           <div className={ styles.container }>
             <Assignments />
             <Volumes />
+            <Button 
+              basic 
+              circular 
+              icon='sync' 
+              className={ styles.refresh } 
+              onClick={ onRefreshClick } 
+            />
           </div>
         </>
       }
