@@ -12,6 +12,10 @@ export const Home = () => {
     setLoaded(true);
   };
 
+  const LinkItem = ({ name, icon, url }) => (
+    <Menu.Item name={ name } icon={ icon } onClick={ () => window.open(url, '_blank') } />
+  );
+
   return (
     loaded ?
       <>
@@ -30,7 +34,7 @@ export const Home = () => {
                   We need to train an image recognition algorithm to recognize what a nucleus looks like
                 </div>
                 <div className={ styles.text }>
-                  This requires many manually labeled nuclear samples, so we've developed ninjatō to make this easier to do
+                  This requires many manually labeled nuclei samples, so we've developed ninjatō to make this easier to do
                 </div>
                 <div className={ styles.text }>
                   This tool will enable us to quantify differences in brain structure caused by mutations associated with neuropsychiatric disorders
@@ -42,15 +46,13 @@ export const Home = () => {
               <div className={ styles.credit }>Image credit: Oleh Krupa</div>
             </div>
           </Segment>
-          <Divider hidden>To continue...</Divider>        
-          <Segment basic>
-            <NavigateButtons />
-          </Segment>
+          <Divider hidden>To continue...</Divider>   
+          <NavigateButtons />
         </div>
         <Menu secondary fixed='bottom'>
           <Menu.Menu position='right'>
-            <Menu.Item name='Project Website' icon='info circle' link href='https://www.nucleininja.org/' />
-            <Menu.Item name='Github repo' icon='github' link href='https://github.com/RENCI/ninjato' />
+            <LinkItem name='Project Website' icon='info circle' url='https://www.nucleininja.org/' />
+            <LinkItem name='Github repo' icon='github' url='https://github.com/RENCI/ninjato' />
           </Menu.Menu>
         </Menu>
       </>

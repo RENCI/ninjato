@@ -17,6 +17,17 @@ export const NavigateButtons = () => {
     navigate('/assignment');
   };
 
+  const NavButton = ({ content, icon, onClick }) => (
+    <Button
+      content={ content }
+      icon={ icon }
+      size='big'
+      basic
+      fluid
+      onClick={ onClick }
+    />
+  );
+
   return (
     <Segment basic>
       { user ? 
@@ -24,23 +35,17 @@ export const NavigateButtons = () => {
           <>
             <Grid columns={ 2 } stackable relaxed='very'>
               <Grid.Column>
-                <Button 
+                <NavButton 
                   content='Select assignment' 
                   icon='clipboard list' 
-                  size='big' 
-                  basic 
-                  fluid 
                   onClick={ onSelectAssignmentClick } 
                 />
               </Grid.Column>
 
               <Grid.Column verticalAlign='middle'>
-                <Button 
+                <NavButton 
                   content='Edit assignment' 
                   icon='edit' 
-                  size='big' 
-                  basic 
-                  fluid 
                   onClick={ onEditAssignmentClick } 
                 />
               </Grid.Column>
@@ -50,12 +55,9 @@ export const NavigateButtons = () => {
         :
           <Grid columns={ 1 } relaxed='very'>
             <Grid.Column>
-              <Button 
+              <NavButton 
                 content='Select assignment' 
                 icon='clipboard list' 
-                size='big' 
-                basic 
-                fluid 
                 onClick={ onSelectAssignmentClick } 
               />
             </Grid.Column>
@@ -66,12 +68,9 @@ export const NavigateButtons = () => {
             <Grid.Column>
               <LoginForm 
                 trigger={ 
-                  <Button 
+                  <NavButton 
                     content='Log in' 
                     icon='user' 
-                    size='big' 
-                    basic 
-                    fluid 
                   /> 
                 }
               />
@@ -80,12 +79,9 @@ export const NavigateButtons = () => {
             <Grid.Column verticalAlign='middle'>
               <RegisterForm 
                 trigger={ 
-                  <Button 
+                  <NavButton 
                     content='Register' 
                     icon='signup' 
-                    size='big' 
-                    basic 
-                    fluid 
                   /> 
                 } 
               />
