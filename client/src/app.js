@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { 
   UserProvider, 
   RefineProvider, 
@@ -22,6 +22,7 @@ export const App = () => {
           <Route exact path={'/'} element={ <Home /> } />
           <Route exact path={'/select'} element={ <Select /> } />
           <Route exact path={'/assignment'} element={ <Assignment /> } />
+          <Route path="*" element={ <Navigate replace to="/" /> } />
         </Routes>
         <LoadingMessage />
         <ErrorMessage />
