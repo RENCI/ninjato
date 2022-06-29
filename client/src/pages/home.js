@@ -16,7 +16,7 @@ export const Home = () => {
     loaded ?
       <>
         <div className={ styles.container }>
-          <div className={ styles.wrapper }>
+          <Segment inverted basic>
             <div className={ styles.wrapper }>
               <Image
                 src={ imageSrc }
@@ -41,11 +41,11 @@ export const Home = () => {
               </div>
               <div className={ styles.credit }>Image credit: Oleh Krupa</div>
             </div>
-            <Divider hidden>To continue...</Divider>        
-            <Segment basic>
-              <NavigateButtons />
-            </Segment>
-            </div>
+          </Segment>
+          <Divider hidden>To continue...</Divider>        
+          <Segment basic>
+            <NavigateButtons />
+          </Segment>
         </div>
         <Menu secondary fixed='bottom'>
           <Menu.Menu position='right'>

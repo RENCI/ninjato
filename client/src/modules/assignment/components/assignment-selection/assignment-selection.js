@@ -1,6 +1,5 @@
 import { useContext, useEffect } from 'react';
 import { UserContext } from 'contexts';
-import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { Assignments } from 'modules/assignment/components/assignments';
 import { Volumes } from 'modules/assignment/components/volumes';
 import { useGetAssignments } from 'hooks';

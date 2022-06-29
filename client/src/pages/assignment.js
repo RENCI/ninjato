@@ -9,8 +9,8 @@ export const Assignment = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    //if (!user) navigate('/');
-    //else if (!assignment) navigate('/select');
+    if (!user) navigate('/');
+    else if (!assignment) navigate('/select');
   });
 
   return (

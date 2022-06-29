@@ -23,7 +23,7 @@ export const Volumes = () => {
             Volumes
             <Subheader>
               { hasActiveAssignment ?
-                <>Complete all active assignments before requesting a new assignment</>
+                <>Complete all current assignments before requesting a new assignment</>
               :
                 <>Select an available volume to begin a new assignment</>
               }

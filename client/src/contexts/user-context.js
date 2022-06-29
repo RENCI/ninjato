@@ -123,6 +123,7 @@ const reducer = (state, action) => {
     case CLEAR_DATA:
       return {
         ...state,
+        assignment: null,
         imageData: null,
         maskData: null
       };
