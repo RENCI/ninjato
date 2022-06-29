@@ -1,10 +1,8 @@
 import { useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu } from 'semantic-ui-react';
+import { Menu, Dropdown, Icon  } from 'semantic-ui-react';
 import { UserContext, LOGIN, LOGOUT } from 'contexts';
 import { api } from 'utils/api';
-
-const { Item } = Menu;
 
 export const UserControls = () => {
   const [{ user }, userDispatch] = useContext(UserContext);
@@ -41,12 +39,13 @@ export const UserControls = () => {
   }
   
   return (
-    <Menu.Menu position='right'>
+    <Menu.Menu position='right' inverted>
       { user && 
-        <>
-          <Item content={ user.login } icon='user'/>
-          <Item content='Log out' icon='sign-out' onClick={ onLogout } />
-        </>
+        <Dropdown item text={ <><Icon name='user' />{ user.login }</> }>
+          <Dropdown.Menu>
+            <Dropdown.Item content='Log out' icon='sign-out' onClick={ onLogout } />
+          </Dropdown.Menu>
+        </Dropdown>
       }             
     </Menu.Menu>
   );

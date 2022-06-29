@@ -10,7 +10,7 @@ export const LoadingMessage = () => {
       page
       active={ message !== null }
     >
-      <Loader>{ message }</Loader>
+      <Loader content={ message } />
     </Dimmer>
   );
 };
