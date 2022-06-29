@@ -38,13 +38,13 @@ export const RegisterForm = ({ trigger }) => {
     try {
       const user = await api.register(username, email, firstname, lastname, password);
 
-      userDispatch({
-        type: LOGIN,
-        user: user
-      });
-
       setSuccess(true);
-      setTimeout(() => {
+      setTimeout(() => {      
+        userDispatch({
+          type: LOGIN,
+          user: user
+        });
+
         setSuccess();
         closeModal();
         navigate('/select');

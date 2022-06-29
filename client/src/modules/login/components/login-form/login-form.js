@@ -10,7 +10,7 @@ import styles from './styles.module.css';
 const { Header, Content, Actions } = Modal;
 const { Input } = Form;
 
-export const LoginForm = ({ trigger }) => {
+export const LoginForm = ({ trigger,  }) => {
   const [, userDispatch] = useContext(UserContext);
   const navigate = useNavigate();
   const [open, openModal, closeModal] = useModal();
@@ -35,13 +35,13 @@ export const LoginForm = ({ trigger }) => {
     try {
       const user = await api.login(username, password);
 
-      userDispatch({
-        type: LOGIN,
-        user: user
-      });
-
       setSuccess(true);
       setTimeout(() => {
+        userDispatch({
+          type: LOGIN,
+          user: user
+        });
+
         setSuccess();
         closeModal();
         navigate('/select');
