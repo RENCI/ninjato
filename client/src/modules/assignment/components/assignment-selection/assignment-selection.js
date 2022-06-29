@@ -14,13 +14,10 @@ export const AssignmentSelection = () => {
     if (user) getAssignments(user._id);    
   }, [user, getAssignments]);
 
-  console.log(assignments);
-
   return (
     <>
       { (assignments && volumes) &&
         <>
-          <AssignmentMessage />
           <div className={ styles.container }>
             <Assignments />
             <Volumes />
