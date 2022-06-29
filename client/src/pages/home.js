@@ -66,7 +66,7 @@ export const Home = () => {
     </div>
     <Menu secondary fixed='bottom'>
       <Menu.Menu position='right'>
-        <Menu.Item name='Project Website' link href='https://www.nucleininja.org/' />
+        <Menu.Item name='Project Website' icon='info circle' link href='https://www.nucleininja.org/' />
         <Menu.Item name='Github repo' icon='github' link href='https://github.com/RENCI/ninjato' />
       </Menu.Menu>
     </Menu>

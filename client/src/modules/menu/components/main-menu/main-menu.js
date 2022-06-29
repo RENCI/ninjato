@@ -24,19 +24,19 @@ export const MainMenu = () => {
       <Item 
         as={ Link } 
         to='/select' 
+        content='Select'
+        icon='clipboard list'
         active={ location.pathname === '/select' } 
         disabled={ !user }
-      >
-        Select assignment
-      </Item>
+      />
       <Item 
         as={ Link } 
         to='/assignment' 
+        content='Edit'
+        icon='edit'
         active={ location.pathname === '/assignment' } 
         disabled={ !assignment }
-      >
-        Current assignment
-      </Item>
+      />
       <Menu.Menu position='right'>
         <UserControls />
       </Menu.Menu>
