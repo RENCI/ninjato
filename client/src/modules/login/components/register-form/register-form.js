@@ -1,5 +1,6 @@
 import { useContext, useState } from 'react';
-import { Modal, Button, Form, Menu, Message } from 'semantic-ui-react';
+import { useNavigate } from 'react-router-dom';
+import { Modal, Button, Form, Message } from 'semantic-ui-react';
 import { LOGIN, UserContext } from 'contexts';
 import { AutoFocusForm } from 'modules/common/components/auto-focus-form';
 import { api } from 'utils/api';
@@ -11,6 +12,7 @@ const { Input } = Form;
 
 export const RegisterForm = ({ trigger }) => {
   const [, userDispatch] = useContext(UserContext);
+  const navigate = useNavigate();
   const [open, openModal, closeModal] = useModal();
   const [values, setValues] = useState({
     username: '',
@@ -45,6 +47,7 @@ export const RegisterForm = ({ trigger }) => {
       setTimeout(() => {
         setSuccess();
         closeModal();
+        navigate('/select');
       }, 1000);   
     }
     catch (error) {
