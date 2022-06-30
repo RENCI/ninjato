@@ -1,5 +1,5 @@
 import { useContext, useState, useRef, useEffect } from 'react';
-import { Comment, Icon, Form, TextArea, Dropdown, Button } from 'semantic-ui-react';
+import { Comment, Icon, Form, Dropdown, Button } from 'semantic-ui-react';
 import { UserContext, SET_REGION_COMMENT } from 'contexts';
 
 const { Group, Content, Author, Metadata, Text, Actions, Action } = Comment;

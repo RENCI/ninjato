@@ -39,7 +39,7 @@ export const UserControls = () => {
   }
   
   return (
-    <Menu.Menu position='right' inverted>
+    <Menu.Menu position='right'>
       { user && 
         <Dropdown item text={ <><Icon name='user' />{ user.login }</> }>
           <Dropdown.Menu>
