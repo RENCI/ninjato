@@ -125,8 +125,6 @@ export const api = {
 
     axios.defaults.headers.common['Girder-Token'] = authToken.token;
 
-    console.log(response);
-
     if (response.data.user) {
       const user = await addUserInfo(response.data.user);
   
@@ -203,12 +201,15 @@ export const api = {
 
     return volumes;
   },
-  getAssignments: async userId => {
+  getAssignments: async (userId, reviewer) => {
+
+    console.log(reviewer);
+
     const assignmentResponse = await axios.get(`/user/${ userId }/assignment`);
-    const reviewResponse = await axios.get(`/user/${ userId }/assignment_await_review`);
+    const reviewResponse = reviewer ? await axios.get(`/user/${ userId }/assignment_await_review`) : null;
 
     const assignments = [];
-    for (const item of assignmentResponse.data.concat(reviewResponse.data)) {
+    for (const item of assignmentResponse.data.concat(reviewResponse ? reviewResponse.data : [])) {
       const assignment = await getAssignment(item.item_id, item.subvolume_id, item.assignment_key);
 
       assignments.push(assignment); 
@@ -248,8 +249,6 @@ export const api = {
   },
   updateAssignment: async (userId, subvolumeId, assignmentKey) => {
     const assignment = await getAssignment(userId, subvolumeId, assignmentKey);
-
-    console.log(assignment);
 
     return assignment;
   },

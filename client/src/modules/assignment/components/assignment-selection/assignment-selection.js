@@ -9,13 +9,13 @@ import styles from './styles.module.css';
 export const AssignmentSelection = () => {
   const [{ user, assignments, volumes }] = useContext(UserContext);
   const getAssignments = useGetAssignments();
-
+console.log(user);
   useEffect(() => {  
-    if (user) getAssignments(user._id);    
+    if (user) getAssignments(user._id, user.reviewer);    
   }, [user, getAssignments]);
 
   const onRefreshClick = () => {
-    if (user) getAssignments(user._id);
+    if (user) getAssignments(user._id, user.reviewer);
   };
 
   return (

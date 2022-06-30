@@ -11,12 +11,12 @@ export const useGetAssignments = () => {
   const [, loadingDispatch] = useContext(LoadingContext);
   const [{ error }, errorDispatch] = useContext(ErrorContext);
 
-  return useCallback(async id => {
+  return useCallback(async (id, reviewer) => {
     if (!error) {
       try {
         loadingDispatch({ type: SET_LOADING }); 
 
-        const assignments = await api.getAssignments(id);
+        const assignments = await api.getAssignments(id, reviewer);
 
         const volumes = await api.getVolumes();
 
