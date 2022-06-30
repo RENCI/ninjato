@@ -7,11 +7,12 @@ import { isActive, statusDisplay } from 'utils/assignment-utils';
 import styles from './styles.module.css';
 
 export const Assignment = ({ assignment }) => {
-  const [, userDispatch] = useContext(UserContext);
+  const [{ assignment: currentAssignment }, userDispatch] = useContext(UserContext);
   const loadData = useLoadData();
 
   const { name, description, status, updated, regions } = assignment;
-  const enabled = isActive(assignment);
+  const selected = currentAssignment?.id === assignment.id;
+  const active = isActive(assignment);
 
   const onLoadClick = () => {
     userDispatch({ type: SET_ASSIGNMENT, assignment: assignment });
@@ -22,11 +23,11 @@ export const Assignment = ({ assignment }) => {
   return (
     <ButtonWrapper 
       onClick={ onLoadClick}
-      disabled={ !enabled }
+      disabled={ !active || selected }
     >
       <Segment
-        color={ enabled ? 'green' : 'grey' } 
-        raised={ enabled }
+        color={ active ? 'green' : 'grey' } 
+        raised={ active }
         circular
         className={ styles.assignment }
       >  
@@ -64,6 +65,7 @@ export const Assignment = ({ assignment }) => {
             />
           </div>
         </div>
+        { selected && <div className={ styles.selected }>selected</div> }
       </Segment>
     </ButtonWrapper>
   );
