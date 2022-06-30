@@ -41,7 +41,7 @@ export const UserControls = () => {
   return (
     <Menu.Menu position='right'>
       { user && 
-        <Dropdown item text={ <><Icon name='user' />{ user.login }</> }>
+        <Dropdown item trigger={ <><Icon name='user' />{ user.login }</> }>
           <Dropdown.Menu>
             <Dropdown.Item content='Log out' icon='sign-out' onClick={ onLogout } />
           </Dropdown.Menu>

@@ -172,11 +172,15 @@ export const api = {
 
         const { data } = infoResponse;
 
+        // Get parent volume info
+        const pathResponse = await axios.get(`/item/${ volume.id }/rootpath`);
+
         // Copy info and rename to be more concise
         volumes.push({
           id: data.id,
           name: data.name,
           description: data.description,
+          path: pathResponse.data,
           location: {...data.location},
           numRegions: data.total_regions,
           annotations: {
@@ -202,9 +206,6 @@ export const api = {
     return volumes;
   },
   getAssignments: async (userId, reviewer) => {
-
-    console.log(reviewer);
-
     const assignmentResponse = await axios.get(`/user/${ userId }/assignment`);
     const reviewResponse = reviewer ? await axios.get(`/user/${ userId }/assignment_await_review`) : null;
 
