@@ -81,6 +81,7 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
       index: i
     })),
     status: getStatus(info),
+    /*
     statusInfo: {
       assignedTo: info.annotation_assigned_to,
       completedBy: info.annotation_completed_by,
@@ -89,6 +90,7 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
       reviewCompletedBy: info.review_completed_by,
       reviewRejectedBy: info.review_rejected_by
     },
+    */
     imageId: imageInfo._id,
     maskId: maskInfo._id,
     type: 'refine'
@@ -209,9 +211,15 @@ export const api = {
     const assignmentResponse = await axios.get(`/user/${ userId }/assignment`);
     const reviewResponse = reviewer ? await axios.get(`/user/${ userId }/assignment_await_review`) : null;
 
+    // XXX: Hack until user names are included in assignment response
+    const user = await axios.get(`/user/${ userId }`);
+
     const assignments = [];
     for (const item of assignmentResponse.data.concat(reviewResponse ? reviewResponse.data : [])) {
       const assignment = await getAssignment(item.item_id, item.subvolume_id, item.assignment_key);
+
+      // XXX: Hack until user names are included in assignment response
+      assignment.user = assignmentResponse.data.includes(item) ? user.login : 'unknown';
 
       assignments.push(assignment); 
     }

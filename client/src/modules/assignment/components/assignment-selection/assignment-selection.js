@@ -35,9 +35,8 @@ export const AssignmentSelection = () => {
     menuItem: <Menu.Item key={ 'review' }>Review</Menu.Item>,
     render: () => (
       <Tab.Pane>
-        <div>
-          Review
-        </div>
+         <Assignments type='ownReview' assignments={ assignments.filter(assignment => assignment.status === 'review')} />
+         <Assignments type='otherReview' assignments={ assignments.filter(assignment => assignment.status === 'waiting' && assignment.user !== user.login)} />
       </Tab.Pane>
     )
   };
@@ -46,49 +45,14 @@ export const AssignmentSelection = () => {
     menuItem: <Menu.Item key={ 'refine' }>Refine</Menu.Item>,
     render: () => (
       <Tab.Pane>
-        <Assignments />
+        <Assignments type='refine' assignments={ assignments.filter(assignment => assignment.user === user.login)} />
         <Volumes />
       </Tab.Pane>
     )
   };
 
-  const panes = user.reviewer ? [reviewPane, refinePane] : [refinePane];
-/*
-  return (
-    
-    (volumes && assignments) &&
-    <>
-      <Tab           
-        activeIndex={ tabIndex }
-        menu={{ secondary: true, pointing: true }}
-        panes={ volumes.map(volume => (
-          { 
-            menuItem: (
-              <Menu.Item key={ volume.id }>
-                <div>{ getParent(volume).name }</div>
-                <>:&nbsp;</>
-                <div>{ volume.name }</div>
-              </Menu.Item>
-            ),
-            render: () => (
-              <Tab.Pane>
-                volume
-              </Tab.Pane>
-            )
-          } 
-        ))}
-        onTabChange={ onTabChange }
-      />
-      <Button 
-        basic 
-        circular 
-        icon='sync' 
-        className={ styles.refresh } 
-        onClick={ onRefreshClick } 
-      />
-    </>
-  );
-*/
+  const panes = [reviewPane, refinePane];
+
   return (
     <div>
       { (assignments && volumes) && (user.reviewer ?
@@ -98,7 +62,7 @@ export const AssignmentSelection = () => {
         />  
       :
         <div>
-          <Assignments />
+          <Assignments type='review' assignments={ assignments } />
           <Volumes />
         </div>
       )}
