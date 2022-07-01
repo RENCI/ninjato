@@ -15,7 +15,8 @@ const sortOrder = (a, b) => (
 export const Assignments = ({ type, assignments }) => {
   const [{ user }] = useContext(UserContext);
 
-  console.log(assignments);
+  // XXX: Probably makes sense to split into separate review selection and refine selection components, but share
+  // Assignment list, assignment select header, etc. components
 
   const n = assignments.length;
   const hasCurrent = hasActive(assignments);
@@ -30,6 +31,8 @@ export const Assignments = ({ type, assignments }) => {
     type === 'otherReview' ? n > 0 ? 'Select an assignment to review' : 'Start a new assignment from the Refine panel?' :
     hasCurrent ? 'Select an assignment to continue' : 'Select a new assignment from an available volume below';
 
+  const enabledStatus = type === 'ownReview' ? 'review' : type === 'otherReview' ? 'waiting' : 'active';
+
   return (
     assignments &&
     <>
@@ -42,7 +45,7 @@ export const Assignments = ({ type, assignments }) => {
       <div className={ styles.container }>
         { assignments.sort(sortOrder).map((assignment, i) => (
           <div key={ i }>
-            <Assignment assignment={ assignment } />
+            <Assignment assignment={ assignment } enabledStatus={ enabledStatus } />
           </div>
         ))}
       </div>

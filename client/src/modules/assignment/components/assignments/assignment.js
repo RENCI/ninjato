@@ -3,31 +3,41 @@ import { Segment, Header, Label } from 'semantic-ui-react';
 import { UserContext, SET_ASSIGNMENT } from 'contexts';
 import { ButtonWrapper } from 'modules/common/components/button-wrapper';
 import { useLoadData } from 'hooks';
-import { isActive, statusDisplay } from 'utils/assignment-utils';
+import { statusDisplay } from 'utils/assignment-utils';
 import styles from './styles.module.css';
 
-export const Assignment = ({ assignment }) => {
+const statusColor = {
+  active: 'green',
+  waiting: 'yellow',
+  review: 'teal'
+};
+
+export const Assignment = ({ assignment, enabledStatus }) => {
   const [{ assignment: currentAssignment }, userDispatch] = useContext(UserContext);
   const loadData = useLoadData();
 
   const { name, description, status, updated, regions } = assignment;
   const selected = currentAssignment?.id === assignment.id;
-  const active = isActive(assignment);
+  const enabled = assignment.status === enabledStatus;
 
   const onLoadClick = () => {
+    // XXX: Need to handle getting review assignment
+
     userDispatch({ type: SET_ASSIGNMENT, assignment: assignment });
 
     loadData(assignment); 
   };
 
+  // XXX: Need to add volume information to assignments, and show better volume information (parent, etc) in volumes
+
   return (
     <ButtonWrapper 
       onClick={ onLoadClick}
-      disabled={ !active || selected }
+      disabled={ !enabled || selected }
     >
       <Segment
-        color={ active ? 'green' : 'grey' } 
-        raised={ active }
+        color={ enabled ? statusColor[assignment.status] : 'grey' } 
+        raised={ enabled }
         circular
         className={ styles.assignment }
       >  

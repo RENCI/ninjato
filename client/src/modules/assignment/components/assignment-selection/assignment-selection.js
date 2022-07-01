@@ -6,11 +6,8 @@ import { Volumes } from 'modules/assignment/components/volumes';
 import { useGetAssignments } from 'hooks';
 import styles from './styles.module.css';
 
-const getParent = volume => volume.path[volume.path.length - 2].object;
-
 export const AssignmentSelection = () => {
   const [{ user, assignments, assignment, volumes }] = useContext(UserContext);
-  const [tabIndex, setTabIndex] = useState(0);
   const getAssignments = useGetAssignments();
 
   useEffect(() => {  
@@ -20,16 +17,6 @@ export const AssignmentSelection = () => {
   const onRefreshClick = () => {
     if (user) getAssignments(user._id, user.reviewer);
   };
-
-  useEffect(() => {
-    console.log(assignment);
-  }, []);
-
-  const onTabChange = (evt, { activeIndex }) => {
-    setTabIndex(activeIndex);
-  };
-
-  console.log(volumes);
 
   const reviewPane = {
     menuItem: <Menu.Item key={ 'review' }>Review</Menu.Item>,
@@ -61,8 +48,8 @@ export const AssignmentSelection = () => {
           panes={ panes }
         />  
       :
-        <div>
-          <Assignments type='review' assignments={ assignments } />
+        <div className={ styles.container }>
+          <Assignments type='refine' assignments={ assignments } />
           <Volumes />
         </div>
       )}
