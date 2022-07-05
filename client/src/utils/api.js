@@ -211,6 +211,9 @@ export const api = {
     const assignmentResponse = await axios.get(`/user/${ userId }/assignment`);
     const reviewResponse = reviewer ? await axios.get(`/user/${ userId }/assignment_await_review`) : null;
 
+    console.log(assignmentResponse);
+    console.log(reviewResponse);
+
     // XXX: Hack until user names are included in assignment response
     const user = await axios.get(`/user/${ userId }`);
 
