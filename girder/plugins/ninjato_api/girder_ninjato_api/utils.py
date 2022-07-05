@@ -1347,58 +1347,55 @@ def get_subvolume_item_info(item):
     return ret_dict
 
 
-def get_region_or_assignment_info(item, region_id):
+def get_region_or_assignment_info(item, assign_item_id, region_id):
     """
     get region info or assignment info if the region is part of the assignment
     :param item: subvolume item that contains the region
+    :param assign_item_id: assignment item id to get assignment info for
     :param region_id: region label number such as 1, 2, etc. in the assignment
     :return: dict of region or assignment info
     """
-    region_label_str = str(region_id)
-    if region_label_str in item['meta']['regions']:
-        region_dict = item['meta']['regions'][region_label_str]
-        item_id = region_dict['item_id'] if 'item_id' in region_dict else ''
-        region_item = Item().findOne({'_id': ObjectId(item_id)}) if item_id else None
-        regions = []
-        if region_item:
-            for rid in region_item['meta']['region_ids']:
+    if not assign_item_id and not region_id:
+        raise RestException('Either assign_item_id or region_id has to be provided in order to '
+                            'identify the assignment to get info for', code=400)
+    if not assign_item_id:
+        region_label_str = str(region_id)
+        if region_label_str in item['meta']['regions']:
+            region_dict = item['meta']['regions'][region_label_str]
+            assign_item_id = region_dict['item_id'] if 'item_id' in region_dict else ''
+
+    region_item = Item().findOne({'_id': ObjectId(assign_item_id)}) if assign_item_id else None
+    if not region_item:
+        raise RestException('no assignment found', code=400)
+
+    regions = []
+    for rid in region_item['meta']['region_ids']:
+        regions.append({
+            'label': rid
+        })
+    if 'added_region_ids' in region_item['meta']:
+        for rid in region_item['meta']['added_region_ids']:
+            if rid not in region_item['meta']['region_ids']:
                 regions.append({
                     'label': rid
                 })
-            if 'added_region_ids' in region_item['meta']:
-                for rid in region_item['meta']['added_region_ids']:
-                    if rid not in region_item['meta']['region_ids']:
-                        regions.append({
-                            'label': rid
-                        })
-            if 'removed_region_ids' in region_item['meta']:
-                for rid in region_item['meta']['removed_region_ids']:
-                    current_region = {'label': rid}
-                    if current_region in regions:
-                        regions.remove(current_region)
+    if 'removed_region_ids' in region_item['meta']:
+        for rid in region_item['meta']['removed_region_ids']:
+            current_region = {'label': rid}
+            if current_region in regions:
+                regions.remove(current_region)
 
-        ret_dict = {
-            'item_id': item_id,
-            'name': region_item['name'] if region_item else '',
-            'description': region_item['description'] if region_item else '',
-            'location': region_item['meta']['coordinates'] if region_item else {},
-            'last_updated_time': region_item['updated'] if region_item else '',
-            'regions': regions,
-            'color': region_item['meta']['color'] \
-            if region_item and 'color' in region_item['meta'] else {},
-            'status': _get_assignment_status(item, item_id) if region_item else 'inactive'
-        }
-    else:
-        ret_dict = {
-            'item_id': '',
-            'name': '',
-            'description': '',
-            'location': {},
-            'last_updated_time': '',
-            'regions': [],
-            'color': {},
-            'status': 'inactive'
-        }
+    ret_dict = {
+        'item_id': assign_item_id,
+        'name': region_item['name'] if region_item else '',
+        'description': region_item['description'] if region_item else '',
+        'location': region_item['meta']['coordinates'] if region_item else {},
+        'last_updated_time': region_item['updated'] if region_item else '',
+        'regions': regions,
+        'color': region_item['meta']['color'] \
+        if region_item and 'color' in region_item['meta'] else {},
+        'status': _get_assignment_status(item, assign_item_id) if region_item else 'inactive'
+    }
 
     return ret_dict
 

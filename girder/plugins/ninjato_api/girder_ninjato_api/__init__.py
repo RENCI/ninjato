@@ -198,14 +198,15 @@ def get_subvolume_info(item):
 @autoDescribeRoute(
     Description('Get assignment info.')
     .modelParam('id', 'The whole subvolume item ID', model='item', level=AccessType.READ)
+    .param('assign_item_id', 'assignment item ID to get assignment info for', required=False)
     .param('region_id', 'region id, e.g., 1, 2, 3, etc., to get the info of the assignment the '
-                        'region belongs to', required=True)
+                        'region belongs to', required=False)
     .errorResponse()
     .errorResponse('Get action was denied on the user.', 403)
     .errorResponse('Failed to get region info', 500)
 )
-def get_region_info(item, region_id):
-    return get_region_or_assignment_info(item, region_id)
+def get_region_info(item, assign_item_id, region_id):
+    return get_region_or_assignment_info(item, assign_item_id, region_id)
 
 
 @access.public
