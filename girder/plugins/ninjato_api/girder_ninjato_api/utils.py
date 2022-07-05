@@ -1002,13 +1002,17 @@ def get_await_review_assignment(user, subvolume_id):
                 continue
             if review_done_key in reg_item['meta'] and reg_item['meta'][review_done_key] == 'true':
                 continue
-            # annotation is done but review is not done, add it to await review list
-            item_dict = {
-                'item_id': str(reg_item['_id']),
-                'subvolume_id': sub_id,
-                'regions': reg_item['meta']['region_ids']
-            }
-            ret_data.append(item_dict)
+            # annotation is done but review is not done, check whether the item is assigned to
+            # requesting user for review and add it in ret_data if yes
+            review_info = _get_history_info(whole_item, reg_item['_id'], 'review_assigned_to')
+            uname = review_info[0]['user']
+            if uname == user['login']:
+                item_dict = {
+                    'item_id': str(reg_item['_id']),
+                    'subvolume_id': sub_id,
+                    'regions': reg_item['meta']['region_ids']
+                }
+                ret_data.append(item_dict)
 
     # return the user's active assignments
     return ret_data
