@@ -1,5 +1,5 @@
 import { useContext, useState, useRef, useEffect } from 'react';
-import { Comment, Icon, Divider, Form, TextArea } from 'semantic-ui-react';
+import { Comment, Icon, Form, TextArea, Dropdown, Button } from 'semantic-ui-react';
 import { UserContext, SET_REGION_COMMENT } from 'contexts';
 
 const { Group, Content, Author, Metadata, Text, Actions, Action } = Comment;
@@ -35,6 +35,10 @@ export const CommentHistory = ({ region }) => {
     assignmentDispatch({ type: SET_REGION_COMMENT, region: region, comment: comment });
   };
 
+  const onInsert = value => {
+    setComment(comment ? comment + '\n' + value : value);
+  };
+
   const stopPropagation = evt => evt.stopPropagation();
 
   useEffect(() => {
@@ -44,6 +48,8 @@ export const CommentHistory = ({ region }) => {
   useEffect(() => {
     setComment(region.comment);
   }, [region.comment]);
+
+  const options = ['Overtraced', 'Undertraced'];  
 
   return (
     <Group style={{ maxWidth: 'none' }}>
@@ -57,25 +63,52 @@ export const CommentHistory = ({ region }) => {
         </Comment>
       ))}
       { editing || comment ?
-        <>    
-          <Divider horizontal>New</Divider>
+        <>  
           <Comment>
             <Content>
               { editing ?
                 <>
                   <Author as='span'>{ login }</Author>
-                  <Metadata><div>Now</div></Metadata>
+                  <Metadata>
+                    <div>Now</div>
+                  </Metadata>
                   <Text>
-                    <Form reply>
-                      <TextArea
+                    <Form reply>          
+                      <Dropdown text='Insert'>
+                        <Dropdown.Menu>
+                          { options.map((option, i) => (
+                            <Dropdown.Item 
+                              key={ i } 
+                              text={ option } 
+                              onClick={ () => onInsert(option) } 
+                            /> 
+                          ))}
+                        </Dropdown.Menu>
+                      </Dropdown>
+                      <Form.TextArea
                         ref={ textAreaRef }
                         style={{ width: '100%', minHeight: 50 }}
                         value={ comment }
+                        spellCheck={ false }
                         onChange={ onCommentChange }
-                        onBlur={ onEditEnd }
+                        //onBlur={ onEditEnd }
                         onKeyDown={ stopPropagation }
                         onKeyUp={ stopPropagation }
                         onKeyPress={ stopPropagation }
+                      />
+                      <Button 
+                        icon='x circle' 
+                        secondary       
+                        size='small'
+                        compact
+                        onClick={ onClearClick }                 
+                      />
+                      <Button 
+                        icon='check' 
+                        primary 
+                        size='small'
+                        compact
+                        onClick={ onEditEnd }                       
                       />
                     </Form>
                   </Text>
