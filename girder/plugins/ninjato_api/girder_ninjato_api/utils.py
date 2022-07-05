@@ -906,7 +906,7 @@ def get_item_assignment(user, subvolume_id):
             continue
         filtered_id_list.append(sub_id)
 
-    if ret_data:
+    if ret_data or not subvolume_id:
         # return the user's active assignments
         return ret_data
 
