@@ -24,7 +24,7 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
   // Get assignment info
   const infoResponse = await axios.get(`/item/${ subvolumeId }/subvolume_assignment_info`, {
     params: {
-      assignment_key: assignmentKey
+      region_id: assignmentKey
     }
   }); 
 
