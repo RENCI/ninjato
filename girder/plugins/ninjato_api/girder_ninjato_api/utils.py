@@ -695,8 +695,7 @@ def remove_region_from_item_assignment(user, subvolume_id, active_assignment_id,
         if assign_user_login != user['login']:
             raise RestException('input region id to be removed is not currently assigned '
                                 'to the requesting user', code=400)
-        ret = _remove_region_from_active_assignment(whole_item, assign_item, region_id,
-                                                    user['login'])
+        ret = _remove_region_from_active_assignment(whole_item, assign_item, region_id)
         if ret:
             ret_dict['assignment_item_id'] = ret
             ret_dict['status'] = 'success'
