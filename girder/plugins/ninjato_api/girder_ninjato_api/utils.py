@@ -441,12 +441,16 @@ def _remove_region_from_active_assignment(whole_item, assign_item, region_id):
             max_y_ary.append(max_y)
             min_x_ary.append(min_x)
             max_x_ary.append(max_x)
-        min_z = min(min_z_ary)
-        max_z = max(max_z_ary)
-        min_y = min(min_y_ary)
-        max_y = max(max_y_ary)
-        min_x = min(min_x_ary)
-        max_x = max(max_x_ary)
+        if min_z_ary:
+            min_z = min(min_z_ary)
+            max_z = max(max_z_ary)
+            min_y = min(min_y_ary)
+            max_y = max(max_y_ary)
+            min_x = min(min_x_ary)
+            max_x = max(max_x_ary)
+        else:
+            min_z = max_z = min_y = max_y = min_x = max_x = 0
+
         assign_item['meta']['coordinates'] = {
             "x_max": max_x,
             "x_min": min_x,
@@ -457,7 +461,8 @@ def _remove_region_from_active_assignment(whole_item, assign_item, region_id):
         }
         assign_item = Item().save(assign_item)
         # update assign_item based on updated extent that has region removed
-        _create_region_files(assign_item, whole_item)
+        if min_z_ary:
+            _create_region_files(assign_item, whole_item)
         return assign_item['_id']
 
     return assign_item['_id']
