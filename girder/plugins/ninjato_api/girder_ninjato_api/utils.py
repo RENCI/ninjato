@@ -265,6 +265,9 @@ def _update_assignment_in_whole_item(whole_item, assign_item_id):
     :return: True if update action succeeds; otherwise, return False
     """
     assign_item = Item().findOne({'_id': assign_item_id})
+    if not assign_item['meta']['region_ids']:
+        # the assignment does not have any regions, so nothing to update
+        return
     assign_item_coords = assign_item['meta']['coordinates']
     assign_item_files = File().find({'itemId': assign_item_id})
     for assign_item_file in assign_item_files:
@@ -441,23 +444,28 @@ def _remove_region_from_active_assignment(whole_item, assign_item, region_id):
             max_y_ary.append(max_y)
             min_x_ary.append(min_x)
             max_x_ary.append(max_x)
-        min_z = min(min_z_ary)
-        max_z = max(max_z_ary)
-        min_y = min(min_y_ary)
-        max_y = max(max_y_ary)
-        min_x = min(min_x_ary)
-        max_x = max(max_x_ary)
-        assign_item['meta']['coordinates'] = {
-            "x_max": max_x,
-            "x_min": min_x,
-            "y_max": max_y,
-            "y_min": min_y,
-            "z_max": max_z,
-            "z_min": min_z
-        }
+
+        if min_z_ary:
+            min_z = min(min_z_ary)
+            max_z = max(max_z_ary)
+            min_y = min(min_y_ary)
+            max_y = max(max_y_ary)
+            min_x = min(min_x_ary)
+            max_x = max(max_x_ary)
+            assign_item['meta']['coordinates'] = {
+                "x_max": max_x,
+                "x_min": min_x,
+                "y_max": max_y,
+                "y_min": min_y,
+                "z_max": max_z,
+                "z_min": min_z
+            }
+
         assign_item = Item().save(assign_item)
         # update assign_item based on updated extent that has region removed
-        _create_region_files(assign_item, whole_item)
+        if min_z_ary:
+            _create_region_files(assign_item, whole_item)
+
         return assign_item['_id']
 
     return assign_item['_id']
@@ -695,8 +703,7 @@ def remove_region_from_item_assignment(user, subvolume_id, active_assignment_id,
         if assign_user_login != user['login']:
             raise RestException('input region id to be removed is not currently assigned '
                                 'to the requesting user', code=400)
-        ret = _remove_region_from_active_assignment(whole_item, assign_item, region_id,
-                                                    user['login'])
+        ret = _remove_region_from_active_assignment(whole_item, assign_item, region_id)
         if ret:
             ret_dict['assignment_item_id'] = ret
             ret_dict['status'] = 'success'
