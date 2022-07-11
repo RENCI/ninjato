@@ -29,7 +29,7 @@ export const ClaimDialog = () => {
       setSuccess(true);
       
       setTimeout(async () => {
-        const update = await api.updateAssignment(assignment.id, assignment.subvolumeId, assignment.assignmentKey);
+        const update = await api.updateAssignment(assignment.subvolumeId, assignment.id);
 
         userDispatch({
           type: UPDATE_ASSIGNMENT,

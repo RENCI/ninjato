@@ -34,12 +34,10 @@ const addUserInfo = async user => {
   return user;
 };
 
-const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
+const getAssignment = async (subvolumeId, itemId, regionId = null) => {
   // Get assignment info
   const infoResponse = await axios.get(`/item/${ subvolumeId }/subvolume_assignment_info`, {
-    params: {
-      region_id: assignmentKey
-    }
+    params: itemId ? { assign_item_id: itemId } : regionId ? { region_id: regionId } : {}    
   }); 
 
   const info = infoResponse.data;
@@ -68,7 +66,6 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
   return {
     id: itemId,
     subvolumeId: subvolumeId,
-    assignmentKey: assignmentKey,
     name: info.name,
     description: info.description,
     updated: convertDate(info.last_updated_time),
@@ -219,7 +216,7 @@ export const api = {
 
     const assignments = [];
     for (const item of assignmentResponse.data.concat(reviewResponse ? reviewResponse.data : [])) {
-      const assignment = await getAssignment(item.item_id, item.subvolume_id, item.assignment_key);
+      const assignment = await getAssignment(item.subvolume_id, item.item_id);
 
       // XXX: Hack until user names are included in assignment response
       assignment.user = assignmentResponse.data.includes(item) ? user.login : 'unknown';
@@ -242,7 +239,7 @@ export const api = {
 
     const item = response.data[0];
 
-    const assignment = await getAssignment(item.item_id, item.subvolume_id, item.assignment_key);
+    const assignment = await getAssignment(item.subvolume_id, item.item_id);
 
     return assignment;
   },
@@ -259,8 +256,8 @@ export const api = {
 
     return response.data;
   },
-  updateAssignment: async (userId, subvolumeId, assignmentKey) => {
-    const assignment = await getAssignment(userId, subvolumeId, assignmentKey);
+  updateAssignment: async (itemId, subvolumeId) => {
+    const assignment = await getAssignment(subvolumeId, itemId);
 
     return assignment;
   },
