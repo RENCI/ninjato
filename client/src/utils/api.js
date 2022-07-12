@@ -216,6 +216,11 @@ export const api = {
       assignments.push(assignment); 
     }
 
+    console.log(userId);
+
+    const reviewResponse = await axios.get(`/user/${ userId }/assignment_await_review`);
+    console.log(reviewResponse);
+
     // Get available review assignments
     if (reviewer) {
       const volumeResponse = await axios.get('/system/subvolume_ids');
