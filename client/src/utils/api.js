@@ -271,7 +271,7 @@ export const api = {
 
     return response.data;
   },
-  updateAssignment: async (itemId, subvolumeId) => {
+  updateAssignment: async (subvolumeId, itemId) => {
     const assignment = await getAssignment(subvolumeId, itemId);
 
     return assignment;

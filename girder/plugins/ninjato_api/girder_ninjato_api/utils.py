@@ -1012,16 +1012,18 @@ def get_await_review_assignment(user, subvolume_id):
             # annotation is done but review is not done, check whether the item is assigned to
             # requesting user for review and add it in ret_data if yes
             review_info = _get_history_info(whole_item, reg_item['_id'], 'review_assigned_to')
+            item_dict = {
+                'item_id': str(reg_item['_id']),
+                'subvolume_id': sub_id,
+                'regions': reg_item['meta']['region_ids']
+            }
             if review_info:
                 uname = review_info[0]['user']
                 if uname == user['login']:
-                    item_dict = {
-                        'item_id': str(reg_item['_id']),
-                        'subvolume_id': sub_id,
-                        'regions': reg_item['meta']['region_ids']
-                    }
                     ret_data.append(item_dict)
-
+            else:
+                # review is not assigned, ready to be assigned for review
+                ret_data.append(item_dict)
     # return the user's active assignments
     return ret_data
 
@@ -1132,6 +1134,8 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
                 }
 
         whole_item['meta'][str(uid)].remove(str(item['_id']))
+        if not whole_item['meta'][str(uid)]:
+            del whole_item['meta'][str(uid)]
         whole_item = Item().save(whole_item)
         info = {
             'type': 'annotation_completed_by',
