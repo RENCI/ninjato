@@ -205,23 +205,33 @@ export const api = {
     return volumes;
   },
   getAssignments: async (userId, reviewer) => {
-    const assignmentResponse = await axios.get(`/user/${ userId }/assignment`);
-    const reviewResponse = reviewer ? await axios.get(`/user/${ userId }/assignment_await_review`) : null;
-
-    console.log(assignmentResponse);
-    console.log(reviewResponse);
-
-    // XXX: Hack until user names are included in assignment response
-    const user = await axios.get(`/user/${ userId }`);
-
     const assignments = [];
-    for (const item of assignmentResponse.data.concat(reviewResponse ? reviewResponse.data : [])) {
+
+    // Get user's assignments
+    const assignmentResponse = await axios.get(`/user/${ userId }/assignment`);
+
+    for (const item of assignmentResponse.data) {
       const assignment = await getAssignment(item.subvolume_id, item.item_id);
 
-      // XXX: Hack until user names are included in assignment response
-      assignment.user = assignmentResponse.data.includes(item) ? user.login : 'unknown';
-
       assignments.push(assignment); 
+    }
+
+    // Get available review assignments
+    if (reviewer) {
+      const volumeResponse = await axios.get('/system/subvolume_ids');
+
+      for (const { id } of volumeResponse.data) {
+        const reviewResponse = await axios.get(`/item/${ id }/available_items_for_review`);
+
+        for (const review of reviewResponse.data) {
+          const assignment = await getAssignment(id, review.id);
+
+          // XXX: Verify last user is correct
+          assignment.user = review.annotation_completed_by[review.annotation_completed_by.length - 1].user;
+
+          assignments.push(assignment); 
+        }
+      }
     }
 
     return assignments;

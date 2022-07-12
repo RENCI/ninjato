@@ -75,8 +75,6 @@ export const useLoadData = ()  => {
     catch (error) {
       console.log(error);
 
-      // XXX: Potentialy decline to get a new assignment?
-
       loadingDispatch({ type: CLEAR_LOADING });
 
       errorDispatch({ type: SET_ERROR, error: error });
