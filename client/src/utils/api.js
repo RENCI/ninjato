@@ -250,6 +250,8 @@ export const api = {
       }
     );
 
+    console.log(response);
+
     if (response.data.length === 0) throw new Error('No new assignment');
 
     const item = response.data[0];
