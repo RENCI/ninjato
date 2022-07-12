@@ -1,24 +1,13 @@
 import { useContext, useState, useEffect } from 'react';
 import { Tab, Menu, Button } from 'semantic-ui-react';
 import { UserContext } from 'contexts';
-import { RefineSelection } from './refine-selection';
-import { ReviewSelection } from './review-selection';
+import { Assignments } from 'modules/assignment/components/assignments';
+import { Volumes } from 'modules/assignment/components/volumes';
 import { useGetAssignments } from 'hooks';
 import styles from './styles.module.css';
 
-// XXX: For refine, want anything that is this user's and not review
-// For review, want anything that is this user's and review
-// For waiting, want anything that is waiting and not this user's
-
-/*
-const getAssignments = (assignments, type, user) => 
-  type === 'refine' ? assignments.filter(({ status }) => status === 'refine' :
-  type === 'review' ? assignments.filter(({ type }) => type === 'review' :
-  assignments.filter(({ type, user }) => type === ')
-  */
-
-export const AssignmentSelection = () => {
-  const [{ user, assignments, volumes }] = useContext(UserContext);
+export const RefineSelection = () => {
+  const [{ user, assignments, assignment, volumes }] = useContext(UserContext);
   const getAssignments = useGetAssignments();
 
   useEffect(() => {  
@@ -29,13 +18,12 @@ export const AssignmentSelection = () => {
     if (user) getAssignments(user._id, user.reviewer);
   };
 
-  console.log(assignments);
-
   const reviewPane = {
     menuItem: <Menu.Item key={ 'review' }>Review</Menu.Item>,
     render: () => (
       <Tab.Pane>
-         <ReviewSelection />
+         <Assignments type='ownReview' assignments={ assignments.filter(assignment => assignment.status === 'review')} />
+         <Assignments type='otherReview' assignments={ assignments.filter(assignment => assignment.status === 'waiting' && assignment.user !== user.login)} />
       </Tab.Pane>
     )
   };
@@ -44,7 +32,8 @@ export const AssignmentSelection = () => {
     menuItem: <Menu.Item key={ 'refine' }>Refine</Menu.Item>,
     render: () => (
       <Tab.Pane>
-        <RefineSelection />
+        <Assignments type='refine' assignments={ assignments.filter(assignment => assignment.user === user.login)} />
+        <Volumes />
       </Tab.Pane>
     )
   };
@@ -60,7 +49,8 @@ export const AssignmentSelection = () => {
         />  
       :
         <div className={ styles.container }>
-          <RefineSelection />
+          <Assignments type='refine' assignments={ assignments } />
+          <Volumes />
         </div>
       )}
       <Button 
