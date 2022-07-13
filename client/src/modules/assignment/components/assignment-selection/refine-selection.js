@@ -1,65 +1,40 @@
-import { useContext, useState, useEffect } from 'react';
-import { Tab, Menu, Button } from 'semantic-ui-react';
+import { useContext } from 'react';
 import { UserContext } from 'contexts';
 import { Assignments } from 'modules/assignment/components/assignments';
 import { Volumes } from 'modules/assignment/components/volumes';
-import { useGetAssignments } from 'hooks';
-import styles from './styles.module.css';
+import { hasActive } from 'utils/assignment-utils';
 
-export const RefineSelection = () => {
-  const [{ user, assignments, assignment, volumes }] = useContext(UserContext);
-  const getAssignments = useGetAssignments();
+export const RefineSelection = ({ assignments }) => {
+  const [{ volumes }] = useContext(UserContext);
 
-  useEffect(() => {  
-    if (user) getAssignments(user._id, user.reviewer);    
-  }, [user, getAssignments]);
+  const active = hasActive(assignments);
+  const available = volumes && volumes.filter(({ annotations }) => annotations.available > 0).length > 0;
 
-  const onRefreshClick = () => {
-    if (user) getAssignments(user._id, user.reviewer);
-  };
+  const assignmentHeader = assignments.length > 0 ? 'Current assignments' : 'No current assignments';
+  const assignmentSubheader = active ? 'Select an active assignment to continue' :
+    available ? 'No active assignments, select an available volume below to request a new assignment' :
+    'No active assignments';
 
-  const reviewPane = {
-    menuItem: <Menu.Item key={ 'review' }>Review</Menu.Item>,
-    render: () => (
-      <Tab.Pane>
-         <Assignments type='ownReview' assignments={ assignments.filter(assignment => assignment.status === 'review')} />
-         <Assignments type='otherReview' assignments={ assignments.filter(assignment => assignment.status === 'waiting' && assignment.user !== user.login)} />
-      </Tab.Pane>
-    )
-  };
-
-  const refinePane = {
-    menuItem: <Menu.Item key={ 'refine' }>Refine</Menu.Item>,
-    render: () => (
-      <Tab.Pane>
-        <Assignments type='refine' assignments={ assignments.filter(assignment => assignment.user === user.login)} />
-        <Volumes />
-      </Tab.Pane>
-    )
-  };
-
-  const panes = [reviewPane, refinePane];
+  const volumeHeader = volumes && volumes.length > 0 ? 'Volumes' : 'No volumes';
+  const volumeSubheader = !volumes || volumes.length === 0 ? null :
+    active ? 'Complete any active assignments before requesting a new assignment' :
+    available ? 'Select an available volume to request a new assignment' :
+    'No volumes available';
 
   return (
-    <div>
-      { (assignments && volumes) && (user.reviewer ?
-        <Tab
-          menu={{ secondary: true, pointing: true, attached: 'top', fluid: true, widths: panes.length }}
-          panes={ panes }
-        />  
-      :
-        <div className={ styles.container }>
-          <Assignments type='refine' assignments={ assignments } />
-          <Volumes />
-        </div>
-      )}
-      <Button 
-        basic 
-        circular 
-        icon='sync' 
-        className={ styles.refresh } 
-        onClick={ onRefreshClick } 
+    <>
+      <Assignments 
+        type='refine' 
+        header={ assignmentHeader }
+        subheader={ assignmentSubheader }
+        assignments={ assignments } 
       />
-    </div>
+      <Volumes 
+        header={ volumeHeader }
+        subheader={ volumeSubheader }
+        volumes={ volumes } 
+        enabled={ !active }
+      />
+    </>
   )
 };

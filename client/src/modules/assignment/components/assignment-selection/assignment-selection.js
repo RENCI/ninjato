@@ -6,16 +6,13 @@ import { ReviewSelection } from './review-selection';
 import { useGetAssignments } from 'hooks';
 import styles from './styles.module.css';
 
-// XXX: For refine, want anything that is this user's and not review
-// For review, want anything that is this user's and review
+// For refine, want anything that is this user's, currently indicated by empty user field
+// For review, want anything that is review 
 // For waiting, want anything that is waiting and not this user's
-
-/*
-const getAssignments = (assignments, type, user) => 
-  type === 'refine' ? assignments.filter(({ status }) => status === 'refine' :
-  type === 'review' ? assignments.filter(({ type }) => type === 'review' :
-  assignments.filter(({ type, user }) => type === ')
-  */
+const filterAssignments = (assignments, type, user) => 
+  type === 'refine' ? assignments.filter(({ user }) => !user) :
+  type === 'review' ? assignments.filter(({ status }) => status === 'review') :
+  assignments.filter(assignment => assignment.status === 'waiting' && assignment.user !== user);
 
 export const AssignmentSelection = () => {
   const [{ user, assignments, volumes }] = useContext(UserContext);
@@ -31,42 +28,47 @@ export const AssignmentSelection = () => {
 
   console.log(assignments);
 
-  const reviewPane = {
-    menuItem: <Menu.Item key={ 'review' }>Review</Menu.Item>,
-    render: () => (
-      <Tab.Pane>
-         <ReviewSelection />
-      </Tab.Pane>
-    )
-  };
-
-  const refinePane = {
-    menuItem: <Menu.Item key={ 'refine' }>Refine</Menu.Item>,
-    render: () => (
-      <Tab.Pane>
-        <RefineSelection />
-      </Tab.Pane>
-    )
-  };
-
-  const panes = [reviewPane, refinePane];
-
   return (
-    <div>
+    <div className={ styles.container }>
       { (assignments && volumes) && (user.reviewer ?
         <Tab
-          menu={{ secondary: true, pointing: true, attached: 'top', fluid: true, widths: panes.length }}
-          panes={ panes }
+          menu={{ secondary: true, pointing: true, attached: 'top', fluid: true, widths: 2 }}
+          panes={[
+            {
+              menuItem: <Menu.Item key={ 'review' }>Review</Menu.Item>,
+              render: () => (
+                <Tab.Pane>
+                  <ReviewSelection 
+                    review={ filterAssignments(assignments, 'review') } 
+                    waiting={ filterAssignments(assignments, 'waiting') } 
+                  />                      
+                </Tab.Pane>
+              )
+            },
+            {
+              menuItem: <Menu.Item key={ 'refine' }>Refine</Menu.Item>,
+              render: () => (
+                <Tab.Pane>
+                  <RefineSelection 
+                    assignments={ filterAssignments(assignments, 'refine') } 
+                  />
+                </Tab.Pane>
+              )
+            }
+          ]}
         />  
       :
-        <div className={ styles.container }>
-          <RefineSelection />
+        <div className={ styles.refine }>
+          <RefineSelection 
+            assignments={ filterAssignments(assignments, 'refine') } 
+          />
         </div>
       )}
       <Button 
         basic 
         circular 
-        icon='sync' 
+        size='tiny'
+        icon='sync'         
         className={ styles.refresh } 
         onClick={ onRefreshClick } 
       />

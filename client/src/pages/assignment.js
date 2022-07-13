@@ -16,9 +16,12 @@ export const Assignment = () => {
   return (
     !user ? <Container textAlign='center'><Segment basic><Header>No user</Header></Segment></Container> :
     !assignment ? null 
-    : assignment.type === 'refine' ? 
+    : assignment.status === 'active' ? 
       <RefineContainer />
     : 
+      assignment.status === 'review' ?
+      <Message>REVIEW INTERFACE GOES HERE</Message>
+    :
       <Message>Unknown assignment type { assignment.type }</Message>
   );
 };

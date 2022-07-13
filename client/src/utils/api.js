@@ -89,8 +89,7 @@ const getAssignment = async (subvolumeId, itemId, regionId = null) => {
     },
     */
     imageId: imageInfo._id,
-    maskId: maskInfo._id,
-    type: 'refine'
+    maskId: maskInfo._id
   };
 };
 
@@ -229,12 +228,15 @@ export const api = {
         const reviewResponse = await axios.get(`/item/${ id }/available_items_for_review`);
 
         for (const review of reviewResponse.data) {
-          const assignment = await getAssignment(id, review.id);
+          // Check we don't already have it
+          if (!assignments.find(({ id }) => id === review.id)) {
+            const assignment = await getAssignment(id, review.id);
 
-          // XXX: Verify last user is correct
-          assignment.user = review.annotation_completed_by[review.annotation_completed_by.length - 1].user;
+            // XXX: Verify last user is correct
+            assignment.user = review.annotation_completed_by[review.annotation_completed_by.length - 1].user;
 
-          assignments.push(assignment); 
+            assignments.push(assignment); 
+          }
         }
       }
     }
@@ -273,7 +275,7 @@ export const api = {
 
     return response.data;
   },
-  updateAssignment: async (subvolumeId, itemId) => {
+  updateAssignment: async (itemId, subvolumeId) => {
     const assignment = await getAssignment(subvolumeId, itemId);
 
     return assignment;
