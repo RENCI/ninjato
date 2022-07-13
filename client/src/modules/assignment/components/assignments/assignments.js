@@ -12,26 +12,8 @@ const sortOrder = (a, b) => (
   b.updated - a.updated
 );
 
-export const Assignments = ({ type, assignments }) => {
-  const [{ user }] = useContext(UserContext);
-
-  // XXX: Probably makes sense to split into separate review selection and refine selection components, but share
-  // Assignment list, assignment select header, etc. components
-
-  const n = assignments.length;
-  const hasCurrent = hasActive(assignments);
-
-  const header = 
-    type === 'ownReview' ? n > 0 ? 'Current review assignments' : 'No current review assignments' :
-    type === 'otherReview' ? n > 0 ? 'Assignments awaiting review' : 'No assignments awaiting review' :
-    hasCurrent ? 'Current assignments' : 'No current assignments';
-
-  const subheader =
-    type === 'ownReview' ? n > 0 ? 'Select a review to continue' : 'Select a new review assignment below' :
-    type === 'otherReview' ? n > 0 ? 'Select an assignment to review' : 'Start a new assignment from the Refine panel?' :
-    hasCurrent ? 'Select an assignment to continue' : 'Select a new assignment from an available volume below';
-
-  const enabledStatus = type === 'ownReview' ? 'review' : type === 'otherReview' ? 'waiting' : 'active';
+export const Assignments = ({ type, header, subheader, assignments }) => {
+  const enabledStatus = type === 'refine' ? 'active' : type;
 
   return (
     assignments &&
@@ -51,34 +33,4 @@ export const Assignments = ({ type, assignments }) => {
       </div>
     </>
   );
-/*
-  return (
-    !assignments ? null
-    : assignments.length === 0 ? 
-      <Header as='h4'>
-        No current assignments for { user.login }
-        <Subheader>Select a new assignment from an available volume below</Subheader>
-      </Header>        
-    :  
-      <>
-        <Header as='h4'>
-          Current assignments for { user.login }
-          <Subheader>
-            { hasActiveAssignment ?
-              <>Select an assignment to continue annotating</>
-            : 
-              <>No active assignments — select a new assignment from an available volume below</>
-            } 
-          </Subheader>            
-        </Header>
-        <div className={ styles.container }>
-          { assignments.sort(sortOrder).map((assignment, i) => (
-            <div key={ i }>
-              <Assignment assignment={ assignment } />
-            </div>
-          ))}
-        </div>
-      </>
-  );
-*/
 };
