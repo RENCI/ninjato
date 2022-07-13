@@ -1,9 +1,13 @@
 import { useContext } from 'react';
 import { Segment, Header, Label } from 'semantic-ui-react';
-import { UserContext, SET_ASSIGNMENT } from 'contexts';
+import { 
+  UserContext, SET_ASSIGNMENT,
+  ErrorContext, SET_ERROR
+} from 'contexts';
 import { ButtonWrapper } from 'modules/common/components/button-wrapper';
 import { useLoadData } from 'hooks';
 import { statusDisplay } from 'utils/assignment-utils';
+import { api } from 'utils/api';
 import styles from './styles.module.css';
 
 const statusColor = {
@@ -13,18 +17,29 @@ const statusColor = {
 };
 
 export const Assignment = ({ assignment, enabled }) => {
-  const [{ assignment: currentAssignment }, userDispatch] = useContext(UserContext);
+  const [{ user, assignment: currentAssignment }, userDispatch] = useContext(UserContext);
+  const [, errorDispatch] = useContext(ErrorContext);
   const loadData = useLoadData();
 
-  const { name, description, status, updated, regions, user } = assignment;
+  const { name, description, status, updated, regions, user: assignmentUser } = assignment;
   const selected = currentAssignment?.id === assignment.id;
 
-  const onLoadClick = () => {
-    // XXX: Need to handle getting review assignment
+  const onLoadClick = async () => {
+    if (assignment.status === 'waiting') {
+      try {
+        await api.requestAssignment(user._id, assignment.subvolumeId, assignment.id);
 
-    userDispatch({ type: SET_ASSIGNMENT, assignment: assignment });
 
-    loadData(assignment); 
+      }
+      catch (error) {
+        errorDispatch({ type: SET_ERROR, error: error });
+      }
+    }
+    else {
+      userDispatch({ type: SET_ASSIGNMENT, assignment: assignment });
+
+      loadData(assignment); 
+    }
   };
 
   // XXX: Need to add volume information to assignments, and show better volume information (parent, etc) in volumes
@@ -48,13 +63,13 @@ export const Assignment = ({ assignment, enabled }) => {
               subheader={ description ? description : 'No description' }
             />
           </div>
-          { user && 
+          { assignmentUser && 
             <div>
               <Label 
                 basic 
                 circular 
                 content='User' 
-                detail={ user } 
+                detail={ assignmentUser } 
               />
             </div>
           }

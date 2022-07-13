@@ -279,10 +279,20 @@ export const api = {
 
     return response.data;
   },
-  updateAssignment: async (itemId, subvolumeId) => {
+  updateAssignment: async (subvolumeId, itemId) => {
     const assignment = await getAssignment(subvolumeId, itemId);
 
     return assignment;
+  },
+  requestAssignment: async (userId, subvolumeId, itemId) => {
+    const response = await axios.post(`/user/${ userId }/request_assignment`,
+      null,
+      {
+        params: {
+          subvolume_id: subvolumeId,
+          assign_item_id: itemId
+        }
+      })
   },
   getData: async (imageId, maskId) => {
     const responses = await Promise.all([
