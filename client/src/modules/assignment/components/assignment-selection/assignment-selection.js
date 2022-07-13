@@ -9,7 +9,7 @@ import styles from './styles.module.css';
 // For refine, want anything that is this user's, currently indicated by empty user field
 // For review, want anything that is review 
 // For waiting, want anything that is waiting and not this user's
-const filterAssignments = (assignments, type, user) => 
+const filterAssignments = (assignments, type, user = null) => 
   type === 'refine' ? assignments.filter(({ user }) => !user) :
   type === 'review' ? assignments.filter(({ status }) => status === 'review') :
   assignments.filter(assignment => assignment.status === 'waiting' && assignment.user !== user);
@@ -26,8 +26,6 @@ export const AssignmentSelection = () => {
     if (user) getAssignments(user._id, user.reviewer);
   };
 
-  console.log(assignments);
-
   return (
     <div className={ styles.container }>
       { (assignments && volumes) && (user.reviewer ?
@@ -40,7 +38,7 @@ export const AssignmentSelection = () => {
                 <Tab.Pane>
                   <ReviewSelection 
                     review={ filterAssignments(assignments, 'review') } 
-                    waiting={ filterAssignments(assignments, 'waiting') } 
+                    waiting={ filterAssignments(assignments, 'waiting', user.login) } 
                   />                      
                 </Tab.Pane>
               )

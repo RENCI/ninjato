@@ -12,13 +12,12 @@ const statusColor = {
   review: 'teal'
 };
 
-export const Assignment = ({ assignment, enabledStatus }) => {
+export const Assignment = ({ assignment, enabled }) => {
   const [{ assignment: currentAssignment }, userDispatch] = useContext(UserContext);
   const loadData = useLoadData();
 
-  const { name, description, status, updated, regions } = assignment;
+  const { name, description, status, updated, regions, user } = assignment;
   const selected = currentAssignment?.id === assignment.id;
-  const enabled = assignment.status === enabledStatus;
 
   const onLoadClick = () => {
     // XXX: Need to handle getting review assignment
@@ -49,6 +48,16 @@ export const Assignment = ({ assignment, enabledStatus }) => {
               subheader={ description ? description : 'No description' }
             />
           </div>
+          { user && 
+            <div>
+              <Label 
+                basic 
+                circular 
+                content='User' 
+                detail={ user } 
+              />
+            </div>
+          }
           <div>
             <Label 
               basic 

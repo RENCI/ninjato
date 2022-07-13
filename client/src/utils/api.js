@@ -215,10 +215,14 @@ export const api = {
       assignments.push(assignment); 
     }
 
-    console.log(userId);
-
     const reviewResponse = await axios.get(`/user/${ userId }/assignment_await_review`);
-    console.log(reviewResponse);
+
+    for (const item of reviewResponse.data) {
+      const assignment = await getAssignment(item.subvolume_id, item.item_id);
+
+      // XXX: Leaving out until issue with assignment_await_review is fixed
+      //assignments.push(assignment); 
+    }
 
     // Get available review assignments
     if (reviewer) {
