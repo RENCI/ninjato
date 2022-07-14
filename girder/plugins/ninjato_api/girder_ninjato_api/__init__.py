@@ -5,8 +5,7 @@ from girder.constants import AccessType
 from .utils import get_item_assignment, save_user_annotation_as_item, get_subvolume_item_ids, \
     get_subvolume_item_info, get_region_or_assignment_info, get_available_region_ids, \
     claim_assignment, request_assignment, get_all_avail_items_for_review, \
-    get_region_comment_info, save_user_review_result_as_item, get_await_review_assignment, \
-    remove_region_from_item_assignment
+    get_region_comment_info, save_user_review_result_as_item, remove_region_from_item_assignment
 
 
 @access.public
@@ -14,9 +13,10 @@ from .utils import get_item_assignment, save_user_annotation_as_item, get_subvol
     Description('Get assignment info for a given user.')
     .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
     .param('subvolume_id', 'subvolume id from which to get assignment. If it is not set, all '
-                           'active assignment for the user across all subvolumes will be returned '
-                           'and an empty list will be returned if the user does not have any '
-                           'active assignment. If the subvolume_id is set, the active assignment '
+                           'active assignment for the user across all subvolumes will be '
+                           'returned along with all assignments the user has a rol with, '
+                           'and an empty list will be returned if the user does not have a role '
+                           'in any assignment. If the subvolume_id is set, the active assignment '
                            'for the user in the specified subvolume or a new available assignment '
                            'if the user does not have any active assignment will be returned',
            default='', required=False)
@@ -25,22 +25,6 @@ from .utils import get_item_assignment, save_user_annotation_as_item, get_subvol
 )
 def get_user_assign_info(user, subvolume_id):
     return get_item_assignment(user, subvolume_id)
-
-
-@access.public
-@autoDescribeRoute(
-    Description('Get awaiting review assignment info for a given user.')
-    .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
-    .param('subvolume_id', 'subvolume id from which to get awaiting review assignment if set. If '
-                           'it is not set, all awaiting review assignments for the user across '
-                           'all subvolumes will be returned. An empty list will be returned if '
-                           'the user does not have any awaiting review assignments.',
-           default='', required=False)
-    .errorResponse()
-    .errorResponse('Read access was denied on the user.', 403)
-)
-def get_user_await_review_assign(user, subvolume_id):
-    return get_await_review_assignment(user, subvolume_id)
 
 
 @access.public
@@ -94,14 +78,14 @@ def remove_region_from_assignment(user, subvolume_id, active_assignment_id, regi
     .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
     .param('subvolume_id', 'subvolume id that includes the requesting assignment.',
            required=True)
-    .param('region_id', 'region id, e.g., 1, 2, 3, etc., to request assignment the specified '
-                        'region belongs to', dataType='integer', required=True)
+    .param('assign_item_id', 'assignment item id to request assignment for', dataType='integer',
+           required=True)
     .errorResponse()
     .errorResponse('Request action was denied on the user.', 403)
     .errorResponse('Failed to request the requested region', 500)
 )
-def request_region_assignment(user, subvolume_id, region_id):
-    return request_assignment(user, subvolume_id, region_id)
+def request_region_assignment(user, subvolume_id, assign_item_id):
+    return request_assignment(user, subvolume_id, assign_item_id)
 
 
 @access.public
@@ -248,8 +232,6 @@ class NinjatoPlugin(GirderPlugin):
         getPlugin('jobs').load(info)
         # attach API route to Girder
         info['apiRoot'].user.route('GET', (':id', 'assignment'), get_user_assign_info)
-        info['apiRoot'].user.route('GET', (':id', 'assignment_await_review'),
-                                   get_user_await_review_assign)
         info['apiRoot'].user.route('POST', (':id', 'annotation'), save_user_annotation)
 
         info['apiRoot'].user.route('POST', (':id', 'review_result'), save_user_review_result)
