@@ -78,8 +78,7 @@ def remove_region_from_assignment(user, subvolume_id, active_assignment_id, regi
     .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
     .param('subvolume_id', 'subvolume id that includes the requesting assignment.',
            required=True)
-    .param('assign_item_id', 'assignment item id to request assignment for', dataType='integer',
-           required=True)
+    .param('assign_item_id', 'assignment item id to request assignment for', required=True)
     .errorResponse()
     .errorResponse('Request action was denied on the user.', 403)
     .errorResponse('Failed to request the requested region', 500)
