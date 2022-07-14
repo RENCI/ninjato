@@ -78,7 +78,7 @@ export const Assignment = ({ assignment, enabled }) => {
               basic 
               circular 
               content='Status' 
-              color={ status === 'active' ? 'green' : null }
+              color={ enabled ? statusColor[assignment.status] : null }
               detail={ statusDisplay(assignment) } 
             />
           </div>

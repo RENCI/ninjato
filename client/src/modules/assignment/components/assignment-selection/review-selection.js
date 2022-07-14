@@ -6,11 +6,11 @@ export const ReviewSelection = ({ review, waiting }) => {
 
   const reviewHeader = hasReview ? 'Current reviews' : 'No current reviews';
   const reviewSubheader = hasReview > 0 ? 'Select an review to continue' :
-    waiting ? 'No current reviews, select an assignment awaiting review below' :
+    waiting ? 'No current reviews, select an assignment to review below' :
     'No active reviews';
 
   const waitingHeader = hasWaiting ? 'Assignments awaiting review' : 'No assignments awaiting review';
-  const waitingSubheader = hasWaiting ? 'Select an assignment awaiting review' :
+  const waitingSubheader = hasWaiting ? 'Select an assignment to review' :
     'No assignments awaiting review';
 
   return (

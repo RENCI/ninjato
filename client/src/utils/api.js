@@ -199,22 +199,15 @@ export const api = {
     // Get user's assignments
     const assignmentResponse = await axios.get(`/user/${ userId }/assignment`);
 
+    console.log(assignmentResponse);
+
     for (const item of assignmentResponse.data) {
       const assignment = await getAssignment(item.subvolume_id, item.item_id);
 
       assignments.push(assignment); 
     }
 
-    const reviewResponse = await axios.get(`/user/${ userId }/assignment_await_review`);
-
-    for (const item of reviewResponse.data) {
-      const assignment = await getAssignment(item.subvolume_id, item.item_id);
-
-      // XXX: Leaving out until issue with assignment_await_review is fixed
-      //assignments.push(assignment); 
-    }
-
-    // Get available review assignments
+    // If reviewer, Get available review assignments
     if (reviewer) {
       const volumeResponse = await axios.get('/system/subvolume_ids');
 
@@ -275,6 +268,8 @@ export const api = {
     return assignment;
   },
   requestAssignment: async (userId, subvolumeId, itemId) => {
+    console.log(userId, subvolumeId, itemId);
+
     const response = await axios.post(`/user/${ userId }/request_assignment`,
       null,
       {

@@ -49,11 +49,9 @@ export const Home = () => {
           <Divider hidden>To continue...</Divider>   
           <NavigateButtons />
         </div>
-        <Menu secondary fixed='bottom'>
-          <Menu.Menu position='right'>
-            <LinkItem name='Project Website' icon='info circle' url='https://www.nucleininja.org/' />
-            <LinkItem name='Github repo' icon='github' url='https://github.com/RENCI/ninjato' />
-          </Menu.Menu>
+        <Menu secondary widths={ 4 }>
+          <LinkItem name='Project Website' icon='info circle' url='https://www.nucleininja.org/' />
+          <LinkItem name='Github repo' icon='github' url='https://github.com/RENCI/ninjato' />    
         </Menu>
       </>
     :
