@@ -4,6 +4,7 @@ import { Message } from 'semantic-ui-react';
 import { UserContext } from 'contexts';
 import { RedirectMessage } from 'modules/common/components/redirect-message';
 import { RefineContainer } from 'modules/refine/components/refine-container';
+import { ReviewContainer } from 'modules/review/components/review-container';
 
 export const Assignment = () => {
   const [{ user, assignment }] = useContext(UserContext);
@@ -22,7 +23,7 @@ export const Assignment = () => {
     : assignment.status === 'active' ? 
       <RefineContainer />
     : assignment.status === 'review' ?
-      <Message>REVIEW INTERFACE GOES HERE</Message>
+      <ReviewContainer />
     :
       <Message>Unknown assignment type { assignment.type }</Message>
   );
