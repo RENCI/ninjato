@@ -78,16 +78,6 @@ const getAssignment = async (subvolumeId, itemId, regionId = null) => {
       index: i
     })),
     status: getStatus(info),
-    /*
-    statusInfo: {
-      assignedTo: info.annotation_assigned_to,
-      completedBy: info.annotation_completed_by,
-      rejectedBy: info.annotation_rejected_by,
-      reviewAssignedTo: info.review_assigned_to,
-      reviewCompletedBy: info.review_completed_by,
-      reviewRejectedBy: info.review_rejected_by
-    },
-    */
     imageId: imageInfo._id,
     maskId: maskInfo._id
   };
