@@ -644,7 +644,8 @@ def _set_assignment_meta(whole_item, user, region_item_id, assign_type):
     user_id = str(user['_id'])
     if user_id in whole_item['meta']:
         item_list = whole_item['meta'][str(user['_id'])]
-        item_list.append(region_item_id)
+        if region_item_id not in item_list:
+            item_list.append(region_item_id)
         add_meta = {user_id: item_list}
     else:
         add_meta = {user_id: [region_item_id]}
@@ -787,7 +788,7 @@ def request_assignment(user, subvolume_id, assign_item_id):
         ret_dict['status'] = 'failure'
         if 'review_approved' in assign_item['meta'] and \
             assign_item['meta']['review_approved'] == 'false'and \
-            user['login'] == complete_info[0]['user']:
+            user['login'] == review_complete_info[0]['user']:
                 ret_dict['status'] = 'success'
 
         ret_dict['annotation_user_info'] = complete_info
@@ -810,7 +811,7 @@ def request_assignment(user, subvolume_id, assign_item_id):
                                            'review_assigned_to')
         ret_dict['status'] = 'success'
         ret_dict['annotation_user_info'] = complete_info[0]
-        ret_dict['review_user_info'] = assign_info[0]
+        ret_dict['review_user_info'] = assign_info
         ret_dict['assigned_item_id'] = assign_item_id
         return ret_dict
     assign_info = _get_history_info(whole_item, assign_item, 'annotation_assigned_to')
