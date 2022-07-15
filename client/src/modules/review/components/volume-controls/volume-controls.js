@@ -6,11 +6,7 @@ export const VolumeControls = () => {
   const [{ showBackground }, dispatch] = useContext(RefineContext);
 
   const onShowBackgroundClick = () => {
-    dispatch({ 
-      type: REFINE_SET_CONTROL, 
-      name: 'showBackground', 
-      value: !showBackground 
-    });
+    dispatch({ type: REFINE_SET_CONTROL, name: 'showBackground', value: !showBackground });
   };
 
   return (

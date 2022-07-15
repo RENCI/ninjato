@@ -200,15 +200,13 @@ export const api = {
     const assignmentResponse = await axios.get(`/user/${ userId }/assignment`);
 
     // Filter out duplicates and rejected
-    const filteredObject = assignmentResponse.data.reduce((assignments, assignment) => {
+    const filtered = Object.values(assignmentResponse.data.reduce((assignments, assignment) => {
       assignments[assignment.item_id] = assignment;
       return assignments;
-    }, {});
-
-    const filteredArray = Object.values(filteredObject).filter(({ type }) => type !== 'annotation_rejected_by');
+    }, {})).filter(({ type }) => type !== 'annotation_rejected_by');
 
     // Get assignment details
-    for (const item of filteredArray) {
+    for (const item of filtered) {
       const assignment = await getAssignment(item.subvolume_id, item.item_id);
 
       assignments.push(assignment); 

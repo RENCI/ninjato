@@ -4,7 +4,7 @@ import { getCursor } from 'utils/cursor';
 export const REFINE_SET_TOOL = 'refine/SET_TOOL';
 export const REFINE_SET_BRUSH = 'refine/REFINE_SET_BRUSH';
 export const REFINE_CHANGE_BRUSH_SIZE = 'refine/REFINE_CHANGE_BRUSH_SIZE';
-export const REFINE_SET_CONTROL = 'refine/SET_SHOW_BACKGROUND';
+export const REFINE_SET_CONTROL = 'refine/SET_CONTROL';
 export const REFINE_SET_ACTION = 'refine/SET_ACTION';
 export const REFINE_SET_ACTIVE_REGION = 'refine/SET_ACTIVE_REGION';
 export const REFINE_RESET = 'refine/RESET';

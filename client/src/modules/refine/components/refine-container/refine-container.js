@@ -87,7 +87,6 @@ export const RefineContainer = () => {
   }
 
   const handleKeyDown = key => {
-    console.log(key);
     switch (key) {
       case 'Control':
         if (tool !== 'erase') refineDispatch({ type: REFINE_SET_TOOL, tool: 'erase' });
