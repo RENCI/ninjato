@@ -909,24 +909,27 @@ def get_item_assignment(user, subvolume_id):
             whole_item['meta'][review_approved_key] == 'true':
             continue
 
-        if uid in whole_item['meta']:
+        if subvolume_id and uid in whole_item['meta']:
             for assign_item_id in whole_item['meta'][uid]:
                 assign_item = Item().findOne({'_id': ObjectId(assign_item_id)})
+                ret_type = annot_assign_key
+                if annot_done_key in assign_item['meta'] and \
+                        assign_item['meta'][annot_done_key] == 'true':
+                    ret_type = 'review_assigned_to'
                 ret_data.append({
-                    'type': annot_assign_key,
+                    'type': ret_type,
                     'item_id': assign_item_id,
                     'subvolume_id': whole_item['_id'],
                     'region_ids': assign_item['meta']['region_ids']
                 })
-            if subvolume_id:
-                # only return the user's active assignment
-                continue
+            # only return the user's active assignment
+            continue
 
         if not subvolume_id and 'history' in whole_item['meta']:
             # check other potential assignment the user is involved with
             for assign_item_id, info_ary in whole_item['meta']['history'].items():
                 for info in info_ary:
-                    if info['user'] == user['login'] and info['type'] != annot_assign_key:
+                    if info['user'] == user['login']:
                         assign_item = Item().findOne({'_id': ObjectId(assign_item_id)})
                         ret_data.append({
                             'type': info['type'],
