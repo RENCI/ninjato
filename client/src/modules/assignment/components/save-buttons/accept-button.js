@@ -5,19 +5,19 @@ import { useModal, useSaveAnnotations } from 'hooks';
 
 const { Header, Content, Actions } = Modal;
 
-export const SubmitButton = ({ disabled }) => {
+export const AcceptButton = ({ disabled }) => {
   const [, userDispatch] = useContext(UserContext);
   const [open, openModal, closeModal] = useModal();
   const saveAnnotations = useSaveAnnotations();
-  const [submitting, setSubmitting] = useState(false);
+  const [accepting, setAccepting] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const onConfirm = async () => {
-    setSubmitting(true);
+    setAccepting(true);
 
-    await saveAnnotations(true);
+    //await saveAnnotations(true);
 
-    setSubmitting(false);
+    setAccepting(false);
     setSuccess(true);
 
     setTimeout(() => {        
@@ -31,41 +31,41 @@ export const SubmitButton = ({ disabled }) => {
   return (
     <>
       <Button 
-        primary
+        positive
         disabled={ disabled }
         onClick={ openModal }
       >
-        Submit
+        Accept
       </Button>
       <Modal
         dimmer='blurring'
         open={ open }        
       >
-        <Header>Submit Assignment</Header>
+        <Header>Accept Region</Header>
         <Content>
-          { submitting ?             
-            <>Submitting</>
+          { accepting ?             
+            <>Accepting</>
           :  success ?
             <>
               <Icon name='check circle outline' color='green' />
-              Submitted successfully!
+              Accepted successfully!
             </>
           :
-            <>Submit assignment for review?</>
+            <>Accept assignment?</>
           }
         </Content>
         <Actions>
           <Button 
             secondary 
-            disabled={ submitting || success }
+            disabled={ accepting || success }
             onClick={ closeModal }
           >
             Cancel
           </Button>
           <Button 
             primary 
-            disabled={ submitting || success }
-            loading={ submitting }
+            disabled={ accepting || success }
+            loading={ accepting }
             onClick={ onConfirm } 
           >
             Confirm

@@ -3,9 +3,10 @@ import { Segment, Button } from 'semantic-ui-react';
 import { DeclineButton } from './decline-button';
 import { SaveButton } from './save-button';
 import { SubmitButton } from './submit-button';
+import { AcceptButton } from './accept-button';
 import styles from './styles.module.css';
 
-export const SaveButtons = () => {
+export const SaveButtons = ({ review = false }) => {
   const [busy, setBusy] = useState(false);
 
   const onBusy = busy => {
@@ -14,9 +15,7 @@ export const SaveButtons = () => {
 
   return (
     <Segment basic textAlign='center' className={ styles.saveButtons }>
-      <DeclineButton 
-        disabled={ busy } 
-      />
+      <DeclineButton disabled={ busy } />
       <Button.Group>
         <SaveButton  
           disabled={ busy }
@@ -24,6 +23,9 @@ export const SaveButtons = () => {
         />
         <SubmitButton disabled={ busy } />
       </Button.Group>
+      { review && 
+        <AcceptButton disabled={ busy } /> 
+      }
     </Segment>
   );
 };

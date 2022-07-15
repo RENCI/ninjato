@@ -102,7 +102,7 @@ export const ReviewContainer = () => {
         }
       </Grid>
       { !loading && 
-        <SaveButtons /> 
+        <SaveButtons review={ true } /> 
       }
     </>
   );
