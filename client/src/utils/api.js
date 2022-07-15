@@ -239,8 +239,6 @@ export const api = {
       }
     );
 
-    console.log(response);
-
     if (response.data.length === 0) throw new Error('No new assignment');
 
     const item = response.data[0];
@@ -268,8 +266,6 @@ export const api = {
     return assignment;
   },
   requestAssignment: async (userId, subvolumeId, itemId) => {
-    console.log(userId, subvolumeId, itemId);
-
     const response = await axios.post(`/user/${ userId }/request_assignment`,
       null,
       {
@@ -277,7 +273,10 @@ export const api = {
           subvolume_id: subvolumeId,
           assign_item_id: itemId
         }
-      })
+      }
+    );
+
+    console.log(response);
   },
   getData: async (imageId, maskId) => {
     const responses = await Promise.all([
