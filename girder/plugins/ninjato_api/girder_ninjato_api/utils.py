@@ -807,7 +807,7 @@ def request_assignment(user, subvolume_id, assign_item_id):
     if complete_info:
         # annotation is done, ready for review
         # assign this item for review
-        assign_info = _set_assignment_meta(whole_item, user, assign_item,
+        assign_info = _set_assignment_meta(whole_item, user, assign_item_id,
                                            'review_assigned_to')
         ret_dict['status'] = 'success'
         ret_dict['annotation_user_info'] = complete_info[0]
