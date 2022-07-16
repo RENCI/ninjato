@@ -1097,10 +1097,11 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
                     "z_max": reg_extent['z_max'],
                     "z_min": reg_extent['z_min']
                 }
-
-        whole_item['meta'][str(uid)].remove(str(item['_id']))
-        if not whole_item['meta'][str(uid)]:
-            del whole_item['meta'][str(uid)]
+        uid = str(uid)
+        if uid in whole_item['meta']:
+            whole_item['meta'][uid].remove(str(item['_id']))
+            if not whole_item['meta'][uid]:
+                del whole_item['meta'][uid]
         whole_item = Item().save(whole_item)
         info = {
             'type': 'annotation_completed_by',
@@ -1117,11 +1118,12 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
     }
 
 
-def save_user_review_result_as_item(user, item_id, reject, comment, approve):
+def save_user_review_result_as_item(user, item_id, done, reject, comment, approve):
     """
     save user review result
     :param user: the review user
     :param item_id: assignment item id to save review result for
+    :param done: whether the review is done or not
     :param reject: whether to reject the review assignment rather than save it.
     :param comment: review comment per region added by the user
     :param approve: whether to approve the annotation or not
@@ -1138,24 +1140,28 @@ def save_user_review_result_as_item(user, item_id, reject, comment, approve):
         return {
             "status": "success"
         }
-    if not approve:
-        # update user key with annotation user to get disapproved assignment back to the user
-        complete_info = _get_history_info(whole_item, item_id, 'annotation_completed_by')
-        uname = complete_info[0]['user']
-        annot_user = User().findOne({'login': uname})
-        annot_uid = str(annot_user['_id'])
-        if annot_uid in whole_item['meta']:
-            item_list = whole_item['meta'][annot_uid]
-            item_list.append(item_id)
-            add_meta = {annot_uid: item_list}
-        else:
-            add_meta = {annot_uid: [item_id]}
-        Item().setMetadata(whole_item, add_meta)
-    else:
-        # update whole volume masks with approved annotations
-        _update_assignment_in_whole_item(whole_item, item_id)
 
-    add_meta = {'review_done': 'true'}
+    add_meta = {}
+    if approve:
+        add_meta['review_approved'] = 'true'
+    else:
+        add_meta['review_approved'] = 'false'
+
+    if not done:
+        add_meta['review_done'] = 'false'
+    else:
+        if not approve:
+            # update user key with annotation user to get disapproved assignment back to the user
+            complete_info = _get_history_info(whole_item, item_id, 'annotation_completed_by')
+            annot_uname = complete_info[0]['user']
+            annot_user = User().findOne({'login': annot_uname})
+            _set_assignment_meta(whole_item, annot_user, item_id, 'annotation_assigned_to')
+
+        else:
+            # update whole volume masks with approved annotations
+            _update_assignment_in_whole_item(whole_item, item_id)
+
+        add_meta['review_done'] = 'true'
 
     for comment_key, comment_val in comment.items():
         _add_meta_to_history(whole_item,
@@ -1165,25 +1171,27 @@ def save_user_review_result_as_item(user, item_id, reject, comment, approve):
                               'time': datetime.now().strftime("%m/%d/%Y %H:%M")},
                              key='comment_history')
 
-    if approve:
-        add_meta['review_approved'] = 'true'
-    else:
-        add_meta['review_approved'] = 'false'
-
     Item().setMetadata(item, add_meta)
 
-    del whole_item['meta'][str(uid)]
-    whole_item = Item().save(whole_item)
-    info = {
-        'type': 'review_completed_by',
-        'user': uname,
-        'time': datetime.now().strftime("%m/%d/%Y %H:%M")
-    }
-    _add_meta_to_history(whole_item, item_id, info)
-    # check if all regions for the partition is done, and if so add done metadata to whole item
-    _check_subvolume_done(whole_item, task='review')
+    uid = str(uid)
+    if done and uid in whole_item['meta']:
+        whole_item['meta'][uid].remove(str(item['_id']))
+        if not whole_item['meta'][uid]:
+            del whole_item['meta'][uid]
 
-    return
+    whole_item = Item().save(whole_item)
+
+    if done:
+        info = {
+            'type': 'review_completed_by',
+            'user': uname,
+            'time': datetime.now().strftime("%m/%d/%Y %H:%M")
+        }
+        _add_meta_to_history(whole_item, item_id, info)
+        # check if all regions for the partition is done, and if so add done metadata to whole item
+        _check_subvolume_done(whole_item, task='review')
+
+    return {'status': 'success'}
 
 
 def get_subvolume_item_ids():
