@@ -650,6 +650,7 @@ def _set_assignment_meta(whole_item, user, region_item_id, assign_type):
     else:
         add_meta = {user_id: [region_item_id]}
     Item().setMetadata(whole_item, add_meta)
+
     return assign_info
 
 
@@ -1156,12 +1157,12 @@ def save_user_review_result_as_item(user, item_id, done, reject, comment, approv
             annot_uname = complete_info[0]['user']
             annot_user = User().findOne({'login': annot_uname})
             _set_assignment_meta(whole_item, annot_user, item_id, 'annotation_assigned_to')
-
+            add_meta['annotation_done'] = 'false'
+            add_meta['review_done'] = 'false'
         else:
             # update whole volume masks with approved annotations
             _update_assignment_in_whole_item(whole_item, item_id)
-
-        add_meta['review_done'] = 'true'
+            add_meta['review_done'] = 'true'
 
     for comment_key, comment_val in comment.items():
         _add_meta_to_history(whole_item,
