@@ -374,5 +374,7 @@ export const api = {
     else if (response.data.length > 1) console.warn(`${ response.data.length } new region labels returned (should only be 1)`);
 
     return response.data[0];
+  },
+  saveReview: async (userId, itemId, regions, done = false) => {
   }
 };

@@ -9,7 +9,7 @@ import { api } from 'utils/api';
 
 const { Header, Content, Actions } = Modal;
 
-export const DeclineButton = ({ disabled }) => {
+export const DeclineButton = ({ disabled, review = false }) => {
   const [{ user, assignment }, userDispatch] = useContext(UserContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const [open, openModal, closeModal] = useModal();

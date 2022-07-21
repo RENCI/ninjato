@@ -5,7 +5,7 @@ import { useModal, useSaveAnnotations } from 'hooks';
 
 const { Header, Content, Actions } = Modal;
 
-export const SubmitButton = ({ disabled }) => {
+export const SubmitButton = ({ disabled, review = false }) => {
   const [, userDispatch] = useContext(UserContext);
   const [open, openModal, closeModal] = useModal();
   const saveAnnotations = useSaveAnnotations();

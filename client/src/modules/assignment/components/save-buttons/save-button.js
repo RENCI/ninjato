@@ -5,7 +5,7 @@ import { MissingDialog } from './missing-dialog';
 import { useSaveAnnotations } from 'hooks';
 import { getMissingRegions } from 'utils/data';
 
-export const SaveButton = ({ disabled, onSaving }) => {
+export const SaveButton = ({ disabled, review=false, onSaving }) => {
   const [{ assignment, maskData }] = useContext(UserContext);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
