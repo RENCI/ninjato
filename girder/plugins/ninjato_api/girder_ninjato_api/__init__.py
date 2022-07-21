@@ -129,17 +129,20 @@ def save_user_annotation(user, item_id, done, reject, comment, color, current_re
     Description('Save user review result')
     .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
     .param('item_id', 'The assignment item ID to save user review result for', required=True)
+    .param('done', 'A boolean True or False to indicate whether the review is done',
+           dataType='boolean', default=False, required=False)
     .param('reject', 'A boolean True or False to indicate whether the user wants to reject review '
                      'assignment. If set to False, review result will be saved. '
                      'The default is False.', dataType='boolean', default=False, required=False)
-    .jsonParam('comment', 'review comment per region added by the user', required=False)
+    .jsonParam('comment', 'review comment per region added by the user',
+               paramType='form', requireObject=True, required=False)
     .param('approve', 'A boolean True or False to indicate whether the review user approves '
                       'the annotation', dataType='boolean', required=True)
 )
-def save_user_review_result(user, item_id, reject, comment, approve):
+def save_user_review_result(user, item_id, done, reject, comment, approve):
     if comment is None:
         comment = {}
-    return save_user_review_result_as_item(user, item_id, reject, comment, approve)
+    return save_user_review_result_as_item(user, item_id, done, reject, comment, approve)
 
 
 @access.public
