@@ -19,8 +19,9 @@ export const DeclineButton = ({ disabled, review = false }) => {
   const onConfirm = async () => {
     setDeclining(true);
 
-    try {
-      const { status } = await api.declineAssignment(user._id, assignment.id);
+    try { 
+      const { status } = assignment.status === 'review' ? await api.declineReview(user._id, assignment.id) :
+        await api.declineAssignment(user._id, assignment.id);
 
       if (status !== 'success') throw new Error(`Error declining assignment ${ assignment.id }`); 
 
@@ -57,7 +58,7 @@ export const DeclineButton = ({ disabled, review = false }) => {
         dimmer='blurring'
         open={ open }        
       >
-        <Header>Decline Region</Header>
+        <Header>Decline Assignment</Header>
         <Content>
           { declining ?             
             <>Processing</>
@@ -68,7 +69,7 @@ export const DeclineButton = ({ disabled, review = false }) => {
             </>
           :
             <>
-              <p>Decline current region?</p>
+              <p>Decline current assignment?</p>
               <p>All edits will be lost.</p>
             </>
           }

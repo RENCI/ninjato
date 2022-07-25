@@ -5,7 +5,7 @@ import {
   ErrorContext, SET_ERROR
 } from 'contexts';
 import { ButtonWrapper } from 'modules/common/components/button-wrapper';
-import { useLoadData } from 'hooks';
+import { useGetAssignments, useLoadData } from 'hooks';
 import { statusDisplay } from 'utils/assignment-utils';
 import { api } from 'utils/api';
 import styles from './styles.module.css';
@@ -19,6 +19,7 @@ const statusColor = {
 export const Assignment = ({ assignment, enabled }) => {
   const [{ user, assignment: currentAssignment }, userDispatch] = useContext(UserContext);
   const [, errorDispatch] = useContext(ErrorContext);
+  const getAssignments = useGetAssignments();
   const loadData = useLoadData();
 
   const { name, description, status, updated, regions, user: assignmentUser } = assignment;
@@ -29,7 +30,14 @@ export const Assignment = ({ assignment, enabled }) => {
       try {
         await api.requestAssignment(user._id, assignment.subvolumeId, assignment.id);
 
+        const newAssignment = {
+          ...assignment,
+          status: 'review'
+        };
+       
+        userDispatch({ type: SET_ASSIGNMENT, assignment: newAssignment });
 
+        loadData(newAssignment);
       }
       catch (error) {
         errorDispatch({ type: SET_ERROR, error: error });
@@ -42,7 +50,7 @@ export const Assignment = ({ assignment, enabled }) => {
     }
   };
 
-  // XXX: Need to add volume information to assignments, and show better volume information (parent, etc) in volumes
+  // XXX: Add volume information to assignments, and show better volume information (parent, etc) in volumes?
 
   return (
     <ButtonWrapper 

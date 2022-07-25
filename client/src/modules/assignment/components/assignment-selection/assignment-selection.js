@@ -23,7 +23,7 @@ export const AssignmentSelection = () => {
   }, [user, getAssignments]);
 
   const onRefreshClick = () => {
-    if (user) getAssignments(user._id, user.reviewer);
+    getAssignments(user._id, user.reviewer);
   };
 
   return (

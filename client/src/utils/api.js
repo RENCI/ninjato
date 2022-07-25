@@ -20,6 +20,13 @@ const getStatus = info => (
   'active'
 );
 
+const regionObject = (regions, key) => regions.reduce((object, region) => {
+  return {
+    ...object,
+    [region.label]: region[key]
+  }
+}, {});
+
 const addUserInfo = async user => {
   user.reviewer = false;
   for (const group of user.groups) {
@@ -310,18 +317,11 @@ export const api = {
   saveAnnotations: async (userId, itemId, buffer, regions, done = false) => {
     const blob = new Blob([buffer], { type: 'image/tiff' });
 
-    const regionObject = key => regions.reduce((object, region) => {
-      return {
-        ...object,
-        [region.label]: region[key]
-      }
-    }, {});
-
     // Set form data
     const formData = new FormData();
     formData.append('current_region_ids', JSON.stringify(regions.map(({ label }) => label)));
-    formData.append('comment', JSON.stringify(regionObject('comment')));
-    formData.append('color', JSON.stringify(regionObject('color')));
+    formData.append('comment', JSON.stringify(regionObject(regions, 'comment')));
+    formData.append('color', JSON.stringify(regionObject(regions, 'color')));
     formData.append('content_data', blob);    
 
     await axios.post(`/user/${ userId }/annotation`, 
@@ -375,6 +375,37 @@ export const api = {
 
     return response.data[0];
   },
-  saveReview: async (userId, itemId, regions, done = false) => {
+  saveReview: async (userId, itemId, regions, done = false, accept = false) => {
+    // Set form data
+    const formData = new FormData();
+    formData.append('comment', JSON.stringify(regionObject(regions, 'comment')));
+
+    await axios.post(`/user/${ userId }/review_result `, 
+      formData,
+      {
+        params: { 
+          item_id: itemId,
+          done: done,
+          accept: accept
+        },
+        headers: { 
+          'Content-Type': 'multipart/form-data' 
+        }
+      }
+    );
+  },
+  declineReview: async (userId, itemId) => {
+    const response = await axios.post(`/user/${ userId }/review_result`,
+      null,
+      {
+        params: {
+          item_id: itemId,
+          reject: true,
+          approve: false
+        }
+      }
+    );
+
+    return response.data;
   }
 };
