@@ -17,11 +17,10 @@ export const SubmitButton = ({ disabled, review = false }) => {
     setSubmitting(true);
 
     if (review) {
-      console.log("ERE:LEKJRE");
       await api.saveReview(user._id, assignment.id, assignment.regions, true, false);
     }
     else {
-      await saveAnnotations();
+      await saveAnnotations(true);
     }
 
     setSubmitting(false);
