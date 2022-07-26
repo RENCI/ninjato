@@ -847,13 +847,16 @@ def _get_history_info(whole_item, assign_item_id, in_type):
 
 def _get_assignment_status(whole_item, assign_item_id):
     assign_item_id = str(assign_item_id)
+    assign_item = Item().findOne({'_id': ObjectId(assign_item_id)})
+    if 'review_approved' in assign_item['meta'] and assign_item['meta']['review_approved'] == 'true':
+        return 'completed'
     assign_info = _get_history_info(whole_item, assign_item_id, 'annotation_assigned_to')
     complete_info = _get_history_info(whole_item, assign_item_id, 'annotation_completed_by')
     if not assign_info:
         return 'inactive'
     if not complete_info:
         return 'active'
-    elif len(assign_info) == len(complete_info)+1:
+    if len(assign_info) == len(complete_info)+1:
         # assignment is reassigned to user after reviewer disapproved the annotation
         return 'active'
 
@@ -864,14 +867,11 @@ def _get_assignment_status(whole_item, assign_item_id):
 
     if not review_complete_info:
         return 'under review'
-    elif len(review_assign_info) == len(review_complete_info)+1:
-        # annotation could be assigned to a new reviewer who has not completed reviewer yet
-        return 'under review'
+    if len(review_assign_info) == len(review_complete_info):
+        # reannotated assignment is ready to be reviewed
+        return 'awaiting_review'
 
-    assign_item = Item().findOne({'_id': ObjectId(assign_item_id)})
-    if assign_item['meta']['review_approved'] == 'true':
-        return 'completed'
-
+    # annotation could be assigned to a new reviewer who has not completed reviewer yet
     return 'under review'
 
 
