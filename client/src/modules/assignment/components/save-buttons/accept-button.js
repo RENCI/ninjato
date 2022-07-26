@@ -1,21 +1,21 @@
 import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { UserContext, CLEAR_DATA } from 'contexts';
-import { useModal, useSaveAnnotations } from 'hooks';
+import { useModal } from 'hooks';
+import { api } from 'utils/api';
 
 const { Header, Content, Actions } = Modal;
 
 export const AcceptButton = ({ disabled }) => {
-  const [, userDispatch] = useContext(UserContext);
+  const [{ user, assignment }, userDispatch] = useContext(UserContext);
   const [open, openModal, closeModal] = useModal();
-  const saveAnnotations = useSaveAnnotations();
   const [accepting, setAccepting] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const onConfirm = async () => {
     setAccepting(true);
 
-    //await saveAnnotations(true);
+    await api.saveReview(user._id, assignment.id, assignment.regions, true, true);
 
     setAccepting(false);
     setSuccess(true);
@@ -41,17 +41,17 @@ export const AcceptButton = ({ disabled }) => {
         dimmer='blurring'
         open={ open }        
       >
-        <Header>Accept Region</Header>
+        <Header>Accept Assignment</Header>
         <Content>
           { accepting ?             
-            <>Accepting</>
+            <>Processing</>
           :  success ?
             <>
               <Icon name='check circle outline' color='green' />
               Accepted successfully!
             </>
           :
-            <>Accept assignment?</>
+            <>Accept assignment as completed?</>
           }
         </Content>
         <Actions>

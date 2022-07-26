@@ -15,13 +15,20 @@ export const SaveButtons = ({ review = false }) => {
 
   return (
     <Segment basic textAlign='center' className={ styles.saveButtons }>
-      <DeclineButton disabled={ busy } />
+      <DeclineButton 
+        disabled={ busy }
+        review={ review } 
+      />
       <Button.Group>
         <SaveButton  
           disabled={ busy }
+          review={ review }
           onSaving={ onBusy }
         />
-        <SubmitButton disabled={ busy } />
+        <SubmitButton 
+          disabled={ busy } 
+          review={ review }
+        />
       </Button.Group>
       { review && 
         <AcceptButton disabled={ busy } /> 

@@ -49,6 +49,8 @@ const getAssignment = async (subvolumeId, itemId, regionId = null) => {
 
   const info = infoResponse.data;
 
+  console.log(info);
+
   // Get files
   const filesResponse = await axios.get(`/item/${ itemId }/files`);
 
@@ -205,6 +207,8 @@ export const api = {
 
     // Get user's assignments
     const assignmentResponse = await axios.get(`/user/${ userId }/assignment`);
+
+    console.log(assignmentResponse);
 
     // Filter out duplicates and rejected
     const filtered = Object.values(assignmentResponse.data.reduce((assignments, assignment) => {
@@ -375,18 +379,18 @@ export const api = {
 
     return response.data[0];
   },
-  saveReview: async (userId, itemId, regions, done = false, accept = false) => {
+  saveReview: async (userId, itemId, regions, done = false, approve = false) => {
     // Set form data
     const formData = new FormData();
     formData.append('comment', JSON.stringify(regionObject(regions, 'comment')));
 
-    await axios.post(`/user/${ userId }/review_result `, 
+    await axios.post(`/user/${ userId }/review_result`, 
       formData,
       {
         params: { 
           item_id: itemId,
           done: done,
-          accept: accept
+          approve: approve
         },
         headers: { 
           'Content-Type': 'multipart/form-data' 

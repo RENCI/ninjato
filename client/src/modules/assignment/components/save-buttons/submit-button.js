@@ -2,11 +2,12 @@ import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { UserContext, CLEAR_DATA } from 'contexts';
 import { useModal, useSaveAnnotations } from 'hooks';
+import { api } from 'utils/api';
 
 const { Header, Content, Actions } = Modal;
 
 export const SubmitButton = ({ disabled, review = false }) => {
-  const [, userDispatch] = useContext(UserContext);
+  const [{ user, assignment }, userDispatch] = useContext(UserContext);
   const [open, openModal, closeModal] = useModal();
   const saveAnnotations = useSaveAnnotations();
   const [submitting, setSubmitting] = useState(false);
@@ -15,7 +16,13 @@ export const SubmitButton = ({ disabled, review = false }) => {
   const onConfirm = async () => {
     setSubmitting(true);
 
-    await saveAnnotations(true);
+    if (review) {
+      console.log("ERE:LEKJRE");
+      await api.saveReview(user._id, assignment.id, assignment.regions, true, false);
+    }
+    else {
+      await saveAnnotations();
+    }
 
     setSubmitting(false);
     setSuccess(true);
@@ -41,7 +48,7 @@ export const SubmitButton = ({ disabled, review = false }) => {
         dimmer='blurring'
         open={ open }        
       >
-        <Header>Submit Assignment</Header>
+        <Header>Submit { review ? 'Review' : 'Assignment' } </Header>
         <Content>
           { submitting ?             
             <>Submitting</>
@@ -50,8 +57,8 @@ export const SubmitButton = ({ disabled, review = false }) => {
               <Icon name='check circle outline' color='green' />
               Submitted successfully!
             </>
-          :
-            <>Submit assignment for review?</>
+          : 
+            <>Submit { review ? 'review' : 'assignment for review' }?</>
           }
         </Content>
         <Actions>
