@@ -869,7 +869,7 @@ def _get_assignment_status(whole_item, assign_item_id):
         return 'under review'
     if len(review_assign_info) == len(review_complete_info):
         # reannotated assignment is ready to be reviewed
-        return 'awaiting_review'
+        return 'awaiting review'
 
     # annotation could be assigned to a new reviewer who has not completed reviewer yet
     return 'under review'
