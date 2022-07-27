@@ -264,31 +264,34 @@ def _update_assignment_in_whole_item(whole_item, assign_item_id):
     :param assign_item_id: assignment item id to update whole subvolume mask with
     :return: True if update action succeeds; otherwise, return False
     """
-    assign_item = Item().findOne({'_id': assign_item_id})
+    assign_item = Item().findOne({'_id': ObjectId(assign_item_id)})
     if not assign_item['meta']['region_ids']:
         # the assignment does not have any regions, so nothing to update
         return
     assign_item_coords = assign_item['meta']['coordinates']
-    assign_item_files = File().find({'itemId': assign_item_id})
+    assign_item_files = File().find({'itemId': ObjectId(assign_item_id)})
     for assign_item_file in assign_item_files:
         if '_masks' not in assign_item_file['name']:
             continue
-        assign_item_imarray, _ = _get_tif_file_content_and_path(assign_item_file)
+        assign_item_tif, _ = _get_tif_file_content_and_path(assign_item_file)
+        assign_item_imarray = []
+        for assign_image in assign_item_tif.iter_images():
+            assign_item_imarray.append(assign_image)
 
         item_files = File().find({'itemId': whole_item['_id']})
         for item_file in item_files:
             if '_masks' not in item_file['name']:
                 continue
             whole_tif, whole_path = _get_tif_file_content_and_path(item_file)
-            output_path = f'output_{whole_path}'
+            output_path = f'{whole_path}_output'
             whole_out_tif = TIFF.open(output_path, mode='w')
             counter = 0
             # region_imarray should be in order of ZYX
             for image in whole_tif.iter_images():
                 if assign_item_coords['z_min'] <= counter <= assign_item_coords['z_max']:
-                    image[assign_item_coords['y_min']: assign_item_coords['y_max'],
-                          assign_item_coords['x_min']: assign_item_coords['x_max']] = \
-                        assign_item_imarray[counter::]
+                    image[assign_item_coords['y_min']: assign_item_coords['y_max']+1,
+                          assign_item_coords['x_min']: assign_item_coords['x_max']+1] = \
+                        assign_item_imarray[counter]
                 whole_out_tif.write_image(image)
                 counter += 1
             # update mask file by copying new tiff file to the old one then delete the new tiff file
