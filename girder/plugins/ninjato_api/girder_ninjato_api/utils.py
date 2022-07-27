@@ -916,7 +916,6 @@ def get_item_assignment(user, subvolume_id):
     uid = str(user['_id'])
     annot_done_key = 'annotation_done'
     annot_assign_key = 'annotation_assigned_to'
-    review_assign_key = 'review_assigned_to'
     review_approved_key = 'review_approved'
     for sub_id in id_list:
         whole_item = Item().findOne({'_id': ObjectId(sub_id)})
@@ -928,32 +927,14 @@ def get_item_assignment(user, subvolume_id):
             for assign_item_id in whole_item['meta'][uid]:
                 assign_item = Item().findOne({'_id': ObjectId(assign_item_id)})
                 ret_type = annot_assign_key
-                annotator_info = {
-                    'login': user['login'],
-                    'id': user['_id']
-                }
-                reviewer_info = {}
                 if annot_done_key in assign_item['meta'] and \
                         assign_item['meta'][annot_done_key] == 'true':
-                    ret_type = review_assign_key
-                    reviewer_info = {
-                        'login': user['login'],
-                        'id': user['_id']
-                    }
-                    assign_info = _get_history_info(whole_item, assign_item_id,
-                                                    'annotation_assigned_to')
-                    annotator_username = assign_info[-1]['user']
-                    annotator_info = {
-                        'login': annotator_username,
-                        'id': User().findOne({'login': annotator_username})['_id']
-                    }
+                    ret_type = 'review_assigned_to'
                 ret_data.append({
                     'type': ret_type,
                     'item_id': assign_item_id,
                     'subvolume_id': whole_item['_id'],
-                    'region_ids': assign_item['meta']['region_ids'],
-                    'annotator': annotator_info,
-                    'reviewer': reviewer_info
+                    'region_ids': assign_item['meta']['region_ids']
                 })
             # only return the user's active assignment
             continue
@@ -963,47 +944,12 @@ def get_item_assignment(user, subvolume_id):
             for assign_item_id, info_ary in whole_item['meta']['history'].items():
                 for info in info_ary:
                     if info['user'] == user['login']:
-                        annotator_info = {}
-                        reviewer_info = {}
                         assign_item = Item().findOne({'_id': ObjectId(assign_item_id)})
-                        if info['type'] == annot_assign_key or \
-                            info['type'] == 'annotation_completed_by':
-                                annotator_info = {
-                                    'login': info['user'],
-                                    'id': User().findOne({'login': info['user']})['_id']
-                                }
-                                review_info = _get_history_info(whole_item, assign_item_id,
-                                                                review_assign_key)
-                                if review_info:
-                                    review_username = review_info[-1]['user']
-                                    reviewer_info = {
-                                        'login': review_username,
-                                        'id': User().findOne({'login': review_username})['_id']
-                                    }
-                                else:
-                                    reviewer_info = {}
-                        elif info['type'] == review_assign_key or \
-                            info['type'] == 'review_completed_by':
-                                reviewer_info = {
-                                    'login': info['user'],
-                                    'id': User().findOne({'login': info['user']})['_id']
-                                }
-                                annotate_info = _get_history_info(whole_item, assign_item_id,
-                                                                  annot_assign_key)
-                                if annotate_info:
-                                    annotator_username = annotate_info[-1]['user']
-                                    annotator_info = {
-                                        'login': annotator_username,
-                                        'id': User().findOne({'login': annotator_username})['_id']
-                                    }
-
                         ret_data.append({
                             'type': info['type'],
                             'item_id': assign_item_id,
                             'subvolume_id': whole_item['_id'],
-                            'region_ids': assign_item['meta']['region_ids'],
-                            'annotator': annotator_info,
-                            'reviewer': reviewer_info
+                            'region_ids': assign_item['meta']['region_ids']
                         })
 
         filtered_id_list.append(sub_id)
@@ -1054,12 +1000,7 @@ def get_item_assignment(user, subvolume_id):
             'type': annot_assign_key,
             'item_id': assigned_region_id,
             'subvolume_id': subvolume_id,
-            'regions': assign_regions,
-            'annotator': {
-                'login': user['login'],
-                'id': user['_id']
-            },
-            'reviewer': {}
+            'regions': assign_regions
         }
         ret_data.append(item_dict)
 
@@ -1447,10 +1388,25 @@ def get_region_or_assignment_info(item, assign_item_id, region_id):
             if current_region in regions:
                 regions.remove(current_region)
 
+    assign_info = _get_history_info(item, assign_item_id, 'annotation_assigned_to')
+    annotator_info = {}
+    reviewer_info = {}
+    if assign_info:
+        annotator_username = assign_info[-1]['user']
+        annotator_info['login'] = annotator_username
+        annotator_info['id'] = User().findOne({'login': annotator_username})['_id']
+        review_info = _get_history_info(item, assign_item_id, 'review_assigned_to')
+        if review_info:
+            review_username = review_info[-1]['user']
+            reviewer_info['login'] = review_username
+            reviewer_info['id'] = User().findOne({'login': review_username})['_id']
+
     ret_dict = {
         'item_id': assign_item_id,
         'name': region_item['name'] if region_item else '',
         'description': region_item['description'] if region_item else '',
+        'annotator': annotator_info,
+        'reviewer': reviewer_info,
         'location': region_item['meta']['coordinates'] if region_item else {},
         'last_updated_time': region_item['updated'] if region_item else '',
         'regions': regions,
