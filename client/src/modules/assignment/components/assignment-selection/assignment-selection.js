@@ -1,4 +1,4 @@
-import { useContext, useState, useEffect } from 'react';
+import { useContext, useEffect } from 'react';
 import { Tab, Menu, Button } from 'semantic-ui-react';
 import { UserContext } from 'contexts';
 import { RefineSelection } from './refine-selection';
@@ -10,8 +10,8 @@ import styles from './styles.module.css';
 // For review, want anything that is review 
 // For waiting, want anything that is waiting and not this user's
 const filterAssignments = (assignments, type, user = null) => 
-  type === 'refine' ? assignments.filter(({ user }) => !user) :
-  type === 'review' ? assignments.filter(({ status }) => status === 'review') :
+  type === 'refine' ? assignments.filter(({ type }) => type === 'refine') :
+  type === 'review' ? assignments.filter(({ type }) => type === 'review') :
   assignments.filter(assignment => assignment.status === 'waiting' && assignment.user !== user);
 
 export const AssignmentSelection = () => {

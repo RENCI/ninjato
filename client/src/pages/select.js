@@ -12,7 +12,7 @@ export const Select = () => {
     if (!user) {
       navigate('/');
     }
-  }, [user]);
+  }, [user, navigate]);
 
   return (
     !user ? 

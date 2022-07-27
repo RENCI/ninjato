@@ -25,7 +25,7 @@ export const ReviewContainer = () => {
 
   useEffect(() => {
     refineDispatch({ type: REFINE_SET_TOOL, tool: 'select' })
-  }, []);
+  }, [refineDispatch]);
 
   // Slice view callbacks
   function onEdit() {

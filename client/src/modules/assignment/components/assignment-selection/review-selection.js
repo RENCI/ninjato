@@ -5,7 +5,7 @@ export const ReviewSelection = ({ review, waiting }) => {
   const hasWaiting = waiting.length > 0;
 
   const reviewHeader = hasReview ? 'Current reviews' : 'No current reviews';
-  const reviewSubheader = hasReview > 0 ? 'Select an review to continue' :
+  const reviewSubheader = hasReview > 0 ? 'Select a review to continue' :
     waiting ? 'No current reviews, select an assignment to review below' :
     'No active reviews';
 

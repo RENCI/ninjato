@@ -5,7 +5,7 @@ import {
   ErrorContext, SET_ERROR
 } from 'contexts';
 import { ButtonWrapper } from 'modules/common/components/button-wrapper';
-import { useGetAssignments, useLoadData } from 'hooks';
+import { useLoadData } from 'hooks';
 import { statusDisplay } from 'utils/assignment-utils';
 import { api } from 'utils/api';
 import styles from './styles.module.css';
@@ -19,10 +19,9 @@ const statusColor = {
 export const Assignment = ({ assignment, enabled }) => {
   const [{ user, assignment: currentAssignment }, userDispatch] = useContext(UserContext);
   const [, errorDispatch] = useContext(ErrorContext);
-  const getAssignments = useGetAssignments();
   const loadData = useLoadData();
 
-  const { name, description, status, updated, regions, user: assignmentUser } = assignment;
+  const { name, description, updated, regions, user: assignmentUser } = assignment;
   const selected = currentAssignment?.id === assignment.id;
 
   const onLoadClick = async () => {

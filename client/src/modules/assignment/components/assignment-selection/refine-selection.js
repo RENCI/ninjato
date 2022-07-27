@@ -10,7 +10,7 @@ export const RefineSelection = ({ assignments }) => {
   const active = hasActive(assignments);
   const available = volumes && volumes.filter(({ annotations }) => annotations.available > 0).length > 0;
 
-  const assignmentHeader = assignments.length > 0 ? 'Current assignments' : 'No current assignments';
+  const assignmentHeader = assignments.length > 0 ? 'Your assignments' : 'No assignments';
   const assignmentSubheader = active ? 'Select an active assignment to continue' :
     available ? 'No active assignments, select an available volume below to request a new assignment' :
     'No active assignments';

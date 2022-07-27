@@ -221,6 +221,8 @@ export const api = {
     for (const item of filtered) {
       const assignment = await getAssignment(item.subvolume_id, item.item_id);
 
+      assignment.type = item.type.includes('review') ? 'review' : 'refine';
+
       assignments.push(assignment); 
     }
 
@@ -230,6 +232,8 @@ export const api = {
 
       for (const { id } of volumeResponse.data) {
         const reviewResponse = await axios.get(`/item/${ id }/available_items_for_review`);
+
+        console.log(reviewResponse);
 
         for (const review of reviewResponse.data) {
           // Check we don't already have it
