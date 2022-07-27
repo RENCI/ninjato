@@ -17,6 +17,7 @@ const getStatus = info => (
   info.status === 'awaiting review' ? 'waiting' :
   info.status === 'under review' ? 'review' :
   info.status === 'completed' ? 'completed' :
+  info.status === 'inactive' ? 'inactive' :
   'active'
 );
 

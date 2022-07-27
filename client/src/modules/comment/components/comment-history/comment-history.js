@@ -1,5 +1,5 @@
 import { useContext, useState, useRef, useEffect } from 'react';
-import { Comment, Icon, Form, Dropdown, Button } from 'semantic-ui-react';
+import { Comment, Icon, Form, Dropdown, Button, TextArea } from 'semantic-ui-react';
 import { UserContext, SET_REGION_COMMENT } from 'contexts';
 
 const { Group, Content, Author, Metadata, Text, Actions, Action } = Comment;
@@ -85,9 +85,9 @@ export const CommentHistory = ({ region }) => {
                           ))}
                         </Dropdown.Menu>
                       </Dropdown>
-                      <Form.TextArea
+                      <TextArea
                         ref={ textAreaRef }
-                        style={{ width: '100%', minHeight: 50 }}
+                        style={{ width: '100%', minHeight: 50, marginBottom: '1em' }}
                         value={ comment }
                         spellCheck={ false }
                         onChange={ onCommentChange }
@@ -96,20 +96,22 @@ export const CommentHistory = ({ region }) => {
                         onKeyUp={ stopPropagation }
                         onKeyPress={ stopPropagation }
                       />
-                      <Button 
-                        icon='x circle' 
-                        secondary       
+                      <Button.Group fluid>
+                      <Button  
+                        style={{ flex: '0 1 auto' }}
+                        secondary  
                         size='small'
-                        compact
+                        icon='x circle'
                         onClick={ onClearClick }                 
                       />
                       <Button 
-                        icon='check' 
-                        primary 
+                        style={{ flex: '1 1 auto' }}
+                        primary
                         size='small'
-                        compact
+                        icon='check'
                         onClick={ onEditEnd }                       
                       />
+                      </Button.Group>
                     </Form>
                   </Text>
                 </>
@@ -133,13 +135,13 @@ export const CommentHistory = ({ region }) => {
         </>
       :   
         <Comment>
-          <Content>
-            <Actions>
-              <Action onClick={ onAddCommentClick }>
-                <Icon name='plus circle' />add comment
-              </Action>
-            </Actions>
-          </Content>
+          <Button 
+            basic
+            fluid
+            icon='plus circle'
+            content='add comment'
+            onClick={ onAddCommentClick }
+          />
         </Comment>          
       }
     </Group>
