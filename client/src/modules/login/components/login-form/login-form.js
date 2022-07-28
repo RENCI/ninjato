@@ -1,5 +1,6 @@
 import { useContext, useState } from 'react';
-import { Modal, Button, Form, Menu, Message } from 'semantic-ui-react';
+import { useNavigate } from 'react-router-dom';
+import { Modal, Button, Form, Message } from 'semantic-ui-react';
 import { LOGIN, UserContext } from 'contexts';
 import { AutoFocusForm } from 'modules/common/components/auto-focus-form';
 import { api } from 'utils/api';
@@ -9,16 +10,19 @@ import styles from './styles.module.css';
 const { Header, Content, Actions } = Modal;
 const { Input } = Form;
 
-export const LoginForm = () => {
+export const LoginForm = ({ trigger,  }) => {
   const [, userDispatch] = useContext(UserContext);
+  const navigate = useNavigate();
   const [open, openModal, closeModal] = useModal();
   const [values, setValues] = useState({
     username: '',
     password: ''
   });
-  const [errorMessage, setErrorMessage] = useState(null);
+  const [success, setSuccess] = useState();
+  const [errorMessage, setErrorMessage] = useState();
 
   const onOpenModal = () => {
+    setSuccess();
     setErrorMessage();
     openModal();
   };
@@ -31,16 +35,17 @@ export const LoginForm = () => {
     try {
       const user = await api.login(username, password);
 
-      const id = user._id;
+      setSuccess(true);
+      setTimeout(() => {
+        userDispatch({
+          type: LOGIN,
+          user: user
+        });
 
-      userDispatch({
-        type: LOGIN,
-        id: id,
-        login: user.login,
-        admin: user.admin
-      });
-
-      closeModal();
+        setSuccess();
+        closeModal();
+        navigate('/select');
+      }, 1000);      
     }
     catch (error) {
       console.log(error);      
@@ -59,7 +64,7 @@ export const LoginForm = () => {
   return (
     <Modal
       size='tiny'
-      trigger={ <Menu.Item content='Log in' /> }
+      trigger={ trigger }
       open={ open }
       onOpen={ onOpenModal }
       onClose={ closeModal }
@@ -73,8 +78,10 @@ export const LoginForm = () => {
           <Input label='Login or email' name='username' onChange={ onChange } />
           <Input label='Password' type='password' name='password' onChange={ onChange } />
           <Message
-            error
-            content={ errorMessage }
+            hidden={ !success && !errorMessage}
+            positive={ success ? true : false }
+            error={ errorMessage ? true : false }
+            content={ success ? 'Success!' : errorMessage ? errorMessage : null }
           />
           <div className={ styles.hide }>
             <Button>

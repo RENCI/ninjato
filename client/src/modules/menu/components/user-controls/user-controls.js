@@ -1,16 +1,13 @@
 import { useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu } from 'semantic-ui-react';
+import { Menu, Dropdown, Icon  } from 'semantic-ui-react';
 import { UserContext, LOGIN, LOGOUT } from 'contexts';
-import { RegisterForm } from './register-form';
-import { LoginForm } from './login-form';
+import { StatsContainer } from 'modules/stats/components/stats-container';
 import { api } from 'utils/api';
-import { useGetAssignments } from 'hooks';
 
 export const UserControls = () => {
-  const [{ login }, userDispatch] = useContext(UserContext);
+  const [{ user }, userDispatch] = useContext(UserContext);
   const navigate = useNavigate();
-  const getAssignment = useGetAssignments();
 
   useEffect(() => {
     const checkUserLogin = async () => {
@@ -18,16 +15,10 @@ export const UserControls = () => {
         const user = await api.checkLogin();
 
         if (user) {
-          const id = user._id;
-
           userDispatch({
             type: LOGIN,
-            id: id,
-            login: user.login,
-            admin: user.admin
+            user: user
           });
-
-          //getAssignment(id);
         }
       }
       catch (error) {
@@ -35,8 +26,8 @@ export const UserControls = () => {
       }
     };
 
-    if (!login) checkUserLogin();    
-  }, [login, userDispatch, getAssignment]);
+    if (!user) checkUserLogin();    
+  }, [user, userDispatch]);
 
   const onLogout = async () => {
     await api.logout();
@@ -50,16 +41,14 @@ export const UserControls = () => {
   
   return (
     <Menu.Menu position='right'>
-      { login ? 
-        <>
-          <Menu.Item content={ login } />
-          <Menu.Item content='Log out' onClick={ onLogout } />
-        </>
-      :
-        <>
-          <RegisterForm />
-          <LoginForm /> 
-        </>
+      { user && 
+        <Dropdown item trigger={ <><Icon name='user' />{ user.login }</> }>
+          <Dropdown.Menu>
+            <StatsContainer trigger={ <Dropdown.Item content='Statistics' icon='chart bar' /> } />
+            <Dropdown.Divider />
+            <Dropdown.Item content='Log out' icon='sign-out' onClick={ onLogout } />        
+          </Dropdown.Menu>
+        </Dropdown>
       }             
     </Menu.Menu>
   );

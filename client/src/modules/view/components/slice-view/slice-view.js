@@ -1,11 +1,11 @@
 import { RenderWindow, Slice, Image } from 'modules/view/components';
-import { Widgets } from 'modules/refine/components/slice-view/widgets';
-import { MaskPainter } from 'modules/refine/components/slice-view/mask-painter';
+import { Widgets } from 'modules/view/components/slice-view/widgets';
+import { MaskPainter } from 'modules/view/components/slice-view/mask-painter';
 
 export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDown, onKeyUp) {
   const renderWindow = RenderWindow();
   const image = Image();
-  const slice = Slice(evt => evt.key === 'i' ? image.toggleInterpolation() : onKeyDown(evt), onKeyUp);
+  const slice = Slice(evt => evt.key === 'i' ? image.toggleInterpolation() : onKeyDown ? onKeyDown(evt) : null, onKeyUp);
   const mask = MaskPainter();
 
   const isValid = label => label !== null && label !== 0;

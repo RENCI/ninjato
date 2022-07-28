@@ -96,11 +96,11 @@ export function Slice(onKeyDown, onKeyUp) {
             imageMapper.setSlice(Math.max(kMin, imageMapper.getSlice() - 1));
         }
         else {
-          onKeyDown(evt)
+          if (onKeyDown) onKeyDown(evt)
         }
       });
     
-      interactor.onKeyUp(onKeyUp);
+      if (onKeyUp) interactor.onKeyUp(onKeyUp);
     },
     setImage: (imageActor, camera, volumeSliceRanges, onSliceChange) => {
       const firstTime = !imageMapper;

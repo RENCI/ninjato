@@ -4,9 +4,10 @@ import { UserContext } from 'contexts';
 import { MissingDialog } from './missing-dialog';
 import { useSaveAnnotations } from 'hooks';
 import { getMissingRegions } from 'utils/data';
+import { api } from 'utils/api';
 
-export const SaveButton = ({ disabled, onSaving }) => {
-  const [{ assignment, maskData }] = useContext(UserContext);
+export const SaveButton = ({ disabled, review = false, onSaving }) => {
+  const [{ user, assignment, maskData }] = useContext(UserContext);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [missing, setMissing] = useState();
@@ -16,7 +17,12 @@ export const SaveButton = ({ disabled, onSaving }) => {
     setSaving(true);
     onSaving(true);
 
-    await saveAnnotations();
+    if (review) {
+      await api.saveReview(user._id, assignment.id, assignment.regions, false, false);
+    }
+    else {
+      await saveAnnotations();
+    }
 
     setSuccess(true);
     setTimeout(() => setSuccess(false), 1000);

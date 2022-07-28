@@ -9,8 +9,8 @@ import { api } from 'utils/api';
 
 const { Header, Content, Actions } = Modal;
 
-export const DeclineButton = ({ disabled }) => {
-  const [{ id, assignment }, userDispatch] = useContext(UserContext);
+export const DeclineButton = ({ disabled, review = false }) => {
+  const [{ user, assignment }, userDispatch] = useContext(UserContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const [open, openModal, closeModal] = useModal();
   const [declining, setDeclining] = useState(false);
@@ -19,8 +19,9 @@ export const DeclineButton = ({ disabled }) => {
   const onConfirm = async () => {
     setDeclining(true);
 
-    try {
-      const { status } = await api.declineAssignment(id, assignment.id);
+    try { 
+      const { status } = review ? await api.declineReview(user._id, assignment.id) :
+        await api.declineAssignment(user._id, assignment.id);
 
       if (status !== 'success') throw new Error(`Error declining assignment ${ assignment.id }`); 
 
@@ -57,7 +58,7 @@ export const DeclineButton = ({ disabled }) => {
         dimmer='blurring'
         open={ open }        
       >
-        <Header>Decline Region</Header>
+        <Header>Decline { review ? 'Review' : 'Assignment' } </Header>
         <Content>
           { declining ?             
             <>Processing</>
@@ -68,7 +69,7 @@ export const DeclineButton = ({ disabled }) => {
             </>
           :
             <>
-              <p>Decline current region?</p>
+              <p>Decline current { review ? 'review' : 'assignment' }?</p>
               <p>All edits will be lost.</p>
             </>
           }

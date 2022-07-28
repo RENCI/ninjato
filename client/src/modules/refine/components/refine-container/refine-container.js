@@ -6,8 +6,8 @@ import {
 } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
-import { VolumeViewWrapper, VolumeView } from 'modules/refine/components/volume-view';
-import { SliceViewWrapper, SliceView } from 'modules/refine/components/slice-view';
+import { VolumeViewWrapper, VolumeView } from 'modules/view/components/volume-view';
+import { SliceViewWrapper, SliceView } from 'modules/view/components/slice-view';
 import { VolumeControls } from 'modules/refine/components/volume-controls';
 import { SliceControls } from 'modules/refine/components/slice-controls';
 import { SliceSlider } from 'modules/common/components/slice-slider';
@@ -87,7 +87,6 @@ export const RefineContainer = () => {
   }
 
   const handleKeyDown = key => {
-    console.log(key);
     switch (key) {
       case 'Control':
         if (tool !== 'erase') refineDispatch({ type: REFINE_SET_TOOL, tool: 'erase' });

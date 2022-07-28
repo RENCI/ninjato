@@ -1,31 +1,63 @@
 import { useContext } from 'react';
 import { Segment, Header, Label } from 'semantic-ui-react';
-import { UserContext, SET_ASSIGNMENT } from 'contexts';
+import { 
+  UserContext, SET_ASSIGNMENT,
+  ErrorContext, SET_ERROR
+} from 'contexts';
 import { ButtonWrapper } from 'modules/common/components/button-wrapper';
 import { useLoadData } from 'hooks';
-import { isActive, statusDisplay } from 'utils/assignment-utils';
+import { statusDisplay } from 'utils/assignment-utils';
+import { api } from 'utils/api';
 import styles from './styles.module.css';
 
-export const Assignment = ({ assignment }) => {
-  const [, userDispatch] = useContext(UserContext);
+const statusColor = {
+  active: 'green',
+  waiting: 'yellow',
+  review: 'teal'
+};
+
+export const Assignment = ({ assignment, enabled }) => {
+  const [{ user, assignment: currentAssignment }, userDispatch] = useContext(UserContext);
+  const [, errorDispatch] = useContext(ErrorContext);
   const loadData = useLoadData();
 
-  const { name, description, status, updated, regions } = assignment;
-  const enabled = isActive(assignment);
+  const { updated, regions, annotator, reviewer } = assignment;
+  const selected = currentAssignment?.id === assignment.id;
 
-  const onLoadClick = () => {
-    userDispatch({ type: SET_ASSIGNMENT, assignment: assignment });
+  const onLoadClick = async () => {
+    if (assignment.status === 'waiting') {
+      try {
+        await api.requestAssignment(user._id, assignment.subvolumeId, assignment.id);
 
-    loadData(assignment); 
+        const newAssignment = {
+          ...assignment,
+          status: 'review'
+        };
+       
+        userDispatch({ type: SET_ASSIGNMENT, assignment: newAssignment });
+
+        loadData(newAssignment);
+      }
+      catch (error) {
+        errorDispatch({ type: SET_ERROR, error: error });
+      }
+    }
+    else {
+      userDispatch({ type: SET_ASSIGNMENT, assignment: assignment });
+
+      loadData(assignment); 
+    }
   };
+
+  // XXX: Add volume information to assignments, and show better volume information (parent, etc) in volumes?
 
   return (
     <ButtonWrapper 
       onClick={ onLoadClick}
-      disabled={ !enabled }
+      disabled={ !enabled || selected }
     >
       <Segment
-        color={ enabled ? 'green' : 'grey' } 
+        color={ statusColor[assignment.status] ?? 'grey' } 
         raised={ enabled }
         circular
         className={ styles.assignment }
@@ -34,19 +66,30 @@ export const Assignment = ({ assignment }) => {
           <div> 
             <Header 
               as='h5'
-              content={ name ? name : 'No name'}
-              subheader={ description ? description : 'No description' }
+              content={ regions.length > 1 ? 'Labels' : 'Label' }
+              subheader={ regions.map(({ label }) => label).sort((a, b) => a - b).join(', ') }
             />
           </div>
-          <div>
-            <Label 
-              basic 
-              circular 
-              content='Status' 
-              color={ status === 'active' ? 'green' : null }
-              detail={ statusDisplay(assignment) } 
-            />
-          </div>
+          { annotator.login && 
+            <div>
+              <Label 
+                basic 
+                circular 
+                content='User' 
+                detail={ annotator.login } 
+              />
+            </div>
+          }
+          { reviewer?.login && 
+            <div>
+              <Label 
+                basic 
+                circular 
+                content='Reviewer' 
+                detail={ reviewer.login } 
+              />
+            </div>
+          }
           <div>
             <Label 
               basic 
@@ -55,15 +98,8 @@ export const Assignment = ({ assignment }) => {
               detail={ updated.toLocaleString() } 
             />
           </div>
-          <div>
-            <Label 
-              basic 
-              circular 
-              content={ regions.length > 1 ? 'Labels' : 'Label' } 
-              detail={ regions.map(({ label }) => label).sort((a, b) => a - b).join(', ') } 
-            />
-          </div>
         </div>
+        { selected && <div className={ styles.selected }>selected</div> }
       </Segment>
     </ButtonWrapper>
   );

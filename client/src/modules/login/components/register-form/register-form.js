@@ -1,5 +1,6 @@
 import { useContext, useState } from 'react';
-import { Modal, Button, Form, Menu, Message } from 'semantic-ui-react';
+import { useNavigate } from 'react-router-dom';
+import { Modal, Button, Form, Message } from 'semantic-ui-react';
 import { LOGIN, UserContext } from 'contexts';
 import { AutoFocusForm } from 'modules/common/components/auto-focus-form';
 import { api } from 'utils/api';
@@ -9,8 +10,9 @@ import styles from './styles.module.css';
 const { Header, Content, Actions } = Modal;
 const { Input } = Form;
 
-export const RegisterForm = () => {
+export const RegisterForm = ({ trigger }) => {
   const [, userDispatch] = useContext(UserContext);
+  const navigate = useNavigate();
   const [open, openModal, closeModal] = useModal();
   const [values, setValues] = useState({
     username: '',
@@ -19,9 +21,11 @@ export const RegisterForm = () => {
     lastname: '',
     password: ''
   });
+  const [success, setSuccess] = useState();
   const [errorMessage, setErrorMessage] = useState(null);
 
   const onOpenModal = () => {
+    setSuccess();
     setErrorMessage();
     openModal();
   };
@@ -34,16 +38,17 @@ export const RegisterForm = () => {
     try {
       const user = await api.register(username, email, firstname, lastname, password);
 
-      const id = user._id;
+      setSuccess(true);
+      setTimeout(() => {      
+        userDispatch({
+          type: LOGIN,
+          user: user
+        });
 
-      userDispatch({
-        type: LOGIN,
-        id: id,
-        login: user.login,
-        admin: false
-      });
-
-      closeModal();
+        setSuccess();
+        closeModal();
+        navigate('/select');
+      }, 1000);   
     }
     catch (error) {
       console.log(error);      
@@ -62,7 +67,7 @@ export const RegisterForm = () => {
   return (
     <Modal
       size='tiny'
-      trigger={ <Menu.Item content='Register'/> }
+      trigger={ trigger }
       open={ open }
       onOpen={ onOpenModal }
       onClose={ closeModal }
@@ -79,8 +84,10 @@ export const RegisterForm = () => {
           <Input label='Enter last name' name='lastname' onChange={ onChange } />
           <Input label='Enter a password' type='password' name='password'  onChange={ onChange } />
           <Message
-            error
-            content={ errorMessage }
+            hidden={ !success && !errorMessage}
+            positive={ success ? true : false }
+            error={ errorMessage ? true : false }
+            content={ success ? 'Success!' : errorMessage ? errorMessage : null }
           />
           <div className={ styles.hide }>
             <Button content='Submit' />

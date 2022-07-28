@@ -17,15 +17,35 @@ const getStatus = info => (
   info.status === 'awaiting review' ? 'waiting' :
   info.status === 'under review' ? 'review' :
   info.status === 'completed' ? 'completed' :
+  info.status === 'inactive' ? 'inactive' :
   'active'
 );
 
-const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
+const regionObject = (regions, key) => regions.reduce((object, region) => {
+  return {
+    ...object,
+    [region.label]: region[key]
+  }
+}, {});
+
+const addUserInfo = async user => {
+  user.reviewer = false;
+  for (const group of user.groups) {
+    const response = await axios.get(`/group/${ group }`);
+
+    if (response.data.name === 'reviewers') {
+      user.reviewer = true;
+      break;
+    }
+  }
+
+  return user;
+};
+
+const getAssignment = async (subvolumeId, itemId, regionId = null) => {
   // Get assignment info
   const infoResponse = await axios.get(`/item/${ subvolumeId }/subvolume_assignment_info`, {
-    params: {
-      region_id: assignmentKey
-    }
+    params: itemId ? { assign_item_id: itemId } : regionId ? { region_id: regionId } : {}    
   }); 
 
   const info = infoResponse.data;
@@ -56,7 +76,6 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
   return {
     id: itemId,
     subvolumeId: subvolumeId,
-    assignmentKey: assignmentKey,
     name: info.name,
     description: info.description,
     updated: convertDate(info.last_updated_time),
@@ -69,17 +88,10 @@ const getAssignment = async (itemId, subvolumeId, assignmentKey) => {
       index: i
     })),
     status: getStatus(info),
-    statusInfo: {
-      assignedTo: info.annotation_assigned_to,
-      completedBy: info.annotation_completed_by,
-      rejectedBy: info.annotation_rejected_by,
-      reviewAssignedTo: info.review_assigned_to,
-      reviewCompletedBy: info.review_completed_by,
-      reviewRejectedBy: info.review_rejected_by
-    },
     imageId: imageInfo._id,
     maskId: maskInfo._id,
-    type: 'refine'
+    annotator: info.annotator ? info.annotator : null,
+    reviewer: info.reviewer ? info.reviewer : null
   };
 };
 
@@ -91,7 +103,14 @@ export const api = {
 
     const response = await axios.get('/user/me');
 
-    return response.data;
+    if (response.data) {
+      const user = await addUserInfo(response.data);
+  
+      return user;
+    }
+    else {
+      return null;
+    }
   },
   login: async (username, password) => {
     const auth = 'Basic ' + window.btoa(username + ':' + password); 
@@ -106,7 +125,14 @@ export const api = {
 
     axios.defaults.headers.common['Girder-Token'] = authToken.token;
 
-    return response.data.user;
+    if (response.data.user) {
+      const user = await addUserInfo(response.data.user);
+  
+      return user;
+    }
+    else {
+      return null;
+    }
   },
   logout: async () => {
     await axios.delete('/user/authentication');
@@ -126,7 +152,14 @@ export const api = {
 
     axios.defaults.headers.common['Girder-Token'] = authToken.token;
 
-    return response.data;
+    if (response.data) {
+      const user = await addUserInfo(response.data);
+  
+      return user;
+    }
+    else {
+      return null;
+    }
   },
   getVolumes: async () => {
     const response = await axios.get('/system/subvolume_ids');
@@ -139,11 +172,15 @@ export const api = {
 
         const { data } = infoResponse;
 
+        // Get parent volume info
+        const pathResponse = await axios.get(`/item/${ volume.id }/rootpath`);
+
         // Copy info and rename to be more concise
         volumes.push({
           id: data.id,
           name: data.name,
           description: data.description,
+          path: pathResponse.data,
           location: {...data.location},
           numRegions: data.total_regions,
           annotations: {
@@ -168,16 +205,49 @@ export const api = {
 
     return volumes;
   },
-  getAssignments: async userId => {
-    const assignmentResponse = await axios.get(`/user/${ userId }/assignment`);
-    const reviewResponse = await axios.get(`/user/${ userId }/assignment_await_review`);
-
+  getAssignments: async (userId, reviewer) => {
     const assignments = [];
-    for (const item of assignmentResponse.data.concat(reviewResponse.data)) {
-      const assignment = await getAssignment(item.item_id, item.subvolume_id, item.assignment_key);
+
+    // Get user's assignments
+    const assignmentResponse = await axios.get(`/user/${ userId }/assignment`);
+
+    // Filter out duplicates and rejected
+    const filtered = Object.values(assignmentResponse.data.reduce((assignments, assignment) => {
+      assignments[assignment.item_id] = assignment;
+      return assignments;
+    }, {})).filter(({ type }) => type !== 'annotation_rejected_by');
+
+    console.log(filtered);
+
+    // Get assignment details
+    for (const item of filtered) {
+      const assignment = await getAssignment(item.subvolume_id, item.item_id);
+
+      // XXX: Don't think we need this after annotator and reviewer are provided
+      //assignment.type = item.type.includes('review') ? 'review' : 'refine';
 
       assignments.push(assignment); 
     }
+
+    // If reviewer, Get available review assignments
+    if (reviewer) {
+      const volumeResponse = await axios.get('/system/subvolume_ids');
+
+      for (const { id } of volumeResponse.data) {
+        const reviewResponse = await axios.get(`/item/${ id }/available_items_for_review`);
+
+        for (const review of reviewResponse.data) {
+          // Check we don't already have it
+          if (!assignments.find(({ id }) => id === review.id)) {
+            const assignment = await getAssignment(id, review.id);
+
+            assignments.push(assignment); 
+          }
+        }
+      }
+    }
+
+    console.log(assignments);
 
     return assignments;
   },
@@ -194,7 +264,7 @@ export const api = {
 
     const item = response.data[0];
 
-    const assignment = await getAssignment(item.item_id, item.subvolume_id, item.assignment_key);
+    const assignment = await getAssignment(item.subvolume_id, item.item_id);
 
     return assignment;
   },
@@ -211,12 +281,23 @@ export const api = {
 
     return response.data;
   },
-  updateAssignment: async (userId, subvolumeId, assignmentKey) => {
-    const assignment = await getAssignment(userId, subvolumeId, assignmentKey);
-
-    console.log(assignment);
+  updateAssignment: async (subvolumeId, itemId) => {
+    const assignment = await getAssignment(subvolumeId, itemId);
 
     return assignment;
+  },
+  requestAssignment: async (userId, subvolumeId, itemId) => {
+    const response = await axios.post(`/user/${ userId }/request_assignment`,
+      null,
+      {
+        params: {
+          subvolume_id: subvolumeId,
+          assign_item_id: itemId
+        }
+      }
+    );
+
+    console.log(response);
   },
   getData: async (imageId, maskId) => {
     const responses = await Promise.all([
@@ -243,18 +324,11 @@ export const api = {
   saveAnnotations: async (userId, itemId, buffer, regions, done = false) => {
     const blob = new Blob([buffer], { type: 'image/tiff' });
 
-    const regionObject = key => regions.reduce((object, region) => {
-      return {
-        ...object,
-        [region.label]: region[key]
-      }
-    }, {});
-
     // Set form data
     const formData = new FormData();
     formData.append('current_region_ids', JSON.stringify(regions.map(({ label }) => label)));
-    formData.append('comment', JSON.stringify(regionObject('comment')));
-    formData.append('color', JSON.stringify(regionObject('color')));
+    formData.append('comment', JSON.stringify(regionObject(regions, 'comment')));
+    formData.append('color', JSON.stringify(regionObject(regions, 'color')));
     formData.append('content_data', blob);    
 
     await axios.post(`/user/${ userId }/annotation`, 
@@ -307,5 +381,38 @@ export const api = {
     else if (response.data.length > 1) console.warn(`${ response.data.length } new region labels returned (should only be 1)`);
 
     return response.data[0];
+  },
+  saveReview: async (userId, itemId, regions, done = false, approve = false) => {
+    // Set form data
+    const formData = new FormData();
+    formData.append('comment', JSON.stringify(regionObject(regions, 'comment')));
+
+    await axios.post(`/user/${ userId }/review_result`, 
+      formData,
+      {
+        params: { 
+          item_id: itemId,
+          done: done,
+          approve: approve
+        },
+        headers: { 
+          'Content-Type': 'multipart/form-data' 
+        }
+      }
+    );
+  },
+  declineReview: async (userId, itemId) => {
+    const response = await axios.post(`/user/${ userId }/review_result`,
+      null,
+      {
+        params: {
+          item_id: itemId,
+          reject: true,
+          approve: false
+        }
+      }
+    );
+
+    return response.data;
   }
 };

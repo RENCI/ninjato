@@ -24,3 +24,4 @@ yarn-error.log*
 .idea/
 girder-client/.env
 girder-client/sync_data/*
+girder/data

@@ -1,4 +1,5 @@
 import { useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   UserContext, SET_DATA,
   RefineContext, REFINE_RESET,
@@ -11,6 +12,7 @@ import { combineMasks } from 'utils/data';
 
 export const useLoadData = ()  => {
   const [{ maskData }, userDispatch] = useContext(UserContext);
+  const navigate = useNavigate();
   const [, refineDispatch] = useContext(RefineContext);
   const [, loadingDispatch] = useContext(LoadingContext);
   const [, errorDispatch] = useContext(ErrorContext);
@@ -52,6 +54,8 @@ export const useLoadData = ()  => {
           type: REFINE_SET_ACTIVE_REGION,
           region: regions.length > 0 ? regions[0] : null
         });
+
+        navigate('/assignment');
       }
       else {
         userDispatch({
@@ -70,8 +74,6 @@ export const useLoadData = ()  => {
     }
     catch (error) {
       console.log(error);
-
-      // XXX: Potentialy decline to get a new assignment?
 
       loadingDispatch({ type: CLEAR_LOADING });
 

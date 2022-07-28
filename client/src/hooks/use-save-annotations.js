@@ -10,7 +10,7 @@ import { encodeTIFF, saveTIFF } from 'utils/data-conversion';
 const download = false;
 
 export const useSaveAnnotations = () => {
-  const [{ id, assignment, maskData }] = useContext(UserContext);
+  const [{ user, assignment, maskData }] = useContext(UserContext);
   const [, errorDispatch] = useContext(ErrorContext);
 
   return async (done = false) => {
@@ -24,7 +24,7 @@ export const useSaveAnnotations = () => {
         return;
       }
 
-      await api.saveAnnotations(id, assignment.id, buffer, assignment.regions, done);      
+      await api.saveAnnotations(user._id, assignment.id, buffer, assignment.regions, done);      
     }
     catch (error) {
       console.log(error);

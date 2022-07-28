@@ -9,7 +9,7 @@ import { api } from 'utils/api';
 import styles from './styles.module.css';
 
 export const Volume = ({ volume, enabled }) => {
-  const [{ id }, userDispatch] = useContext(UserContext);
+  const [{ user }, userDispatch] = useContext(UserContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const loadData = useLoadData();
 
@@ -18,7 +18,7 @@ export const Volume = ({ volume, enabled }) => {
 
   const onLoadClick = async () => {
     try {
-      const assignment = await api.getNewAssignment(id, volume.id);
+      const assignment = await api.getNewAssignment(user._id, volume.id);
 
       userDispatch({ type: SET_ASSIGNMENT, assignment: assignment });
 
