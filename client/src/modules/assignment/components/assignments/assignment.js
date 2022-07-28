@@ -21,7 +21,7 @@ export const Assignment = ({ assignment, enabled }) => {
   const [, errorDispatch] = useContext(ErrorContext);
   const loadData = useLoadData();
 
-  const { name, description, updated, regions, user: assignmentUser } = assignment;
+  const { updated, regions, annotator, reviewer } = assignment;
   const selected = currentAssignment?.id === assignment.id;
 
   const onLoadClick = async () => {
@@ -66,17 +66,27 @@ export const Assignment = ({ assignment, enabled }) => {
           <div> 
             <Header 
               as='h5'
-              content={ name ? name : 'No name'}
-              subheader={ description ? description : 'No description' }
+              content={ regions.length > 1 ? 'Labels' : 'Label' }
+              subheader={ regions.map(({ label }) => label).sort((a, b) => a - b).join(', ') }
             />
           </div>
-          { assignmentUser && 
+          { annotator && 
             <div>
               <Label 
                 basic 
                 circular 
                 content='User' 
-                detail={ assignmentUser } 
+                detail={ annotator.login } 
+              />
+            </div>
+          }
+          { reviewer && 
+            <div>
+              <Label 
+                basic 
+                circular 
+                content='Reviewer' 
+                detail={ reviewer.login } 
               />
             </div>
           }
@@ -84,25 +94,8 @@ export const Assignment = ({ assignment, enabled }) => {
             <Label 
               basic 
               circular 
-              content='Status' 
-              color={ enabled ? statusColor[assignment.status] : null }
-              detail={ statusDisplay(assignment) } 
-            />
-          </div>
-          <div>
-            <Label 
-              basic 
-              circular 
               content='Updated' 
               detail={ updated.toLocaleString() } 
-            />
-          </div>
-          <div>
-            <Label 
-              basic 
-              circular 
-              content={ regions.length > 1 ? 'Labels' : 'Label' } 
-              detail={ regions.map(({ label }) => label).sort((a, b) => a - b).join(', ') } 
             />
           </div>
         </div>
