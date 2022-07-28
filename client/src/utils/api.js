@@ -89,7 +89,9 @@ const getAssignment = async (subvolumeId, itemId, regionId = null) => {
     })),
     status: getStatus(info),
     imageId: imageInfo._id,
-    maskId: maskInfo._id
+    maskId: maskInfo._id,
+    annotator: info.annotator ? info.annotator : null,
+    reviewer: info.reviewer ? info.reviewer : null
   };
 };
 
@@ -209,8 +211,6 @@ export const api = {
     // Get user's assignments
     const assignmentResponse = await axios.get(`/user/${ userId }/assignment`);
 
-    console.log(assignmentResponse);
-
     // Filter out duplicates and rejected
     const filtered = Object.values(assignmentResponse.data.reduce((assignments, assignment) => {
       assignments[assignment.item_id] = assignment;
@@ -221,7 +221,8 @@ export const api = {
     for (const item of filtered) {
       const assignment = await getAssignment(item.subvolume_id, item.item_id);
 
-      assignment.type = item.type.includes('review') ? 'review' : 'refine';
+      // XXX: Don't think we need this after annotator and reviewer are provided
+      //assignment.type = item.type.includes('review') ? 'review' : 'refine';
 
       assignments.push(assignment); 
     }
@@ -233,15 +234,10 @@ export const api = {
       for (const { id } of volumeResponse.data) {
         const reviewResponse = await axios.get(`/item/${ id }/available_items_for_review`);
 
-        console.log(reviewResponse);
-
         for (const review of reviewResponse.data) {
           // Check we don't already have it
           if (!assignments.find(({ id }) => id === review.id)) {
             const assignment = await getAssignment(id, review.id);
-
-            // XXX: Verify last user is correct
-            assignment.user = review.annotation_completed_by[review.annotation_completed_by.length - 1].user;
 
             assignments.push(assignment); 
           }

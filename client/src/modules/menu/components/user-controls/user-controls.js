@@ -2,6 +2,7 @@ import { useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, Dropdown, Icon  } from 'semantic-ui-react';
 import { UserContext, LOGIN, LOGOUT } from 'contexts';
+import { StatsContainer } from 'modules/stats/components/stats-container';
 import { api } from 'utils/api';
 
 export const UserControls = () => {
@@ -43,7 +44,9 @@ export const UserControls = () => {
       { user && 
         <Dropdown item trigger={ <><Icon name='user' />{ user.login }</> }>
           <Dropdown.Menu>
-            <Dropdown.Item content='Log out' icon='sign-out' onClick={ onLogout } />
+            <StatsContainer trigger={ <Dropdown.Item content='Statistics' icon='chart bar' /> } />
+            <Dropdown.Divider />
+            <Dropdown.Item content='Log out' icon='sign-out' onClick={ onLogout } />        
           </Dropdown.Menu>
         </Dropdown>
       }             
