@@ -8,7 +8,7 @@ export const Volumes = ({ header, subheader, volumes, enabled }) => {
   return (     
     !volumes ? null :    
     <>    
-      <Header as='h4'>
+      <Header as='h5'>
         { header }
         { subheader && 
           <Subheader>

@@ -57,7 +57,7 @@ export const Assignment = ({ assignment, enabled }) => {
       disabled={ !enabled || selected }
     >
       <Segment
-        color={ enabled ? statusColor[assignment.status] : 'grey' } 
+        color={ statusColor[assignment.status] ?? 'grey' } 
         raised={ enabled }
         circular
         className={ styles.assignment }
@@ -70,7 +70,7 @@ export const Assignment = ({ assignment, enabled }) => {
               subheader={ regions.map(({ label }) => label).sort((a, b) => a - b).join(', ') }
             />
           </div>
-          { annotator && 
+          { annotator.login && 
             <div>
               <Label 
                 basic 
@@ -80,7 +80,7 @@ export const Assignment = ({ assignment, enabled }) => {
               />
             </div>
           }
-          { reviewer && 
+          { reviewer?.login && 
             <div>
               <Label 
                 basic 

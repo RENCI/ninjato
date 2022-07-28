@@ -1,5 +1,6 @@
 import { Header, Message, Icon, Segment } from 'semantic-ui-react';
 import { Assignment } from './assignment';
+import { EmptyList } from 'modules/assignment/components/empty-list';
 import { statusOrder } from 'utils/assignment-utils';
 import styles from './styles.module.css';
 
@@ -17,9 +18,11 @@ export const Assignments = ({ type, header, subheader, assignments }) => {
     <>
       <Header as='h5'>
         { header }
-        <Subheader>
-          { subheader }
-        </Subheader>            
+        { subheader && 
+          <Subheader>
+            { subheader }
+          </Subheader>
+        }             
       </Header>
       { assignments && assignments.length > 0 ?
         <div className={ styles.container }>
@@ -33,9 +36,7 @@ export const Assignments = ({ type, header, subheader, assignments }) => {
           ))}
         </div>
       :
-        <div className={ styles.container }>
-          <Icon name='inbox' size='huge' color='grey' disabled />
-        </div>
+        <EmptyList />
       }
     </>
   );

@@ -18,8 +18,7 @@ export const RefineSelection = ({ assignments }) => {
     available ? <>No active assignments, select an available volume to request a new assignment <Icon name='arrow right' /></> :
     'No active assignments';
 
-  const volumeHeader = volumes && volumes.length > 0 ? 'Volumes' : 'No volumes';
-  const volumeSubheader = !volumes || volumes.length === 0 ? null :
+  const volumesSubheader = !volumes || volumes.length === 0 ? null :
     active ? 'Complete any active assignments before requesting a new assignment' :
     available ? 'Select an available volume to request a new assignment' :
     'No volumes available';
@@ -51,9 +50,13 @@ export const RefineSelection = ({ assignments }) => {
           />
         </Column>
         <Column>
+          <Header as='h4'>
+            Volumes
+            <Subheader>
+              { volumesSubheader }
+            </Subheader>      
+          </Header>
           <Volumes 
-            header={ volumeHeader }
-            subheader={ volumeSubheader }
             volumes={ volumes } 
             enabled={ !active }
           />   

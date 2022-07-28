@@ -31,7 +31,7 @@ export const AssignmentSelection = () => {
     <div className={ styles.container }>
       { (assignments && volumes) && (user.reviewer ?
         <Tab
-          menu={{ secondary: true, pointing: true, attached: 'top', fluid: true, widths: 2 }}
+          menu={{ secondary: true, pointing: true, attached: 'top' }}
           panes={[
             {
               menuItem: <Menu.Item key={ 'review' }>Review</Menu.Item>,

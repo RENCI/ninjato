@@ -217,6 +217,8 @@ export const api = {
       return assignments;
     }, {})).filter(({ type }) => type !== 'annotation_rejected_by');
 
+    console.log(filtered);
+
     // Get assignment details
     for (const item of filtered) {
       const assignment = await getAssignment(item.subvolume_id, item.item_id);
