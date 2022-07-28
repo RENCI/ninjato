@@ -6,13 +6,14 @@ import { ReviewSelection } from './review-selection';
 import { useGetAssignments } from 'hooks';
 import styles from './styles.module.css';
 
-// For refine, want anything that is this user's, currently indicated by empty user field
-// For review, want anything that is review 
+// For refine, want anything where this user is the annotator
+// For review, want anything where this user is the reviewer
 // For waiting, want anything that is waiting and not this user's
-const filterAssignments = (assignments, type, user = null) => 
-  type === 'refine' ? assignments.filter(({ type }) => type === 'refine') :
-  type === 'review' ? assignments.filter(({ type }) => type === 'review') :
-  assignments.filter(assignment => assignment.status === 'waiting' && assignment.user !== user);
+const filterAssignments = (assignments, type, login) => (
+  type === 'refine' ? assignments.filter(({ annotator }) => annotator?.login === login) :
+  type === 'review' ? assignments.filter(({ reviewer }) => reviewer?.login === login) :
+  assignments.filter(({ status, annotator }) => status === 'waiting' && annotator.login !== login)
+);
 
 export const AssignmentSelection = () => {
   const [{ user, assignments, volumes }] = useContext(UserContext);
@@ -37,7 +38,7 @@ export const AssignmentSelection = () => {
               render: () => (
                 <Tab.Pane>
                   <ReviewSelection 
-                    review={ filterAssignments(assignments, 'review') } 
+                    review={ filterAssignments(assignments, 'review', user.login) } 
                     waiting={ filterAssignments(assignments, 'waiting', user.login) } 
                   />                      
                 </Tab.Pane>
@@ -48,7 +49,7 @@ export const AssignmentSelection = () => {
               render: () => (
                 <Tab.Pane>
                   <RefineSelection 
-                    assignments={ filterAssignments(assignments, 'refine') } 
+                    assignments={ filterAssignments(assignments, 'refine', user.login) } 
                   />
                 </Tab.Pane>
               )
@@ -58,7 +59,7 @@ export const AssignmentSelection = () => {
       :
         <div className={ styles.refine }>
           <RefineSelection 
-            assignments={ filterAssignments(assignments, 'refine') } 
+            assignments={ filterAssignments(assignments, 'refine', user.login) } 
           />
         </div>
       )}
