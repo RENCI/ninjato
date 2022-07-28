@@ -1,4 +1,4 @@
-import { Header, Message, Icon, Segment } from 'semantic-ui-react';
+import { Header } from 'semantic-ui-react';
 import { Assignment } from './assignment';
 import { EmptyList } from 'modules/assignment/components/empty-list';
 import { statusOrder } from 'utils/assignment-utils';
@@ -7,7 +7,7 @@ import styles from './styles.module.css';
 const { Subheader } = Header;
 
 const sortOrder = (a, b) => (
-  a.status !== b.status ? statusOrder(a) - statusOrder(b) :
+  a.status !== b.status ? statusOrder(a.status) - statusOrder(b.status) :
   b.updated - a.updated
 );
 

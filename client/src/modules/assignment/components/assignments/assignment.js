@@ -6,15 +6,9 @@ import {
 } from 'contexts';
 import { ButtonWrapper } from 'modules/common/components/button-wrapper';
 import { useLoadData } from 'hooks';
-import { statusDisplay } from 'utils/assignment-utils';
+import { statusColor } from 'utils/assignment-utils';
 import { api } from 'utils/api';
 import styles from './styles.module.css';
-
-const statusColor = {
-  active: 'green',
-  waiting: 'yellow',
-  review: 'teal'
-};
 
 export const Assignment = ({ assignment, enabled }) => {
   const [{ user, assignment: currentAssignment }, userDispatch] = useContext(UserContext);
@@ -57,7 +51,7 @@ export const Assignment = ({ assignment, enabled }) => {
       disabled={ !enabled || selected }
     >
       <Segment
-        color={ statusColor[assignment.status] ?? 'grey' } 
+        color={ statusColor(assignment.status) ?? 'grey' } 
         raised={ enabled }
         circular
         className={ styles.assignment }
