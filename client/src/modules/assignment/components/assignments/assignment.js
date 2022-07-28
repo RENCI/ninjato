@@ -57,13 +57,6 @@ export const Assignment = ({ assignment, enabled }) => {
         className={ styles.assignment }
       >  
         <div>
-          <div> 
-            <Header 
-              as='h5'
-              content={ regions.length > 1 ? 'Labels' : 'Label' }
-              subheader={ regions.map(({ label }) => label).sort((a, b) => a - b).join(', ') }
-            />
-          </div>
           { annotator.login && 
             <div>
               <Label 
@@ -84,6 +77,14 @@ export const Assignment = ({ assignment, enabled }) => {
               />
             </div>
           }
+          <div>
+            <Label 
+              basic 
+              circular 
+              content={ regions.length > 1 ? 'Region labels' : 'Region label' }
+              detail={ regions.map(({ label }) => label).sort((a, b) => a - b).join(', ') }
+            />
+          </div>
           <div>
             <Label 
               basic 

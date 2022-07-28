@@ -10,8 +10,7 @@ const statuses = [
   'active',
   'review',
   'waiting',
-  'completed',
-  'inactive'
+  'completed'
 ];
 
 export const StatsContainer = ({ trigger }) => {
