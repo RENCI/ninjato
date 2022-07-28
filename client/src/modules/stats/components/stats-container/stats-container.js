@@ -22,6 +22,8 @@ export const StatsContainer = ({ trigger }) => {
     if (user && !assignments) getAssignments(user._id, user.reviewer);    
   }, [user, assignments, getAssignments]);
 
+  // XXX: Need to handle reviews...
+
   return assignments && (
     <Modal
       dimmer='blurring'
