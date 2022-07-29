@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { 
   UserContext, UNDO_REGION_HISTORY, REDO_REGION_HISTORY, 
-  RefineContext, REFINE_SET_TOOL, REFINE_SET_CONTROL
+  AnnotateContext, ANNOTATE_SET_TOOL, ANNOTATE_SET_CONTROL
 } from 'contexts';
 import { ControlBar, ControlGroup, ControlButton, ControlLabel } from 'modules/common/components/control-bar';
 import { SplitButton } from 'modules/common/components/split-button';
@@ -9,14 +9,14 @@ import { BrushOptions } from './brush-options';
 
 export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
   const [, userDispatch] = useContext(UserContext);
-  const [{ activeRegion, tools, tool, showContours }, refineDispatch] = useContext(RefineContext);
+  const [{ activeRegion, tools, tool, showContours }, refineDispatch] = useContext(AnnotateContext);
 
   const onToolClick = value => {
-    refineDispatch({ type: REFINE_SET_TOOL, tool: value });
+    refineDispatch({ type: ANNOTATE_SET_TOOL, tool: value });
   };
 
   const onShowContoursClick = () => {
-    refineDispatch({ type: REFINE_SET_CONTROL, name: 'showContours', value: !showContours });
+    refineDispatch({ type: ANNOTATE_SET_CONTROL, name: 'showContours', value: !showContours });
   };
 
   const onUndoClick = () => {

@@ -2,7 +2,7 @@ import { useContext, useRef, useCallback, useState, useEffect } from 'react';
 import { Grid } from 'semantic-ui-react';
 import { 
   UserContext,
-  RefineContext, REFINE_SET_ACTIVE_REGION, REFINE_SET_TOOL
+  AnnotateContext, ANNOTATE_SET_ACTIVE_REGION, ANNOTATE_SET_TOOL
 } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
@@ -17,14 +17,14 @@ const { Column } = Grid;
 
 export const ReviewContainer = () => {
   const [{ imageData }] = useContext(UserContext);
-  const [, refineDispatch] = useContext(RefineContext);
+  const [, refineDispatch] = useContext(AnnotateContext);
   const volumeView = useRef(VolumeView());
   const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHighlight));
   const [loading, setLoading] = useState(true);
   const [slice, setSlice] = useState(0);
 
   useEffect(() => {
-    refineDispatch({ type: REFINE_SET_TOOL, tool: 'select' })
+    refineDispatch({ type: ANNOTATE_SET_TOOL, tool: 'select' })
   }, [refineDispatch]);
 
   // Slice view callbacks
@@ -42,7 +42,7 @@ export const ReviewContainer = () => {
   function onSelect(region, type) {
     switch (type) {
       case 'select':       
-        refineDispatch({ type: REFINE_SET_ACTIVE_REGION, region: region });
+        refineDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: region });
         break;
 
       default:

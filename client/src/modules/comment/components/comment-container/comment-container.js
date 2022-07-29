@@ -2,7 +2,7 @@ import { useContext } from 'react';
 import { Button, Modal, Tab, Menu, Header } from 'semantic-ui-react';
 import { 
   UserContext, 
-  RefineContext, REFINE_SET_ACTIVE_REGION 
+  AnnotateContext, ANNOTATE_SET_ACTIVE_REGION 
 } from 'contexts';
 import { CommentHistory } from 'modules/comment/components/comment-history';
 import { RegionIcon } from 'modules/common/components/region-icon';
@@ -11,12 +11,12 @@ const {  Content } = Modal;
 
 export const CommentContainer = () => {
   const [{ assignment }] = useContext(UserContext);
-  const [{ activeRegion }, refineDispatch] = useContext(RefineContext);
+  const [{ activeRegion }, refineDispatch] = useContext(AnnotateContext);
 
   const { regions } = assignment;
 
   const onTabChange = (evt, { activeIndex }) => {
-    refineDispatch({ type: REFINE_SET_ACTIVE_REGION, region: regions[activeIndex] });
+    refineDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: regions[activeIndex] });
   };
 
   return (

@@ -2,7 +2,7 @@ import { useContext, useState, useEffect } from 'react';
 import { Button, Modal, Icon, Select } from 'semantic-ui-react';
 import { 
   UserContext, ADD_REGION,
-  RefineContext, REFINE_SET_ACTION, REFINE_SET_ACTIVE_REGION,
+  AnnotateContext, ANNOTATE_SET_ACTION, ANNOTATE_SET_ACTIVE_REGION,
   ErrorContext, SET_ERROR
 } from 'contexts';
 import { RegionLabel } from 'modules/common/components/region-label';
@@ -12,7 +12,7 @@ const { Header, Content, Actions } = Modal;
 
 export const SplitDialog = ({ sliceView }) => {
   const [{ assignment }, userDispatch] = useContext(UserContext);
-  const [{ action }, refineDispatch] = useContext(RefineContext);
+  const [{ action }, refineDispatch] = useContext(AnnotateContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const [splitting, setSplitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -27,7 +27,7 @@ export const SplitDialog = ({ sliceView }) => {
     if (region) {
       setNewRegion(region);
       refineDispatch({ 
-        type: REFINE_SET_ACTIVE_REGION, 
+        type: ANNOTATE_SET_ACTIVE_REGION, 
         region: splitMode === 'top' ? action.region : region
       });
     }
@@ -50,7 +50,7 @@ export const SplitDialog = ({ sliceView }) => {
       setTimeout(() => {
         setSuccess(false);
         setNewLabel(null);
-        refineDispatch({ type: REFINE_SET_ACTION, action: null });
+        refineDispatch({ type: ANNOTATE_SET_ACTION, action: null });
       }, 1000);
     }
     catch (error) {
@@ -64,7 +64,7 @@ export const SplitDialog = ({ sliceView }) => {
   };
 
   const onCancel = () => {
-    refineDispatch({ type: REFINE_SET_ACTION, action: null });
+    refineDispatch({ type: ANNOTATE_SET_ACTION, action: null });
   };
 
   return (

@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { 
   UserProvider, 
-  RefineProvider, 
+  AnnotateProvider, 
   LoadingProvider,
   ErrorProvider 
 } from "contexts"; 
@@ -13,7 +13,7 @@ import { Home, Select, Assignment } from 'pages';
 export const App = () => { 
   return (
     <UserProvider>
-    <RefineProvider>
+    <AnnotateProvider>
     <LoadingProvider>
     <ErrorProvider>
       <Router>        
@@ -29,7 +29,7 @@ export const App = () => {
       </Router>
     </ErrorProvider>
     </LoadingProvider>
-    </RefineProvider>
+    </AnnotateProvider>
     </UserProvider>
   );
 };

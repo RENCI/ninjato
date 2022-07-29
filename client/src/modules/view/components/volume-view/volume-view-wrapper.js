@@ -1,10 +1,10 @@
 import { useContext, useState, useRef, useEffect } from 'react';
-import { UserContext, RefineContext } from 'contexts';
+import { UserContext, AnnotateContext } from 'contexts';
 import { useResize } from 'hooks';
 
 export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
   const [{ maskData, assignment }] = useContext(UserContext);
-  const [{ activeRegion, showBackground }] = useContext(RefineContext);
+  const [{ activeRegion, showBackground }] = useContext(AnnotateContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);
   const { width } = useResize(div);

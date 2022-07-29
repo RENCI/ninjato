@@ -2,7 +2,7 @@ import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { 
   UserContext, UPDATE_ASSIGNMENT,
-  RefineContext, REFINE_SET_ACTION,
+  AnnotateContext, ANNOTATE_SET_ACTION,
   ErrorContext, SET_ERROR
 } from 'contexts';
 import { RegionLabel } from 'modules/common/components/region-label';
@@ -13,7 +13,7 @@ const { Header, Content, Actions } = Modal;
 
 export const RemoveDialog = () => {
   const [{ user, assignment }, userDispatch] = useContext(UserContext);
-  const [{ action }, refineDispatch] = useContext(RefineContext);
+  const [{ action }, refineDispatch] = useContext(AnnotateContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const loadData = useLoadData();
   const [removing, setRemoving] = useState(false);
@@ -39,7 +39,7 @@ export const RemoveDialog = () => {
         loadData(update, assignment);   
 
         setSuccess(false);
-        refineDispatch({ type: REFINE_SET_ACTION, action: null }); 
+        refineDispatch({ type: ANNOTATE_SET_ACTION, action: null }); 
       }, 1000); 
     }
     catch (error) {
@@ -53,7 +53,7 @@ export const RemoveDialog = () => {
   };
 
   const onCancel = () => {
-    refineDispatch({ type: REFINE_SET_ACTION, action: null });
+    refineDispatch({ type: ANNOTATE_SET_ACTION, action: null });
   };
 
   return (

@@ -2,9 +2,9 @@ import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   UserContext, SET_DATA,
-  RefineContext, REFINE_RESET,
+  AnnotateContext, ANNOTATE_RESET,
   LoadingContext, SET_LOADING, CLEAR_LOADING,
-  ErrorContext, SET_ERROR, REFINE_SET_ACTIVE_REGION 
+  ErrorContext, SET_ERROR, ANNOTATE_SET_ACTIVE_REGION 
 } from 'contexts';
 import { api } from 'utils/api';
 import { decodeTIFF } from 'utils/data-conversion';
@@ -13,7 +13,7 @@ import { combineMasks } from 'utils/data';
 export const useLoadData = ()  => {
   const [{ maskData }, userDispatch] = useContext(UserContext);
   const navigate = useNavigate();
-  const [, refineDispatch] = useContext(RefineContext);
+  const [, refineDispatch] = useContext(AnnotateContext);
   const [, loadingDispatch] = useContext(LoadingContext);
   const [, errorDispatch] = useContext(ErrorContext);
 
@@ -47,11 +47,11 @@ export const useLoadData = ()  => {
         });
   
         refineDispatch({
-          type: REFINE_RESET
+          type: ANNOTATE_RESET
         });
 
         refineDispatch({
-          type: REFINE_SET_ACTIVE_REGION,
+          type: ANNOTATE_SET_ACTIVE_REGION,
           region: regions.length > 0 ? regions[0] : null
         });
 
@@ -65,7 +65,7 @@ export const useLoadData = ()  => {
         });
 
         refineDispatch({
-          type: REFINE_SET_ACTIVE_REGION,
+          type: ANNOTATE_SET_ACTIVE_REGION,
           region: regions.length > 0 ? regions[regions.length - 1] : null
         });
       }
