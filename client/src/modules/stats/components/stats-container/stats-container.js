@@ -1,10 +1,8 @@
 import { useContext, useEffect } from 'react';
-import { Modal, Label } from 'semantic-ui-react';
+import { Modal, Label, Header } from 'semantic-ui-react';
 import { UserContext } from 'contexts';
 import { statusColor, statusDisplay } from 'utils/assignment-utils';
 import { useGetAssignments } from 'hooks';
-
-const { Header, Content } = Modal;
 
 const statuses = [
   'active',
@@ -12,6 +10,19 @@ const statuses = [
   'waiting',
   'completed'
 ];
+
+const reviewStatuses = [
+  'review',
+  'active',
+  'completed'
+];
+
+const reviewDisplay = {
+  review: 'reviewing',
+  active: 'active',
+  completed: 'completed'
+};
+
 
 export const StatsContainer = ({ trigger }) => {
   const [{ user, assignments }] = useContext(UserContext);
@@ -21,15 +32,17 @@ export const StatsContainer = ({ trigger }) => {
     if (user && !assignments) getAssignments(user._id, user.reviewer);    
   }, [user, assignments, getAssignments]);
 
-  // XXX: Need to handle reviews...
+  const regular = assignments ? assignments.filter(({ annotator }) => annotator.login === user.login) : [];
+  const review = assignments ? assignments.filter(({ reviewer }) => reviewer.login === user.login) : [];
 
   return assignments && (
     <Modal
       dimmer='blurring'
       trigger={ trigger }
     >
-      <Header>Statistics for { user.login }</Header>
-      <Content>
+      <Modal.Header>Statistics for { user.login }</Modal.Header>
+      <Modal.Content>
+        <Header as='h5'>Assignments</Header>
         { statuses.map(status => (
           <Label 
             key={ status }
@@ -37,11 +50,27 @@ export const StatsContainer = ({ trigger }) => {
           >
             { statusDisplay(status) }
             <Label.Detail>
-              { assignments.filter(assignment => assignment.status === status).length }
+              { regular.filter(assignment => assignment.status === status).length }
             </Label.Detail>
           </Label>
         ))}
-      </Content>
+        { user.reviewer && 
+          <>
+            <Header as='h5'>Reviews</Header>
+            { statuses.map(status => (
+              <Label 
+                key={ status }
+                color={ statusColor(status) }
+              >
+                { reviewDisplay[status] }
+                <Label.Detail>
+                  { review.filter(assignment => assignment.status === status).length }
+                </Label.Detail>
+              </Label>
+            ))}        
+          </>
+        }
+      </Modal.Content>
     </Modal>
   );
 };
