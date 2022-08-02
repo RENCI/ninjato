@@ -2,7 +2,7 @@ from girder.plugin import getPlugin, GirderPlugin
 from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.constants import AccessType
-from .utils import get_item_assignment, save_user_annotation_as_item, get_subvolume_item_ids, \
+from .endpoint_utils import get_item_assignment, save_user_annotation_as_item, get_subvolume_item_ids, \
     get_subvolume_item_info, get_region_or_assignment_info, get_available_region_ids, \
     claim_assignment, request_assignment, get_all_avail_items_for_review, \
     get_region_comment_info, save_user_review_result_as_item, remove_region_from_item_assignment
