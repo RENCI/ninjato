@@ -13,6 +13,7 @@ from girder.exceptions import RestException
 from girder.utility import assetstore_utilities
 from girder.utility import path as path_util
 from .constants import BUFFER_FACTOR, DATA_PATH
+from girder_jobs.models.job import Job
 
 
 def _get_tif_file_content_and_path(item_file):
@@ -695,3 +696,23 @@ def set_assignment_meta(whole_item, user, region_item_id, assign_type):
     Item().setMetadata(whole_item, add_meta)
 
     return assign_info
+
+
+def update_all_assignment_masks_async(whole_item, saved_assign_item_id):
+    """
+    update all assignments except for the saved_assign_item_id assignment of the whole item
+    :param whole_item: the whole subvolume item
+    :param saved_assign_item_id: assignment item id that already has updated masks
+    :return:
+    """
+    job_model = Job()
+    job = job_model.createLocalJob(title='update assignment files', type='local',
+                                   user=User().getAdmins()[0],
+                                   kwargs={
+                                       'whole_item': whole_item,
+                                       'saved_assign_item_id': saved_assign_item_id
+                                   },
+                                   module='girder_ninjato_api.async_job_utils',
+                                   function='update_all_assignment_masks')
+    job_model.scheduleJob(job)
+    return
