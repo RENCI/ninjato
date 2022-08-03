@@ -8,12 +8,11 @@ from girder.models.file import File
 from girder.models.user import User
 from bson.objectid import ObjectId
 from girder.models.assetstore import Assetstore as AssetstoreModel
-from girder.models.collection import Collection
 from girder.models.folder import Folder
 from girder.exceptions import RestException
 from girder.utility import assetstore_utilities
 from girder.utility import path as path_util
-from .constants import COLLECTION_NAME, BUFFER_FACTOR, DATA_PATH
+from .constants import BUFFER_FACTOR, DATA_PATH
 
 
 def _get_tif_file_content_and_path(item_file):
