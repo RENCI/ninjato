@@ -230,8 +230,11 @@ def update_assignment_in_whole_item(whole_item, assign_item_id):
         for item_file in item_files:
             if '_masks' not in item_file['name']:
                 continue
+            file_res_path = path_util.getResourcePath('file', item_file, force=True)
+            file_name = os.path.basename(file_res_path)
             whole_tif, whole_path = _get_tif_file_content_and_path(item_file)
-            output_path = f'{whole_path}_output'
+            out_dir_path = os.path.dirname(whole_path)
+            output_path = os.path.join(out_dir_path, f'{os.path.basename(whole_path)}_{file_name}')
             whole_out_tif = TIFF.open(output_path, mode='w')
             counter = 0
             # region_imarray should be in order of ZYX
@@ -242,8 +245,11 @@ def update_assignment_in_whole_item(whole_item, assign_item_id):
                         assign_item_images[counter]
                 whole_out_tif.write_image(np.copy(image))
                 counter += 1
-            # update mask file by copying new tiff file to the old one then delete the new tiff file
-            shutil.move(output_path, whole_path)
+
+            assetstore_id = item_file['assetstoreId']
+            # remove the original file and create new file using updated TIFF mask
+            File().remove(item_file)
+            save_file(assetstore_id, whole_item, output_path, User().getAdmins()[0], file_name)
             return
 
     raise RestException('Failed to update assignment annotation mask in the whole subvolume mask',
