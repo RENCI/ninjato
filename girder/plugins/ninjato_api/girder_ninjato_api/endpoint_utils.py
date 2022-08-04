@@ -12,7 +12,7 @@ from .utils import get_max_region_id, set_max_region_id, remove_region_from_acti
     merge_region_to_active_assignment, set_assignment_meta, get_history_info, \
     assign_region_to_user, save_file, add_meta_to_history, check_subvolume_done, \
     reject_assignment, update_assignment_in_whole_item, get_assignment_status, remove_regions, \
-    find_region_item_from_label, get_region_extent
+    find_region_item_from_label, get_region_extent, update_all_assignment_masks_async
 
 
 def get_available_region_ids(whole_item, count=1):
@@ -525,6 +525,8 @@ def save_user_review_result_as_item(user, item_id, done, reject, comment, approv
         else:
             # update whole volume masks with approved annotations
             update_assignment_in_whole_item(whole_item, item_id)
+            # update all assignments of the subvolume asyncly as a job
+            update_all_assignment_masks_async(whole_item, item_id)
             add_meta['review_done'] = 'true'
 
     for comment_key, comment_val in comment.items():

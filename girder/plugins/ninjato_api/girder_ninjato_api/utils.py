@@ -8,12 +8,12 @@ from girder.models.file import File
 from girder.models.user import User
 from bson.objectid import ObjectId
 from girder.models.assetstore import Assetstore as AssetstoreModel
-from girder.models.collection import Collection
 from girder.models.folder import Folder
 from girder.exceptions import RestException
 from girder.utility import assetstore_utilities
 from girder.utility import path as path_util
-from .constants import COLLECTION_NAME, BUFFER_FACTOR, DATA_PATH
+from .constants import BUFFER_FACTOR, DATA_PATH
+from girder_jobs.models.job import Job
 
 
 def _get_tif_file_content_and_path(item_file):
@@ -222,16 +222,19 @@ def update_assignment_in_whole_item(whole_item, assign_item_id):
         if '_masks' not in assign_item_file['name']:
             continue
         assign_item_tif, _ = _get_tif_file_content_and_path(assign_item_file)
-        assign_item_imarray = []
+        assign_item_images = []
         for assign_image in assign_item_tif.iter_images():
-            assign_item_imarray.append(assign_image)
+            assign_item_images.append(assign_image)
 
         item_files = File().find({'itemId': whole_item['_id']})
         for item_file in item_files:
             if '_masks' not in item_file['name']:
                 continue
+            file_res_path = path_util.getResourcePath('file', item_file, force=True)
+            file_name = os.path.basename(file_res_path)
             whole_tif, whole_path = _get_tif_file_content_and_path(item_file)
-            output_path = f'{whole_path}_output'
+            out_dir_path = os.path.dirname(whole_path)
+            output_path = os.path.join(out_dir_path, f'{os.path.basename(whole_path)}_{file_name}')
             whole_out_tif = TIFF.open(output_path, mode='w')
             counter = 0
             # region_imarray should be in order of ZYX
@@ -239,11 +242,14 @@ def update_assignment_in_whole_item(whole_item, assign_item_id):
                 if assign_item_coords['z_min'] <= counter <= assign_item_coords['z_max']:
                     image[assign_item_coords['y_min']: assign_item_coords['y_max']+1,
                           assign_item_coords['x_min']: assign_item_coords['x_max']+1] = \
-                        assign_item_imarray[counter]
-                whole_out_tif.write_image(image)
+                        assign_item_images[counter]
+                whole_out_tif.write_image(np.copy(image))
                 counter += 1
-            # update mask file by copying new tiff file to the old one then delete the new tiff file
-            shutil.move(output_path, whole_path)
+
+            assetstore_id = item_file['assetstoreId']
+            # remove the original file and create new file using updated TIFF mask
+            File().remove(item_file)
+            save_file(assetstore_id, whole_item, output_path, User().getAdmins()[0], file_name)
             return
 
     raise RestException('Failed to update assignment annotation mask in the whole subvolume mask',
@@ -696,3 +702,20 @@ def set_assignment_meta(whole_item, user, region_item_id, assign_type):
     Item().setMetadata(whole_item, add_meta)
 
     return assign_info
+
+
+def update_all_assignment_masks_async(whole_item, saved_assign_item_id):
+    """
+    update all assignments except for the saved_assign_item_id assignment of the whole item
+    :param whole_item: the whole subvolume item
+    :param saved_assign_item_id: assignment item id that already has updated masks
+    :return:
+    """
+    job_model = Job()
+    job = job_model.createLocalJob(title='update assignment files', type='local',
+                                   user=User().getAdmins()[0],
+                                   args=(whole_item, saved_assign_item_id),
+                                   module='girder_ninjato_api.async_job_utils',
+                                   function='update_all_assignment_masks')
+    job_model.scheduleJob(job)
+    return
