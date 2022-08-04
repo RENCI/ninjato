@@ -222,9 +222,9 @@ def update_assignment_in_whole_item(whole_item, assign_item_id):
         if '_masks' not in assign_item_file['name']:
             continue
         assign_item_tif, _ = _get_tif_file_content_and_path(assign_item_file)
-        assign_item_imarray = []
+        assign_item_images = []
         for assign_image in assign_item_tif.iter_images():
-            assign_item_imarray.append(assign_image)
+            assign_item_images.append(assign_image)
 
         item_files = File().find({'itemId': whole_item['_id']})
         for item_file in item_files:
@@ -239,8 +239,8 @@ def update_assignment_in_whole_item(whole_item, assign_item_id):
                 if assign_item_coords['z_min'] <= counter <= assign_item_coords['z_max']:
                     image[assign_item_coords['y_min']: assign_item_coords['y_max']+1,
                           assign_item_coords['x_min']: assign_item_coords['x_max']+1] = \
-                        assign_item_imarray[counter]
-                whole_out_tif.write_image(image)
+                        assign_item_images[counter]
+                whole_out_tif.write_image(np.copy(image))
                 counter += 1
             # update mask file by copying new tiff file to the old one then delete the new tiff file
             shutil.move(output_path, whole_path)
@@ -708,10 +708,7 @@ def update_all_assignment_masks_async(whole_item, saved_assign_item_id):
     job_model = Job()
     job = job_model.createLocalJob(title='update assignment files', type='local',
                                    user=User().getAdmins()[0],
-                                   kwargs={
-                                       'whole_item': whole_item,
-                                       'saved_assign_item_id': saved_assign_item_id
-                                   },
+                                   args=(whole_item, saved_assign_item_id),
                                    module='girder_ninjato_api.async_job_utils',
                                    function='update_all_assignment_masks')
     job_model.scheduleJob(job)
