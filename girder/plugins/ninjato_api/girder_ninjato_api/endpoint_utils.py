@@ -685,6 +685,13 @@ def get_region_or_assignment_info(item, assign_item_id, region_id):
         if region_label_str in item['meta']['regions']:
             region_dict = item['meta']['regions'][region_label_str]
             assign_item_id = region_dict['item_id'] if 'item_id' in region_dict else ''
+            if not assign_item_id:
+                # region is not assigned yet
+                return {
+                    'status': 'inactive'
+                }
+        else:
+            raise RestException('no assignment found', code=400)
 
     region_item = Item().findOne({'_id': ObjectId(assign_item_id)}) if assign_item_id else None
     if not region_item:
