@@ -319,6 +319,13 @@ export const api = {
       maskBuffer: responses[1].data
     };   
   },
+  getRegionInfo: async (subvolumeId, regionId) => {
+    const infoResponse = await axios.get(`/item/${ subvolumeId }/subvolume_assignment_info`, {
+      params: { region_id: regionId }    
+    });
+
+    return infoResponse.data;
+  },
   saveAnnotations: async (userId, itemId, buffer, regions, done = false) => {
     const blob = new Blob([buffer], { type: 'image/tiff' });
 

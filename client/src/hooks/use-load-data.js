@@ -8,7 +8,24 @@ import {
 } from 'contexts';
 import { api } from 'utils/api';
 import { decodeTIFF } from 'utils/data-conversion';
-import { combineMasks } from 'utils/data';
+import { combineMasks, getUniqueLabels } from 'utils/data';
+import { backgroundColors } from 'utils/colors';
+
+const getBackgroundRegions = async (subvolumeId, mask, regions) => {
+  const allLabels = getUniqueLabels(mask);
+  const labels = regions.map(({ label }) => label);
+  const backgroundLabels = allLabels.filter(label => !labels.includes(label));
+
+  const backgroundRegions = [];
+
+  for (const label of backgroundLabels) {
+    const info = await api.getRegionInfo(subvolumeId, label);
+
+    console.log(info);
+  }
+
+  return backgroundRegions;
+};
 
 export const useLoadData = ()  => {
   const [{ maskData }, userDispatch] = useContext(UserContext);
@@ -17,7 +34,7 @@ export const useLoadData = ()  => {
   const [, loadingDispatch] = useContext(LoadingContext);
   const [, errorDispatch] = useContext(ErrorContext);
 
-  return async ({ imageId, maskId, regions, location }, assignmentToUpdate = null) => {
+  return async ({ subvolumeId, imageId, maskId, regions, location }, assignmentToUpdate = null) => {
     try {
       loadingDispatch({ type: SET_LOADING });
 
@@ -40,6 +57,12 @@ export const useLoadData = ()  => {
       }
 
       if (!assignmentToUpdate) {
+        console.log(subvolumeId);
+
+        const backgroundRegions = await getBackgroundRegions(subvolumeId, newMaskData, regions);
+
+        console.log(backgroundRegions);
+
         userDispatch({
           type: SET_DATA,
           imageData: newImageData,
@@ -58,10 +81,14 @@ export const useLoadData = ()  => {
         navigate('/assignment');
       }
       else {
+        const combinedMasks = combineMasks(newMaskData, location, maskData, assignmentToUpdate.location);
+
+        const backgroundRegions = getBackgroundRegions(subvolumeId, newMaskData, regions);
+
         userDispatch({
           type: SET_DATA,
           imageData: newImageData,
-          maskData: combineMasks(newMaskData, location, maskData, assignmentToUpdate.location)
+          maskData: combinedMasks
         });
 
         refineDispatch({
