@@ -50,8 +50,6 @@ const getAssignment = async (subvolumeId, itemId, regionId = null) => {
 
   const info = infoResponse.data;
 
-  console.log(info);
-
   // Get files
   const filesResponse = await axios.get(`/item/${ itemId }/files`);
 
@@ -244,8 +242,6 @@ export const api = {
         }
       }
     }
-
-    console.log(assignments);
 
     return assignments;
   },

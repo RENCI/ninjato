@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  UserContext, SET_DATA,
+  UserContext, SET_DATA, SET_BACKGROUND_REGIONS,
   AnnotateContext, ANNOTATE_RESET,
   LoadingContext, SET_LOADING, CLEAR_LOADING,
   ErrorContext, SET_ERROR, ANNOTATE_SET_ACTIVE_REGION 
@@ -9,7 +9,6 @@ import {
 import { api } from 'utils/api';
 import { decodeTIFF } from 'utils/data-conversion';
 import { combineMasks, getUniqueLabels } from 'utils/data';
-import { backgroundColors } from 'utils/colors';
 
 const getBackgroundRegions = async (subvolumeId, mask, regions) => {
   const allLabels = getUniqueLabels(mask);
@@ -21,7 +20,10 @@ const getBackgroundRegions = async (subvolumeId, mask, regions) => {
   for (const label of backgroundLabels) {
     const info = await api.getRegionInfo(subvolumeId, label);
 
-    console.log(info);
+    backgroundRegions.push({
+      label: label,
+      info: info
+    });
   }
 
   return backgroundRegions;
@@ -61,14 +63,17 @@ export const useLoadData = ()  => {
 
         const backgroundRegions = await getBackgroundRegions(subvolumeId, newMaskData, regions);
 
-        console.log(backgroundRegions);
-
         userDispatch({
           type: SET_DATA,
           imageData: newImageData,
           maskData: newMaskData
         });
   
+        userDispatch({ 
+          type: SET_BACKGROUND_REGIONS,
+          regions: backgroundRegions
+        });
+
         refineDispatch({
           type: ANNOTATE_RESET
         });
