@@ -69,17 +69,14 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
         handle.onStartInteractionEvent(() => painter.startStroke());
       });
 
-      // Interaction
+      // Interaction default
+      Object.entries(handles).forEach(([name, handle]) => {      
+        const widget = widgets[name];
 
-      console.log(handles)
-
-      Object.values(handles).forEach(handle => {
-        // Default interaction event
-        handle.onInteractionEvent(() => {
-          console.log("Here");
-        });
+        handle.onInteractionEvent(() => onHover(widget.getLabel()));
       });
 
+      // Interaction overrides
       handles.select.onInteractionEvent(() => {
         const { inRegion, region } = getSelectInfo(widgets.select);
 

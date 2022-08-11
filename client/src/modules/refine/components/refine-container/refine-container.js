@@ -22,7 +22,7 @@ export const RefineContainer = () => {
   const [{ imageData }, userDispatch] = useContext(UserContext);
   const [{ tool }, refineDispatch] = useContext(AnnotateContext);
   const volumeView = useRef(VolumeView());
-  const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHighlight, onHover, onKeyDown, onKeyUp));
+  const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHover, onKeyDown, onKeyUp));
   const [loading, setLoading] = useState(true);
   const [slice, setSlice] = useState(0);
   const [canUndo, setCanUndo] = useState(false);
@@ -84,12 +84,14 @@ export const RefineContainer = () => {
     refineDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
   }
 
+/*
   function onHighlight(region) {
     sliceView.current.setHighlightRegion(region);
   }
+*/  
 
-  function onHover(region) {
-    console.log(region);
+  function onHover(region, highlight = false) {
+    console.log(region, highlight);
   }
 
   const handleKeyDown = key => {
