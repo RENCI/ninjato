@@ -70,6 +70,16 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       });
 
       // Interaction
+
+      console.log(handles)
+
+      Object.values(handles).forEach(handle => {
+        // Default interaction event
+        handle.onInteractionEvent(() => {
+          console.log("Here");
+        });
+      });
+
       handles.select.onInteractionEvent(() => {
         const { inRegion, region } = getSelectInfo(widgets.select);
 
