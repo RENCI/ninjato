@@ -73,74 +73,48 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       Object.entries(handles).forEach(([name, handle]) => {      
         const widget = widgets[name];
 
-        handle.onInteractionEvent(() => onHover(widget.getLabel()));
+        // XXX: Need to incorporate background regions
+
+        handle.onInteractionEvent(() => onHover(getRegion(widget.getLabel())));
       });
 
       // Interaction overrides
       handles.select.onInteractionEvent(() => {
         const { inRegion, region } = getSelectInfo(widgets.select);
 
-        if (inRegion && region && region !== activeRegion) {
-          onHover(region);
-        }
-        else {
-          onHover(null);
-        }
+        onHover(region, inRegion && region && region !== activeRegion);
       });
 
       handles.claim.onInteractionEvent(() => {
         const { inRegion, region } = getSelectInfo(widgets.claim);
 
-        if (inRegion && !region) {          
-          onHover({ label: widgets.claim.getLabel() });
-        }
-        else {
-          onHover(null);
-        }
+        // XXX: Need to incorporate background regions
+
+        onHover({ label: widgets.claim.getLabel() }, inRegion && !region);
       });
 
       handles.remove.onInteractionEvent(() => {
         const { inRegion, region } = getSelectInfo(widgets.remove);
 
-        if (inRegion && region) {          
-          onHover(region);
-        }
-        else {
-          onHover(null);
-        }
+        onHover(region, inRegion && region);
       });
 
       handles.split.onInteractionEvent(() => {
         const { inRegion, region } = getSelectInfo(widgets.split);
 
-        if (inRegion && region) {          
-          onHover(region);
-        }
-        else {
-          onHover(null);
-        }
+        onHover(region, inRegion && region);
       });
 
       handles.merge.onInteractionEvent(() => {
         const { inRegion, region } = getSelectInfo(widgets.merge);
 
-        if (inRegion && region && region !== activeRegion) {          
-          onHover(region);
-        }
-        else {
-          onHover(null);
-        }
+        onHover(region, inRegion && region && region !== activeRegion);
       });
 
       handles.delete.onInteractionEvent(() => {
         const { inRegion, region } = getSelectInfo(widgets.delete);
 
-        if (inRegion && region) {          
-          onHover(region);
-        }
-        else {
-          onHover(null);
-        }
+        onHover(region, inRegion && region);
       });
 
       // End

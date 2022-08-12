@@ -91,7 +91,9 @@ export const RefineContainer = () => {
 */  
 
   function onHover(region, highlight = false) {
-    console.log(region, highlight);
+    console.log(region);
+
+    sliceView.current.setHighlightRegion(highlight ? region : null);
   }
 
   const handleKeyDown = key => {
