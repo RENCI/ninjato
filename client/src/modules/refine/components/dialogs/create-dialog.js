@@ -5,7 +5,7 @@ import {
   AnnotateContext, ANNOTATE_SET_ACTION, ANNOTATE_SET_ACTIVE_REGION,
   ErrorContext, SET_ERROR
 } from 'contexts';
-import { RegionLabel } from 'modules/common/components/region-label';
+import { RegionLabel } from 'modules/region/components/region-label';
 import { api } from 'utils/api';
 
 const { Header, Content, Actions } = Modal;

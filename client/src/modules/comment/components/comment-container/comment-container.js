@@ -5,7 +5,7 @@ import {
   AnnotateContext, ANNOTATE_SET_ACTIVE_REGION 
 } from 'contexts';
 import { CommentHistory } from 'modules/comment/components/comment-history';
-import { RegionIcon } from 'modules/common/components/region-icon';
+import { RegionIcon } from 'modules/region/components/region-icon';
 
 const {  Content } = Modal;
 

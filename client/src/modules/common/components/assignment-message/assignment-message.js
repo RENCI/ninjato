@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { Message } from 'semantic-ui-react';
 import { UserContext } from 'contexts';
-import { RegionSelect } from 'modules/common/components/region-select';
+import { RegionSelect } from 'modules/region/components/region-select';
 import { CommentContainer } from 'modules/comment/components/comment-container';
 import styles from './styles.module.css';
 

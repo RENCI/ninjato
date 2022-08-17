@@ -4,7 +4,7 @@ import {
   UserContext, REMOVE_REGION,
   AnnotateContext, ANNOTATE_SET_ACTION, ANNOTATE_SET_ACTIVE_REGION, ANNOTATE_SET_TOOL
 } from 'contexts';
-import { RegionLabel } from 'modules/common/components/region-label';
+import { RegionLabel } from 'modules/region/components/region-label';
 
 const { Header, Content, Actions } = Modal;
 

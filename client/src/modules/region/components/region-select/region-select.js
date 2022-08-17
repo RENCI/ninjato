@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { Select } from 'semantic-ui-react';
 import { UserContext, AnnotateContext, ANNOTATE_SET_ACTIVE_REGION } from 'contexts';
-import { RegionIcon } from 'modules/common/components/region-icon';
+import { RegionIcon } from 'modules/region/components/region-icon';
 
 export const RegionSelect = () => {
   const [{ assignment }] = useContext(UserContext);
