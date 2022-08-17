@@ -3,6 +3,7 @@ import { Message } from 'semantic-ui-react';
 import { UserContext } from 'contexts';
 import { RegionSelect } from 'modules/region/components/region-select';
 import { CommentContainer } from 'modules/comment/components/comment-container';
+import { RegionInfo } from 'modules/region/components/region-info';
 import styles from './styles.module.css';
 
 export const AssignmentMessage = () => {
@@ -28,6 +29,7 @@ export const AssignmentMessage = () => {
                 </div>
                 <RegionSelect />
                 <CommentContainer />
+                <RegionInfo />
               </>
             }
           </>
