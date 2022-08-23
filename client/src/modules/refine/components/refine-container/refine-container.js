@@ -84,15 +84,7 @@ export const RefineContainer = () => {
     refineDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
   }
 
-/*
-  function onHighlight(region) {
-    sliceView.current.setHighlightRegion(region);
-  }
-*/  
-
   function onHover(region, highlight = false) {
-    console.log(region);
-
     sliceView.current.setHighlightRegion(highlight ? region : null);
   }
 

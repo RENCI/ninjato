@@ -19,7 +19,7 @@ export const ReviewContainer = () => {
   const [{ imageData }] = useContext(UserContext);
   const [, refineDispatch] = useContext(AnnotateContext);
   const volumeView = useRef(VolumeView());
-  const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHighlight));
+  const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHover));
   const [loading, setLoading] = useState(true);
   const [slice, setSlice] = useState(0);
 
@@ -52,8 +52,8 @@ export const ReviewContainer = () => {
     sliceView.current.setHighlightRegion(null);
   }
 
-  function onHighlight(region) {
-    sliceView.current.setHighlightRegion(region);
+  function onHover(region, highlight = false) {
+    sliceView.current.setHighlightRegion(highlight ? region : null);
   }
 
   // Other callbacks
