@@ -11,7 +11,7 @@ import { decodeTIFF } from 'utils/data-conversion';
 import { combineMasks, getUniqueLabels } from 'utils/data';
 
 const getBackgroundRegions = async (subvolumeId, mask, regions) => {
-  const allLabels = getUniqueLabels(mask);
+  const allLabels = getUniqueLabels(mask).filter(label => label !== 0);
   const labels = regions.map(({ label }) => label);
   const backgroundLabels = allLabels.filter(label => !labels.includes(label));
 

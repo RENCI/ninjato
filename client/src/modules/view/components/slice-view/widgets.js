@@ -38,9 +38,10 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
   let activeWidget = null; 
 
   let regions = [];
+  let backgroundRegions = [];
   let activeRegion = null;
 
-  const getRegion = label => regions.find(region => region.label === label);
+  const getRegion = label => regions.concat(backgroundRegions).find(region => region.label === label);
 
   const getSelectInfo = widget => {
     const startLabel = widget.getStartLabel();
@@ -235,8 +236,9 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       });      
     },
     setBrush: (type, brush) => setBrush(handles[type], brush),
-    setRegions: regionArray => {
-      regions = regionArray;
+    setRegions: (assignment, background) => {
+      regions = assignment;
+      backgroundRegions = background;
     },
     setActiveRegion: region => {
       activeRegion = region;

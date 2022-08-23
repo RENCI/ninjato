@@ -58,11 +58,11 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHover, onKeyDown, o
       slice.setImage(image.getActor(), renderWindow.getCamera(), sliceRanges, onUpdateSlice);
       if (mask.getActiveRegion()) slice.setSliceByLabel(image.getMapper(), maskData, mask.getActiveRegion().label);
     },
-    setRegions: regions => {
+    setRegions: (regions, backgroundRegions) => {
       console.log(regions);
 
       mask.setRegions(regions);
-      widgets.setRegions(regions);
+      widgets.setRegions(regions, backgroundRegions);
 
       if (!mask.getActiveRegion() && regions.length > 0) {
         const region = regions[0];

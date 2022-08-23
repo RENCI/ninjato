@@ -26,7 +26,7 @@ export const SliceViewWrapper = ({ sliceView }) => {
       const volume = volumes.find(({ id }) => id === assignment.subvolumeId);
       sliceRanges.current = volume.sliceRanges.slice(assignment.location.z_min, assignment.location.z_max + 1);
 
-      sliceView.setRegions(assignment.regions);
+      sliceView.setRegions(assignment.regions, assignment.backgroundRegions);
     }
   }, [initialized, sliceView, assignment, volumes]);   
 

@@ -2,7 +2,7 @@ import { useContext, useRef, useCallback, useState } from 'react';
 import { Grid } from 'semantic-ui-react';
 import { 
   UserContext, PUSH_REGION_HISTORY,
-  AnnotateContext, ANNOTATE_SET_TOOL, ANNOTATE_SET_ACTION, ANNOTATE_SET_ACTIVE_REGION, ANNOTATE_CHANGE_BRUSH_SIZE,
+  AnnotateContext, ANNOTATE_SET_TOOL, ANNOTATE_SET_ACTION, ANNOTATE_SET_ACTIVE_REGION, ANNOTATE_CHANGE_BRUSH_SIZE, ANNOTATE_SET_HOVER_REGION
 } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
@@ -85,6 +85,8 @@ export const RefineContainer = () => {
   }
 
   function onHover(region, highlight = false) {
+    annotateDispatch({ type: ANNOTATE_SET_HOVER_REGION, region: region });
+
     sliceView.current.setHighlightRegion(highlight ? region : null);
   }
 
