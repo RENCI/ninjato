@@ -17,15 +17,15 @@ const { Column } = Grid;
 
 export const ReviewContainer = () => {
   const [{ imageData }] = useContext(UserContext);
-  const [, refineDispatch] = useContext(AnnotateContext);
+  const [, annotateDispatch] = useContext(AnnotateContext);
   const volumeView = useRef(VolumeView());
   const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHover));
   const [loading, setLoading] = useState(true);
   const [slice, setSlice] = useState(0);
 
   useEffect(() => {
-    refineDispatch({ type: ANNOTATE_SET_TOOL, tool: 'select' })
-  }, [refineDispatch]);
+    annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'select' })
+  }, [annotateDispatch]);
 
   // Slice view callbacks
   function onEdit() {
@@ -42,7 +42,7 @@ export const ReviewContainer = () => {
   function onSelect(region, type) {
     switch (type) {
       case 'select':       
-        refineDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: region });
+        annotateDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: region });
         break;
 
       default:

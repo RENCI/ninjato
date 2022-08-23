@@ -10,7 +10,7 @@ const { Header, Content, Actions } = Modal;
 
 export const DeleteDialog = ({ sliceView }) => {
   const [{ assignment }, userDispatch] = useContext(UserContext);
-  const [{ activeRegion, action }, refineDispatch] = useContext(AnnotateContext);
+  const [{ activeRegion, action }, annotateDispatch] = useContext(AnnotateContext);
   const [deleting, setDeleting] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -26,22 +26,22 @@ export const DeleteDialog = ({ sliceView }) => {
 
     setTimeout(() => {
       setSuccess(false);
-      refineDispatch({ type: ANNOTATE_SET_ACTION, action: null });
+      annotateDispatch({ type: ANNOTATE_SET_ACTION, action: null });
 
       const { regions } = assignment;
 
       if (regions.length === 1) {
-        refineDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: null });
-        refineDispatch({ type: ANNOTATE_SET_TOOL, tool: 'create' });
+        annotateDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: null });
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'create' });
       }
       else if (action.region === activeRegion) {
-        refineDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: regions[0] })
+        annotateDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: regions[0] })
       }
     }, 1000);
   };
 
   const onCancel = () => {
-    refineDispatch({ type: ANNOTATE_SET_ACTION, action: null });
+    annotateDispatch({ type: ANNOTATE_SET_ACTION, action: null });
   };
 
   return (

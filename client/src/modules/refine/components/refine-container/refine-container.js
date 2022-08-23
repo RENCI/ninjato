@@ -20,7 +20,7 @@ const { Column } = Grid;
 
 export const RefineContainer = () => {
   const [{ imageData }, userDispatch] = useContext(UserContext);
-  const [{ tool }, refineDispatch] = useContext(AnnotateContext);
+  const [{ tool }, annotateDispatch] = useContext(AnnotateContext);
   const volumeView = useRef(VolumeView());
   const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHover, onKeyDown, onKeyUp));
   const [loading, setLoading] = useState(true);
@@ -48,31 +48,31 @@ export const RefineContainer = () => {
   function onSelect(region, type) {
     switch (type) {
       case 'select':       
-        refineDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: region });
+        annotateDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: region });
         break;
 
       case 'claim':
-        refineDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'claim', region: region } });     
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'claim', region: region } });     
         break;
 
       case 'remove':
-        refineDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'remove', region: region  } });     
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'remove', region: region  } });     
         break;
 
       case 'split':
-        refineDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'split', region: region  } });  
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'split', region: region  } });  
         break;
 
       case 'merge':
-        refineDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'merge', region: region  } });  
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'merge', region: region  } });  
         break;
 
       case 'create':
-        refineDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'create' } });  
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'create' } });  
         break;
 
       case 'delete':
-        refineDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'delete', region: region  } });  
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'delete', region: region  } });  
         break;
 
       default:
@@ -81,7 +81,7 @@ export const RefineContainer = () => {
 
     sliceView.current.setHighlightRegion(null);
 
-    refineDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
+    annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
   }
 
   function onHover(region, highlight = false) {
@@ -91,11 +91,11 @@ export const RefineContainer = () => {
   const handleKeyDown = key => {
     switch (key) {
       case 'Control':
-        if (tool !== 'erase') refineDispatch({ type: ANNOTATE_SET_TOOL, tool: 'erase' });
+        if (tool !== 'erase') annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'erase' });
         break;
 
       case 'Shift':
-        if (tool !== 'select') refineDispatch({ type: ANNOTATE_SET_TOOL, tool: 'select' });
+        if (tool !== 'select') annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'select' });
         break;
 
       default:
@@ -109,19 +109,19 @@ export const RefineContainer = () => {
   const handleKeyUp = key => {
     switch (key) {
       case 'Control': 
-        refineDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
         break;
 
       case 'Shift': 
-        refineDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
         break;
 
       case 'ArrowLeft':
-        refineDispatch({ type: ANNOTATE_CHANGE_BRUSH_SIZE, direction: 'down' });
+        annotateDispatch({ type: ANNOTATE_CHANGE_BRUSH_SIZE, direction: 'down' });
         break;
 
       case 'ArrowRight':
-        refineDispatch({ type: ANNOTATE_CHANGE_BRUSH_SIZE, direction: 'up' });
+        annotateDispatch({ type: ANNOTATE_CHANGE_BRUSH_SIZE, direction: 'up' });
         break;
 
       default:

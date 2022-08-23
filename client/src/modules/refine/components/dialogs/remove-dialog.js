@@ -13,7 +13,7 @@ const { Header, Content, Actions } = Modal;
 
 export const RemoveDialog = () => {
   const [{ user, assignment }, userDispatch] = useContext(UserContext);
-  const [{ action }, refineDispatch] = useContext(AnnotateContext);
+  const [{ action }, annotateDispatch] = useContext(AnnotateContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const loadData = useLoadData();
   const [removing, setRemoving] = useState(false);
@@ -39,7 +39,7 @@ export const RemoveDialog = () => {
         loadData(update, assignment);   
 
         setSuccess(false);
-        refineDispatch({ type: ANNOTATE_SET_ACTION, action: null }); 
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: null }); 
       }, 1000); 
     }
     catch (error) {
@@ -53,7 +53,7 @@ export const RemoveDialog = () => {
   };
 
   const onCancel = () => {
-    refineDispatch({ type: ANNOTATE_SET_ACTION, action: null });
+    annotateDispatch({ type: ANNOTATE_SET_ACTION, action: null });
   };
 
   return (

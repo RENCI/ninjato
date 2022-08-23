@@ -12,7 +12,7 @@ const { Header, Content, Actions } = Modal;
 
 export const CreateDialog = ({ sliceView }) => {
   const [{ assignment }, userDispatch] = useContext(UserContext);
-  const [{ action }, refineDispatch] = useContext(AnnotateContext);
+  const [{ action }, annotateDispatch] = useContext(AnnotateContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const [creating, setCreating] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -25,9 +25,9 @@ export const CreateDialog = ({ sliceView }) => {
     
     if (region) {
       setNewRegion(region);
-      refineDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: region });
+      annotateDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: region });
     }
-  }, [newLabel, assignment, refineDispatch]);
+  }, [newLabel, assignment, annotateDispatch]);
 
   const onConfirm = async () => {
     setCreating(true);
@@ -46,7 +46,7 @@ export const CreateDialog = ({ sliceView }) => {
       setTimeout(async () => {
         setSuccess(false);
         setNewLabel(null);
-        refineDispatch({ type: ANNOTATE_SET_ACTION, action: null });
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: null });
       }, 1000);
     }
     catch (error) {
@@ -60,7 +60,7 @@ export const CreateDialog = ({ sliceView }) => {
   };
 
   const onCancel = () => {
-    refineDispatch({ type: ANNOTATE_SET_ACTION, action: null });
+    annotateDispatch({ type: ANNOTATE_SET_ACTION, action: null });
   };
 
   return (

@@ -10,7 +10,7 @@ const { Header, Content, Actions } = Modal;
 
 export const MergeDialog = ({ sliceView }) => {
   const [, userDispatch] = useContext(UserContext);
-  const [{ action, activeRegion }, refineDispatch] = useContext(AnnotateContext);
+  const [{ action, activeRegion }, annotateDispatch] = useContext(AnnotateContext);
   const [merging, setMerging] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -26,12 +26,12 @@ export const MergeDialog = ({ sliceView }) => {
 
     setTimeout(() => {
       setSuccess(false);
-      refineDispatch({ type: ANNOTATE_SET_ACTION, action: null });
+      annotateDispatch({ type: ANNOTATE_SET_ACTION, action: null });
     }, 1000);
   };
 
   const onCancel = () => {
-    refineDispatch({ type: ANNOTATE_SET_ACTION, action: null });
+    annotateDispatch({ type: ANNOTATE_SET_ACTION, action: null });
   };
 
   return (

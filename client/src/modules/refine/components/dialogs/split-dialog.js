@@ -12,7 +12,7 @@ const { Header, Content, Actions } = Modal;
 
 export const SplitDialog = ({ sliceView }) => {
   const [{ assignment }, userDispatch] = useContext(UserContext);
-  const [{ action }, refineDispatch] = useContext(AnnotateContext);
+  const [{ action }, annotateDispatch] = useContext(AnnotateContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const [splitting, setSplitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -26,12 +26,12 @@ export const SplitDialog = ({ sliceView }) => {
 
     if (region) {
       setNewRegion(region);
-      refineDispatch({ 
+      annotateDispatch({ 
         type: ANNOTATE_SET_ACTIVE_REGION, 
         region: splitMode === 'top' ? action.region : region
       });
     }
-  }, [newLabel, assignment, splitMode, action, refineDispatch]);
+  }, [newLabel, assignment, splitMode, action, annotateDispatch]);
 
   const onConfirm = async () => {
     setSplitting(true);
@@ -50,7 +50,7 @@ export const SplitDialog = ({ sliceView }) => {
       setTimeout(() => {
         setSuccess(false);
         setNewLabel(null);
-        refineDispatch({ type: ANNOTATE_SET_ACTION, action: null });
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: null });
       }, 1000);
     }
     catch (error) {
@@ -64,7 +64,7 @@ export const SplitDialog = ({ sliceView }) => {
   };
 
   const onCancel = () => {
-    refineDispatch({ type: ANNOTATE_SET_ACTION, action: null });
+    annotateDispatch({ type: ANNOTATE_SET_ACTION, action: null });
   };
 
   return (

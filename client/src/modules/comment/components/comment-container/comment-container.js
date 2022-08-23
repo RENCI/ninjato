@@ -11,12 +11,12 @@ const {  Content } = Modal;
 
 export const CommentContainer = () => {
   const [{ assignment }] = useContext(UserContext);
-  const [{ activeRegion }, refineDispatch] = useContext(AnnotateContext);
+  const [{ activeRegion }, annotateDispatch] = useContext(AnnotateContext);
 
   const { regions } = assignment;
 
   const onTabChange = (evt, { activeIndex }) => {
-    refineDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: regions[activeIndex] });
+    annotateDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: regions[activeIndex] });
   };
 
   return (

@@ -10,7 +10,7 @@ const { Header, Content, Actions } = Modal;
 
 export const MissingDialog = ({ missing, onClose }) => {
   const [{ assignment }, userDispatch] = useContext(UserContext);
-  const [{ activeRegion }, refineDispatch] = useContext(AnnotateContext);
+  const [{ activeRegion }, annotateDispatch] = useContext(AnnotateContext);
   const [removing, setRemoving] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -29,11 +29,11 @@ export const MissingDialog = ({ missing, onClose }) => {
       const { regions } = assignment;
 
       if (regions.length === 1) {
-        refineDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: null });
-        refineDispatch({ type: ANNOTATE_SET_TOOL, tool: 'create' });
+        annotateDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: null });
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'create' });
       }
       else if (missing.includes(activeRegion)) {
-        refineDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: regions.find(region => !missing.includes(region)) });
+        annotateDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: regions.find(region => !missing.includes(region)) });
       }
 
       onClose();

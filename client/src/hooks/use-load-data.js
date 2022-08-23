@@ -32,7 +32,7 @@ const getBackgroundRegions = async (subvolumeId, mask, regions) => {
 export const useLoadData = ()  => {
   const [{ maskData }, userDispatch] = useContext(UserContext);
   const navigate = useNavigate();
-  const [, refineDispatch] = useContext(AnnotateContext);
+  const [, annotateDispatch] = useContext(AnnotateContext);
   const [, loadingDispatch] = useContext(LoadingContext);
   const [, errorDispatch] = useContext(ErrorContext);
 
@@ -74,11 +74,11 @@ export const useLoadData = ()  => {
           regions: backgroundRegions
         });
 
-        refineDispatch({
+        annotateDispatch({
           type: ANNOTATE_RESET
         });
 
-        refineDispatch({
+        annotateDispatch({
           type: ANNOTATE_SET_ACTIVE_REGION,
           region: regions.length > 0 ? regions[0] : null
         });
@@ -96,7 +96,7 @@ export const useLoadData = ()  => {
           maskData: combinedMasks
         });
 
-        refineDispatch({
+        annotateDispatch({
           type: ANNOTATE_SET_ACTIVE_REGION,
           region: regions.length > 0 ? regions[regions.length - 1] : null
         });
