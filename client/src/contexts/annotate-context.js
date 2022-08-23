@@ -60,7 +60,7 @@ const initialState = {
   tools: tools,
   brushes: brushes,
   paintBrush: 0,
-  eraseBrush: 2,
+  eraseBrush: 0,
   createBrush: 3,
   showBackground: true,
   showContours: true,
