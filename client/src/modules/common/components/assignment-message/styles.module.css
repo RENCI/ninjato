@@ -12,3 +12,9 @@
 .assignmentType {
   font-weight: bold;
 }
+
+.info {
+  position: fixed;
+  top: 0;
+  right: 0;
+}

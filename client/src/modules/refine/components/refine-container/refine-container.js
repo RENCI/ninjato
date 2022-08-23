@@ -20,13 +20,15 @@ const { Column } = Grid;
 
 export const RefineContainer = () => {
   const [{ imageData }, userDispatch] = useContext(UserContext);
-  const [{ tool }, annotateDispatch] = useContext(AnnotateContext);
+  const [{ tool, hoverRegion }, annotateDispatch] = useContext(AnnotateContext);
   const volumeView = useRef(VolumeView());
   const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHover, onKeyDown, onKeyUp));
   const [loading, setLoading] = useState(true);
   const [slice, setSlice] = useState(0);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
+
+  console.log(hoverRegion);
 
   // Slice view callbacks
   function onEdit() {
@@ -85,7 +87,17 @@ export const RefineContainer = () => {
   }
 
   function onHover(region, highlight = false) {
-    annotateDispatch({ type: ANNOTATE_SET_HOVER_REGION, region: region });
+    console.log(region, hoverRegion);
+
+    // XXX: Hover region not updated. Keep this state in the widget, and only emit on change?
+
+    if (
+      (region && !hoverRegion) || 
+      (!region && hoverRegion) || 
+      (region && hoverRegion && region.label !== hoverRegion.label)) {
+      console.log('Here');
+      annotateDispatch({ type: ANNOTATE_SET_HOVER_REGION, region: region });
+    }
 
     sliceView.current.setHighlightRegion(highlight ? region : null);
   }

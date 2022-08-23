@@ -30,7 +30,7 @@ export const AssignmentMessage = () => {
                 </div>
                 <RegionSelect />
                 <CommentContainer />
-                <RegionInfo region={ hoverRegion } />
+                <RegionInfo className={ styles.info } region={ hoverRegion } />
               </>
             }
           </>
