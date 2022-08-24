@@ -205,11 +205,13 @@ def _remove_assignment_from_history(item, assign_item_id, assign_key):
     return
 
 
-def update_assignment_in_whole_item(whole_item, assign_item_id):
+def update_assignment_in_whole_item(whole_item, assign_item_id, mask_file_name=None):
     """
     update subvolume whole item mask with updated verified assignment mask
     :param whole_item: subvolume whole item to update
     :param assign_item_id: assignment item id to update whole subvolume mask with
+    :param mask_file_name: annotation mask file name to update assignment. If it is None,
+    annotation mask file name is checked automatically
     :return: True if update action succeeds; otherwise, return False
     """
     assign_item = Item().findOne({'_id': ObjectId(assign_item_id)})
@@ -220,6 +222,8 @@ def update_assignment_in_whole_item(whole_item, assign_item_id):
     assign_item_files = File().find({'itemId': ObjectId(assign_item_id)})
     for assign_item_file in assign_item_files:
         if '_masks' not in assign_item_file['name']:
+            continue
+        if mask_file_name and assign_item_file['name'] != mask_file_name:
             continue
         assign_item_tif, _ = _get_tif_file_content_and_path(assign_item_file)
         assign_item_images = []
