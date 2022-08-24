@@ -383,10 +383,15 @@ export const api = {
 
     return response.data[0];
   },
-  saveReview: async (userId, itemId, regions, done = false, approve = false) => {
+  saveReview: async (userId, itemId, buffer, regions, done = false, approve = false) => {
+    const blob = new Blob([buffer], { type: 'image/tiff' });
+
+    // XXX: Create save review hook, similar to assignment, pass in buffer
+
     // Set form data
     const formData = new FormData();
     formData.append('comment', JSON.stringify(regionObject(regions, 'comment')));
+    formData.append('content_data', blob);    
 
     await axios.post(`/user/${ userId }/review_result`, 
       formData,
