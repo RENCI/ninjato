@@ -138,11 +138,15 @@ def save_user_annotation(user, item_id, done, reject, comment, color, current_re
                paramType='form', requireObject=True, required=False)
     .param('approve', 'A boolean True or False to indicate whether the review user approves '
                       'the annotation', dataType='boolean', required=True)
+    .param('content_data', 'reviewer annotation content blob data to be saved on server. If reject '
+                           'is False, this content_data needs to be saved',
+           required=False, paramType='formData')
 )
-def save_user_review_result(user, item_id, done, reject, comment, approve):
+def save_user_review_result(user, item_id, done, reject, comment, approve, content_data):
     if comment is None:
         comment = {}
-    return save_user_review_result_as_item(user, item_id, done, reject, comment, approve)
+    return save_user_review_result_as_item(user, item_id, done, reject, comment, approve,
+                                           content_data)
 
 
 @access.public

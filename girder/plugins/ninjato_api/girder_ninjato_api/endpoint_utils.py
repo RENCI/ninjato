@@ -482,7 +482,7 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
     }
 
 
-def save_user_review_result_as_item(user, item_id, done, reject, comment, approve):
+def save_user_review_result_as_item(user, item_id, done, reject, comment, approve, content_data):
     """
     save user review result
     :param user: the review user
@@ -491,6 +491,7 @@ def save_user_review_result_as_item(user, item_id, done, reject, comment, approv
     :param reject: whether to reject the review assignment rather than save it.
     :param comment: review comment per region added by the user
     :param approve: whether to approve the annotation or not
+    :param content_data: reviewer annotation content blob to be saved on server
     :return: JSON response to indicate success or not
     """
     uid = user['_id']
@@ -504,6 +505,32 @@ def save_user_review_result_as_item(user, item_id, done, reject, comment, approv
         return {
             "status": "success"
         }
+
+    annot_file_name = None
+    if content_data:
+        files = File().find({'itemId': ObjectId(item_id)})
+        annot_file_name = ''
+        assetstore_id = ''
+        for file in files:
+            if '_masks' in file['name']:
+                mask_file_name = file['name']
+                annot_file_name = f'{os.path.splitext(mask_file_name)[0]}_{uname}.tif'
+                assetstore_id = file['assetstoreId']
+                break
+        if not annot_file_name or not assetstore_id:
+            raise RestException('failure: cannot find the mask file for the annotated item', 500)
+        content = content_data.file.read()
+        try:
+            # save file to local file system before adding it to asset store
+            out_dir_path = os.path.join(DATA_PATH, str(item_id))
+            out_path = os.path.join(out_dir_path, annot_file_name)
+            if not os.path.isdir(out_dir_path):
+                os.makedirs(out_dir_path)
+            with open(out_path, "wb") as f:
+                f.write(content)
+            file = save_file(assetstore_id, item, out_path, user, annot_file_name)
+        except Exception as e:
+            raise RestException(f'failure: {e}', 500)
 
     add_meta = {}
     if approve:
@@ -524,7 +551,10 @@ def save_user_review_result_as_item(user, item_id, done, reject, comment, approv
             add_meta['review_done'] = 'false'
         else:
             # update whole volume masks with approved annotations
-            update_assignment_in_whole_item(whole_item, item_id)
+            if annot_file_name:
+                update_assignment_in_whole_item(whole_item, item_id, mask_file_name=annot_file_name)
+            else:
+                update_assignment_in_whole_item(whole_item, item_id)
             # update all assignments of the subvolume asyncly as a job
             update_all_assignment_masks_async(whole_item, item_id)
             add_meta['review_done'] = 'true'
