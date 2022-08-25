@@ -2,23 +2,23 @@ import { useContext, useState } from 'react';
 import { Popup, Button, Icon } from 'semantic-ui-react';
 import { UserContext } from 'contexts';
 import { MissingDialog } from './missing-dialog';
-import { useSaveAnnotations } from 'hooks';
+import { useSaveAnnotations, useSaveReview } from 'hooks';
 import { getMissingRegions } from 'utils/data';
-import { api } from 'utils/api';
 
 export const SaveButton = ({ disabled, review = false, onSaving }) => {
-  const [{ user, assignment, maskData }] = useContext(UserContext);
+  const [{ assignment, maskData }] = useContext(UserContext);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [missing, setMissing] = useState();
   const saveAnnotations = useSaveAnnotations();
+  const saveReview = useSaveReview();
 
   const saveAssignment = async () => {
     setSaving(true);
     onSaving(true);
 
     if (review) {
-      await api.saveReview(user._id, assignment.id, assignment.regions, false, false);
+      await saveReview();
     }
     else {
       await saveAnnotations();

@@ -9,6 +9,11 @@ import { encodeTIFF, saveTIFF } from 'utils/data-conversion';
 // Download for testing
 const download = false;
 
+const saveDownload = maskData => {
+  const buffer = encodeTIFF(maskData);
+  saveTIFF(buffer, 'testTiff.tif');
+};
+
 export const useSaveAnnotations = () => {
   const [{ user, assignment, maskData }] = useContext(UserContext);
   const [, errorDispatch] = useContext(ErrorContext);
@@ -18,8 +23,7 @@ export const useSaveAnnotations = () => {
       const buffer = encodeTIFF(maskData);
   
       if (download) {  
-        const buffer = encodeTIFF(maskData);
-        saveTIFF(buffer, 'testTiff.tif');
+        saveDownload(maskData);
   
         return;
       }
