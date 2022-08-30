@@ -200,42 +200,42 @@ export function Widgets(painter, onEdit, onSelect, onHover, onHighlight) {
       });
 
       handles.select.onEndInteractionEvent(() => {
-        const { inStartRegion, region } = getWidgetInfo(widgets.select);
+        const info = getWidgetInfo(widgets.select);
 
-        if (inStartRegion && region && region !== activeRegion) {
-          onSelect(region, 'select');
+        if (notActiveValid(info, activeRegion)) {
+          onSelect(info.region, 'select');
         }
       });
 
       handles.claim.onEndInteractionEvent(() => {
-        const { inStartRegion, region } = getWidgetInfo(widgets.claim);
+        const info = getWidgetInfo(widgets.claim);
 
-        if (inStartRegion && !region) {
-          onSelect({ label: widgets.claim.getLabel() }, 'claim');
+        if (claimValid(info)) {
+          onSelect({ label: info.label }, 'claim');
         }
       });
 
       handles.remove.onEndInteractionEvent(() => {
-        const { inStartRegion, region } = getWidgetInfo(widgets.remove);
+        const info = getWidgetInfo(widgets.remove);
 
-        if (inStartRegion && region) {
-          onSelect(region, 'remove');
+        if (actionValid(info)) {
+          onSelect(info.region, 'remove');
         }
       });
 
       handles.split.onEndInteractionEvent(() => {
-        const { inStartRegion, region } = getWidgetInfo(widgets.split);
+        const info = getWidgetInfo(widgets.split);
 
-        if (inStartRegion && region) {
-          onSelect(region, 'split');
+        if (actionValid(info)) {
+          onSelect(info.region, 'split');
         }
       });
 
       handles.merge.onEndInteractionEvent(() => {
-        const { inStartRegion, region } = getWidgetInfo(widgets.merge);
+        const info = getWidgetInfo(widgets.merge);
 
-        if (inStartRegion && region && region !== activeRegion) {
-          onSelect(region, 'merge');
+        if (notActiveValid(info, activeRegion)) {
+          onSelect(info.region, 'merge');
         }
       });
 
@@ -244,10 +244,10 @@ export function Widgets(painter, onEdit, onSelect, onHover, onHighlight) {
       });
 
       handles.delete.onEndInteractionEvent(() => {
-        const { inStartRegion, region } = getWidgetInfo(widgets.delete);
+        const info = getWidgetInfo(widgets.delete);
 
-        if (inStartRegion && region) {
-          onSelect(region, 'delete');
+        if (actionValid(info)) {
+          onSelect(info.region, 'delete');
         }
       });
     },
