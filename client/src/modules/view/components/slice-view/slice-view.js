@@ -59,8 +59,6 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight,
       if (mask.getActiveRegion()) slice.setSliceByLabel(image.getMapper(), maskData, mask.getActiveRegion().label);
     },
     setRegions: (regions, backgroundRegions) => {
-      console.log(regions);
-
       mask.setRegions(regions);
       widgets.setRegions(regions, backgroundRegions);
 
