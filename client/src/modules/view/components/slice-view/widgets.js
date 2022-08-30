@@ -15,7 +15,16 @@ const setColor = (handle, color) => {
 
 const createWidget = type => type.newInstance();
 
-export function Widgets(painter, onEdit, onSelect, onHover) {
+const actionValid = ({ region, inStartRegion, inAssignment }) =>
+  region && inStartRegion && inAssignment;
+
+const notActiveValid = ({ region, inStartRegion, inAssignment}, activeRegion) => 
+  region && inStartRegion && inAssignment && region !== activeRegion;
+
+const claimValid = ({ region, inStartRegion, inAssignment }) =>
+  region && inStartRegion && !inAssignment;
+
+export function Widgets(painter, onEdit, onSelect, onHover, onHighlight) {
   const manager = vtkWidgetManager.newInstance();
 
   const widgets = {
@@ -41,6 +50,7 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
   let backgroundRegions = [];
   let activeRegion = null;
   let hoverLabel = null;
+  let highlightLabel = null;
 
   const getRegion = label => regions.concat(backgroundRegions).find(region => region.label === label);
 
@@ -73,12 +83,9 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
         handle.onStartInteractionEvent(() => painter.startStroke());
       });
 
-
-      // XXX: Ok, so there can be multiple handlers registered for a given widget. Probably makes sense to 
-      // have seperate hover and highlight callbacks then, and use the same hover for all...
-
-/*
-      // Interaction default
+      // Hover
+      // There can be multiple handlers registered for a given widget.
+      // Use same hover for all, and widget-specific for highlighting as needed below.
       Object.entries(handles).forEach(([name, handle]) => {      
         const widget = widgets[name];
 
@@ -91,54 +98,66 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
           }
         });
       });
-      */
 
       // Interaction overrides
       handles.select.onInteractionEvent(() => {
-        const { label, region, inStartRegion, inAssignment } = getWidgetInfo(widgets.select);
+        const info = getWidgetInfo(widgets.select);
 
-        console.log("LDKFJ");
-        if (label !== hoverLabel) {
-          hoverLabel = label;
+        if (info.label !== highlightLabel) {
+          highlightLabel = info.label;
 
-          console.log("DLFJKDKLFJLKFJLS");
-
-          console.log(getWidgetInfo(widgets.select));
-
-          onHover(region, region && inStartRegion && inAssignment && region !== activeRegion);
+          onHighlight(notActiveValid(info, activeRegion) ? info.region : null);
         }
       });
 
       handles.claim.onInteractionEvent(() => {
-        const { inStartRegion, region } = getWidgetInfo(widgets.claim);
+        const info = getWidgetInfo(widgets.claim);
 
-        // XXX: Need to incorporate background regions
+        if (info.label !== highlightLabel) {
+          highlightLabel = info.label;
 
-        onHover({ label: widgets.claim.getLabel() }, inStartRegion && !region);
+          onHighlight(claimValid(info) ? info.region : null);
+        }
       });
 
       handles.remove.onInteractionEvent(() => {
-        const { inStartRegion, region } = getWidgetInfo(widgets.remove);
+        const info = getWidgetInfo(widgets.remove);
+        
+        if (info.label !== highlightLabel) {
+          highlightLabel = info.label;
 
-        onHover(region, inStartRegion && region);
+          onHighlight(actionValid(info) ? info.region : null);
+        }
       });
 
       handles.split.onInteractionEvent(() => {
-        const { inStartRegion, region } = getWidgetInfo(widgets.split);
+        const info = getWidgetInfo(widgets.split);
 
-        onHover(region, inStartRegion && region);
+        if (info.label !== highlightLabel) {
+          highlightLabel = info.label;
+
+          onHighlight(actionValid(info) ? info.region : null);
+        }
       });
 
       handles.merge.onInteractionEvent(() => {
-        const { inStartRegion, region } = getWidgetInfo(widgets.merge);
+        const info = getWidgetInfo(widgets.merge);
 
-        onHover(region, inStartRegion && region && region !== activeRegion);
+        if (info.label !== highlightLabel) {
+          highlightLabel = info.label;
+
+          onHighlight(notActiveValid(info, activeRegion) ? info.region : null);
+        }
       });
 
       handles.delete.onInteractionEvent(() => {
-        const { inStartRegion, region } = getWidgetInfo(widgets.delete);
+        const info = getWidgetInfo(widgets.delete);
 
-        onHover(region, inStartRegion && region);
+        if (info.label !== highlightLabel) {
+          highlightLabel = info.label;
+
+          onHighlight(actionValid(info) ? info.region : null);
+        }
       });
 
       // End

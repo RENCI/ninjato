@@ -16,13 +16,11 @@ import { ClaimDialog, RemoveDialog, SplitDialog, MergeDialog, CreateDialog, Dele
 
 const { Column } = Grid;
 
-// XXX: Combine onHighlight/onHover, pass info to do highlighting or not
-
 export const RefineContainer = () => {
   const [{ imageData }, userDispatch] = useContext(UserContext);
   const [{ tool }, annotateDispatch] = useContext(AnnotateContext);
   const volumeView = useRef(VolumeView());
-  const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHover, onKeyDown, onKeyUp));
+  const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight, onKeyDown, onKeyUp));
   const [loading, setLoading] = useState(true);
   const [slice, setSlice] = useState(0);
   const [canUndo, setCanUndo] = useState(false);
@@ -84,12 +82,12 @@ export const RefineContainer = () => {
     annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
   }
 
-  function onHover(region, highlight = false) {
-    console.log(region, highlight);
-
-    sliceView.current.setHighlightRegion(highlight ? region : null);
-
+  function onHover(region) {
     annotateDispatch({ type: ANNOTATE_SET_HOVER_REGION, region: region });
+  }
+
+  function onHighlight(region) {
+    sliceView.current.setHighlightRegion(region);
   }
 
   const handleKeyDown = key => {

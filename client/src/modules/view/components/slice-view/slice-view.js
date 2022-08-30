@@ -2,7 +2,7 @@ import { RenderWindow, Slice, Image } from 'modules/view/components';
 import { Widgets } from 'modules/view/components/slice-view/widgets';
 import { MaskPainter } from 'modules/view/components/slice-view/mask-painter';
 
-export function SliceView(onEdit, onSliceChange, onSelect, onHover, onKeyDown, onKeyUp) {
+export function SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight, onKeyDown, onKeyUp) {
   const renderWindow = RenderWindow();
   const image = Image();
   const slice = Slice(evt => evt.key === 'i' ? image.toggleInterpolation() : onKeyDown ? onKeyDown(evt) : null, onKeyUp);
@@ -23,7 +23,7 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHover, onKeyDown, o
   };
   */
 
-  const widgets = Widgets(mask.getPainter(), onEdit, onSelect, onHover);
+  const widgets = Widgets(mask.getPainter(), onEdit, onSelect, onHover, onHighlight);
 
   return {
     initialize: rootNode => {
