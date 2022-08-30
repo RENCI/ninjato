@@ -96,6 +96,11 @@ export const useLoadData = ()  => {
           maskData: combinedMasks
         });
 
+        userDispatch({ 
+          type: SET_BACKGROUND_REGIONS,
+          regions: backgroundRegions
+        });
+
         annotateDispatch({
           type: ANNOTATE_SET_ACTIVE_REGION,
           region: regions.length > 0 ? regions[regions.length - 1] : null

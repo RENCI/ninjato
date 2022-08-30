@@ -1,4 +1,4 @@
-export const getUniqueLabels = maskData => 
+export const getUniqueLabels = maskData =>
   [...new Set(maskData.getPointData().getScalars().getData().filter(d => d !== 0))].sort((a, b) => a - b);
 
 export const combineMasks = (newMask, newExtent, oldMask, oldExtent) => {
