@@ -323,7 +323,7 @@ export const api = {
     return infoResponse.data;
   },
   saveAnnotations: async (userId, itemId, buffer, regions, done = false) => {
-    const blob = new Blob([buffer], { type: 'image/tiff' });
+    const blob = new Blob([buffer], { type: 'application/octet' });
 
     // Set form data
     const formData = new FormData();
@@ -384,7 +384,7 @@ export const api = {
     return response.data[0];
   },
   saveReview: async (userId, itemId, buffer, regions, done = false, approve = false) => {
-    const blob = new Blob([buffer], { type: 'image/tiff' });
+    const blob = new Blob([buffer], { type: 'application/octet' });
 
     // XXX: Create save review hook, similar to assignment, pass in buffer
 
