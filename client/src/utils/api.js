@@ -50,8 +50,6 @@ const getAssignment = async (subvolumeId, itemId, regionId = null) => {
 
   const info = infoResponse.data;
 
-  console.log(info);
-
   // Get files
   const filesResponse = await axios.get(`/item/${ itemId }/files`);
 
@@ -245,8 +243,6 @@ export const api = {
       }
     }
 
-    console.log(assignments);
-
     return assignments;
   },
   getNewAssignment: async (userId, subvolumeId) => {
@@ -319,6 +315,13 @@ export const api = {
       maskBuffer: responses[1].data
     };   
   },
+  getRegionInfo: async (subvolumeId, regionId) => {
+    const infoResponse = await axios.get(`/item/${ subvolumeId }/subvolume_assignment_info`, {
+      params: { region_id: regionId }    
+    });
+
+    return infoResponse.data;
+  },
   saveAnnotations: async (userId, itemId, buffer, regions, done = false) => {
     const blob = new Blob([buffer], { type: 'image/tiff' });
 
@@ -380,10 +383,15 @@ export const api = {
 
     return response.data[0];
   },
-  saveReview: async (userId, itemId, regions, done = false, approve = false) => {
+  saveReview: async (userId, itemId, buffer, regions, done = false, approve = false) => {
+    const blob = new Blob([buffer], { type: 'image/tiff' });
+
+    // XXX: Create save review hook, similar to assignment, pass in buffer
+
     // Set form data
     const formData = new FormData();
     formData.append('comment', JSON.stringify(regionObject(regions, 'comment')));
+    formData.append('content_data', blob);    
 
     await axios.post(`/user/${ userId }/review_result`, 
       formData,

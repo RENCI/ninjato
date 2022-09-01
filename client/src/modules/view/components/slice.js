@@ -70,7 +70,7 @@ export function Slice(onKeyDown, onKeyUp) {
   let sliceRanges = null;
 
   const manipulator = vtkMouseRangeManipulator.newInstance({
-    scrollEnabled: true,
+    scrollEnabled: true
   });
 
   const interactorStyle = vtkInteractorStyleManipulator.newInstance();

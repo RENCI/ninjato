@@ -101,7 +101,7 @@ export const CommentHistory = ({ region }) => {
                         style={{ flex: '0 1 auto' }}
                         secondary  
                         size='small'
-                        icon='x circle'
+                        icon='x'
                         onClick={ onClearClick }                 
                       />
                       <Button 

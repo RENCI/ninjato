@@ -1,8 +1,8 @@
 import { useContext, useRef, useCallback, useState } from 'react';
-import { Grid } from 'semantic-ui-react';
+import { Grid, Popup } from 'semantic-ui-react';
 import { 
   UserContext, PUSH_REGION_HISTORY,
-  RefineContext, REFINE_SET_TOOL, REFINE_SET_ACTION, REFINE_SET_ACTIVE_REGION, REFINE_CHANGE_BRUSH_SIZE,
+  AnnotateContext, ANNOTATE_SET_TOOL, ANNOTATE_SET_ACTION, ANNOTATE_SET_ACTIVE_REGION, ANNOTATE_CHANGE_BRUSH_SIZE
 } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
@@ -12,19 +12,21 @@ import { VolumeControls } from 'modules/refine/components/volume-controls';
 import { SliceControls } from 'modules/refine/components/slice-controls';
 import { SliceSlider } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
+import { RegionInfo } from 'modules/region/components/region-info';
 import { ClaimDialog, RemoveDialog, SplitDialog, MergeDialog, CreateDialog, DeleteDialog } from 'modules/refine/components/dialogs';
 
 const { Column } = Grid;
 
 export const RefineContainer = () => {
   const [{ imageData }, userDispatch] = useContext(UserContext);
-  const [{ tool }, refineDispatch] = useContext(RefineContext);
+  const [{ tool }, annotateDispatch] = useContext(AnnotateContext);
   const volumeView = useRef(VolumeView());
-  const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDown, onKeyUp));
+  const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight, onKeyDown, onKeyUp));
   const [loading, setLoading] = useState(true);
   const [slice, setSlice] = useState(0);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
+  const [hoverRegion, setHoverRegion] = useState(null);
 
   // Slice view callbacks
   function onEdit() {
@@ -46,31 +48,31 @@ export const RefineContainer = () => {
   function onSelect(region, type) {
     switch (type) {
       case 'select':       
-        refineDispatch({ type: REFINE_SET_ACTIVE_REGION, region: region });
+        annotateDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: region });
         break;
 
       case 'claim':
-        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'claim', region: region } });     
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'claim', region: region } });     
         break;
 
       case 'remove':
-        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'remove', region: region  } });     
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'remove', region: region  } });     
         break;
 
       case 'split':
-        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'split', region: region  } });  
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'split', region: region  } });  
         break;
 
       case 'merge':
-        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'merge', region: region  } });  
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'merge', region: region  } });  
         break;
 
       case 'create':
-        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'create' } });  
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'create' } });  
         break;
 
       case 'delete':
-        refineDispatch({ type: REFINE_SET_ACTION, action: { type: 'delete', region: region  } });  
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'delete', region: region  } });  
         break;
 
       default:
@@ -79,7 +81,11 @@ export const RefineContainer = () => {
 
     sliceView.current.setHighlightRegion(null);
 
-    refineDispatch({ type: REFINE_SET_TOOL, tool: 'paint' });
+    annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
+  }
+
+  function onHover(region) {
+    setHoverRegion(region);
   }
 
   function onHighlight(region) {
@@ -89,11 +95,11 @@ export const RefineContainer = () => {
   const handleKeyDown = key => {
     switch (key) {
       case 'Control':
-        if (tool !== 'erase') refineDispatch({ type: REFINE_SET_TOOL, tool: 'erase' });
+        if (tool !== 'erase') annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'erase' });
         break;
 
       case 'Shift':
-        if (tool !== 'select') refineDispatch({ type: REFINE_SET_TOOL, tool: 'select' });
+        if (tool !== 'select') annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'select' });
         break;
 
       default:
@@ -107,19 +113,19 @@ export const RefineContainer = () => {
   const handleKeyUp = key => {
     switch (key) {
       case 'Control': 
-        refineDispatch({ type: REFINE_SET_TOOL, tool: 'paint' });
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
         break;
 
       case 'Shift': 
-        refineDispatch({ type: REFINE_SET_TOOL, tool: 'paint' });
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
         break;
 
       case 'ArrowLeft':
-        refineDispatch({ type: REFINE_CHANGE_BRUSH_SIZE, direction: 'down' });
+        annotateDispatch({ type: ANNOTATE_CHANGE_BRUSH_SIZE, direction: 'down' });
         break;
 
       case 'ArrowRight':
-        refineDispatch({ type: REFINE_CHANGE_BRUSH_SIZE, direction: 'up' });
+        annotateDispatch({ type: ANNOTATE_CHANGE_BRUSH_SIZE, direction: 'up' });
         break;
 
       default:
@@ -158,7 +164,12 @@ export const RefineContainer = () => {
                 <VolumeViewWrapper volumeView={ volumeView.current } onLoaded={ onLoaded } />
               </Column>
               <Column>
-                <SliceViewWrapper sliceView={ sliceView.current } />
+                <Popup 
+                  trigger={ <SliceViewWrapper sliceView={ sliceView.current } /> }
+                  content={ <RegionInfo region={ hoverRegion } /> }
+                  open={ hoverRegion !== null }
+                  position='top center'
+                /> 
               </Column>                  
                 { !loading &&
                   <SliceSlider 

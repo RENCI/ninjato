@@ -1,5 +1,6 @@
 import macro from '@kitware/vtk.js/macros';
 import { vec3 } from 'gl-matrix';
+import { getLabel } from 'vtk/widget-utils';
 
 const toPixelCenter = (v, spacing, max) => {
   if (v < 0) v = 0;
@@ -84,6 +85,8 @@ export default function widgetBehavior(publicAPI, model) {
           );
         }
       }
+
+      model.factory.setLabel(getLabel(model, callData));  
 
       publicAPI.invokeInteractionEvent();
       return macro.EVENT_ABORT;

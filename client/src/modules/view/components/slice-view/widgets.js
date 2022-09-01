@@ -15,7 +15,16 @@ const setColor = (handle, color) => {
 
 const createWidget = type => type.newInstance();
 
-export function Widgets(painter, onEdit, onSelect, onHover) {
+const actionValid = ({ region, inStartRegion, inAssignment }) =>
+  region && inStartRegion && inAssignment;
+
+const notActiveValid = ({ region, inStartRegion, inAssignment}, activeRegion) => 
+  region && inStartRegion && inAssignment && region !== activeRegion;
+
+const claimValid = ({ region, inStartRegion, inAssignment }) =>
+  region && inStartRegion && !inAssignment;
+
+export function Widgets(painter, onEdit, onSelect, onHover, onHighlight) {
   const manager = vtkWidgetManager.newInstance();
 
   const widgets = {
@@ -38,17 +47,26 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
   let activeWidget = null; 
 
   let regions = [];
+  let backgroundRegions = [];
   let activeRegion = null;
+  let hoverLabel = null;
+  let highlightLabel = null;
 
-  const getRegion = label => regions.find(region => region.label === label);
+  const getRegion = label => {
+    const region = regions.concat(backgroundRegions).find(region => region.label === label);
+    return region ? region : null;
+  };
 
-  const getSelectInfo = widget => {
-    const startLabel = widget.getStartLabel();
+
+  const getWidgetInfo = widget => {
+    const startLabel = widget.getStartLabel ? widget.getStartLabel() : null;
     const label = widget.getLabel();
 
     return {
-      inRegion: (startLabel === null || label === startLabel) && label !== 0,
-      region: getRegion(label)
+      label: widget.getLabel(),
+      region: getRegion(label),
+      inStartRegion: (startLabel === null || label === startLabel) && label !== 0,
+      inAssignment: Boolean (regions.find(region => region.label === label))
     };
   };
 
@@ -69,70 +87,80 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
         handle.onStartInteractionEvent(() => painter.startStroke());
       });
 
-      // Interaction
-      handles.select.onInteractionEvent(() => {
-        const { inRegion, region } = getSelectInfo(widgets.select);
+      // Hover
+      // There can be multiple handlers registered for a given widget.
+      // Use same hover for all, and widget-specific for highlighting as needed below.
+      Object.entries(handles).forEach(([name, handle]) => {      
+        const widget = widgets[name];
 
-        if (inRegion && region && region !== activeRegion) {
-          onHover(region);
-        }
-        else {
-          onHover(null);
+        handle.onInteractionEvent(() => {
+          const { label, region } = getWidgetInfo(widget);
+          
+          if (label !== hoverLabel) {
+            hoverLabel = label;
+            onHover(region);
+          }
+        });
+      });
+
+      // Interaction overrides
+      handles.select.onInteractionEvent(() => {
+        const info = getWidgetInfo(widgets.select);
+
+        if (info.label !== highlightLabel) {
+          highlightLabel = info.label;
+
+          onHighlight(notActiveValid(info, activeRegion) ? info.region : null);
         }
       });
 
       handles.claim.onInteractionEvent(() => {
-        const { inRegion, region } = getSelectInfo(widgets.claim);
+        const info = getWidgetInfo(widgets.claim);
 
-        if (inRegion && !region) {          
-          onHover({ label: widgets.claim.getLabel() });
-        }
-        else {
-          onHover(null);
+        if (info.label !== highlightLabel) {
+          highlightLabel = info.label;
+
+          onHighlight(claimValid(info) ? info.region : null);
         }
       });
 
       handles.remove.onInteractionEvent(() => {
-        const { inRegion, region } = getSelectInfo(widgets.remove);
+        const info = getWidgetInfo(widgets.remove);
+        
+        if (info.label !== highlightLabel) {
+          highlightLabel = info.label;
 
-        if (inRegion && region) {          
-          onHover(region);
-        }
-        else {
-          onHover(null);
+          onHighlight(actionValid(info) ? info.region : null);
         }
       });
 
       handles.split.onInteractionEvent(() => {
-        const { inRegion, region } = getSelectInfo(widgets.split);
+        const info = getWidgetInfo(widgets.split);
 
-        if (inRegion && region) {          
-          onHover(region);
-        }
-        else {
-          onHover(null);
+        if (info.label !== highlightLabel) {
+          highlightLabel = info.label;
+
+          onHighlight(actionValid(info) ? info.region : null);
         }
       });
 
       handles.merge.onInteractionEvent(() => {
-        const { inRegion, region } = getSelectInfo(widgets.merge);
+        const info = getWidgetInfo(widgets.merge);
 
-        if (inRegion && region && region !== activeRegion) {          
-          onHover(region);
-        }
-        else {
-          onHover(null);
+        if (info.label !== highlightLabel) {
+          highlightLabel = info.label;
+
+          onHighlight(notActiveValid(info, activeRegion) ? info.region : null);
         }
       });
 
       handles.delete.onInteractionEvent(() => {
-        const { inRegion, region } = getSelectInfo(widgets.delete);
+        const info = getWidgetInfo(widgets.delete);
 
-        if (inRegion && region) {          
-          onHover(region);
-        }
-        else {
-          onHover(null);
+        if (info.label !== highlightLabel) {
+          highlightLabel = info.label;
+
+          onHighlight(actionValid(info) ? info.region : null);
         }
       });
 
@@ -176,42 +204,42 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       });
 
       handles.select.onEndInteractionEvent(() => {
-        const { inRegion, region } = getSelectInfo(widgets.select);
+        const info = getWidgetInfo(widgets.select);
 
-        if (inRegion && region && region !== activeRegion) {
-          onSelect(region, 'select');
+        if (notActiveValid(info, activeRegion)) {
+          onSelect(info.region, 'select');
         }
       });
 
       handles.claim.onEndInteractionEvent(() => {
-        const { inRegion, region } = getSelectInfo(widgets.claim);
+        const info = getWidgetInfo(widgets.claim);
 
-        if (inRegion && !region) {
-          onSelect({ label: widgets.claim.getLabel() }, 'claim');
+        if (claimValid(info)) {
+          onSelect({ label: info.label }, 'claim');
         }
       });
 
       handles.remove.onEndInteractionEvent(() => {
-        const { inRegion, region } = getSelectInfo(widgets.remove);
+        const info = getWidgetInfo(widgets.remove);
 
-        if (inRegion && region) {
-          onSelect(region, 'remove');
+        if (actionValid(info)) {
+          onSelect(info.region, 'remove');
         }
       });
 
       handles.split.onEndInteractionEvent(() => {
-        const { inRegion, region } = getSelectInfo(widgets.split);
+        const info = getWidgetInfo(widgets.split);
 
-        if (inRegion && region) {
-          onSelect(region, 'split');
+        if (actionValid(info)) {
+          onSelect(info.region, 'split');
         }
       });
 
       handles.merge.onEndInteractionEvent(() => {
-        const { inRegion, region } = getSelectInfo(widgets.merge);
+        const info = getWidgetInfo(widgets.merge);
 
-        if (inRegion && region && region !== activeRegion) {
-          onSelect(region, 'merge');
+        if (notActiveValid(info, activeRegion)) {
+          onSelect(info.region, 'merge');
         }
       });
 
@@ -220,10 +248,10 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       });
 
       handles.delete.onEndInteractionEvent(() => {
-        const { inRegion, region } = getSelectInfo(widgets.delete);
+        const info = getWidgetInfo(widgets.delete);
 
-        if (inRegion && region) {
-          onSelect(region, 'delete');
+        if (actionValid(info)) {
+          onSelect(info.region, 'delete');
         }
       });
     },
@@ -254,8 +282,9 @@ export function Widgets(painter, onEdit, onSelect, onHover) {
       });      
     },
     setBrush: (type, brush) => setBrush(handles[type], brush),
-    setRegions: regionArray => {
-      regions = regionArray;
+    setRegions: (assignment, background) => {
+      regions = assignment;
+      backgroundRegions = background;
     },
     setActiveRegion: region => {
       activeRegion = region;

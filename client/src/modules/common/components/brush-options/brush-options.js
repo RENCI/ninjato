@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import { Icon, Button } from 'semantic-ui-react';
-import { RefineContext, REFINE_SET_BRUSH } from 'contexts';
+import { AnnotateContext, ANNOTATE_SET_BRUSH } from 'contexts';
 
 const { Group } = Button;
 
@@ -15,10 +15,10 @@ const iconSize = brush => (
 );
 
 export const BrushOptions = ({ which }) => {
-  const [{ brushes, paintBrush, eraseBrush, createBrush }, dispatch] = useContext(RefineContext);
+  const [{ brushes, paintBrush, eraseBrush, createBrush }, dispatch] = useContext(AnnotateContext);
 
   const onClick = (brush, which) => {
-    dispatch({ type: REFINE_SET_BRUSH, brush: brush, which: which });
+    dispatch({ type: ANNOTATE_SET_BRUSH, brush: brush, which: which });
   };
 
   const brush = (brush, i) => (

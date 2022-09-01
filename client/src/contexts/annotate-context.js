@@ -1,13 +1,13 @@
 import { createContext, useReducer } from 'react';
 import { getCursor } from 'utils/cursor';
 
-export const REFINE_SET_TOOL = 'refine/SET_TOOL';
-export const REFINE_SET_BRUSH = 'refine/REFINE_SET_BRUSH';
-export const REFINE_CHANGE_BRUSH_SIZE = 'refine/REFINE_CHANGE_BRUSH_SIZE';
-export const REFINE_SET_CONTROL = 'refine/SET_CONTROL';
-export const REFINE_SET_ACTION = 'refine/SET_ACTION';
-export const REFINE_SET_ACTIVE_REGION = 'refine/SET_ACTIVE_REGION';
-export const REFINE_RESET = 'refine/RESET';
+export const ANNOTATE_SET_TOOL = 'annotate/SET_TOOL';
+export const ANNOTATE_SET_BRUSH = 'annotate/ANNOTATE_SET_BRUSH';
+export const ANNOTATE_CHANGE_BRUSH_SIZE = 'annotate/ANNOTATE_CHANGE_BRUSH_SIZE';
+export const ANNOTATE_SET_CONTROL = 'annotate/SET_CONTROL';
+export const ANNOTATE_SET_ACTION = 'annotate/SET_ACTION';
+export const ANNOTATE_SET_ACTIVE_REGION = 'annotate/SET_ACTIVE_REGION';
+export const ANNOTATE_RESET = 'annotate/RESET';
 
 const tools = [
   { group: 'edit', value: 'select', icon: 'map marker alternate', cursor: getCursor('map-marker-alternate.png', 16, 23), tooltip: 'select region' },
@@ -60,7 +60,7 @@ const initialState = {
   tools: tools,
   brushes: brushes,
   paintBrush: 0,
-  eraseBrush: 2,
+  eraseBrush: 0,
   createBrush: 3,
   showBackground: true,
   showContours: true,
@@ -69,25 +69,25 @@ const initialState = {
 
 const reducer = (state, action) => {
   switch (action.type) {
-    case REFINE_SET_ACTIVE_REGION:
+    case ANNOTATE_SET_ACTIVE_REGION:
       return {
         ...state,
         activeRegion: action.region
       };
 
-    case REFINE_SET_TOOL:
+    case ANNOTATE_SET_TOOL:
       return {
         ...state,
         tool: action.tool
       };
 
-    case REFINE_SET_BRUSH:
+    case ANNOTATE_SET_BRUSH:
       return {
         ...state,
         [`${ action.which }Brush`]: action.brush
       };
 
-    case REFINE_CHANGE_BRUSH_SIZE: {
+    case ANNOTATE_CHANGE_BRUSH_SIZE: {
       if (!(state.tool === 'paint' || state.tool === 'erase')) return state;
 
       const brushName = state.tool + 'Brush';
@@ -105,19 +105,19 @@ const reducer = (state, action) => {
       };
     }
 
-    case REFINE_SET_CONTROL:
+    case ANNOTATE_SET_CONTROL:
       return {
         ...state,
         [action.name]: action.value
       };
 
-    case REFINE_SET_ACTION:
+    case ANNOTATE_SET_ACTION:
       return {
         ...state,
         action: action.action
       };
 
-    case REFINE_RESET:
+    case ANNOTATE_RESET:
       return {
         ...initialState,
         paintBrush: state.paintBrush,
@@ -126,18 +126,18 @@ const reducer = (state, action) => {
       };
 
     default: 
-      throw new Error('Invalid refine context action: ' + action.type);
+      throw new Error('Invalid annotate context action: ' + action.type);
   }
 }
 
-export const RefineContext = createContext(initialState);
+export const AnnotateContext = createContext(initialState);
 
-export const RefineProvider = ({ children }) => {
+export const AnnotateProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
  
   return (
-    <RefineContext.Provider value={ [state, dispatch] }>
+    <AnnotateContext.Provider value={ [state, dispatch] }>
       { children }
-    </RefineContext.Provider>
+    </AnnotateContext.Provider>
   )
 } 

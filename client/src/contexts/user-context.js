@@ -13,6 +13,7 @@ export const CLEAR_DATA = 'user/CLEAR_DATA';
 export const ADD_REGION = 'user/ADD_REGION';
 export const REMOVE_REGION = 'user/REMOVE_REGION';
 export const REMOVE_REGIONS = 'user/REMOVE_REGIONS';
+export const SET_BACKGROUND_REGIONS = 'user/SET_BACKGROUND_REGIONS';
 export const CLEAR_SAVE_LABELS = 'user/CLEAR_SAVE_LABELS';
 export const PUSH_REGION_HISTORY = 'user/PUSH_REGION_HISTORY';
 export const UNDO_REGION_HISTORY = 'user/UNDO_REGION_HISTORY';
@@ -153,6 +154,15 @@ const reducer = (state, action) => {
         assignment: {
           ...state.assignment,
           regions: removeRegions(state.assignment.regions, action.regions)
+        }
+      };
+
+    case SET_BACKGROUND_REGIONS: 
+      return {
+        ...state,
+        assignment: {
+          ...state.assignment,
+          backgroundRegions: action.regions
         }
       };
 

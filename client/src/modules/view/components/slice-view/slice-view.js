@@ -2,15 +2,18 @@ import { RenderWindow, Slice, Image } from 'modules/view/components';
 import { Widgets } from 'modules/view/components/slice-view/widgets';
 import { MaskPainter } from 'modules/view/components/slice-view/mask-painter';
 
-export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDown, onKeyUp) {
+export function SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight, onKeyDown, onKeyUp) {
   const renderWindow = RenderWindow();
   const image = Image();
   const slice = Slice(evt => evt.key === 'i' ? image.toggleInterpolation() : onKeyDown ? onKeyDown(evt) : null, onKeyUp);
   const mask = MaskPainter();
 
+  /*
   const isValid = label => label !== null && label !== 0;
 
-  const onHover = label => {
+  const onRegionHover = (label, highlight) => {
+    onHover(label);
+
     if (isValid(label)) {
       onHighlight(label);
     }
@@ -18,8 +21,9 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
       onHighlight(null);
     }
   };
+  */
 
-  const widgets = Widgets(mask.getPainter(), onEdit, onSelect, onHover);
+  const widgets = Widgets(mask.getPainter(), onEdit, onSelect, onHover, onHighlight);
 
   return {
     initialize: rootNode => {
@@ -54,9 +58,9 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHighlight, onKeyDow
       slice.setImage(image.getActor(), renderWindow.getCamera(), sliceRanges, onUpdateSlice);
       if (mask.getActiveRegion()) slice.setSliceByLabel(image.getMapper(), maskData, mask.getActiveRegion().label);
     },
-    setRegions: regions => {
+    setRegions: (regions, backgroundRegions) => {
       mask.setRegions(regions);
-      widgets.setRegions(regions);
+      widgets.setRegions(regions, backgroundRegions);
 
       if (!mask.getActiveRegion() && regions.length > 0) {
         const region = regions[0];

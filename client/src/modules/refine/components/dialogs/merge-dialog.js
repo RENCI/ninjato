@@ -2,15 +2,15 @@ import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { 
   UserContext, REMOVE_REGION,
-  RefineContext, REFINE_SET_ACTION
+  AnnotateContext, ANNOTATE_SET_ACTION
 } from 'contexts';
-import { RegionLabel } from 'modules/common/components/region-label';
+import { RegionLabel } from 'modules/region/components/region-label';
 
 const { Header, Content, Actions } = Modal;
 
 export const MergeDialog = ({ sliceView }) => {
   const [, userDispatch] = useContext(UserContext);
-  const [{ action, activeRegion }, refineDispatch] = useContext(RefineContext);
+  const [{ action, activeRegion }, annotateDispatch] = useContext(AnnotateContext);
   const [merging, setMerging] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -26,12 +26,12 @@ export const MergeDialog = ({ sliceView }) => {
 
     setTimeout(() => {
       setSuccess(false);
-      refineDispatch({ type: REFINE_SET_ACTION, action: null });
+      annotateDispatch({ type: ANNOTATE_SET_ACTION, action: null });
     }, 1000);
   };
 
   const onCancel = () => {
-    refineDispatch({ type: REFINE_SET_ACTION, action: null });
+    annotateDispatch({ type: ANNOTATE_SET_ACTION, action: null });
   };
 
   return (

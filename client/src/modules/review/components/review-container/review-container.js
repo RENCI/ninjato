@@ -1,8 +1,8 @@
 import { useContext, useRef, useCallback, useState, useEffect } from 'react';
-import { Grid } from 'semantic-ui-react';
+import { Grid, Popup } from 'semantic-ui-react';
 import { 
   UserContext,
-  RefineContext, REFINE_SET_ACTIVE_REGION, REFINE_SET_TOOL
+  AnnotateContext, ANNOTATE_SET_TOOL, ANNOTATE_SET_ACTIVE_REGION, ANNOTATE_CHANGE_BRUSH_SIZE
 } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
@@ -17,15 +17,16 @@ const { Column } = Grid;
 
 export const ReviewContainer = () => {
   const [{ imageData }] = useContext(UserContext);
-  const [, refineDispatch] = useContext(RefineContext);
+  const [{ tool }, annotateDispatch] = useContext(AnnotateContext);
   const volumeView = useRef(VolumeView());
-  const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHighlight));
+  const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight, onKeyDown, onKeyUp));
   const [loading, setLoading] = useState(true);
   const [slice, setSlice] = useState(0);
+  const [hoverRegion, setHoverRegion] = useState(null);
 
   useEffect(() => {
-    refineDispatch({ type: REFINE_SET_TOOL, tool: 'select' })
-  }, [refineDispatch]);
+    annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'select' })
+  }, [annotateDispatch]);
 
   // Slice view callbacks
   function onEdit() {
@@ -42,7 +43,7 @@ export const ReviewContainer = () => {
   function onSelect(region, type) {
     switch (type) {
       case 'select':       
-        refineDispatch({ type: REFINE_SET_ACTIVE_REGION, region: region });
+        annotateDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: region });
         break;
 
       default:
@@ -52,8 +53,56 @@ export const ReviewContainer = () => {
     sliceView.current.setHighlightRegion(null);
   }
 
+  function onHover(region) {
+    setHoverRegion(region);
+  }
+
   function onHighlight(region) {
     sliceView.current.setHighlightRegion(region);
+  }
+
+  const handleKeyDown = key => {
+    switch (key) {
+      case 'Control':
+        if (tool !== 'erase') annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'erase' });
+        break;
+
+      case 'Shift':
+        if (tool !== 'select') annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'select' });
+        break;
+
+      default:
+    }
+  };
+
+  function onKeyDown(evt) {
+    handleKeyDown(evt.key);
+  }
+
+  const handleKeyUp = key => {
+    switch (key) {
+      case 'Control': 
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
+        break;
+
+      case 'Shift': 
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
+        break;
+
+      case 'ArrowLeft':
+        annotateDispatch({ type: ANNOTATE_CHANGE_BRUSH_SIZE, direction: 'down' });
+        break;
+
+      case 'ArrowRight':
+        annotateDispatch({ type: ANNOTATE_CHANGE_BRUSH_SIZE, direction: 'up' });
+        break;
+
+      default:
+    }
+  };
+
+  function onKeyUp(evt) {
+    handleKeyUp(evt.key);
   }
 
   // Other callbacks
@@ -84,7 +133,12 @@ export const ReviewContainer = () => {
                 <VolumeViewWrapper volumeView={ volumeView.current } onLoaded={ onLoaded } />
               </Column>
               <Column>
-                <SliceViewWrapper sliceView={ sliceView.current } />
+                <Popup 
+                  trigger={ <SliceViewWrapper sliceView={ sliceView.current } /> }
+                  content={ 'HI '}
+                  open={ hoverRegion !== null }
+                  position='top center'
+                />                
               </Column>                  
                 { !loading &&
                   <SliceSlider 

@@ -87,6 +87,7 @@ const DEFAULT_VALUES = {
   manipulator: null,
   cropping: false,
   imageData: null,
+  label: null
 };
 
 // ----------------------------------------------------------------------------
@@ -97,7 +98,7 @@ export function extend(publicAPI, model, initialValues = {}) {
   vtkAbstractWidgetFactory.extend(publicAPI, model, initialValues);
 
   macro.get(publicAPI, model, ['cropping']);
-  macro.setGet(publicAPI, model, ['manipulator', 'imageData']);
+  macro.setGet(publicAPI, model, ['manipulator', 'imageData', 'label']);
 
   vtkCropWidget(publicAPI, model);
 }

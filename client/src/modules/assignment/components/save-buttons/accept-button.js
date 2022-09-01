@@ -1,7 +1,7 @@
 import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { UserContext, CLEAR_DATA } from 'contexts';
-import { useModal } from 'hooks';
+import { useModal, useSaveReview } from 'hooks';
 import { api } from 'utils/api';
 
 const { Header, Content, Actions } = Modal;
@@ -11,11 +11,12 @@ export const AcceptButton = ({ disabled }) => {
   const [open, openModal, closeModal] = useModal();
   const [accepting, setAccepting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const saveReview = useSaveReview();
 
   const onConfirm = async () => {
     setAccepting(true);
 
-    await api.saveReview(user._id, assignment.id, assignment.regions, true, true);
+    await saveReview(true, true);
 
     setAccepting(false);
     setSuccess(true);

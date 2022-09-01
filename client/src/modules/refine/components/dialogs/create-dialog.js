@@ -2,17 +2,17 @@ import { useContext, useState, useEffect } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { 
   UserContext, ADD_REGION,
-  RefineContext, REFINE_SET_ACTION, REFINE_SET_ACTIVE_REGION,
+  AnnotateContext, ANNOTATE_SET_ACTION, ANNOTATE_SET_ACTIVE_REGION,
   ErrorContext, SET_ERROR
 } from 'contexts';
-import { RegionLabel } from 'modules/common/components/region-label';
+import { RegionLabel } from 'modules/region/components/region-label';
 import { api } from 'utils/api';
 
 const { Header, Content, Actions } = Modal;
 
 export const CreateDialog = ({ sliceView }) => {
   const [{ assignment }, userDispatch] = useContext(UserContext);
-  const [{ action }, refineDispatch] = useContext(RefineContext);
+  const [{ action }, annotateDispatch] = useContext(AnnotateContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const [creating, setCreating] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -25,9 +25,9 @@ export const CreateDialog = ({ sliceView }) => {
     
     if (region) {
       setNewRegion(region);
-      refineDispatch({ type: REFINE_SET_ACTIVE_REGION, region: region });
+      annotateDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: region });
     }
-  }, [newLabel, assignment, refineDispatch]);
+  }, [newLabel, assignment, annotateDispatch]);
 
   const onConfirm = async () => {
     setCreating(true);
@@ -46,7 +46,7 @@ export const CreateDialog = ({ sliceView }) => {
       setTimeout(async () => {
         setSuccess(false);
         setNewLabel(null);
-        refineDispatch({ type: REFINE_SET_ACTION, action: null });
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: null });
       }, 1000);
     }
     catch (error) {
@@ -60,7 +60,7 @@ export const CreateDialog = ({ sliceView }) => {
   };
 
   const onCancel = () => {
-    refineDispatch({ type: REFINE_SET_ACTION, action: null });
+    annotateDispatch({ type: ANNOTATE_SET_ACTION, action: null });
   };
 
   return (

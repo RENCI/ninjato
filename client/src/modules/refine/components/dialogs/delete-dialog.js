@@ -2,15 +2,15 @@ import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { 
   UserContext, REMOVE_REGION,
-  RefineContext, REFINE_SET_ACTION, REFINE_SET_ACTIVE_REGION, REFINE_SET_TOOL
+  AnnotateContext, ANNOTATE_SET_ACTION, ANNOTATE_SET_ACTIVE_REGION, ANNOTATE_SET_TOOL
 } from 'contexts';
-import { RegionLabel } from 'modules/common/components/region-label';
+import { RegionLabel } from 'modules/region/components/region-label';
 
 const { Header, Content, Actions } = Modal;
 
 export const DeleteDialog = ({ sliceView }) => {
   const [{ assignment }, userDispatch] = useContext(UserContext);
-  const [{ activeRegion, action }, refineDispatch] = useContext(RefineContext);
+  const [{ activeRegion, action }, annotateDispatch] = useContext(AnnotateContext);
   const [deleting, setDeleting] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -26,22 +26,22 @@ export const DeleteDialog = ({ sliceView }) => {
 
     setTimeout(() => {
       setSuccess(false);
-      refineDispatch({ type: REFINE_SET_ACTION, action: null });
+      annotateDispatch({ type: ANNOTATE_SET_ACTION, action: null });
 
       const { regions } = assignment;
 
       if (regions.length === 1) {
-        refineDispatch({ type: REFINE_SET_ACTIVE_REGION, region: null });
-        refineDispatch({ type: REFINE_SET_TOOL, tool: 'create' });
+        annotateDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: null });
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'create' });
       }
       else if (action.region === activeRegion) {
-        refineDispatch({ type: REFINE_SET_ACTIVE_REGION, region: regions[0] })
+        annotateDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: regions[0] })
       }
     }, 1000);
   };
 
   const onCancel = () => {
-    refineDispatch({ type: REFINE_SET_ACTION, action: null });
+    annotateDispatch({ type: ANNOTATE_SET_ACTION, action: null });
   };
 
   return (

@@ -1,15 +1,15 @@
 import { useContext } from 'react';
 import { Select } from 'semantic-ui-react';
-import { UserContext, RefineContext, REFINE_SET_ACTIVE_REGION } from 'contexts';
-import { RegionIcon } from 'modules/common/components/region-icon';
+import { UserContext, AnnotateContext, ANNOTATE_SET_ACTIVE_REGION } from 'contexts';
+import { RegionIcon } from 'modules/region/components/region-icon';
 
 export const RegionSelect = () => {
   const [{ assignment }] = useContext(UserContext);
-  const [{ activeRegion }, refineContext] = useContext(RefineContext);
+  const [{ activeRegion }, refineContext] = useContext(AnnotateContext);
 
   const onChange = (evt, { value }) => {
     refineContext({ 
-      type: REFINE_SET_ACTIVE_REGION, 
+      type: ANNOTATE_SET_ACTIVE_REGION, 
       region: assignment.regions.find(({ label }) => label === value )
     });
   }

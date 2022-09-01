@@ -6,7 +6,6 @@ import {
 import { api } from 'utils/api';
 import { encodeTIFF, saveTIFF } from 'utils/data-conversion';
 
-// Download for testing
 const download = false;
 
 const saveDownload = maskData => {
@@ -14,21 +13,21 @@ const saveDownload = maskData => {
   saveTIFF(buffer, 'testTiff.tif');
 };
 
-export const useSaveAnnotations = () => {
+export const useSaveReview = () => {
   const [{ user, assignment, maskData }] = useContext(UserContext);
   const [, errorDispatch] = useContext(ErrorContext);
 
-  return async (done = false) => {
+  return async (done = false, approve = false) => {
     try {
       const buffer = encodeTIFF(maskData);
-  
+
       if (download) {  
         saveDownload(maskData);
   
         //return;
       }
 
-      await api.saveAnnotations(user._id, assignment.id, buffer, assignment.regions, done);      
+      await api.saveReview(user._id, assignment.id, buffer, assignment.regions, done, approve);      
     }
     catch (error) {
       console.log(error);

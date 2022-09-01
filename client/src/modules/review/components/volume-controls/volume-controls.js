@@ -1,12 +1,12 @@
 import { useContext } from 'react';
-import { RefineContext, REFINE_SET_CONTROL } from 'contexts';
+import { AnnotateContext, ANNOTATE_SET_CONTROL } from 'contexts';
 import { ControlBar, ControlGroup, ControlButton, ControlLabel } from 'modules/common/components/control-bar';
 
 export const VolumeControls = () => {
-  const [{ showBackground }, dispatch] = useContext(RefineContext);
+  const [{ showBackground }, dispatch] = useContext(AnnotateContext);
 
   const onShowBackgroundClick = () => {
-    dispatch({ type: REFINE_SET_CONTROL, name: 'showBackground', value: !showBackground });
+    dispatch({ type: ANNOTATE_SET_CONTROL, name: 'showBackground', value: !showBackground });
   };
 
   return (
