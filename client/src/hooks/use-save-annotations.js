@@ -7,7 +7,7 @@ import { api } from 'utils/api';
 import { encodeTIFF, saveTIFF } from 'utils/data-conversion';
 
 // Download for testing
-const download = false;
+const download = true;
 
 const saveDownload = maskData => {
   const buffer = encodeTIFF(maskData);
@@ -25,7 +25,7 @@ export const useSaveAnnotations = () => {
       if (download) {  
         saveDownload(maskData);
   
-        return;
+        //return;
       }
 
       await api.saveAnnotations(user._id, assignment.id, buffer, assignment.regions, done);      

@@ -2,7 +2,7 @@ import { useContext, useRef, useCallback, useState, useEffect } from 'react';
 import { Grid } from 'semantic-ui-react';
 import { 
   UserContext,
-  AnnotateContext, ANNOTATE_SET_ACTIVE_REGION, ANNOTATE_SET_TOOL
+  AnnotateContext, ANNOTATE_SET_TOOL, ANNOTATE_SET_ACTIVE_REGION, ANNOTATE_CHANGE_BRUSH_SIZE, ANNOTATE_SET_HOVER_REGION
 } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
@@ -17,9 +17,9 @@ const { Column } = Grid;
 
 export const ReviewContainer = () => {
   const [{ imageData }] = useContext(UserContext);
-  const [, annotateDispatch] = useContext(AnnotateContext);
+  const [{ tool }, annotateDispatch] = useContext(AnnotateContext);
   const volumeView = useRef(VolumeView());
-  const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHover));
+  const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight));
   const [loading, setLoading] = useState(true);
   const [slice, setSlice] = useState(0);
 
@@ -52,8 +52,56 @@ export const ReviewContainer = () => {
     sliceView.current.setHighlightRegion(null);
   }
 
-  function onHover(region, highlight = false) {
-    sliceView.current.setHighlightRegion(highlight ? region : null);
+  function onHover(region) {
+    annotateDispatch({ type: ANNOTATE_SET_HOVER_REGION, region: region });
+  }
+
+  function onHighlight(region) {
+    sliceView.current.setHighlightRegion(region);
+  }
+
+  const handleKeyDown = key => {
+    switch (key) {
+      case 'Control':
+        if (tool !== 'erase') annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'erase' });
+        break;
+
+      case 'Shift':
+        if (tool !== 'select') annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'select' });
+        break;
+
+      default:
+    }
+  };
+
+  function onKeyDown(evt) {
+    handleKeyDown(evt.key);
+  }
+
+  const handleKeyUp = key => {
+    switch (key) {
+      case 'Control': 
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
+        break;
+
+      case 'Shift': 
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
+        break;
+
+      case 'ArrowLeft':
+        annotateDispatch({ type: ANNOTATE_CHANGE_BRUSH_SIZE, direction: 'down' });
+        break;
+
+      case 'ArrowRight':
+        annotateDispatch({ type: ANNOTATE_CHANGE_BRUSH_SIZE, direction: 'up' });
+        break;
+
+      default:
+    }
+  };
+
+  function onKeyUp(evt) {
+    handleKeyUp(evt.key);
   }
 
   // Other callbacks
