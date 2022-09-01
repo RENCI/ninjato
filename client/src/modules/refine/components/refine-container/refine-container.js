@@ -1,8 +1,8 @@
 import { useContext, useRef, useCallback, useState } from 'react';
-import { Grid } from 'semantic-ui-react';
+import { Grid, Popup } from 'semantic-ui-react';
 import { 
   UserContext, PUSH_REGION_HISTORY,
-  AnnotateContext, ANNOTATE_SET_TOOL, ANNOTATE_SET_ACTION, ANNOTATE_SET_ACTIVE_REGION, ANNOTATE_CHANGE_BRUSH_SIZE, ANNOTATE_SET_HOVER_REGION
+  AnnotateContext, ANNOTATE_SET_TOOL, ANNOTATE_SET_ACTION, ANNOTATE_SET_ACTIVE_REGION, ANNOTATE_CHANGE_BRUSH_SIZE
 } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
@@ -12,6 +12,7 @@ import { VolumeControls } from 'modules/refine/components/volume-controls';
 import { SliceControls } from 'modules/refine/components/slice-controls';
 import { SliceSlider } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
+import { RegionInfo } from 'modules/region/components/region-info';
 import { ClaimDialog, RemoveDialog, SplitDialog, MergeDialog, CreateDialog, DeleteDialog } from 'modules/refine/components/dialogs';
 
 const { Column } = Grid;
@@ -25,6 +26,7 @@ export const RefineContainer = () => {
   const [slice, setSlice] = useState(0);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
+  const [hoverRegion, setHoverRegion] = useState(null);
 
   // Slice view callbacks
   function onEdit() {
@@ -83,7 +85,7 @@ export const RefineContainer = () => {
   }
 
   function onHover(region) {
-    annotateDispatch({ type: ANNOTATE_SET_HOVER_REGION, region: region });
+    setHoverRegion(region);
   }
 
   function onHighlight(region) {
@@ -162,7 +164,12 @@ export const RefineContainer = () => {
                 <VolumeViewWrapper volumeView={ volumeView.current } onLoaded={ onLoaded } />
               </Column>
               <Column>
-                <SliceViewWrapper sliceView={ sliceView.current } />
+                <Popup 
+                  trigger={ <SliceViewWrapper sliceView={ sliceView.current } /> }
+                  content={ <RegionInfo region={ hoverRegion } /> }
+                  open={ hoverRegion !== null }
+                  position='top center'
+                /> 
               </Column>                  
                 { !loading &&
                   <SliceSlider 

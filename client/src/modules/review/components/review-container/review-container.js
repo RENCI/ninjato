@@ -1,8 +1,8 @@
 import { useContext, useRef, useCallback, useState, useEffect } from 'react';
-import { Grid } from 'semantic-ui-react';
+import { Grid, Popup } from 'semantic-ui-react';
 import { 
   UserContext,
-  AnnotateContext, ANNOTATE_SET_TOOL, ANNOTATE_SET_ACTIVE_REGION, ANNOTATE_CHANGE_BRUSH_SIZE, ANNOTATE_SET_HOVER_REGION
+  AnnotateContext, ANNOTATE_SET_TOOL, ANNOTATE_SET_ACTIVE_REGION, ANNOTATE_CHANGE_BRUSH_SIZE
 } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
@@ -19,9 +19,10 @@ export const ReviewContainer = () => {
   const [{ imageData }] = useContext(UserContext);
   const [{ tool }, annotateDispatch] = useContext(AnnotateContext);
   const volumeView = useRef(VolumeView());
-  const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight));
+  const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight, onKeyDown, onKeyUp));
   const [loading, setLoading] = useState(true);
   const [slice, setSlice] = useState(0);
+  const [hoverRegion, setHoverRegion] = useState(null);
 
   useEffect(() => {
     annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'select' })
@@ -53,7 +54,7 @@ export const ReviewContainer = () => {
   }
 
   function onHover(region) {
-    annotateDispatch({ type: ANNOTATE_SET_HOVER_REGION, region: region });
+    setHoverRegion(region);
   }
 
   function onHighlight(region) {
@@ -132,7 +133,12 @@ export const ReviewContainer = () => {
                 <VolumeViewWrapper volumeView={ volumeView.current } onLoaded={ onLoaded } />
               </Column>
               <Column>
-                <SliceViewWrapper sliceView={ sliceView.current } />
+                <Popup 
+                  trigger={ <SliceViewWrapper sliceView={ sliceView.current } /> }
+                  content={ 'HI '}
+                  open={ hoverRegion !== null }
+                  position='top center'
+                />                
               </Column>                  
                 { !loading &&
                   <SliceSlider 

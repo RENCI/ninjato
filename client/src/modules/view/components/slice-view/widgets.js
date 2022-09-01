@@ -52,7 +52,11 @@ export function Widgets(painter, onEdit, onSelect, onHover, onHighlight) {
   let hoverLabel = null;
   let highlightLabel = null;
 
-  const getRegion = label => regions.concat(backgroundRegions).find(region => region.label === label);
+  const getRegion = label => {
+    const region = regions.concat(backgroundRegions).find(region => region.label === label);
+    return region ? region : null;
+  };
+
 
   const getWidgetInfo = widget => {
     const startLabel = widget.getStartLabel ? widget.getStartLabel() : null;
