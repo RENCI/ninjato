@@ -7,7 +7,7 @@ import { api } from 'utils/api';
 import { encodeTIFF, saveTIFF } from 'utils/data-conversion';
 
 // Download for testing
-const download = true;
+const download = false;
 
 const saveDownload = maskData => {
   const buffer = encodeTIFF(maskData);
