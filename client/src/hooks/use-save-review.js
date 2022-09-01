@@ -4,7 +4,7 @@ import {
   ErrorContext, SET_ERROR
 } from 'contexts';
 import { api } from 'utils/api';
-import { encodeTIFF, saveTIFF } from 'utils/data-conversion';
+import { createByteStream, encodeTIFF, saveTIFF } from 'utils/data-conversion';
 
 const download = false;
 
@@ -19,7 +19,7 @@ export const useSaveReview = () => {
 
   return async (done = false, approve = false) => {
     try {
-      const buffer = encodeTIFF(maskData);
+      const buffer = createByteStream(maskData);
 
       if (download) {  
         saveDownload(maskData);
