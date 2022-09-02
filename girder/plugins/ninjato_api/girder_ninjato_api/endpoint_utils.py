@@ -12,7 +12,8 @@ from .utils import get_max_region_id, set_max_region_id, remove_region_from_acti
     merge_region_to_active_assignment, set_assignment_meta, get_history_info, \
     assign_region_to_user, save_file, add_meta_to_history, check_subvolume_done, \
     reject_assignment, update_assignment_in_whole_item, get_assignment_status, remove_regions, \
-    find_region_item_from_label, get_region_extent, update_all_assignment_masks_async
+    find_region_item_from_label, get_region_extent, save_content_bytes_to_tiff, \
+    update_all_assignment_masks_async
 
 
 def get_available_region_ids(whole_item, count=1):
@@ -401,8 +402,7 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
         out_path = os.path.join(out_dir_path, annot_file_name)
         if not os.path.isdir(out_dir_path):
             os.makedirs(out_dir_path)
-        with open(out_path, "wb") as f:
-            f.write(content)
+        save_content_bytes_to_tiff(content, out_path, item)
         file = save_file(assetstore_id, item, out_path, user, annot_file_name)
     except Exception as e:
         raise RestException(f'failure: {e}', 500)
