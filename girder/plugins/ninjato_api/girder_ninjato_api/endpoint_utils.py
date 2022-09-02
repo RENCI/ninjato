@@ -390,7 +390,10 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
     for file in files:
         if '_masks' in file['name']:
             mask_file_name = file['name']
-            annot_file_name = f'{os.path.splitext(mask_file_name)[0]}_{uname}.tif'
+            if mask_file_name.endswith('_user.tif'):
+                annot_file_name = mask_file_name
+            else:
+                annot_file_name = f'{os.path.splitext(mask_file_name)[0]}_user.tif'
             assetstore_id = file['assetstoreId']
             break
     if not annot_file_name or not assetstore_id:
@@ -512,9 +515,8 @@ def save_user_review_result_as_item(user, item_id, done, reject, comment, approv
         annot_file_name = ''
         assetstore_id = ''
         for file in files:
-            if '_masks' in file['name']:
-                mask_file_name = file['name']
-                annot_file_name = f'{os.path.splitext(mask_file_name)[0]}_{uname}.tif'
+            if '_masks' in file['name'] and file['name'].endswith('_user.tif'):
+                annot_file_name = file['name']
                 assetstore_id = file['assetstoreId']
                 break
         if not annot_file_name or not assetstore_id:
