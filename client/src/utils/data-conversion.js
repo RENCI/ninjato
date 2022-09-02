@@ -119,3 +119,7 @@ export const saveTIFF = (buffer, fileName) => {
   window.URL.revokeObjectURL(url); 
   a.remove();
 };
+
+export const createByteStream = imageData => {
+  return new Uint16Array(imageData.getPointData().getScalars().getData());
+};

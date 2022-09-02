@@ -12,7 +12,8 @@ from .utils import get_max_region_id, set_max_region_id, remove_region_from_acti
     merge_region_to_active_assignment, set_assignment_meta, get_history_info, \
     assign_region_to_user, save_file, add_meta_to_history, check_subvolume_done, \
     reject_assignment, update_assignment_in_whole_item, get_assignment_status, remove_regions, \
-    find_region_item_from_label, get_region_extent, update_all_assignment_masks_async
+    find_region_item_from_label, get_region_extent, save_content_bytes_to_tiff, \
+    update_all_assignment_masks_async
 
 
 def get_available_region_ids(whole_item, count=1):
@@ -389,7 +390,10 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
     for file in files:
         if '_masks' in file['name']:
             mask_file_name = file['name']
-            annot_file_name = f'{os.path.splitext(mask_file_name)[0]}_{uname}.tif'
+            if mask_file_name.endswith('_user.tif'):
+                annot_file_name = mask_file_name
+            else:
+                annot_file_name = f'{os.path.splitext(mask_file_name)[0]}_user.tif'
             assetstore_id = file['assetstoreId']
             break
     if not annot_file_name or not assetstore_id:
@@ -401,8 +405,7 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
         out_path = os.path.join(out_dir_path, annot_file_name)
         if not os.path.isdir(out_dir_path):
             os.makedirs(out_dir_path)
-        with open(out_path, "wb") as f:
-            f.write(content)
+        save_content_bytes_to_tiff(content, out_path, item)
         file = save_file(assetstore_id, item, out_path, user, annot_file_name)
     except Exception as e:
         raise RestException(f'failure: {e}', 500)
@@ -512,22 +515,21 @@ def save_user_review_result_as_item(user, item_id, done, reject, comment, approv
         annot_file_name = ''
         assetstore_id = ''
         for file in files:
-            if '_masks' in file['name']:
-                mask_file_name = file['name']
-                annot_file_name = f'{os.path.splitext(mask_file_name)[0]}_{uname}.tif'
+            if '_masks' in file['name'] and file['name'].endswith('_user.tif'):
+                annot_file_name = file['name']
                 assetstore_id = file['assetstoreId']
                 break
         if not annot_file_name or not assetstore_id:
             raise RestException('failure: cannot find the mask file for the annotated item', 500)
         content = content_data.file.read()
+
         try:
             # save file to local file system before adding it to asset store
             out_dir_path = os.path.join(DATA_PATH, str(item_id))
             out_path = os.path.join(out_dir_path, annot_file_name)
             if not os.path.isdir(out_dir_path):
                 os.makedirs(out_dir_path)
-            with open(out_path, "wb") as f:
-                f.write(content)
+            save_content_bytes_to_tiff(content, out_path, item)
             file = save_file(assetstore_id, item, out_path, user, annot_file_name)
         except Exception as e:
             raise RestException(f'failure: {e}', 500)

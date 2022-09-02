@@ -1,5 +1,4 @@
 import os
-import shutil
 from datetime import datetime
 from libtiff import TIFF
 import numpy as np
@@ -706,6 +705,31 @@ def set_assignment_meta(whole_item, user, region_item_id, assign_type):
     Item().setMetadata(whole_item, add_meta)
 
     return assign_info
+
+
+def save_content_bytes_to_tiff(content, out_file, item):
+    """
+    save content bytes to TIFF file
+    :param content: content byte stream
+    :param out_file: file name with full path to write content to
+    :return:
+    """
+    min_x = item['meta']['coordinates']['x_min']
+    max_x = item['meta']['coordinates']['x_max']
+    min_y = item['meta']['coordinates']['y_min']
+    max_y = item['meta']['coordinates']['y_max']
+    min_z = item['meta']['coordinates']['z_min']
+    max_z = item['meta']['coordinates']['z_max']
+    output_tif = TIFF.open(out_file, mode="w")
+    width = max_x - min_x + 1
+    height = max_y - min_y + 1
+    for z in range(min_z, max_z+1):
+        low = (z - min_z) * height * width * 2
+        high = low + height * width * 2
+        img_ary = np.frombuffer(content[low:high], dtype=np.uint16)
+        img_ary.shape = (height, width)
+        output_tif.write_image(img_ary)
+    return
 
 
 def update_all_assignment_masks_async(whole_item, saved_assign_item_id):
