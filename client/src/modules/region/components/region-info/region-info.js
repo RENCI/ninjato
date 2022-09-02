@@ -1,21 +1,35 @@
+import { List, Divider } from 'semantic-ui-react';
 import { RegionIcon } from 'modules/region/components/region-icon';
-import { Label, Icon } from 'semantic-ui-react';
+
+const { Item, Content, Header, Description, Icon } = List;
+
+const statusIcon = status =>
+  status === 'inactive' ? 'lock open' : 'lock';
+
+const infoItem = (header, description, icon = null) => (
+  <Item>
+    <Content>
+      <Header>{ header }</Header>
+      <Description>
+        { icon && <Icon name={ icon } /> }
+        { description }
+      </Description>
+    </Content>
+  </Item>
+);
 
 export const RegionInfo = ({ region }) => {
-
-  console.log(region);
-
   return !region ? null : (
     <>
-      <div><RegionIcon region={ region } /></div>
+      <RegionIcon region={ region } />      
       { region.info &&
         <>
-          <div style={{ marginTop: '.4em' }}>
-            <Label>
-              <Icon name='lock open' /> 
-              { region.info.status }
-            </Label>
-          </div>
+          <Divider fitted />
+          <List horizontal>
+            { region.info.status && infoItem('Status', region.info.status, statusIcon(region.info.status)) }
+            { region.info.annotator && infoItem('User', region.info.annotator.login) }
+            { region.info.reviewer && infoItem('Reviewer', region.info.reviewer.login) } 
+          </List>
         </>
       }
     </>
