@@ -520,14 +520,14 @@ def save_user_review_result_as_item(user, item_id, done, reject, comment, approv
         if not annot_file_name or not assetstore_id:
             raise RestException('failure: cannot find the mask file for the annotated item', 500)
         content = content_data.file.read()
+
         try:
             # save file to local file system before adding it to asset store
             out_dir_path = os.path.join(DATA_PATH, str(item_id))
             out_path = os.path.join(out_dir_path, annot_file_name)
             if not os.path.isdir(out_dir_path):
                 os.makedirs(out_dir_path)
-            with open(out_path, "wb") as f:
-                f.write(content)
+            save_content_bytes_to_tiff(content, out_path, item)
             file = save_file(assetstore_id, item, out_path, user, annot_file_name)
         except Exception as e:
             raise RestException(f'failure: {e}', 500)
