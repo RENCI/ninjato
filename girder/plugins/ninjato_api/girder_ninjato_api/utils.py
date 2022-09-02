@@ -724,9 +724,11 @@ def save_content_bytes_to_tiff(content, out_file, item):
     width = max_x - min_x + 1
     height = max_y - min_y + 1
     for z in range(min_z, max_z+1):
-        low = (z - min_z) * height * width
-        high = low + height * width
-        output_tif.write_image(content[low:high])
+        low = (z - min_z) * height * width * 2
+        high = low + height * width * 2
+        img_ary = np.frombuffer(content[low:high], dtype=np.uint16)
+        img_ary.shape = (height, width)
+        output_tif.write_image(img_ary)
     return
 
 
