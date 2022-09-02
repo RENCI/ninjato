@@ -10,10 +10,12 @@ export const RegionInfo = ({ region }) => {
       <div><RegionIcon region={ region } /></div>
       { region.info &&
         <>
-          <Label>
-            <Icon name='lock open' /> 
-            { region.info.status }
-          </Label>
+          <div style={{ marginTop: '.4em' }}>
+            <Label>
+              <Icon name='lock open' /> 
+              { region.info.status }
+            </Label>
+          </div>
         </>
       }
     </>
