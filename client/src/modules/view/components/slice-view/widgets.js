@@ -21,8 +21,8 @@ const actionValid = ({ region, inStartRegion, inAssignment }) =>
 const notActiveValid = ({ region, inStartRegion, inAssignment}, activeRegion) => 
   region && inStartRegion && inAssignment && region !== activeRegion;
 
-const claimValid = ({ region, inStartRegion, inAssignment }) =>
-  region && inStartRegion && !inAssignment;
+const claimValid = ({ region, inStartRegion }) =>
+  region?.info?.status === 'inactive' && inStartRegion;
 
 export function Widgets(painter, onEdit, onSelect, onHover, onHighlight) {
   const manager = vtkWidgetManager.newInstance();
