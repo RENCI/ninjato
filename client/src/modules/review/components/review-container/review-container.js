@@ -1,5 +1,5 @@
 import { useContext, useRef, useCallback, useState, useEffect } from 'react';
-import { Grid, Popup } from 'semantic-ui-react';
+import { Grid } from 'semantic-ui-react';
 import { 
   UserContext,
   AnnotateContext, ANNOTATE_SET_TOOL, ANNOTATE_SET_ACTIVE_REGION, ANNOTATE_CHANGE_BRUSH_SIZE
@@ -12,6 +12,7 @@ import { VolumeControls } from 'modules/review/components/volume-controls';
 import { SliceControls } from 'modules/review/components/slice-controls';
 import { SliceSlider } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
+import { RegionPopup } from 'modules/region/components/region-popup';
 
 const { Column } = Grid;
 
@@ -133,11 +134,9 @@ export const ReviewContainer = () => {
                 <VolumeViewWrapper volumeView={ volumeView.current } onLoaded={ onLoaded } />
               </Column>
               <Column>
-                <Popup 
+                <RegionPopup 
                   trigger={ <SliceViewWrapper sliceView={ sliceView.current } /> }
-                  content={ 'HI '}
-                  open={ hoverRegion !== null }
-                  position='top center'
+                  region={ hoverRegion }
                 />                
               </Column>                  
                 { !loading &&

@@ -1,5 +1,5 @@
 import { useContext, useRef, useCallback, useState } from 'react';
-import { Grid, Popup } from 'semantic-ui-react';
+import { Grid } from 'semantic-ui-react';
 import { 
   UserContext, PUSH_REGION_HISTORY,
   AnnotateContext, ANNOTATE_SET_TOOL, ANNOTATE_SET_ACTION, ANNOTATE_SET_ACTIVE_REGION, ANNOTATE_CHANGE_BRUSH_SIZE
@@ -12,7 +12,7 @@ import { VolumeControls } from 'modules/refine/components/volume-controls';
 import { SliceControls } from 'modules/refine/components/slice-controls';
 import { SliceSlider } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
-import { RegionInfo } from 'modules/region/components/region-info';
+import { RegionPopup } from 'modules/region/components/region-popup';
 import { ClaimDialog, RemoveDialog, SplitDialog, MergeDialog, CreateDialog, DeleteDialog } from 'modules/refine/components/dialogs';
 
 const { Column } = Grid;
@@ -164,11 +164,9 @@ export const RefineContainer = () => {
                 <VolumeViewWrapper volumeView={ volumeView.current } onLoaded={ onLoaded } />
               </Column>
               <Column>
-                <Popup 
+                <RegionPopup 
                   trigger={ <SliceViewWrapper sliceView={ sliceView.current } /> }
-                  content={ <RegionInfo region={ hoverRegion } /> }
-                  open={ hoverRegion !== null }
-                  position='top center'
+                  region={ hoverRegion }
                 /> 
               </Column>                  
                 { !loading &&
