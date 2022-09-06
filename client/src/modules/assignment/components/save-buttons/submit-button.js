@@ -2,12 +2,11 @@ import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { UserContext, CLEAR_DATA } from 'contexts';
 import { useModal, useSaveAnnotations, useSaveReview } from 'hooks';
-import { api } from 'utils/api';
 
 const { Header, Content, Actions } = Modal;
 
 export const SubmitButton = ({ disabled, review = false }) => {
-  const [{ user, assignment }, userDispatch] = useContext(UserContext);
+  const [, userDispatch] = useContext(UserContext);
   const [open, openModal, closeModal] = useModal();
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);

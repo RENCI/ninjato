@@ -11,11 +11,13 @@ const statuses = [
   'completed'
 ];
 
+/*
 const reviewStatuses = [
   'review',
   'active',
   'completed'
 ];
+*/
 
 const reviewDisplay = {
   review: 'reviewing',
