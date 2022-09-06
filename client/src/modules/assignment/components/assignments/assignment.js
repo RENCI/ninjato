@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { Segment, Header, Label } from 'semantic-ui-react';
+import { Segment, Label } from 'semantic-ui-react';
 import { 
   UserContext, SET_ASSIGNMENT,
   ErrorContext, SET_ERROR

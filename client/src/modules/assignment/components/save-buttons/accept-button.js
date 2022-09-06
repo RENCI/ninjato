@@ -2,12 +2,11 @@ import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { UserContext, CLEAR_DATA } from 'contexts';
 import { useModal, useSaveReview } from 'hooks';
-import { api } from 'utils/api';
 
 const { Header, Content, Actions } = Modal;
 
 export const AcceptButton = ({ disabled }) => {
-  const [{ user, assignment }, userDispatch] = useContext(UserContext);
+  const [, userDispatch] = useContext(UserContext);
   const [open, openModal, closeModal] = useModal();
   const [accepting, setAccepting] = useState(false);
   const [success, setSuccess] = useState(false);
