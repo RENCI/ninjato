@@ -9,6 +9,7 @@ export const RegionPopup = ({ region, trigger }) => {
       content={ <RegionInfo region={ region } /> }
       open={ region !== null }
       position='top center'
+      offset={ [0, 10] }
     /> 
   );
 };
