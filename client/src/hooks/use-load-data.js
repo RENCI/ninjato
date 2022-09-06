@@ -88,7 +88,7 @@ export const useLoadData = ()  => {
       else {
         const combinedMasks = combineMasks(newMaskData, location, maskData, assignmentToUpdate.location);
 
-        const backgroundRegions = getBackgroundRegions(subvolumeId, newMaskData, regions);
+        const backgroundRegions = await getBackgroundRegions(subvolumeId, newMaskData, regions);
 
         userDispatch({
           type: SET_DATA,
