@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import { 
-  UserContext,
+  UserContext, SET_COMMENTS,
   ErrorContext, SET_ERROR
 } from 'contexts';
 import { api } from 'utils/api';
@@ -15,7 +15,7 @@ const saveDownload = maskData => {
 };
 
 export const useSaveAnnotations = () => {
-  const [{ user, assignment, maskData }] = useContext(UserContext);
+  const [{ user, assignment, maskData }, userDispatch] = useContext(UserContext);
   const [, errorDispatch] = useContext(ErrorContext);
 
   return async (done = false) => {
@@ -28,7 +28,13 @@ export const useSaveAnnotations = () => {
         //return;
       }
 
-      await api.saveAnnotations(user._id, assignment.id, buffer, assignment.regions, done);      
+      await api.saveAnnotations(user._id, assignment.id, buffer, assignment.regions, done);    
+      
+      if (!done) {
+        const comments = await api.updateComments(assignment.subvolumeId, assignment.regions);
+
+        userDispatch({ type: SET_COMMENTS, comments: comments });
+      }
     }
     catch (error) {
       console.log(error);

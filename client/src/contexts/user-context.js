@@ -20,6 +20,7 @@ export const UNDO_REGION_HISTORY = 'user/UNDO_REGION_HISTORY';
 export const REDO_REGION_HISTORY = 'user/REDO_REGION_HISTORY';
 export const SAVE_REGION_HISTORY = 'user/SAVE_REGION_HISTORY';
 export const SET_REGION_COMMENT = 'user/SET_REGION_COMMENT';
+export const SET_COMMENTS = 'user/SET_COMMENTS';
  
 const initialState = {
   user: null,
@@ -220,6 +221,23 @@ const reducer = (state, action) => {
           regions: [...regions]
         }
       };
+    }
+
+    case SET_COMMENTS: {
+      const regions = [...state.assignment.regions];
+
+      regions.forEach(region => {
+        region.comments = action.comments[region.label];
+        region.comment = null;
+      });
+
+      return {
+        ...state,
+        assignment: {
+          ...state.assignment,
+          regions: regions
+        }
+      }
     }
 
     default: 
