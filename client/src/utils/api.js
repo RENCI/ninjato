@@ -22,10 +22,10 @@ const getStatus = info => (
 );
 
 const regionObject = (regions, key) => regions.reduce((object, region) => {
-  return {
+  return region[key] ? {
     ...object,
     [region.label]: region[key]
-  }
+  } : object;
 }, {});
 
 const addUserInfo = async user => {
@@ -40,6 +40,21 @@ const addUserInfo = async user => {
   }
 
   return user;
+};
+
+const getComments = async (subvolumeId, regions) => {
+  const comments = {};
+  for (const { label } of regions) {
+    const result = await axios.get(`/item/${ subvolumeId }/region_comments`, { 
+      params: {
+        region_label: label
+      }
+    });
+
+    comments[label] = result.data;
+  };
+
+  return comments;
 };
 
 const getAssignment = async (subvolumeId, itemId, regionId = null) => {
@@ -59,16 +74,7 @@ const getAssignment = async (subvolumeId, itemId, regionId = null) => {
   }, {});
 
   // Get region comments
-  const comments = {};
-  for (const { label } of info.regions) {
-    const result = await axios.get(`/item/${ subvolumeId }/region_comments`, { 
-      params: {
-        region_label: label
-      }
-    });
-
-    comments[label] = result.data;
-  };
+  const comments = await getComments(subvolumeId, info.regions);
 
   // Copy info and rename to be more concise
   return {
@@ -279,6 +285,11 @@ export const api = {
     const assignment = await getAssignment(subvolumeId, itemId);
 
     return assignment;
+  },
+  updateComments: async (subvolumeId, regions) => {
+    const comments = await getComments(subvolumeId, regions);
+
+    return comments;
   },
   requestAssignment: async (userId, subvolumeId, itemId) => {
     const response = await axios.post(`/user/${ userId }/request_assignment`,
