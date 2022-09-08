@@ -29,14 +29,14 @@ export const RefineContainer = () => {
   const [hoverRegion, setHoverRegion] = useState(null);
 
   // Slice view callbacks
-  function onEdit() {
+  function onEdit(pushHistory = true) {
     volumeView.current.centerCamera();
     volumeView.current.render();
 
     setCanUndo(sliceView.current.canUndo());
     setCanRedo(sliceView.current.canRedo());
 
-    userDispatch({ type: PUSH_REGION_HISTORY });
+    if (pushHistory) userDispatch({ type: PUSH_REGION_HISTORY });
   }
 
   function onSliceChange(slice) {

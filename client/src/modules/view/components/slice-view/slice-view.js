@@ -135,11 +135,11 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight,
     },
     undo: () => {
       mask.getPainter().undo();
-      onEdit();
+      onEdit(false);
     },
     redo: () => {
       mask.getPainter().redo();
-      onEdit();
+      onEdit(false);
     },
     canUndo: () => mask.getPainter().canUndo(),
     canRedo: () => mask.getPainter().canRedo(),
