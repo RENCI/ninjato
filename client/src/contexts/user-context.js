@@ -30,7 +30,11 @@ const initialState = {
   imageData: null,
   maskData: null,
   regionHistory: history(),
-  historyActiveRegion: null // This is a bit of a hack that is necessary because the active region is stored in the annotate context
+
+  // XXX: MOVE ACTIVE REGION FROM ANNOTATE CONTEXT TO HERE, MAKING IT MUCH EASIER TO SET WHEN PERFORMING CERTAIN ACTIONS
+  // XXX: MAYBE RENAME THIS TO ASSIGNMENT CONTEXT?
+
+  userActiveRegion: null // This is a bit of a hack that is necessary because the active region is stored in the annotate context
 };
 
 const createRegion = (regions, label) => {
@@ -142,22 +146,21 @@ const reducer = (state, action) => {
       // set the active region if there are regions and current is invalid...
 
 
-      const regions = createRegion(state.assignment.regions, action.label);
-/*      
+      const regions = createRegion(state.assignment.regions, action.label);      
       const activeRegion = regions[regions.length - 1];
 
       state.regionHistory.push(({ 
         regions: regions,
         activeRegion: activeRegion
       }));
-*/
+
       return {
         ...state,
         assignment: {
           ...state.assignment,
           regions: regions
         },
-        //historyActiveRegion: activeRegion
+        historyActiveRegion: activeRegion
       };
     }
 
@@ -201,6 +204,10 @@ const reducer = (state, action) => {
         activeRegion: action.activeRegion
       });
 
+
+      console.log(state.regionHistory.getHistory());
+      console.log("***")
+
       return state;
 
     case UNDO_REGION_HISTORY: {
@@ -221,8 +228,6 @@ const reducer = (state, action) => {
 
     case REDO_REGION_HISTORY: {
       const item = state.regionHistory.redo();
-
-      console.log(item);
 
       const newState = {
         ...state,

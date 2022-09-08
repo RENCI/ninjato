@@ -25,7 +25,6 @@ export const CreateDialog = ({ sliceView }) => {
     
     if (region) {
       setNewRegion(region);
-      annotateDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: region });
     }
   }, [newLabel, assignment, annotateDispatch]);
 

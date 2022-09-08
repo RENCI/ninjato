@@ -173,7 +173,7 @@ export function Widgets(painter, onEdit, onSelect, onHover, onHighlight) {
 
         await painter.endStroke();
   
-        onEdit();
+        onEdit(activeRegion);
       });
 
       handles.erase.onEndInteractionEvent(async () => {
@@ -184,7 +184,7 @@ export function Widgets(painter, onEdit, onSelect, onHover, onHighlight) {
 
         await painter.endStroke(true);
 
-        onEdit();
+        onEdit(activeRegion);
       });
 
       handles.crop.onEndInteractionEvent(async () => {
@@ -200,7 +200,7 @@ export function Widgets(painter, onEdit, onSelect, onHover, onHighlight) {
 
         await painter.endStroke(true);
 
-        onEdit();
+        onEdit(activeRegion);
       });
 
       handles.select.onEndInteractionEvent(() => {

@@ -29,18 +29,20 @@ export const RefineContainer = () => {
   const [hoverRegion, setHoverRegion] = useState(null);
 
   useEffect(() => {
+    console.log(historyActiveRegion);
+
     if (historyActiveRegion) annotateDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: historyActiveRegion });
   }, [historyActiveRegion, annotateDispatch]);
 
   // Slice view callbacks
-  function onEdit(pushHistory = true) {
+  function onEdit(activeRegion = null) {
     volumeView.current.centerCamera();
     volumeView.current.render();
 
     setCanUndo(sliceView.current.canUndo());
     setCanRedo(sliceView.current.canRedo());
 
-    if (pushHistory) userDispatch({ type: PUSH_REGION_HISTORY, activeRegion: activeRegion });
+    if (activeRegion) userDispatch({ type: PUSH_REGION_HISTORY, activeRegion: activeRegion });
   }
 
   function onSliceChange(slice) {
