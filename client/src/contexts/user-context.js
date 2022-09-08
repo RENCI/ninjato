@@ -175,11 +175,18 @@ const reducer = (state, action) => {
       };
 
     case PUSH_REGION_HISTORY:
+      console.log("push")
+
       state.regionHistory.push(state.assignment.regions);
+
+      console.log(state.regionHistory.getHistory());
 
       return state;
 
     case UNDO_REGION_HISTORY:
+      console.log(state.regionHistory);
+      console.log(state.regionHistory.getHistory());
+
       return {
         ...state,
         assignment: {
