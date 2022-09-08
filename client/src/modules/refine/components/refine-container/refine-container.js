@@ -1,4 +1,4 @@
-import { useContext, useRef, useCallback, useState } from 'react';
+import { useContext, useRef, useCallback, useState, useEffect } from 'react';
 import { Grid } from 'semantic-ui-react';
 import { 
   UserContext, PUSH_REGION_HISTORY,
@@ -18,8 +18,8 @@ import { ClaimDialog, RemoveDialog, SplitDialog, MergeDialog, CreateDialog, Dele
 const { Column } = Grid;
 
 export const RefineContainer = () => {
-  const [{ imageData }, userDispatch] = useContext(UserContext);
-  const [{ tool }, annotateDispatch] = useContext(AnnotateContext);
+  const [{ imageData, historyActiveRegion }, userDispatch] = useContext(UserContext);
+  const [{ tool, activeRegion }, annotateDispatch] = useContext(AnnotateContext);
   const volumeView = useRef(VolumeView());
   const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight, onKeyDown, onKeyUp));
   const [loading, setLoading] = useState(true);
@@ -27,6 +27,10 @@ export const RefineContainer = () => {
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
   const [hoverRegion, setHoverRegion] = useState(null);
+
+  useEffect(() => {
+    if (historyActiveRegion) annotateDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: historyActiveRegion });
+  }, [historyActiveRegion, annotateDispatch]);
 
   // Slice view callbacks
   function onEdit(pushHistory = true) {
@@ -36,7 +40,7 @@ export const RefineContainer = () => {
     setCanUndo(sliceView.current.canUndo());
     setCanRedo(sliceView.current.canRedo());
 
-    if (pushHistory) userDispatch({ type: PUSH_REGION_HISTORY });
+    if (pushHistory) userDispatch({ type: PUSH_REGION_HISTORY, activeRegion: activeRegion });
   }
 
   function onSliceChange(slice) {

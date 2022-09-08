@@ -29,7 +29,8 @@ const initialState = {
   assignment: null,
   imageData: null,
   maskData: null,
-  regionHistory: history()
+  regionHistory: history(),
+  historyActiveRegion: null // This is a bit of a hack that is necessary because the active region is stored in the annotate context
 };
 
 const createRegion = (regions, label) => {
@@ -90,7 +91,11 @@ const reducer = (state, action) => {
     case SET_ASSIGNMENT: {  
       const { regions } = action.assignment;
 
-      state.regionHistory.set(regions);
+      // Assuming active region is the first here...
+      state.regionHistory.set({ 
+        regions: regions, 
+        activeRegion: regions.length > 0 ? regions[0] : null
+      });
       updateColors(regions);
 
       return {
@@ -107,7 +112,7 @@ const reducer = (state, action) => {
 
       const assignment = updateAssignment(state.assignment, action.assignment);
       
-      state.regionHistory.set(assignment.regions);
+      state.regionHistory.set({ regions: assignment.regions });
 
       return {
         ...state,
@@ -131,12 +136,28 @@ const reducer = (state, action) => {
       };
 
     case ADD_REGION: {
+
+      // XXX: Trying to set the new active region here. Still getting some weird behavior.
+      // Commenting out for now. Might be easiest to just have a check in refine container to 
+      // set the active region if there are regions and current is invalid...
+
+
+      const regions = createRegion(state.assignment.regions, action.label);
+/*      
+      const activeRegion = regions[regions.length - 1];
+
+      state.regionHistory.push(({ 
+        regions: regions,
+        activeRegion: activeRegion
+      }));
+*/
       return {
         ...state,
         assignment: {
           ...state.assignment,
-          regions: createRegion(state.assignment.regions, action.label)
-        }
+          regions: regions
+        },
+        //historyActiveRegion: activeRegion
       };
     }
 
@@ -175,29 +196,46 @@ const reducer = (state, action) => {
       };
 
     case PUSH_REGION_HISTORY:
-      state.regionHistory.push(state.assignment.regions);
-
-      console.log(state.regionHistory.getHistory());
+      state.regionHistory.push({ 
+        regions: state.assignment.regions, 
+        activeRegion: action.activeRegion
+      });
 
       return state;
 
-    case UNDO_REGION_HISTORY:
-      return {
+    case UNDO_REGION_HISTORY: {
+      const item = state.regionHistory.undo();
+
+      const newState = {
         ...state,
         assignment: {
           ...state.assignment,
-          regions: state.regionHistory.undo()
+          regions: item.regions
         }
       };
 
-    case REDO_REGION_HISTORY:
-      return {
+      if (item.activeRegion) newState.historyActiveRegion = item.activeRegion;
+
+      return newState;
+    }
+
+    case REDO_REGION_HISTORY: {
+      const item = state.regionHistory.redo();
+
+      console.log(item);
+
+      const newState = {
         ...state,
         assignment: {
           ...state.assignment,
-          regions: state.regionHistory.redo()
+          regions: item.regions
         }
       };
+
+      if (item.activeRegion) newState.historyActiveRegion = item.activeRegion;
+
+      return newState;
+    }
 
     case SAVE_REGION_HISTORY:
       state.regionHistory.updateSaveIndex()
