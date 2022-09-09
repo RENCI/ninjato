@@ -163,22 +163,30 @@ const reducer = (state, action) => {
       };
     }
 
-    case REMOVE_REGION: 
-      const regions = createRegion(state.assignment.regions, action.label);  
-      
+    case REMOVE_REGION: {
+      const regions = removeRegions(state.assignment.regions, [action.region]);
+
       let activeRegion = state.activeRegion;
-      if (state.activeRegion.label === action.label) {
+      if (state.activeRegion === action.region) {
         activeRegion = regions.length > 0 ? regions[0] : null;
       }
+
+      console.log(activeRegion)
+
+      state.regionHistory.push(({ 
+        regions: regions,
+        activeRegion: activeRegion
+      }));
 
       return {
         ...state,
         assignment: {
           ...state.assignment,
-          regions: removeRegions(state.assignment.regions, [action.region])
+          regions: regions
         },
         activeRegion: activeRegion
       };
+    }
 
     case REMOVE_REGIONS: 
       return {
@@ -211,10 +219,6 @@ const reducer = (state, action) => {
         activeRegion: action.activeRegion
       });
 
-
-      console.log(state.regionHistory.getHistory());
-      console.log("***")
-
       return state;
 
     case UNDO_REGION_HISTORY: {
@@ -225,10 +229,9 @@ const reducer = (state, action) => {
         assignment: {
           ...state.assignment,
           regions: item.regions
-        }
+        },
+        activeRegion: item.activeRegion
       };
-
-      if (item.activeRegion) newState.historyActiveRegion = item.activeRegion;
 
       return newState;
     }
@@ -241,10 +244,9 @@ const reducer = (state, action) => {
         assignment: {
           ...state.assignment,
           regions: item.regions
-        }
+        },
+        activeRegion: item.activeRegion
       };
-
-      if (item.activeRegion) newState.historyActiveRegion = item.activeRegion;
 
       return newState;
     }

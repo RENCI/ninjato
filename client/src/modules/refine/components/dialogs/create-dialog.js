@@ -26,7 +26,7 @@ export const CreateDialog = ({ sliceView }) => {
     if (region) {
       setNewRegion(region);
     }
-  }, [newLabel, assignment, annotateDispatch]);
+  }, [newLabel, assignment]);
 
   const onConfirm = async () => {
     setCreating(true);
@@ -38,11 +38,11 @@ export const CreateDialog = ({ sliceView }) => {
       setCreating(false);
       setSuccess(true);
 
-      userDispatch({ type: ADD_REGION, label: label });
+      userDispatch({ type: ADD_REGION, label: label, makeActive: label });
 
       await sliceView.createRegion(label);
 
-      setTimeout(async () => {
+      setTimeout(() => {
         setSuccess(false);
         setNewLabel(null);
         annotateDispatch({ type: ANNOTATE_SET_ACTION, action: null });

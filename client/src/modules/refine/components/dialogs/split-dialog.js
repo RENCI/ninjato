@@ -1,7 +1,7 @@
 import { useContext, useState, useEffect } from 'react';
 import { Button, Modal, Icon, Select } from 'semantic-ui-react';
 import { 
-  UserContext, ADD_REGION, SET_ACTIVE_REGION,
+  UserContext, ADD_REGION,
   AnnotateContext, ANNOTATE_SET_ACTION,
   ErrorContext, SET_ERROR
 } from 'contexts';
@@ -27,7 +27,7 @@ export const SplitDialog = ({ sliceView }) => {
     if (region) {
       setNewRegion(region);
     }
-  }, [newLabel, assignment, splitMode, action, annotateDispatch]);
+  }, [newLabel, assignment]);
 
   const onConfirm = async () => {
     setSplitting(true);
@@ -40,14 +40,14 @@ export const SplitDialog = ({ sliceView }) => {
         label: label, 
         makeActive: splitMode === 'top' ? action.region.label : label 
       });
-
+      
       setNewLabel(label);
       setSplitting(false);
       setSuccess(true);
 
       await sliceView.splitRegion(action.region.label, label, splitMode);
 
-      setTimeout(() => {
+      setTimeout(async () => {
         setSuccess(false);
         setNewLabel(null);
         annotateDispatch({ type: ANNOTATE_SET_ACTION, action: null });

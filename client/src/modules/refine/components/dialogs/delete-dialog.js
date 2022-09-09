@@ -17,9 +17,9 @@ export const DeleteDialog = ({ sliceView }) => {
   const onConfirm = async () => {
     setDeleting(true);
 
-    userDispatch({ type: REMOVE_REGION, region: action.region });
-
     await sliceView.deleteRegion(action.region);
+
+    userDispatch({ type: REMOVE_REGION, region: action.region });
 
     setDeleting(false);
     setSuccess(true);
@@ -31,11 +31,7 @@ export const DeleteDialog = ({ sliceView }) => {
       const { regions } = assignment;
 
       if (regions.length === 1) {
-        userDispatch({ type: SET_ACTIVE_REGION, region: null });
         annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'create' });
-      }
-      else if (action.region === activeRegion) {
-        userDispatch({ type: SET_ACTIVE_REGION, region: regions[0] })
       }
     }, 1000);
   };

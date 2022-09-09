@@ -1,4 +1,4 @@
-import { useContext, useRef, useCallback, useState, useEffect } from 'react';
+import { useContext, useRef, useCallback, useState } from 'react';
 import { Grid } from 'semantic-ui-react';
 import { 
   UserContext, PUSH_REGION_HISTORY, SET_ACTIVE_REGION,
