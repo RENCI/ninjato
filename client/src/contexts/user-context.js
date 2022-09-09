@@ -10,6 +10,7 @@ export const SET_ASSIGNMENT = 'user/SET_ASSIGNMENT';
 export const UPDATE_ASSIGNMENT = 'user/UPDATE_ASSIGNMENT';
 export const SET_DATA = 'user/SET_DATA';
 export const CLEAR_DATA = 'user/CLEAR_DATA';
+export const SET_ACTIVE_REGION = 'user/SET_ACTIVE_REGION';
 export const ADD_REGION = 'user/ADD_REGION';
 export const REMOVE_REGION = 'user/REMOVE_REGION';
 export const REMOVE_REGIONS = 'user/REMOVE_REGIONS';
@@ -29,12 +30,8 @@ const initialState = {
   assignment: null,
   imageData: null,
   maskData: null,
-  regionHistory: history(),
-
-  // XXX: MOVE ACTIVE REGION FROM ANNOTATE CONTEXT TO HERE, MAKING IT MUCH EASIER TO SET WHEN PERFORMING CERTAIN ACTIONS
-  // XXX: MAYBE RENAME THIS TO ASSIGNMENT CONTEXT?
-
-  userActiveRegion: null // This is a bit of a hack that is necessary because the active region is stored in the annotate context
+  activeRegion: null,
+  regionHistory: history()
 };
 
 const createRegion = (regions, label) => {
@@ -138,6 +135,12 @@ const reducer = (state, action) => {
         imageData: null,
         maskData: null
       };
+
+    case SET_ACTIVE_REGION: 
+      return { 
+        ...state,
+        activeRegion: action.region
+      }
 
     case ADD_REGION: {
 

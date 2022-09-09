@@ -1,8 +1,8 @@
 import { useContext, useRef, useCallback, useState, useEffect } from 'react';
 import { Grid } from 'semantic-ui-react';
 import { 
-  UserContext, PUSH_REGION_HISTORY,
-  AnnotateContext, ANNOTATE_SET_TOOL, ANNOTATE_SET_ACTION, ANNOTATE_SET_ACTIVE_REGION, ANNOTATE_CHANGE_BRUSH_SIZE
+  UserContext, PUSH_REGION_HISTORY, SET_ACTIVE_REGION,
+  AnnotateContext, ANNOTATE_SET_TOOL, ANNOTATE_SET_ACTION, ANNOTATE_CHANGE_BRUSH_SIZE
 } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
@@ -18,8 +18,8 @@ import { ClaimDialog, RemoveDialog, SplitDialog, MergeDialog, CreateDialog, Dele
 const { Column } = Grid;
 
 export const RefineContainer = () => {
-  const [{ imageData, historyActiveRegion }, userDispatch] = useContext(UserContext);
-  const [{ tool, activeRegion }, annotateDispatch] = useContext(AnnotateContext);
+  const [{ imageData }, userDispatch] = useContext(UserContext);
+  const [{ tool }, annotateDispatch] = useContext(AnnotateContext);
   const volumeView = useRef(VolumeView());
   const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight, onKeyDown, onKeyUp));
   const [loading, setLoading] = useState(true);
@@ -27,12 +27,6 @@ export const RefineContainer = () => {
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
   const [hoverRegion, setHoverRegion] = useState(null);
-
-  useEffect(() => {
-    console.log(historyActiveRegion);
-
-    if (historyActiveRegion) annotateDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: historyActiveRegion });
-  }, [historyActiveRegion, annotateDispatch]);
 
   // Slice view callbacks
   function onEdit(activeRegion = null) {
@@ -54,7 +48,7 @@ export const RefineContainer = () => {
   function onSelect(region, type) {
     switch (type) {
       case 'select':       
-        annotateDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: region });
+        userDispatch({ type: SET_ACTIVE_REGION, region: region });
         break;
 
       case 'claim':

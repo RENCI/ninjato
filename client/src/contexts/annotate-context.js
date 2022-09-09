@@ -6,7 +6,6 @@ export const ANNOTATE_SET_BRUSH = 'annotate/ANNOTATE_SET_BRUSH';
 export const ANNOTATE_CHANGE_BRUSH_SIZE = 'annotate/ANNOTATE_CHANGE_BRUSH_SIZE';
 export const ANNOTATE_SET_CONTROL = 'annotate/SET_CONTROL';
 export const ANNOTATE_SET_ACTION = 'annotate/SET_ACTION';
-export const ANNOTATE_SET_ACTIVE_REGION = 'annotate/SET_ACTIVE_REGION';
 export const ANNOTATE_RESET = 'annotate/RESET';
 
 const tools = [
@@ -55,7 +54,6 @@ const brushes = [
 ];
 
 const initialState = {
-  activeRegion: null,
   tool: 'paint',
   tools: tools,
   brushes: brushes,
@@ -69,12 +67,6 @@ const initialState = {
 
 const reducer = (state, action) => {
   switch (action.type) {
-    case ANNOTATE_SET_ACTIVE_REGION:
-      return {
-        ...state,
-        activeRegion: action.region
-      };
-
     case ANNOTATE_SET_TOOL:
       return {
         ...state,

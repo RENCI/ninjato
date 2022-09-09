@@ -1,8 +1,8 @@
 import { useContext, useState, useEffect } from 'react';
 import { Button, Modal, Icon, Select } from 'semantic-ui-react';
 import { 
-  UserContext, ADD_REGION,
-  AnnotateContext, ANNOTATE_SET_ACTION, ANNOTATE_SET_ACTIVE_REGION,
+  UserContext, ADD_REGION, SET_ACTIVE_REGION,
+  AnnotateContext, ANNOTATE_SET_ACTION,
   ErrorContext, SET_ERROR
 } from 'contexts';
 import { RegionLabel } from 'modules/region/components/region-label';
@@ -27,7 +27,7 @@ export const SplitDialog = ({ sliceView }) => {
     if (region) {
       setNewRegion(region);
       annotateDispatch({ 
-        type: ANNOTATE_SET_ACTIVE_REGION, 
+        type: SET_ACTIVE_REGION, 
         region: splitMode === 'top' ? action.region : region
       });
     }

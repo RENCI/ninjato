@@ -1,8 +1,8 @@
 import { useContext, useRef, useCallback, useState, useEffect } from 'react';
 import { Grid } from 'semantic-ui-react';
 import { 
-  UserContext,
-  AnnotateContext, ANNOTATE_SET_TOOL, ANNOTATE_SET_ACTIVE_REGION, ANNOTATE_CHANGE_BRUSH_SIZE
+  UserContext, SET_ACTIVE_REGION,
+  AnnotateContext, ANNOTATE_SET_TOOL, ANNOTATE_CHANGE_BRUSH_SIZE
 } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
@@ -17,7 +17,7 @@ import { RegionPopup } from 'modules/region/components/region-popup';
 const { Column } = Grid;
 
 export const ReviewContainer = () => {
-  const [{ imageData }] = useContext(UserContext);
+  const [{ imageData }, userDispatch] = useContext(UserContext);
   const [{ tool }, annotateDispatch] = useContext(AnnotateContext);
   const volumeView = useRef(VolumeView());
   const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight, onKeyDown, onKeyUp));
@@ -44,7 +44,7 @@ export const ReviewContainer = () => {
   function onSelect(region, type) {
     switch (type) {
       case 'select':       
-        annotateDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: region });
+        userDispatch({ type: SET_ACTIVE_REGION, region: region });
         break;
 
       default:

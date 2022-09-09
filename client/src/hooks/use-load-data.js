@@ -1,10 +1,10 @@
 import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  UserContext, SET_DATA, SET_BACKGROUND_REGIONS,
+  UserContext, SET_DATA, SET_BACKGROUND_REGIONS, SET_ACTIVE_REGION,
   AnnotateContext, ANNOTATE_RESET,
   LoadingContext, SET_LOADING, CLEAR_LOADING,
-  ErrorContext, SET_ERROR, ANNOTATE_SET_ACTIVE_REGION 
+  ErrorContext, SET_ERROR 
 } from 'contexts';
 import { api } from 'utils/api';
 import { decodeTIFF } from 'utils/data-conversion';
@@ -78,8 +78,8 @@ export const useLoadData = ()  => {
           type: ANNOTATE_RESET
         });
 
-        annotateDispatch({
-          type: ANNOTATE_SET_ACTIVE_REGION,
+        userDispatch({
+          type: SET_ACTIVE_REGION,
           region: regions.length > 0 ? regions[0] : null
         });
 
@@ -101,8 +101,8 @@ export const useLoadData = ()  => {
           regions: backgroundRegions
         });
 
-        annotateDispatch({
-          type: ANNOTATE_SET_ACTIVE_REGION,
+        userDispatch({
+          type: SET_ACTIVE_REGION,
           region: regions.length > 0 ? regions[regions.length - 1] : null
         });
       }

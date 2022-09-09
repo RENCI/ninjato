@@ -3,8 +3,8 @@ import { UserContext, AnnotateContext } from 'contexts';
 import { useResize } from 'hooks';
 
 export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
-  const [{ maskData, assignment }] = useContext(UserContext);
-  const [{ activeRegion, showBackground }] = useContext(AnnotateContext);
+  const [{ maskData, assignment, activeRegion }] = useContext(UserContext);
+  const [{ showBackground }] = useContext(AnnotateContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);
   const { width } = useResize(div);

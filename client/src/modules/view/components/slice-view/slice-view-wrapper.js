@@ -3,10 +3,8 @@ import { UserContext, AnnotateContext } from 'contexts';
 import { useResize } from 'hooks';
 
 export const SliceViewWrapper = ({ sliceView }) => {
-  const [{ imageData, maskData, assignment, volumes }] = useContext(UserContext);
-  const [
-    { activeRegion, tool, tools, brushes, paintBrush, eraseBrush, createBrush, showContours }
-  ] = useContext(AnnotateContext);
+  const [{ imageData, maskData, assignment, volumes, activeRegion }] = useContext(UserContext);
+  const [{ tool, tools, brushes, paintBrush, eraseBrush, createBrush, showContours }] = useContext(AnnotateContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);
   const sliceRanges = useRef();
