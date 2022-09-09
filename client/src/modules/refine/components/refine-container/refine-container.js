@@ -1,8 +1,8 @@
-import { useContext, useRef, useCallback, useState } from 'react';
+import { useContext, useRef, useCallback, useState, useEffect} from 'react';
 import { Grid } from 'semantic-ui-react';
 import { 
-  UserContext, PUSH_REGION_HISTORY,
-  AnnotateContext, ANNOTATE_SET_TOOL, ANNOTATE_SET_ACTION, ANNOTATE_SET_ACTIVE_REGION, ANNOTATE_CHANGE_BRUSH_SIZE
+  UserContext, PUSH_REGION_HISTORY, SET_ACTIVE_REGION,
+  AnnotateContext, ANNOTATE_SET_TOOL, ANNOTATE_SET_ACTION, ANNOTATE_CHANGE_BRUSH_SIZE
 } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
@@ -28,15 +28,21 @@ export const RefineContainer = () => {
   const [canRedo, setCanRedo] = useState(false);
   const [hoverRegion, setHoverRegion] = useState(null);
 
+  useEffect(() => {
+    // Should handle case where claiming or removing
+    setCanUndo(sliceView.current.canUndo());
+    setCanRedo(sliceView.current.canRedo());
+  }, [imageData]);
+
   // Slice view callbacks
-  function onEdit() {
+  function onEdit(activeRegion = null) {
     volumeView.current.centerCamera();
     volumeView.current.render();
 
     setCanUndo(sliceView.current.canUndo());
     setCanRedo(sliceView.current.canRedo());
 
-    userDispatch({ type: PUSH_REGION_HISTORY });
+    if (activeRegion) userDispatch({ type: PUSH_REGION_HISTORY, activeRegion: activeRegion });
   }
 
   function onSliceChange(slice) {
@@ -48,7 +54,7 @@ export const RefineContainer = () => {
   function onSelect(region, type) {
     switch (type) {
       case 'select':       
-        annotateDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: region });
+        userDispatch({ type: SET_ACTIVE_REGION, region: region });
         break;
 
       case 'claim':

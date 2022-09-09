@@ -2,7 +2,7 @@ import { useContext, useState, useEffect } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { 
   UserContext, ADD_REGION,
-  AnnotateContext, ANNOTATE_SET_ACTION, ANNOTATE_SET_ACTIVE_REGION,
+  AnnotateContext, ANNOTATE_SET_ACTION,
   ErrorContext, SET_ERROR
 } from 'contexts';
 import { RegionLabel } from 'modules/region/components/region-label';
@@ -25,9 +25,8 @@ export const CreateDialog = ({ sliceView }) => {
     
     if (region) {
       setNewRegion(region);
-      annotateDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: region });
     }
-  }, [newLabel, assignment, annotateDispatch]);
+  }, [newLabel, assignment]);
 
   const onConfirm = async () => {
     setCreating(true);
@@ -39,11 +38,11 @@ export const CreateDialog = ({ sliceView }) => {
       setCreating(false);
       setSuccess(true);
 
-      userDispatch({ type: ADD_REGION, label: label });
+      userDispatch({ type: ADD_REGION, label: label, makeActive: label });
 
       await sliceView.createRegion(label);
 
-      setTimeout(async () => {
+      setTimeout(() => {
         setSuccess(false);
         setNewLabel(null);
         annotateDispatch({ type: ANNOTATE_SET_ACTION, action: null });

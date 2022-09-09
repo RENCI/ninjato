@@ -10,6 +10,7 @@ export const SET_ASSIGNMENT = 'user/SET_ASSIGNMENT';
 export const UPDATE_ASSIGNMENT = 'user/UPDATE_ASSIGNMENT';
 export const SET_DATA = 'user/SET_DATA';
 export const CLEAR_DATA = 'user/CLEAR_DATA';
+export const SET_ACTIVE_REGION = 'user/SET_ACTIVE_REGION';
 export const ADD_REGION = 'user/ADD_REGION';
 export const REMOVE_REGION = 'user/REMOVE_REGION';
 export const REMOVE_REGIONS = 'user/REMOVE_REGIONS';
@@ -29,6 +30,7 @@ const initialState = {
   assignment: null,
   imageData: null,
   maskData: null,
+  activeRegion: null,
   regionHistory: history()
 };
 
@@ -90,7 +92,11 @@ const reducer = (state, action) => {
     case SET_ASSIGNMENT: {  
       const { regions } = action.assignment;
 
-      state.regionHistory.set(regions);
+      // Assuming active region is the first here...
+      state.regionHistory.set({ 
+        regions: regions, 
+        activeRegion: regions.length > 0 ? regions[0] : null
+      });
       updateColors(regions);
 
       return {
@@ -106,8 +112,13 @@ const reducer = (state, action) => {
       }
 
       const assignment = updateAssignment(state.assignment, action.assignment);
+
+      const { regions } = assignment;
       
-      state.regionHistory.set(assignment.regions);
+      state.regionHistory.set({ 
+        regions: regions,
+        activeRegion: regions.length > 0 ? regions[regions.length - 1] : null
+      });
 
       return {
         ...state,
@@ -130,24 +141,57 @@ const reducer = (state, action) => {
         maskData: null
       };
 
+    case SET_ACTIVE_REGION: 
+      return { 
+        ...state,
+        activeRegion: action.region
+      }
+
     case ADD_REGION: {
+      const regions = createRegion(state.assignment.regions, action.label);     
+      const activeRegion = action.makeActive ? 
+        regions.find(({ label }) => label === action.makeActive) : 
+        regions[regions.length - 1];
+
+      state.regionHistory.push(({ 
+        regions: regions,
+        activeRegion: activeRegion
+      }));
+
       return {
         ...state,
         assignment: {
           ...state.assignment,
-          regions: createRegion(state.assignment.regions, action.label)
-        }
+          regions: regions
+        },
+        activeRegion: activeRegion
       };
     }
 
-    case REMOVE_REGION: 
+    case REMOVE_REGION: {
+      const regions = removeRegions(state.assignment.regions, [action.region]);
+
+      let activeRegion = state.activeRegion;
+      if (state.activeRegion === action.region) {
+        activeRegion = regions.length > 0 ? regions[0] : null;
+      }
+
+      console.log(activeRegion)
+
+      state.regionHistory.push(({ 
+        regions: regions,
+        activeRegion: activeRegion
+      }));
+
       return {
         ...state,
         assignment: {
           ...state.assignment,
-          regions: removeRegions(state.assignment.regions, [action.region])
-        }
+          regions: regions
+        },
+        activeRegion: activeRegion
       };
+    }
 
     case REMOVE_REGIONS: 
       return {
@@ -175,27 +219,42 @@ const reducer = (state, action) => {
       };
 
     case PUSH_REGION_HISTORY:
-      state.regionHistory.push(state.assignment.regions);
+      state.regionHistory.push({ 
+        regions: state.assignment.regions, 
+        activeRegion: action.activeRegion
+      });
 
       return state;
 
-    case UNDO_REGION_HISTORY:
-      return {
+    case UNDO_REGION_HISTORY: {
+      const item = state.regionHistory.undo();
+
+      const newState = {
         ...state,
         assignment: {
           ...state.assignment,
-          regions: state.regionHistory.undo()
-        }
+          regions: item.regions
+        },
+        activeRegion: item.activeRegion
       };
 
-    case REDO_REGION_HISTORY:
-      return {
+      return newState;
+    }
+
+    case REDO_REGION_HISTORY: {
+      const item = state.regionHistory.redo();
+
+      const newState = {
         ...state,
         assignment: {
           ...state.assignment,
-          regions: state.regionHistory.redo()
-        }
+          regions: item.regions
+        },
+        activeRegion: item.activeRegion
       };
+
+      return newState;
+    }
 
     case SAVE_REGION_HISTORY:
       state.regionHistory.updateSaveIndex()

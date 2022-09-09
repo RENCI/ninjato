@@ -8,8 +8,8 @@ import { SplitButton } from 'modules/common/components/split-button';
 import { BrushOptions } from 'modules/common/components/brush-options';
 
 export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
-  const [, userDispatch] = useContext(UserContext);
-  const [{ activeRegion, tools, tool, showContours }, annotateDispatch] = useContext(AnnotateContext);
+  const [{ activeRegion }, userDispatch] = useContext(UserContext);
+  const [{ tools, tool, showContours }, annotateDispatch] = useContext(AnnotateContext);
 
   const onToolClick = value => {
     annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: value });

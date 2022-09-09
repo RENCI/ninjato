@@ -1,16 +1,16 @@
 import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { 
-  UserContext, REMOVE_REGIONS,
-  AnnotateContext, ANNOTATE_SET_TOOL, ANNOTATE_SET_ACTIVE_REGION
+  UserContext, REMOVE_REGIONS, SET_ACTIVE_REGION,
+  AnnotateContext, ANNOTATE_SET_TOOL
  } from 'contexts';
 import { RegionLabel } from 'modules/region/components/region-label';
 
 const { Header, Content, Actions } = Modal;
 
 export const MissingDialog = ({ missing, onClose }) => {
-  const [{ assignment }, userDispatch] = useContext(UserContext);
-  const [{ activeRegion }, annotateDispatch] = useContext(AnnotateContext);
+  const [{ assignment, activeRegion }, userDispatch] = useContext(UserContext);
+  const [, annotateDispatch] = useContext(AnnotateContext);
   const [removing, setRemoving] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -29,11 +29,11 @@ export const MissingDialog = ({ missing, onClose }) => {
       const { regions } = assignment;
 
       if (regions.length === 1) {
-        annotateDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: null });
+        userDispatch({ type: SET_ACTIVE_REGION, region: null });
         annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'create' });
       }
       else if (missing.includes(activeRegion)) {
-        annotateDispatch({ type: ANNOTATE_SET_ACTIVE_REGION, region: regions.find(region => !missing.includes(region)) });
+        userDispatch({ type: SET_ACTIVE_REGION, region: regions.find(region => !missing.includes(region)) });
       }
 
       onClose();

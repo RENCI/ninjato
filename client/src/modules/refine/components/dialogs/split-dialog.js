@@ -2,7 +2,7 @@ import { useContext, useState, useEffect } from 'react';
 import { Button, Modal, Icon, Select } from 'semantic-ui-react';
 import { 
   UserContext, ADD_REGION,
-  AnnotateContext, ANNOTATE_SET_ACTION, ANNOTATE_SET_ACTIVE_REGION,
+  AnnotateContext, ANNOTATE_SET_ACTION,
   ErrorContext, SET_ERROR
 } from 'contexts';
 import { RegionLabel } from 'modules/region/components/region-label';
@@ -26,12 +26,8 @@ export const SplitDialog = ({ sliceView }) => {
 
     if (region) {
       setNewRegion(region);
-      annotateDispatch({ 
-        type: ANNOTATE_SET_ACTIVE_REGION, 
-        region: splitMode === 'top' ? action.region : region
-      });
     }
-  }, [newLabel, assignment, splitMode, action, annotateDispatch]);
+  }, [newLabel, assignment]);
 
   const onConfirm = async () => {
     setSplitting(true);
@@ -39,15 +35,19 @@ export const SplitDialog = ({ sliceView }) => {
     try {
       const label = await api.getNewLabel(assignment.subvolumeId);
 
-      userDispatch({ type: ADD_REGION, label: label });
-
+      userDispatch({ 
+        type: ADD_REGION, 
+        label: label, 
+        makeActive: splitMode === 'top' ? action.region.label : label 
+      });
+      
       setNewLabel(label);
       setSplitting(false);
       setSuccess(true);
 
       await sliceView.splitRegion(action.region.label, label, splitMode);
 
-      setTimeout(() => {
+      setTimeout(async () => {
         setSuccess(false);
         setNewLabel(null);
         annotateDispatch({ type: ANNOTATE_SET_ACTION, action: null });

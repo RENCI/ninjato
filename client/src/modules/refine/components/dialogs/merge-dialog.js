@@ -9,8 +9,8 @@ import { RegionLabel } from 'modules/region/components/region-label';
 const { Header, Content, Actions } = Modal;
 
 export const MergeDialog = ({ sliceView }) => {
-  const [, userDispatch] = useContext(UserContext);
-  const [{ action, activeRegion }, annotateDispatch] = useContext(AnnotateContext);
+  const [{ activeRegion }, userDispatch] = useContext(UserContext);
+  const [{ action }, annotateDispatch] = useContext(AnnotateContext);
   const [merging, setMerging] = useState(false);
   const [success, setSuccess] = useState(false);
 
