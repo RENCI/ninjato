@@ -1,4 +1,4 @@
-import { useContext, useRef, useCallback, useState } from 'react';
+import { useContext, useRef, useCallback, useState, useEffect} from 'react';
 import { Grid } from 'semantic-ui-react';
 import { 
   UserContext, PUSH_REGION_HISTORY, SET_ACTIVE_REGION,
@@ -27,6 +27,12 @@ export const RefineContainer = () => {
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
   const [hoverRegion, setHoverRegion] = useState(null);
+
+  useEffect(() => {
+    // Should handle case where claiming or removing
+    setCanUndo(sliceView.current.canUndo());
+    setCanRedo(sliceView.current.canRedo());
+  }, [imageData]);
 
   // Slice view callbacks
   function onEdit(activeRegion = null) {
