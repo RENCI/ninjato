@@ -26,10 +26,6 @@ export const SplitDialog = ({ sliceView }) => {
 
     if (region) {
       setNewRegion(region);
-      annotateDispatch({ 
-        type: SET_ACTIVE_REGION, 
-        region: splitMode === 'top' ? action.region : region
-      });
     }
   }, [newLabel, assignment, splitMode, action, annotateDispatch]);
 
@@ -39,7 +35,11 @@ export const SplitDialog = ({ sliceView }) => {
     try {
       const label = await api.getNewLabel(assignment.subvolumeId);
 
-      userDispatch({ type: ADD_REGION, label: label });
+      userDispatch({ 
+        type: ADD_REGION, 
+        label: label, 
+        makeActive: splitMode === 'top' ? action.region.label : label 
+      });
 
       setNewLabel(label);
       setSplitting(false);

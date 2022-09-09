@@ -1,7 +1,7 @@
 import { useContext, useState, useEffect } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { 
-  UserContext, ADD_REGION, SET_ACTIVE_REGION,
+  UserContext, ADD_REGION,
   AnnotateContext, ANNOTATE_SET_ACTION,
   ErrorContext, SET_ERROR
 } from 'contexts';
@@ -25,7 +25,6 @@ export const CreateDialog = ({ sliceView }) => {
     
     if (region) {
       setNewRegion(region);
-      userDispatch({ type: SET_ACTIVE_REGION, region: region });
     }
   }, [newLabel, assignment, annotateDispatch]);
 

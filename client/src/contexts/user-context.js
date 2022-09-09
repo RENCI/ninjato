@@ -143,14 +143,10 @@ const reducer = (state, action) => {
       }
 
     case ADD_REGION: {
-
-      // XXX: Trying to set the new active region here. Still getting some weird behavior.
-      // Commenting out for now. Might be easiest to just have a check in refine container to 
-      // set the active region if there are regions and current is invalid...
-
-
-      const regions = createRegion(state.assignment.regions, action.label);      
-      const activeRegion = regions[regions.length - 1];
+      const regions = createRegion(state.assignment.regions, action.label);     
+      const activeRegion = action.makeActive ? 
+        regions.find(({ label }) => label === action.makeActive) : 
+        regions[regions.length - 1];
 
       state.regionHistory.push(({ 
         regions: regions,
@@ -163,17 +159,25 @@ const reducer = (state, action) => {
           ...state.assignment,
           regions: regions
         },
-        historyActiveRegion: activeRegion
+        activeRegion: activeRegion
       };
     }
 
     case REMOVE_REGION: 
+      const regions = createRegion(state.assignment.regions, action.label);  
+      
+      let activeRegion = state.activeRegion;
+      if (state.activeRegion.label === action.label) {
+        activeRegion = regions.length > 0 ? regions[0] : null;
+      }
+
       return {
         ...state,
         assignment: {
           ...state.assignment,
           regions: removeRegions(state.assignment.regions, [action.region])
-        }
+        },
+        activeRegion: activeRegion
       };
 
     case REMOVE_REGIONS: 

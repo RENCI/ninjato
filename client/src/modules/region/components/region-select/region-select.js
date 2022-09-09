@@ -1,17 +1,13 @@
 import { useContext } from 'react';
 import { Select } from 'semantic-ui-react';
-import { 
-  UserContext, SET_ACTIVE_REGION,
-  AnnotateContext 
-} from 'contexts';
+import { UserContext, SET_ACTIVE_REGION } from 'contexts';
 import { RegionIcon } from 'modules/region/components/region-icon';
 
 export const RegionSelect = () => {
-  const [{ assignment, activeRegion }] = useContext(UserContext);
-  const [, refineContext] = useContext(AnnotateContext);
+  const [{ assignment, activeRegion }, userDispatch] = useContext(UserContext);
 
   const onChange = (evt, { value }) => {
-    refineContext({ 
+    userDispatch({ 
       type: SET_ACTIVE_REGION, 
       region: assignment.regions.find(({ label }) => label === value )
     });
