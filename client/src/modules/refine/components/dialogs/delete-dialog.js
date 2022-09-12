@@ -1,7 +1,7 @@
 import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { 
-  UserContext, REMOVE_REGION, SET_ACTIVE_REGION,
+  UserContext, REMOVE_REGION,
   AnnotateContext, ANNOTATE_SET_ACTION, ANNOTATE_SET_TOOL
 } from 'contexts';
 import { RegionLabel } from 'modules/region/components/region-label';
@@ -9,7 +9,7 @@ import { RegionLabel } from 'modules/region/components/region-label';
 const { Header, Content, Actions } = Modal;
 
 export const DeleteDialog = ({ sliceView }) => {
-  const [{ assignment, activeRegion }, userDispatch] = useContext(UserContext);
+  const [{ assignment }, userDispatch] = useContext(UserContext);
   const [{ action }, annotateDispatch] = useContext(AnnotateContext);
   const [deleting, setDeleting] = useState(false);
   const [success, setSuccess] = useState(false);
