@@ -1,4 +1,5 @@
 import os
+import random
 from datetime import datetime
 from girder.models.item import Item
 from girder.models.file import File
@@ -319,7 +320,13 @@ def get_item_assignment(user, subvolume_id):
     assigned_region_id = None
     # no region has been assigned to the user yet, look into the whole partition
     # item to find a region for assignment
-    for key, val in whole_item['meta']['regions'].items():
+    # randomize available item to assign to users to minimize adjacent region assignment
+    region_items = whole_item['meta']['regions'].copy()
+    print(f'before loop, len(region_items): {len(region_items)}', flush=True)
+    while len(region_items) > 0:
+        key, val = random.choice(list(region_items.items()))
+        del region_items[key]
+        print(f'Within loop, len(region_items): {len(region_items)}', flush=True)
         if annot_done_key in val:
             # if a region is done, continue to check another region
             continue
