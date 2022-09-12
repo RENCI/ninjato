@@ -3,5 +3,13 @@
     flex: 0 0 0 !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
+    position: relative;
   }
+}
+
+.label {
+  width: 100%;
+  text-align: right;
+  margin-bottom: -.5em;
+  color: #999;
 }

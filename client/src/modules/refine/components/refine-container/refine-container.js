@@ -1,4 +1,4 @@
-import { useContext, useRef, useCallback, useState, useEffect} from 'react';
+import { useContext, useRef, useCallback, useState, useEffect } from 'react';
 import { Grid } from 'semantic-ui-react';
 import { 
   UserContext, PUSH_REGION_HISTORY, SET_ACTIVE_REGION,
@@ -10,7 +10,7 @@ import { VolumeViewWrapper, VolumeView } from 'modules/view/components/volume-vi
 import { SliceViewWrapper, SliceView } from 'modules/view/components/slice-view';
 import { VolumeControls } from 'modules/refine/components/volume-controls';
 import { SliceControls } from 'modules/refine/components/slice-controls';
-import { SliceSlider } from 'modules/common/components/slice-slider';
+import { SliceSlider, SliceLabel } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
 import { RegionPopup } from 'modules/region/components/region-popup';
 import { ClaimDialog, RemoveDialog, SplitDialog, MergeDialog, CreateDialog, DeleteDialog } from 'modules/refine/components/dialogs';
@@ -184,6 +184,7 @@ export const RefineContainer = () => {
                   />
                 }
             </Grid>            
+            <SliceLabel slice={ slice } />
           </VisualizationSection>
         </Column>
         { !loading && 
