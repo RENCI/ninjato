@@ -274,18 +274,24 @@ def find_region_item_from_label(whole_item, region_label):
     return None
 
 
-def get_region_extent(whole_item, region_id):
-    item_files = File().find({'itemId': whole_item['_id']})
-    # compute updated range after removing the region from the user's assignment
+def get_region_extent(item, region_id, user_extent=True):
+    is_whole_item = False
+    if item['name'] == 'whole':
+        is_whole_item = True
+    item_files = File().find({'itemId': item['_id']})
+    if user_extent:
+        substr_to_check = '_masks_regions_user'
+    else:
+        substr_to_check = '_masks_regions'
     for item_file in item_files:
-        if '_masks' not in item_file['name']:
+        if substr_to_check not in item_file['name']:
             continue
         tif, _ = _get_tif_file_content_and_path(item_file)
         images = []
         for image in tif.iter_images():
             images.append(image)
         imarray = np.array(images)
-        level_indices = np.where(imarray == region_id)
+        level_indices = np.where(imarray == int(region_id))
         z_min = min(level_indices[0])
         z_max = max(level_indices[0])
         y_min = min(level_indices[1])
@@ -295,13 +301,14 @@ def get_region_extent(whole_item, region_id):
         # need to convert extent values to int from int64, otherwise, JSON serialization
         # will raise exception when adding metadata to item
         return {
-            "x_max": int(x_max),
-            "x_min": int(x_min),
-            "y_max": int(y_max),
-            "y_min": int(y_min),
-            "z_max": int(z_max),
-            "z_min": int(z_min)
+            "x_max": int(x_max) if is_whole_item else int(x_max)+item['meta']['coordinates']["x_min"],
+            "x_min": int(x_min) if is_whole_item else int(x_min)+item['meta']['coordinates']["x_min"],
+            "y_max": int(y_max) if is_whole_item else int(y_max)+item['meta']['coordinates']["y_min"],
+            "y_min": int(y_min) if is_whole_item else int(y_min)+item['meta']['coordinates']["y_min"],
+            "z_max": int(z_max) if is_whole_item else int(z_max)+item['meta']['coordinates']["z_min"],
+            "z_min": int(z_min) if is_whole_item else int(z_min)+item['meta']['coordinates']["z_min"]
         }
+
     return {}
 
 
@@ -546,6 +553,10 @@ def remove_region_from_active_assignment(whole_item, assign_item, region_id):
     :return: assignment item id
     """
     region_id = str(region_id)
+    if 'item_id' in whole_item['meta']['regions'][region_id]:
+        del whole_item['meta']['regions'][region_id]['item_id']
+        Item().save(whole_item)
+
     if 'removed_region_ids' in assign_item['meta']:
         rid_list = assign_item['meta']['removed_region_ids']
         if region_id in rid_list:

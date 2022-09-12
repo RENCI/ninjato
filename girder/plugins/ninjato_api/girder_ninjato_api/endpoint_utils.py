@@ -454,7 +454,7 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
             reg_item = find_region_item_from_label(whole_item, aid)
             if not reg_item:
                 # create the region metadata in the whole subvolume
-                reg_extent = get_region_extent(whole_item, aid)
+                reg_extent = get_region_extent(item, aid)
                 whole_item['meta']['regions'][aid] = {
                     "item_id": str(item['_id']),
                     "x_max": reg_extent['x_max'],
