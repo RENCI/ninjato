@@ -553,6 +553,10 @@ def remove_region_from_active_assignment(whole_item, assign_item, region_id):
     :return: assignment item id
     """
     region_id = str(region_id)
+    if 'item_id' in whole_item['meta']['regions'][region_id]:
+        del whole_item['meta']['regions'][region_id]['item_id']
+        Item().save(whole_item)
+
     if 'removed_region_ids' in assign_item['meta']:
         rid_list = assign_item['meta']['removed_region_ids']
         if region_id in rid_list:
