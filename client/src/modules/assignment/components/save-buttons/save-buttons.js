@@ -3,7 +3,7 @@ import { Segment, Button } from 'semantic-ui-react';
 import { DeclineButton } from './decline-button';
 import { SaveButton } from './save-button';
 import { SubmitButton } from './submit-button';
-import { AcceptButton } from './accept-button';
+import { VerifyButton } from './verify-button';
 import styles from './styles.module.css';
 
 export const SaveButtons = ({ review = false }) => {
@@ -31,7 +31,7 @@ export const SaveButtons = ({ review = false }) => {
         />
       </Button.Group>
       { review && 
-        <AcceptButton disabled={ busy } /> 
+        <VerifyButton disabled={ busy } /> 
       }
     </Segment>
   );

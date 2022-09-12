@@ -5,19 +5,19 @@ import { useModal, useSaveReview } from 'hooks';
 
 const { Header, Content, Actions } = Modal;
 
-export const AcceptButton = ({ disabled }) => {
+export const VerifyButton = ({ disabled }) => {
   const [, userDispatch] = useContext(UserContext);
   const [open, openModal, closeModal] = useModal();
-  const [accepting, setAccepting] = useState(false);
+  const [verifying, setVerifying] = useState(false);
   const [success, setSuccess] = useState(false);
   const saveReview = useSaveReview();
 
   const onConfirm = async () => {
-    setAccepting(true);
+    setVerifying(true);
 
     await saveReview(true, true);
 
-    setAccepting(false);
+    setVerifying(false);
     setSuccess(true);
 
     setTimeout(() => {        
@@ -35,37 +35,37 @@ export const AcceptButton = ({ disabled }) => {
         disabled={ disabled }
         onClick={ openModal }
       >
-        Accept
+        Verify
       </Button>
       <Modal
         dimmer='blurring'
         open={ open }        
       >
-        <Header>Accept Assignment</Header>
+        <Header>Verify Assignment</Header>
         <Content>
-          { accepting ?             
+          { verifying ?             
             <>Processing</>
           :  success ?
             <>
               <Icon name='check circle outline' color='green' />
-              Accepted successfully!
+              Verified successfully!
             </>
           :
-            <>Accept assignment as completed?</>
+            <>Verify assignment as completed?</>
           }
         </Content>
         <Actions>
           <Button 
             secondary 
-            disabled={ accepting || success }
+            disabled={ verifying || success }
             onClick={ closeModal }
           >
             Cancel
           </Button>
           <Button 
             primary 
-            disabled={ accepting || success }
-            loading={ accepting }
+            disabled={ verifying || success }
+            loading={ verifying }
             onClick={ onConfirm } 
           >
             Confirm
