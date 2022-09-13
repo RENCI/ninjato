@@ -1,8 +1,9 @@
 import { useContext, useEffect } from 'react';
-import { Tab, Menu, Button } from 'semantic-ui-react';
+import { Tab, Menu } from 'semantic-ui-react';
 import { UserContext } from 'contexts';
 import { RefineSelection } from './refine-selection';
 import { ReviewSelection } from './review-selection';
+import { RefreshButton } from 'modules/common/components/refresh-button';
 import { useGetAssignments } from 'hooks';
 import styles from './styles.module.css';
 
@@ -63,12 +64,9 @@ export const AssignmentSelection = () => {
           />
         </div>
       )}
-      <Button 
-        basic 
-        circular 
-        size='tiny'
-        icon='sync'         
-        className={ styles.refresh } 
+      <RefreshButton 
+        className={ styles.refresh }
+        message={ 'refresh assignments'}
         onClick={ onRefreshClick } 
       />
     </div>

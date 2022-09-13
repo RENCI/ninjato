@@ -18,3 +18,8 @@
   top: 0;
   right: 0;
 }
+
+.refresh {
+  position: absolute;
+  right: 5px;
+}
