@@ -18,6 +18,7 @@ export const RemoveDialog = () => {
   const loadData = useLoadData();
   const [removing, setRemoving] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [cantRemove, setCantRemove] = useState(false);
 
   const onConfirm = async () => {
     setRemoving(true);
@@ -43,12 +44,21 @@ export const RemoveDialog = () => {
       }, 1000); 
     }
     catch (error) {
-      console.log(error);   
-      
-      setSuccess(false);
-      setRemoving(false);
+      if (error.response.data.message.includes('KeyError')) {
+        setRemoving(false);
+        setCantRemove(true);
 
-      errorDispatch({ type: SET_ERROR, error: error });
+        setTimeout(async () => {
+          setCantRemove(false);
+          annotateDispatch({ type: ANNOTATE_SET_ACTION, action: null }); 
+        }, 3000); 
+      }
+      else {
+        setSuccess(false);
+        setRemoving(false);
+
+        errorDispatch({ type: SET_ERROR, error: error });
+      }
     } 
   };
 
@@ -65,10 +75,15 @@ export const RemoveDialog = () => {
       <Content>
         { removing ?             
           <>Processing...</>
-        :  success ?
+        : success ?
           <>
             <Icon name='check circle outline' color='green' />
             Removed successfully.
+          </>
+        : cantRemove ?
+          <>
+            <Icon name='exclamation triangle' color='yellow'/>
+            Can't remove region. Try deleting instead.
           </>
         :
           action && <p>Remove region <RegionLabel region={ action.region } /> from this assignment?</p>
@@ -77,14 +92,14 @@ export const RemoveDialog = () => {
       <Actions>
         <Button 
           secondary 
-          disabled={ removing || success }
+          disabled={ removing || success || cantRemove}
           onClick={ onCancel }
         >
           Cancel
         </Button>
         <Button 
           primary 
-          disabled={ removing || success }
+          disabled={ removing || success || cantRemove}
           loading={ removing }
           onClick={ onConfirm } 
         >
