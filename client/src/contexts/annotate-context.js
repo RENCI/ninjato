@@ -20,7 +20,7 @@ const tools = [
   { group: 'region', value: 'delete', icon: 'minus circle', cursor: getCursor('delete.png', 15, 16), tooltip: 'delete' },
 
   { group: 'claim', value: 'claim', icon: 'flag', cursor: getCursor('flag.png', 10, 23), tooltip: 'claim', alwaysEnabled: true },
-  { group: 'claim', value: 'remove', icon: 'share', cursor: getCursor('remove.png', 23, 14), tooltip: 'remove', }
+  { group: 'claim', value: 'remove', icon: 'share', cursor: getCursor('remove.png', 23, 14), tooltip: 'remove claimed region', }
 ];
 
 const brushes = [
