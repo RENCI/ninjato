@@ -10,6 +10,7 @@
 .label {
   width: 100%;
   text-align: right;
+  margin-top: .5em;
   margin-bottom: -.5em;
   color: #999;
 }

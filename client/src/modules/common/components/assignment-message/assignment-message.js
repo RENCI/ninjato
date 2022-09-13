@@ -1,14 +1,29 @@
 import { useContext } from 'react';
 import { Message } from 'semantic-ui-react';
-import { UserContext } from 'contexts';
+import { UserContext, UPDATE_ASSIGNMENT } from 'contexts';
 import { RegionSelect } from 'modules/region/components/region-select';
 import { CommentContainer } from 'modules/comment/components/comment-container';
+import { RefreshButton } from 'modules/common/components/refresh-button';
+import { useLoadData } from 'hooks';
+import { api } from 'utils/api';
 import styles from './styles.module.css';
 
 export const AssignmentMessage = () => {
-  const [{ assignment }] = useContext(UserContext);
+  const [{ assignment }, userDispatch] = useContext(UserContext);
+  const loadData = useLoadData();
 
   const n = assignment?.regions.length;
+
+  const onRefreshClick = async () => { 
+    const update = await api.updateAssignment(assignment.subvolumeId, assignment.id);
+
+    userDispatch({
+      type: UPDATE_ASSIGNMENT,
+      assignment: update
+    });
+
+    loadData(update, assignment);   
+  };
 
   return (
       <Message attached className={ styles.message }>
@@ -28,6 +43,11 @@ export const AssignmentMessage = () => {
                 </div>
                 <RegionSelect />
                 <CommentContainer />
+                <RefreshButton 
+                  className={ styles.refresh }
+                  message={ 'refresh assignment'}
+                  onClick={ onRefreshClick } 
+                />
               </>
             }
           </>

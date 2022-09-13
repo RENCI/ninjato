@@ -59,8 +59,6 @@ export const useLoadData = ()  => {
       }
 
       if (!assignmentToUpdate) {
-        console.log(subvolumeId);
-
         const backgroundRegions = await getBackgroundRegions(subvolumeId, newMaskData, regions);
 
         userDispatch({
