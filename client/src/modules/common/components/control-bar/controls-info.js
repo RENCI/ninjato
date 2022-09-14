@@ -1,4 +1,4 @@
-import { Modal, Button, List, Divider, Header } from 'semantic-ui-react';
+import { Modal, Button, List, Divider, Header, Icon } from 'semantic-ui-react';
 import { useModal } from 'hooks';
 import styles from './styles.module.css';
 
@@ -15,6 +15,8 @@ export const ControlsInfo = ({ tools }) => {
     if (!groups.includes(group)) groups.push(group);
     return groups;
   }, []);
+
+  const getIcon = name => <Icon name={ tools.find(({ value }) => value === name).icon } />;
 
   return (
     <Modal
@@ -43,15 +45,42 @@ export const ControlsInfo = ({ tools }) => {
                 <List.Item key={ i }>
                   <List.Icon name={ tool.icon } />
                   <List.Content>
-                    <List.Header style={{ textTransform: 'capitalize' }}>{tool.value}</List.Header>
+                    <List.Header style={{ textTransform: 'capitalize' }}>{ tool.value }</List.Header>
                     <List.Description>{ tool.info }</List.Description>
                   </List.Content>
                 </List.Item>
               ))}
             </List>
-            { i < a.length - 1 && <Divider /> }
+            <Divider /> 
           </div>
         ))}
+        <div>
+          <Header as='h4'>Shortcuts</Header>
+          <List relaxed>
+            <List.Item>
+              <List.Header>Ctrl (PC) / Command (Mac)</List.Header> 
+              <List.Content>
+                <div>Hold – { getIcon('erase') } Erase</div>
+                <div>Release – { getIcon('paint') } Paint</div>
+                </List.Content>
+            </List.Item>
+            <List.Item>
+              <List.Header>Shift</List.Header> 
+              <List.Content>
+                <div>Hold – { getIcon('select') } Select</div>
+                <div>Release – { getIcon('paint') } Paint</div>
+                </List.Content>
+            </List.Item>
+            <List.Item>
+              <List.Header>Arrow <Icon name='arrow up' /><Icon name='arrow down' /></List.Header> 
+              <List.Content>Move slice up and down</List.Content>
+            </List.Item>
+            <List.Item>
+              <List.Header>Arrow <Icon name='arrow left' /><Icon name='arrow right' /></List.Header> 
+              <List.Content>Change brush size</List.Content>
+            </List.Item>
+          </List>
+        </div>
       </Modal.Content>
     </Modal> 
   );
