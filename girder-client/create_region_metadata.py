@@ -64,7 +64,7 @@ if __name__ == '__main__':
             min_level = min(levels)
             max_level = max(levels)
             meta_dict = {'regions': {},
-                         'max_region_id': max_level}
+                         'max_region_id': int(max_level)}
             for lev in range(min_level, max_level+1):
                 level_indices = np.where(imarray == lev)
                 z_min = min(level_indices[0])
@@ -75,7 +75,7 @@ if __name__ == '__main__':
                 x_max = max(level_indices[2])
                 # need to convert extent values to int from int64, otherwise, JSON serialization
                 # will raise exception when adding metadata to item
-                meta_dict['regions'][lev] = {
+                meta_dict['regions'][str(lev)] = {
                     "x_max": int(x_max),
                     "x_min": int(x_min),
                     "y_max": int(y_max),
@@ -83,8 +83,7 @@ if __name__ == '__main__':
                     "z_max": int(z_max),
                     "z_min": int(z_min)
                 }
+
             file_name = os.path.basename(file_name_with_path)
             if file_name in file_to_item_id:
                 gc.addMetadataToItem(file_to_item_id[file_name], meta_dict)
-
-
