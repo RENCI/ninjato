@@ -34,7 +34,16 @@
   color: #999;
 }
 
-.controlsInfo {
+.controlsInfoButton {
   margin-left: auto;
   margin-right: auto;
+}
+
+.controlsInfoShortCut {
+  display: flex;
+  flex-direction: row;
+}
+
+.controlsInfoShortCut > div:first-child {
+  margin-right: 1em;
 }

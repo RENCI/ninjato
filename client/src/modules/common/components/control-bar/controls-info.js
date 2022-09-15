@@ -24,7 +24,7 @@ export const ControlsInfo = ({ tools }) => {
       onOpen={ openModal }
       open={ open }
       trigger={
-        <div className={ styles.controlsInfo }>
+        <div className={ styles.controlsInfoButton }>
           <Button 
             basic 
             circular 
@@ -60,16 +60,32 @@ export const ControlsInfo = ({ tools }) => {
             <List.Item>
               <List.Header>Ctrl (PC) / Command (Mac)</List.Header> 
               <List.Content>
-                <div>Hold – { getIcon('erase') } Erase</div>
-                <div>Release – { getIcon('paint') } Paint</div>
+                <div className={ styles.controlsInfoShortCut }>
+                  <div>
+                    <div>Hold</div>
+                    <div>Release</div>
+                  </div>
+                  <div>
+                    <div>{ getIcon('erase') } Erase</div>
+                    <div> { getIcon('paint') } Paint</div>
+                  </div>
+                </div>
                 </List.Content>
             </List.Item>
             <List.Item>
               <List.Header>Shift</List.Header> 
               <List.Content>
-                <div>Hold – { getIcon('select') } Select</div>
-                <div>Release – { getIcon('paint') } Paint</div>
-                </List.Content>
+                <div className={ styles.controlsInfoShortCut }>
+                  <div>
+                    <div>Hold</div>
+                    <div>Release</div>
+                  </div>
+                  <div>
+                    <div>{ getIcon('select') } Select</div>
+                    <div> { getIcon('paint') } Paint</div>
+                  </div>
+                </div>
+              </List.Content>
             </List.Item>
             <List.Item>
               <List.Header>Arrow <Icon name='arrow up' /><Icon name='arrow down' /></List.Header> 
