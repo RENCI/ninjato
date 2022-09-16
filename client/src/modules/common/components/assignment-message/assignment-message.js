@@ -35,7 +35,7 @@ export const AssignmentMessage = () => {
               { assignment.status === 'review' ? 'Review' : 'Refine' }
             </div>
             { n === 0 ? 
-               <>No regions</>
+               <div>No regions</div>
             :
               <>
                 <div>
