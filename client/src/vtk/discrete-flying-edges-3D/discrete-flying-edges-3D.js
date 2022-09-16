@@ -1,6 +1,7 @@
 import macro from '@kitware/vtk.js/macros';
 import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
 import vtkPolyData from '@kitware/vtk.js/Common/DataModel/PolyData';
+import vtkImageData from '@kitware/vtk.js/Common/DataModel/ImageData';
 import algorithm from './algorithm';
 
 const { vtkErrorMacro } = macro;
@@ -8,6 +9,53 @@ const { vtkErrorMacro } = macro;
 // ----------------------------------------------------------------------------
 // vtkDiscreteFlyingEdges3D methods
 // ----------------------------------------------------------------------------
+
+const getPaddedImage = image => {
+  const spacing = [...image.getSpacing()];
+  const origin = image.getOrigin().map((v, i) => v - spacing[i]);
+  const dims = image.getDimensions().map(v => v + 2);
+  const extent = [...image.getExtent()];
+  extent[1] += 2;
+  extent[3] += 2;
+  extent[5] += 2;
+
+  const inData = image.getPointData().getScalars().getData();
+
+  const index = (x, y, z, w, h) => z * w * h + y * w + x;
+
+  const outData = [];
+  for (let z = 0; z < dims[2]; z++) {
+    for (let y = 0; y < dims[1]; y++) {
+      for (let x = 0; x < dims[0]; x++) {
+        if (x === 0 || x === dims[0] - 1 ||
+            y === 0 || y === dims[1] - 1 ||
+            z === 0 || z === dims[2] - 1) {
+          outData[index(x, y, z, dims[0], dims[1])] = 0;
+        }
+        else {
+          outData[index(x, y, z, dims[0], dims[1])] = 
+            inData[index(x - 1, y - 1, z - 1, dims[0] - 2, dims[1] - 2)];
+        }
+      }
+    }
+  }
+
+  const paddedImage = vtkImageData.newInstance({
+    origin: origin,
+    spacing: spacing,
+    extent: extent
+  });
+
+  const pointData = vtkDataArray.newInstance({
+    name: 'scalars',
+    values: outData,
+    numberOfComponents: 1
+  });
+
+  paddedImage.getPointData().setScalars(pointData);
+
+  return paddedImage;
+};
 
 function vtkDiscreteFlyingEdges3D(publicAPI, model) {
   // Set our className
@@ -17,7 +65,7 @@ function vtkDiscreteFlyingEdges3D(publicAPI, model) {
 
   publicAPI.requestData = (inData, outData) => {
     // implement requestData
-    const input = inData[0];
+    const input = getPaddedImage(inData[0]);
 
     if (!input || input.getClassName() !== 'vtkImageData') {
       vtkErrorMacro('Invalid or missing input');
