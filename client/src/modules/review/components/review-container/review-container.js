@@ -10,7 +10,7 @@ import { VolumeViewWrapper, VolumeView } from 'modules/view/components/volume-vi
 import { SliceViewWrapper, SliceView } from 'modules/view/components/slice-view';
 import { VolumeControls } from 'modules/review/components/volume-controls';
 import { SliceControls } from 'modules/review/components/slice-controls';
-import { SliceSlider } from 'modules/common/components/slice-slider';
+import { SliceSlider, SliceLabel } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
 import { RegionPopup } from 'modules/region/components/region-popup';
 
@@ -148,10 +148,11 @@ export const ReviewContainer = () => {
                   />
                 }
             </Grid>            
+            <SliceLabel slice={ slice } />
           </VisualizationSection>
         </Column>
         { !loading && 
-          <SliceControls  sliceView={ sliceView.current } />
+          <SliceControls sliceView={ sliceView.current } />
         }
       </Grid>
       { !loading && 
