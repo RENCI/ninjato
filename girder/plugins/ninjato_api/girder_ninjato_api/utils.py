@@ -245,7 +245,7 @@ def update_assignment_in_whole_item(whole_item, assign_item_id, mask_file_name=N
                 if assign_item_coords['z_min'] <= counter <= assign_item_coords['z_max']:
                     image[assign_item_coords['y_min']: assign_item_coords['y_max']+1,
                           assign_item_coords['x_min']: assign_item_coords['x_max']+1] = \
-                        assign_item_images[counter]
+                        assign_item_images[counter-assign_item_coords['z_min']]
                 whole_out_tif.write_image(np.copy(image))
                 counter += 1
 
