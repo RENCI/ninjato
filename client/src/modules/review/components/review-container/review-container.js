@@ -1,8 +1,8 @@
 import { useContext, useRef, useCallback, useState, useEffect } from 'react';
 import { Grid } from 'semantic-ui-react';
 import { 
-  UserContext, SET_ACTIVE_REGION,
-  AnnotateContext, ANNOTATE_SET_TOOL, ANNOTATE_CHANGE_BRUSH_SIZE
+  UserContext, PUSH_REGION_HISTORY, SET_ACTIVE_REGION,
+  AnnotateContext, ANNOTATE_SET_TOOL, ANNOTATE_SET_ACTION, ANNOTATE_CHANGE_BRUSH_SIZE
 } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
@@ -13,6 +13,7 @@ import { SliceControls } from 'modules/review/components/slice-controls';
 import { SliceSlider, SliceLabel } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
 import { RegionPopup } from 'modules/region/components/region-popup';
+import { ClaimDialog, RemoveDialog, SplitDialog, MergeDialog, CreateDialog, DeleteDialog } from 'modules/refine/components/dialogs';
 
 const { Column } = Grid;
 
@@ -23,16 +24,25 @@ export const ReviewContainer = () => {
   const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight, onKeyDown, onKeyUp));
   const [loading, setLoading] = useState(true);
   const [slice, setSlice] = useState(0);
+  const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
   const [hoverRegion, setHoverRegion] = useState(null);
 
   useEffect(() => {
-    annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'select' })
-  }, [annotateDispatch]);
+    // Should handle case where claiming or removing
+    setCanUndo(sliceView.current.canUndo());
+    setCanRedo(sliceView.current.canRedo());
+  }, [imageData]);
 
   // Slice view callbacks
-  function onEdit() {
+  function onEdit(activeRegion = null) {
     volumeView.current.centerCamera();
     volumeView.current.render();
+
+    setCanUndo(sliceView.current.canUndo());
+    setCanRedo(sliceView.current.canRedo());
+
+    if (activeRegion) userDispatch({ type: PUSH_REGION_HISTORY, activeRegion: activeRegion });
   }
 
   function onSliceChange(slice) {
@@ -47,11 +57,37 @@ export const ReviewContainer = () => {
         userDispatch({ type: SET_ACTIVE_REGION, region: region });
         break;
 
+      case 'claim':
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'claim', region: region } });     
+        break;
+
+      case 'remove':
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'remove', region: region  } });     
+        break;
+
+      case 'split':
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'split', region: region  } });  
+        break;
+
+      case 'merge':
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'merge', region: region  } });  
+        break;
+
+      case 'create':
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'create' } });  
+        break;
+
+      case 'delete':
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'delete', region: region  } });  
+        break;
+
       default:
         console.warn('Unknown select type');
     }    
 
     sliceView.current.setHighlightRegion(null);
+
+    annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
   }
 
   function onHover(region) {
@@ -152,11 +188,23 @@ export const ReviewContainer = () => {
           </VisualizationSection>
         </Column>
         { !loading && 
-          <SliceControls sliceView={ sliceView.current } />
+          <SliceControls 
+          sliceView={ sliceView.current }
+          canUndo={ canUndo }
+          canRedo={ canRedo }
+        />
         }
       </Grid>
       { !loading && 
-        <SaveButtons review={ true } /> 
+        <>
+          <SaveButtons /> 
+          <ClaimDialog />
+          <RemoveDialog />
+          <SplitDialog sliceView={ sliceView.current } />
+          <MergeDialog sliceView={ sliceView.current } />
+          <CreateDialog sliceView={ sliceView.current } />
+          <DeleteDialog sliceView={ sliceView.current } />
+        </> 
       }
     </>
   );

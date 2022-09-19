@@ -9,7 +9,6 @@ import {
 import { SplitButton } from 'modules/common/components/split-button';
 import { BrushOptions } from 'modules/common/components/brush-options';
 
-
 export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
   const [{ activeRegion, assignment }, userDispatch] = useContext(UserContext);
   const [{ tools, tool, showContours }, annotateDispatch] = useContext(AnnotateContext);
