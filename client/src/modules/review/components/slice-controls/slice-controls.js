@@ -1,14 +1,16 @@
 import { useContext } from 'react';
 import { 
-  UserContext, 
+  UserContext, UNDO_REGION_HISTORY, REDO_REGION_HISTORY, 
   AnnotateContext, ANNOTATE_SET_TOOL, ANNOTATE_SET_CONTROL 
 } from 'contexts';
-import { ControlBar, ControlGroup, ControlButton, ControlLabel } from 'modules/common/components/control-bar';
+import { 
+  ControlBar, ControlGroup, ControlButton, ControlLabel, ControlsInfo
+} from 'modules/common/components/control-bar';
 import { SplitButton } from 'modules/common/components/split-button';
 import { BrushOptions } from 'modules/common/components/brush-options';
 
-export const SliceControls = () => {
-  const [{ activeRegion, }] = useContext(UserContext);
+export const SliceControls = ({ sliceView, canUndo, canRedo }) => {
+  const [{ activeRegion, assignment }, userDispatch] = useContext(UserContext);
   const [{ tools, tool, showContours }, annotateDispatch] = useContext(AnnotateContext);
 
   const onToolClick = value => {
