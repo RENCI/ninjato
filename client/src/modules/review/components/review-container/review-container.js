@@ -197,7 +197,7 @@ export const ReviewContainer = () => {
       </Grid>
       { !loading && 
         <>
-          <SaveButtons /> 
+          <SaveButtons review={ true } /> 
           <ClaimDialog />
           <RemoveDialog />
           <SplitDialog sliceView={ sliceView.current } />
