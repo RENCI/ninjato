@@ -97,6 +97,9 @@ def claim_assignment(user, subvolume_id, active_assignment_id, claim_region_id):
         raise RestException('input region id to be claimed is invalid', code=400)
     else:
         val = whole_item['meta']['regions'][claim_region_id]
+        if 'review_approved' in val and val['review_approved'] == 'true':
+            # claimed region has been verified
+            raise RestException(f'The claimed region has been verified', code=400)
         done_key = 'annotation_completed_by'
         if 'item_id' in val:
             complete_info = get_history_info(whole_item, val['item_id'], done_key)
@@ -322,29 +325,28 @@ def get_item_assignment(user, subvolume_id):
     # item to find a region for assignment
     # randomize available item to assign to users to minimize adjacent region assignment
     region_items = whole_item['meta']['regions'].copy()
-    print(f'before loop, len(region_items): {len(region_items)}', flush=True)
     while len(region_items) > 0:
         key, val = random.choice(list(region_items.items()))
         del region_items[key]
-        print(f'Within loop, len(region_items): {len(region_items)}', flush=True)
-        if annot_done_key in val:
-            # if a region is done, continue to check another region
+        if review_approved_key in val and val[review_approved_key] == 'true':
+            # if a region is approved/verified outside ninjato, this review_approved_key can be
+            # set to true for the region metadata, so this region will not be assigned to new users
             continue
         # if a region is rejected by the user, continue to check another region
+        assign_info = None
         if 'item_id' in val:
             reject_by_info = get_history_info(whole_item, val['item_id'], 'annotation_rejected_by')
+            if reject_by_info:
+                user_rejected = False
+                for reject_dict in reject_by_info:
+                    if reject_dict['user'] == str(user['login']):
+                        # this assignment has been rejected by this user
+                        user_rejected = True
+                        break
+                if user_rejected:
+                    # user rejected this assignment, continue to check another assignment
+                    continue
             assign_info = get_history_info(whole_item, val['item_id'], annot_assign_key)
-        else:
-            reject_by_info = None
-            assign_info = None
-
-        is_rejected = False
-        if reject_by_info:
-            for reject_dict in reject_by_info:
-                if reject_dict['user'] == str(user['login']):
-                    is_rejected = True
-            if is_rejected:
-                continue
 
         if not assign_info:
             # this region can be assigned to a user
@@ -665,6 +667,9 @@ def get_subvolume_item_info(item):
             assign_info = None
             review_assign_info = None
             complete_info = None
+            if review_approved_key in val and val[review_approved_key] == 'true':
+                total_reviewed_regions_done += 1
+                continue
             review_complete_info = None
         if not annot_done:
             if complete_info:
@@ -723,6 +728,12 @@ def get_region_or_assignment_info(item, assign_item_id, region_id):
         region_label_str = str(region_id)
         if region_label_str in item['meta']['regions']:
             region_dict = item['meta']['regions'][region_label_str]
+            if 'review_approved' in region_dict and region_dict['review_approved'] == 'true':
+                # region is verified
+                return {
+                    'item_id': '',
+                    'status': 'completed'
+                }
             assign_item_id = region_dict['item_id'] if 'item_id' in region_dict else ''
             if not assign_item_id:
                 # region is not assigned yet
@@ -795,16 +806,13 @@ def get_all_avail_items_for_review(item):
         if 'item_id' in val:
             complete_info = get_history_info(item, val['item_id'], 'annotation_completed_by')
             review_complete_info = get_history_info(item, val['item_id'], 'review_completed_by')
-        else:
-            complete_info = None
-            review_complete_info = None
+            if complete_info and not review_complete_info:
+                avail_item_list.append({
+                    'id': val['item_id'],
+                    'annotation_completed_by': complete_info,
+                    'annotation_rejected_by': get_history_info(item, key, 'annotation_rejected_by'),
+                    'review_rejected_by': get_history_info(item, key, 'review_rejected_by'),
+                    'annotation_assigned_to': get_history_info(item, key, 'annotation_assigned_to')
+                })
 
-        if complete_info and not review_complete_info:
-            avail_item_list.append({
-                'id': val['item_id'],
-                'annotation_completed_by': complete_info,
-                'annotation_rejected_by': get_history_info(item, key, 'annotation_rejected_by'),
-                'review_rejected_by': get_history_info(item, key, 'review_rejected_by'),
-                'annotation_assigned_to': get_history_info(item, key, 'annotation_assigned_to')
-            })
     return avail_item_list
