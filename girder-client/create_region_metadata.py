@@ -1,4 +1,5 @@
 import girder_client
+import json
 import argparse
 import os
 import numpy as np
@@ -7,19 +8,32 @@ from libtiff import TIFF
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process arguments.')
-    parser.add_argument('--data_dir', type=str, required=True, help='input data directory')
-    parser.add_argument('--girder_api_url', type=str, required=True, help='girder API URL')
-    parser.add_argument('--girder_username', type=str, required=True,
-                        help='girder user name for authentication')
-    parser.add_argument('--girder_password', type=str, required=True,
-                        help='girder user password for authentication')
-    parser.add_argument('--girder_collection_id', type=str, required=True, help="girder data collection id")
+    parser.add_argument('data_dir', type=str, help='input data directory')
+    parser.add_argument('girder_api_url', type=str, help='girder API URL')
+    parser.add_argument('girder_username', type=str, help='girder user name for authentication')
+    parser.add_argument('girder_password', type=str, help='girder user password for authentication')
+    parser.add_argument('girder_collection_id', type=str, help="girder data collection id")
+    parser.add_argument('--input_json_file', type=str, help='input json file containing verified info')
+    parser.add_argument('--whole_subvolume_item_id', type=str, help="whole subvolume item_id to set verified info")
+
     args = parser.parse_args()
     data_dir = args.data_dir
     girder_api_url = args.girder_api_url
     girder_username = args.girder_username
     girder_password = args.girder_password
     girder_coll_id = args.girder_collection_id
+    input_json_file = args.input_json_file
+    whole_subvolume_item_id = args.whole_subvolume_item_id
+    verified_regions = []
+    if input_json_file and whole_subvolume_item_id:
+        with open(input_json_file, 'r') as input_f:
+            input_data = json.load(input_f)
+            input_data = input_data['regions']
+            print(f'total regions: {len(input_data)}')
+            for reg in input_data:
+                if reg['verified'] is True:
+                    verified_regions.append(reg['label'])
+            print(f'verified regions: {len(verified_regions)}')
 
     file_name_list = []
     for dir_name, subdir_list, file_list in os.walk(data_dir):
@@ -83,6 +97,10 @@ if __name__ == '__main__':
                     "z_max": int(z_max),
                     "z_min": int(z_min)
                 }
+            if len(verified_regions) > 0 and str(file_to_item_id[file_name]) == whole_subvolume_item_id:
+                # add verified metadata data
+                for reg_id in verified_regions:
+                    meta_dict['regions'][str(reg_id)]['review_approved'] = 'true'
 
             file_name = os.path.basename(file_name_with_path)
             if file_name in file_to_item_id:

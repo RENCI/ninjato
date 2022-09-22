@@ -668,7 +668,8 @@ def get_subvolume_item_info(item):
             review_assign_info = None
             complete_info = None
             if review_approved_key in val and val[review_approved_key] == 'true':
-                total_reviewed_regions_done += 1
+                total_regions_review_approved += 1
+                total_regions_done += 1
                 continue
             review_complete_info = None
         if not annot_done:

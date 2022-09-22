@@ -530,6 +530,8 @@ def check_subvolume_done(whole_item, task='annotation'):
     if task == 'review':
         vol_approved = True
     for key, val in whole_item['meta']['regions'].items():
+        if 'review_approved' in val and val['review_approved'] == 'true':
+            continue
         complete_info = get_history_info(whole_item, key, f'{task}_completed_by')
         if not complete_info:
             vol_done = False
