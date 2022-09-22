@@ -21,7 +21,9 @@ def update_all_assignment_masks(job):
         if not assign_item['meta']['region_ids']:
             # the assignment does not have any regions, so nothing to update
             continue
-
+        if 'annotation_done' in assign_item['meta'] and assign_item['meta']['annotation_done'] == 'true':
+            # if annotation is done, does not update
+            continue
         _create_region_files(assign_item, whole_item)
         updated_assign_item_ids.append(val['item_id'])
         print(f"updated assignment masks for {val['item_id']} in whole item {whole_item['_id']}",

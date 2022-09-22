@@ -1,4 +1,5 @@
 import os
+import uuid
 from datetime import datetime
 from libtiff import TIFF
 import numpy as np
@@ -115,7 +116,8 @@ def _create_region_files(region_item, whole_item):
     files = File().find({'itemId': region_item['_id']})
     # if the region already has files, existing files need to be removed before adding new ones.
     for file in files:
-        File().remove(file)
+        if not file['name'].endswith('_user.tif'):
+            File().remove(file)
 
     item_files = File().find({'itemId': whole_item['_id']})
     min_x = region_item['meta']['coordinates']['x_min']
@@ -169,7 +171,7 @@ def _create_region(region_key, whole_item, extent_dict):
         min_x, max_x, min_y, max_y, min_z, max_z, x_range, y_range, z_range)
     folder_id = whole_item['folderId']
     region_item = Item().createItem(
-        'regions',
+        f'regions_{region_key}',
         creator=admin_user,
         folder=Folder().findOne({'_id': folder_id}),
         description=f'regions of the subvolume partition')
@@ -237,7 +239,7 @@ def update_assignment_in_whole_item(whole_item, assign_item_id, mask_file_name=N
             file_name = os.path.basename(file_res_path)
             whole_tif, whole_path = _get_tif_file_content_and_path(item_file)
             out_dir_path = os.path.dirname(whole_path)
-            output_path = os.path.join(out_dir_path, f'{os.path.basename(whole_path)}_{file_name}')
+            output_path = os.path.join(out_dir_path, f'{uuid.uuid4()}_{file_name}')
             whole_out_tif = TIFF.open(output_path, mode='w')
             counter = 0
             # region_imarray should be in order of ZYX
@@ -252,6 +254,10 @@ def update_assignment_in_whole_item(whole_item, assign_item_id, mask_file_name=N
             assetstore_id = item_file['assetstoreId']
             # remove the original file and create new file using updated TIFF mask
             File().remove(item_file)
+            # for some reason, the file on disk is not really removed, so double check to make
+            # sure it is deleted
+            if os.path.exists(whole_path):
+                os.remove(whole_path)
             save_file(assetstore_id, whole_item, output_path, User().getAdmins()[0], file_name)
             return
 
@@ -366,7 +372,7 @@ def reject_assignment(user, item, whole_item, has_files, comment, task='annotati
     if task == 'annotation' and has_files:
         files = File().find({'itemId': item['_id']})
         for file in files:
-            if file['name'].endswith(f'{uname}.tif'):
+            if file['name'].endswith('user.tif'):
                 File().remove(file)
                 break
 
