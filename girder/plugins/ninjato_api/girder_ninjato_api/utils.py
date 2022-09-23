@@ -170,8 +170,9 @@ def _create_region(region_key, whole_item, extent_dict):
     min_x, max_x, min_y, max_y, min_z, max_z = _get_buffered_extent(
         min_x, max_x, min_y, max_y, min_z, max_z, x_range, y_range, z_range)
     folder_id = whole_item['folderId']
+    assign_key = str(region_key).zfill(len(str(whole_item['meta']['max_region_id'])))
     region_item = Item().createItem(
-        f'regions_{region_key}',
+        f'assignment_{assign_key}',
         creator=admin_user,
         folder=Folder().findOne({'_id': folder_id}),
         description=f'regions of the subvolume partition')
