@@ -20,34 +20,53 @@ const { Column } = Grid;
 export const RefineContainer = () => {
   const [{ imageData }, userDispatch] = useContext(UserContext);
   const [{ tool }, annotateDispatch] = useContext(AnnotateContext);
-  const volumeView = useRef(VolumeView());
-  const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight, onKeyDown, onKeyUp));
+  const [volumeView, setVolumeView] = useState();
+  const [sliceView, setSliceView] = useState();
   const [loading, setLoading] = useState(true);
   const [slice, setSlice] = useState(0);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
   const [hoverRegion, setHoverRegion] = useState(null);
 
+
+  // XXX: PROBLEM: useRef was causing slice view and volume view to be recreated every render.
+  // Switched to useState, but now callbacks do not contain correct references to view objects.
+  // Potentially need to hold off on setting collbacks for slice view until both views are created,
+  // unless there is another way to pass a function that will get those updated values.
+
   useEffect(() => {
+    setVolumeView(VolumeView());
+    setSliceView(SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight, onKeyDown, onKeyUp));
+
+    return () => console.log("REFINE CONTAINER UNMOUNTING");
+  }, []);
+
+  useEffect(() => {
+    if (!sliceView) return;
+
     // Should handle case where claiming or removing
-    setCanUndo(sliceView.current.canUndo());
-    setCanRedo(sliceView.current.canRedo());
-  }, [imageData]);
+    setCanUndo(sliceView.canUndo());
+    setCanRedo(sliceView.canRedo());
+  }, [sliceView, imageData]);
 
   // Slice view callbacks
   function onEdit(activeRegion = null) {
-    volumeView.current.centerCamera();
-    volumeView.current.render();
+    console.log("VOLUMEVIEW:", volumeView);
+    
+    volumeView.centerCamera();
+    volumeView.render();
 
-    setCanUndo(sliceView.current.canUndo());
-    setCanRedo(sliceView.current.canRedo());
+    setCanUndo(sliceView.canUndo());
+    setCanRedo(sliceView.canRedo());
 
     if (activeRegion) userDispatch({ type: PUSH_REGION_HISTORY, activeRegion: activeRegion });
   }
 
   function onSliceChange(slice) {
-    volumeView.current.setSlice(slice);
-    volumeView.current.render();
+    if (!volumeView) return;
+
+    volumeView.setSlice(slice);
+    volumeView.render();
     setSlice(slice);
   }
 
@@ -85,7 +104,7 @@ export const RefineContainer = () => {
         console.warn('Unknown select type');
     }    
 
-    sliceView.current.setHighlightRegion(null);
+    sliceView.setHighlightRegion(null);
 
     annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
   }
@@ -95,7 +114,7 @@ export const RefineContainer = () => {
   }
 
   function onHighlight(region) {
-    sliceView.current.setHighlightRegion(region);
+    sliceView.setHighlightRegion(region);
   }
 
   const handleKeyDown = key => {
@@ -148,10 +167,12 @@ export const RefineContainer = () => {
   }, []);
 
   const onSliderChange = useCallback(value => {
-    sliceView.current.setSlice(value);
-    volumeView.current.setSlice(value);
+    if (!sliceView || !volumeView) return;
+
+    sliceView.setSlice(value);
+    volumeView.setSlice(value);
     setSlice(value);
-  }, [sliceView]);
+  }, [sliceView, volumeView]);
 
   const numSlices = imageData ? imageData.getDimensions()[2] : 0; 
 
@@ -167,11 +188,11 @@ export const RefineContainer = () => {
           <VisualizationSection>
             <Grid columns='equal' stackable padded reversed='mobile'>
               <Column>
-                <VolumeViewWrapper volumeView={ volumeView.current } onLoaded={ onLoaded } />
+                <VolumeViewWrapper volumeView={ volumeView } onLoaded={ onLoaded } />
               </Column>
               <Column>
                 <RegionPopup 
-                  trigger={ <SliceViewWrapper sliceView={ sliceView.current } /> }
+                  trigger={ <SliceViewWrapper sliceView={ sliceView } /> }
                   region={ hoverRegion }
                 /> 
               </Column>                  
@@ -189,7 +210,7 @@ export const RefineContainer = () => {
         </Column>
         { !loading && 
           <SliceControls 
-            sliceView={ sliceView.current }
+            sliceView={ sliceView }
             canUndo={ canUndo }
             canRedo={ canRedo }
           />
@@ -200,10 +221,10 @@ export const RefineContainer = () => {
           <SaveButtons /> 
           <ClaimDialog />
           <RemoveDialog />
-          <SplitDialog sliceView={ sliceView.current } />
-          <MergeDialog sliceView={ sliceView.current } />
-          <CreateDialog sliceView={ sliceView.current } />
-          <DeleteDialog sliceView={ sliceView.current } />
+          <SplitDialog sliceView={ sliceView } />
+          <MergeDialog sliceView={ sliceView } />
+          <CreateDialog sliceView={ sliceView } />
+          <DeleteDialog sliceView={ sliceView } />
         </>
       }
     </>

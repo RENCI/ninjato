@@ -11,7 +11,7 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
 
   // Initialize
   useEffect(() => {
-    if (!initialized && div.current && width) { 
+    if (volumeView && !initialized && div.current && width) { 
       volumeView.initialize(div.current);
       setInitialized(true);
     }
@@ -47,7 +47,9 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
 
   // Clean up
   useEffect(() => {
-    return () => volumeView.cleanUp();
+    return () => {
+      if (initialized) volumeView.cleanUp();
+    }
   }, [volumeView]);
 
   return (

@@ -76,6 +76,8 @@ export function Slice(onKeyDown, onKeyUp) {
   const interactorStyle = vtkInteractorStyleManipulator.newInstance();
   interactorStyle.addMouseManipulator(manipulator);
 
+  console.log("WHY IS THIS GETTING CALLED UPON ENTERING AND LEAVING A REGION OR CHANGING SLICE?");
+
   return {
     initialize: renderWindow => {
       renderWindow.getCamera().setParallelProjection(true);
@@ -118,7 +120,7 @@ export function Slice(onKeyDown, onKeyUp) {
       const kGet = imageMapper.getSlice;
       const kSet = k => imageMapper.setSlice(k);
 
-      manipulator.setScrollListener(kMin, kMax, -1, kGet, kSet, 1);
+      manipulator.setScrollListener(kMin, kMax, -1, kGet, kSet);
     
       if (firstTime) {
         const updateSlice = () => {  

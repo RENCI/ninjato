@@ -3,10 +3,17 @@ import { Widgets } from 'modules/view/components/slice-view/widgets';
 import { MaskPainter } from 'modules/view/components/slice-view/mask-painter';
 
 export function SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight, onKeyDown, onKeyUp) {
+
+  console.log("SLICEVIEW");
+
   const renderWindow = RenderWindow();
   const image = Image();
   const slice = Slice(evt => evt.key === 'i' ? image.toggleInterpolation() : onKeyDown ? onKeyDown(evt) : null, onKeyUp);
   const mask = MaskPainter();
+
+  renderWindow.test = renderWindow.test ? renderWindow.test + 1 : 1;
+
+  console.log(renderWindow);
 
   /*
   const isValid = label => label !== null && label !== 0;

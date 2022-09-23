@@ -12,7 +12,7 @@ export const SliceViewWrapper = ({ sliceView }) => {
   
   // Initialize
   useEffect(() => {
-    if (!initialized && div.current && width) { 
+    if (sliceView && !initialized && div.current && width) { 
       sliceView.initialize(div.current);
       setInitialized(true);
     }
@@ -73,7 +73,9 @@ export const SliceViewWrapper = ({ sliceView }) => {
 
   // Clean up
   useEffect(() => {
-    return () => sliceView.cleanUp();
+    return () => {
+      if (initialized) sliceView.cleanUp();
+    }
   }, [sliceView]);
 
   return (
