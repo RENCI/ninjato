@@ -63,13 +63,13 @@ export const RefineContainer = () => {
     if (activeRegion) userDispatch({ type: PUSH_REGION_HISTORY, activeRegion: activeRegion });
   }, [sliceView, volumeView, userDispatch]);
 
-  function onSliceChange(slice) {
+  const onSliceChange = useCallback(slice => {
     if (!volumeView) return;
 
     volumeView.setSlice(slice);
     volumeView.render();
     setSlice(slice);
-  }
+  }, [volumeView, setSlice]);
 
   function onSelect(region, type) {
     switch (type) {
@@ -197,6 +197,7 @@ export const RefineContainer = () => {
                     <SliceViewWrapper 
                       sliceView={ sliceView } 
                       onEdit={ onEdit }
+                      onSliceChange={ onSliceChange }
                     /> }
                   region={ hoverRegion }
                 /> 

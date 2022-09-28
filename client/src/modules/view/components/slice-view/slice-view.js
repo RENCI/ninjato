@@ -18,8 +18,6 @@ export function SliceView() {
 
   renderWindow.test = renderWindow.test ? renderWindow.test + 1 : 1;
 
-  console.log(renderWindow);
-
   /*
   const isValid = label => label !== null && label !== 0;
 
@@ -52,6 +50,10 @@ export function SliceView() {
           onEdit = callback;
           widgets.setCallback(type, callback);
         break;
+
+        case 'sliceChange':
+          onSliceChange = callback;
+          break;
 
         default: 
           widgets.setCallback(type, callback);
