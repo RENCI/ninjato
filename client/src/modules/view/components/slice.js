@@ -103,8 +103,6 @@ export function Slice() {
               keySliceChange(evt.key);
             }
             else {
-              console.log(callback);
-
               callback(evt.key);
             }
           })

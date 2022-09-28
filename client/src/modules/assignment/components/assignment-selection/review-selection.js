@@ -17,8 +17,6 @@ export const ReviewSelection = ({ review, waiting }) => {
   const waitingSubheader = hasWaiting ? 'Select an assignment to review' :
     'No assignments awaiting review, check back later';
 
-    console.log(review);
-
   return (
     <Grid columns={ 2 } >
       <Row>

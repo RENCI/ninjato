@@ -28,20 +28,10 @@ export const RefineContainer = () => {
   const [canRedo, setCanRedo] = useState(false);
   const [hoverRegion, setHoverRegion] = useState(null);
 
-
-  // XXX: PROBLEM: useRef was causing slice view and volume view to be recreated every render.
-  // Switched to useState, but now callbacks do not contain correct references to view objects.
-  // Potentially need to hold off on setting callbacks for slice view until both views are created,
-  // unless there is another way to pass a function that will get those updated values.
-
-  // Use useCallback for each callback, pass to view container, update callbacks via useEffect in view container
-
+  // Create views
   useEffect(() => {
     setVolumeView(VolumeView());
-    //setSliceView(SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight, onKeyDown, onKeyUp));
     setSliceView(SliceView());
-
-    return () => console.log("REFINE CONTAINER UNMOUNTING");
   }, []);
 
   useEffect(() => {
@@ -119,8 +109,6 @@ export const RefineContainer = () => {
   }, [sliceView]);
 
   const onKeyDown = useCallback(key => {
-    console.log(key);
-
     switch (key) {
       case 'Control':
         if (tool !== 'erase') annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'erase' });

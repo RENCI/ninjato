@@ -100,10 +100,7 @@ const applyActiveRegion = (region, surfaces) => {
 };
 */
 
-export function VolumeView() {
-
-  console.log("VOLUMEVIEW");
-  
+export function VolumeView() {  
   const renderWindow = RenderWindow();
 
   let surfaces = [];
