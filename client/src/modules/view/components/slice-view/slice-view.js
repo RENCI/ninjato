@@ -2,7 +2,12 @@ import { RenderWindow, Slice, Image } from 'modules/view/components';
 import { Widgets } from 'modules/view/components/slice-view/widgets';
 import { MaskPainter } from 'modules/view/components/slice-view/mask-painter';
 
-export function SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight, onKeyDown, onKeyUp) {
+export function SliceView() {
+  // Callbacks
+  let onEdit = () => {};
+  let onSliceChange = () => {};
+  let onKeyDown  = () => {};
+  let onKeyUp = () => {};
 
   console.log("SLICEVIEW");
 
@@ -30,7 +35,7 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight,
   };
   */
 
-  const widgets = Widgets(mask.getPainter(), onEdit, onSelect, onHover, onHighlight);
+  const widgets = Widgets(mask.getPainter());
 
   return {
     initialize: rootNode => {
@@ -40,6 +45,17 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight,
       slice.initialize(renderWindow);
 
       widgets.setRenderer(renderWindow.getRenderer());
+    },
+    setCallback: (type, callback) => {
+      switch (type) {
+        case 'edit':
+          onEdit = callback;
+          widgets.setCallback(type, callback);
+        break;
+
+        default: 
+          widgets.setCallback(type, callback);
+      }
     },
     setData: (imageData, maskData, sliceRanges) => {
       image.setInputData(imageData);    

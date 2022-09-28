@@ -24,7 +24,13 @@ const notActiveValid = ({ region, inStartRegion, inAssignment}, activeRegion) =>
 const claimValid = ({ region, inStartRegion }) =>
   region?.info?.status === 'inactive' && inStartRegion;
 
-export function Widgets(painter, onEdit, onSelect, onHover, onHighlight) {
+export function Widgets(painter) {
+  // Callbacks
+  let onEdit = () => {};
+  let onSelect = () => {};
+  let onHover = () => {};
+  let onHighlight = () => {};
+
   const manager = vtkWidgetManager.newInstance();
 
   const widgets = {
@@ -71,6 +77,13 @@ export function Widgets(painter, onEdit, onSelect, onHover, onHighlight) {
   };
 
   return {
+    setCallback: (type, callback) => {
+      switch (type) {
+        case 'edit': onEdit = callback; break;
+        default: 
+          console.warn(`Unknown callback type: ${ type }`);
+      }
+    },
     setRenderer: renderer => {
       manager.setRenderer(renderer);
 

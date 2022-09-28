@@ -31,12 +31,15 @@ export const RefineContainer = () => {
 
   // XXX: PROBLEM: useRef was causing slice view and volume view to be recreated every render.
   // Switched to useState, but now callbacks do not contain correct references to view objects.
-  // Potentially need to hold off on setting collbacks for slice view until both views are created,
+  // Potentially need to hold off on setting callbacks for slice view until both views are created,
   // unless there is another way to pass a function that will get those updated values.
+
+  // Use useCallback for each callback, pass to view container, update callbacks via useEffect in view container
 
   useEffect(() => {
     setVolumeView(VolumeView());
-    setSliceView(SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight, onKeyDown, onKeyUp));
+    //setSliceView(SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight, onKeyDown, onKeyUp));
+    setSliceView(SliceView());
 
     return () => console.log("REFINE CONTAINER UNMOUNTING");
   }, []);
@@ -50,9 +53,7 @@ export const RefineContainer = () => {
   }, [sliceView, imageData]);
 
   // Slice view callbacks
-  function onEdit(activeRegion = null) {
-    console.log("VOLUMEVIEW:", volumeView);
-    
+  const onEdit = useCallback((activeRegion = null) => {
     volumeView.centerCamera();
     volumeView.render();
 
@@ -60,7 +61,7 @@ export const RefineContainer = () => {
     setCanRedo(sliceView.canRedo());
 
     if (activeRegion) userDispatch({ type: PUSH_REGION_HISTORY, activeRegion: activeRegion });
-  }
+  }, [sliceView, volumeView, userDispatch]);
 
   function onSliceChange(slice) {
     if (!volumeView) return;
@@ -192,7 +193,11 @@ export const RefineContainer = () => {
               </Column>
               <Column>
                 <RegionPopup 
-                  trigger={ <SliceViewWrapper sliceView={ sliceView } /> }
+                  trigger={ 
+                    <SliceViewWrapper 
+                      sliceView={ sliceView } 
+                      onEdit={ onEdit }
+                    /> }
                   region={ hoverRegion }
                 /> 
               </Column>                  

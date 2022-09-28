@@ -2,7 +2,7 @@ import { useContext, useState, useRef, useEffect } from 'react';
 import { UserContext, AnnotateContext } from 'contexts';
 import { useResize } from 'hooks';
 
-export const SliceViewWrapper = ({ sliceView }) => {
+export const SliceViewWrapper = ({ sliceView, onEdit }) => {
   const [{ imageData, maskData, assignment, volumes, activeRegion }] = useContext(UserContext);
   const [{ tool, tools, brushes, paintBrush, eraseBrush, createBrush, showContours }] = useContext(AnnotateContext);
   const [initialized, setInitialized] = useState(false);
@@ -17,6 +17,11 @@ export const SliceViewWrapper = ({ sliceView }) => {
       setInitialized(true);
     }
   }, [initialized, div, width, sliceView]);
+
+  // Callbacks
+  useEffect(() => {
+    if (initialized) sliceView.setCallback('edit', onEdit);
+  }, [initialized, onEdit]);
 
   // Assignment
   useEffect(() => {
