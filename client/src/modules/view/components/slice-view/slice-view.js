@@ -6,14 +6,10 @@ export function SliceView() {
   // Callbacks
   let onEdit = () => {};
   let onSliceChange = () => {};
-  let onKeyDown  = () => {};
-  let onKeyUp = () => {};
-
-  console.log("SLICEVIEW");
 
   const renderWindow = RenderWindow();
   const image = Image();
-  const slice = Slice(evt => evt.key === 'i' ? image.toggleInterpolation() : onKeyDown ? onKeyDown(evt) : null, onKeyUp);
+  const slice = Slice();
   const mask = MaskPainter();
 
   renderWindow.test = renderWindow.test ? renderWindow.test + 1 : 1;
@@ -53,6 +49,14 @@ export function SliceView() {
 
         case 'sliceChange':
           onSliceChange = callback;
+          break;
+
+        case 'keyDown':
+          slice.setCallback(type, key => key === 'i' ? image.toggleInterpolation() : callback(key));
+          break;
+
+        case 'keyUp':
+          slice.setCallback(type, callback);
           break;
 
         default: 

@@ -1,4 +1,4 @@
-import { useContext, useRef, useCallback, useState, useEffect } from 'react';
+import { useContext, useCallback, useState, useEffect } from 'react';
 import { Grid } from 'semantic-ui-react';
 import { 
   UserContext, PUSH_REGION_HISTORY, SET_ACTIVE_REGION,
@@ -71,7 +71,7 @@ export const RefineContainer = () => {
     setSlice(slice);
   }, [volumeView, setSlice]);
 
-  function onSelect(region, type) {
+  const onSelect = useCallback((region, type) => {
     switch (type) {
       case 'select':       
         userDispatch({ type: SET_ACTIVE_REGION, region: region });
@@ -108,17 +108,19 @@ export const RefineContainer = () => {
     sliceView.setHighlightRegion(null);
 
     annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
-  }
+  }, [sliceView, userDispatch, annotateDispatch]);
 
-  function onHover(region) {
+  const onHover = useCallback(region => {
     setHoverRegion(region);
-  }
+  }, [setHoverRegion]);
 
-  function onHighlight(region) {
+  const onHighlight = useCallback(region => {
     sliceView.setHighlightRegion(region);
-  }
+  }, [sliceView]);
 
-  const handleKeyDown = key => {
+  const onKeyDown = useCallback(key => {
+    console.log(key);
+
     switch (key) {
       case 'Control':
         if (tool !== 'erase') annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'erase' });
@@ -130,13 +132,9 @@ export const RefineContainer = () => {
 
       default:
     }
-  };
+  }, [tool, annotateDispatch]);
 
-  function onKeyDown(evt) {
-    handleKeyDown(evt.key);
-  }
-
-  const handleKeyUp = key => {
+  const onKeyUp = useCallback(key => {
     switch (key) {
       case 'Control': 
         annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
@@ -156,11 +154,7 @@ export const RefineContainer = () => {
 
       default:
     }
-  };
-
-  function onKeyUp(evt) {
-    handleKeyUp(evt.key);
-  }
+  }, [annotateDispatch]);
 
   // Other callbacks
   const onLoaded = useCallback(() => {
@@ -198,7 +192,13 @@ export const RefineContainer = () => {
                       sliceView={ sliceView } 
                       onEdit={ onEdit }
                       onSliceChange={ onSliceChange }
-                    /> }
+                      onSelect={ onSelect }
+                      onHover={ onHover }
+                      onHighlight={ onHighlight }
+                      onKeyDown={ onKeyDown }
+                      onKeyUp={ onKeyUp }
+                    /> 
+                  }
                   region={ hoverRegion }
                 /> 
               </Column>                  

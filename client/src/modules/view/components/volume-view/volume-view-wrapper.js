@@ -50,7 +50,7 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
     return () => {
       if (initialized) volumeView.cleanUp();
     }
-  }, [volumeView]);
+  }, [initialized, volumeView]);
 
   return (
     <div ref={ div } style={{ height: width }}></div>

@@ -111,8 +111,6 @@ const reducer = (state, action) => {
 
       let brush = state[brushName];
 
-      console.log(brushName);
-
       brush += action.direction === 'down' ? -1 : 1;
       brush = Math.max(0, Math.min(brush, brushes.length - 1));
 

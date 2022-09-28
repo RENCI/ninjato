@@ -80,6 +80,9 @@ export function Widgets(painter) {
     setCallback: (type, callback) => {
       switch (type) {
         case 'edit': onEdit = callback; break;
+        case 'select': onSelect = callback; break;
+        case 'hover': onHover = callback; break;
+        case 'highlight': onHighlight = callback; break;
         default: 
           console.warn(`Unknown callback type: ${ type }`);
       }

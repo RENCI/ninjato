@@ -64,7 +64,7 @@ const setWindowLevel = (actor, range) => {
   actor.getProperty().set({ colorLevel, colorWindow });
 };
 
-export function Slice(onKeyDown, onKeyUp) { 
+export function Slice() { 
   let interactor = null;
   let imageMapper = null;
   let sliceRanges = null;
@@ -76,33 +76,47 @@ export function Slice(onKeyDown, onKeyUp) {
   const interactorStyle = vtkInteractorStyleManipulator.newInstance();
   interactorStyle.addMouseManipulator(manipulator);
 
-  console.log("WHY IS THIS GETTING CALLED UPON ENTERING AND LEAVING A REGION OR CHANGING SLICE?");
+  const keySliceChange = key => {
+    if (!imageMapper) return;
+
+    const extent = imageMapper.getInputData().getExtent();
+    const kMin = extent[4];
+    const kMax = extent[5];
+
+    key === 'ArrowUp' ? 
+      imageMapper.setSlice(Math.min(kMax, imageMapper.getSlice() + 1)) :           
+      imageMapper.setSlice(Math.max(kMin, imageMapper.getSlice() - 1));
+  };
 
   return {
-    initialize: renderWindow => {
+    initialize: (renderWindow) => {
       renderWindow.getCamera().setParallelProjection(true);
 
       interactor = renderWindow.getInteractor();
       interactor.setInteractorStyle(interactorStyle);
+    },
+    setCallback: (type, callback) => {
+      switch(type) {
+        case 'keyDown':
+          interactor.onKeyDown(evt => {
+            if (evt.key === 'ArrowUp' || evt.key === 'ArrowDown') {
+              keySliceChange(evt.key);
+            }
+            else {
+              console.log(callback);
 
-      interactor.onKeyDown(evt => {        
-        if (evt.key === 'ArrowUp' || evt.key === 'ArrowDown') {
-          if (!imageMapper) return;
+              callback(evt.key);
+            }
+          })
+          break;
 
-          const extent = imageMapper.getInputData().getExtent();
-          const kMin = extent[4];
-          const kMax = extent[5];
-      
-          evt.key === 'ArrowUp' ? 
-            imageMapper.setSlice(Math.min(kMax, imageMapper.getSlice() + 1)) :           
-            imageMapper.setSlice(Math.max(kMin, imageMapper.getSlice() - 1));
-        }
-        else {
-          if (onKeyDown) onKeyDown(evt)
-        }
-      });
-    
-      if (onKeyUp) interactor.onKeyUp(onKeyUp);
+        case 'keyUp':
+          interactor.onKeyUp(evt => callback(evt.key));
+          break;
+
+        default: 
+          console.warn(`Unknown callback type: ${ type }`);
+      }
     },
     setImage: (imageActor, camera, volumeSliceRanges, onSliceChange) => {
       const firstTime = !imageMapper;
