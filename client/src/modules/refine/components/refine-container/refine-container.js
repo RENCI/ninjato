@@ -118,6 +118,10 @@ export const RefineContainer = () => {
         if (tool !== 'select') annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'select' });
         break;
 
+      case 'Alt':
+        if (tool !== 'panZoom') annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'panZoom' });
+        break;
+
       default:
     }
   }, [tool, annotateDispatch]);
@@ -129,6 +133,10 @@ export const RefineContainer = () => {
         break;
 
       case 'Shift': 
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
+        break;
+
+      case 'Alt':
         annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
         break;
 
