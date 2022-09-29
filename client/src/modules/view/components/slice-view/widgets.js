@@ -4,6 +4,7 @@ import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants'
 import vtkBrushWidget from 'vtk/brush-widget';
 import vtkCropWidget from 'vtk/crop-widget';
 import vtkRegionSelectWidget from 'vtk/region-select-widget';
+import vtkPanZoomWidget from 'vtk/pan-zoom-widget';
 
 const setBrush = (handle, brush) => {  
   handle.getRepresentations()[0].setBrush(brush);
@@ -24,7 +25,13 @@ const notActiveValid = ({ region, inStartRegion, inAssignment}, activeRegion) =>
 const claimValid = ({ region, inStartRegion }) =>
   region?.info?.status === 'inactive' && inStartRegion;
 
-export function Widgets(painter, onEdit, onSelect, onHover, onHighlight) {
+export function Widgets(painter) {
+  // Callbacks
+  let onEdit = () => {};
+  let onSelect = () => {};
+  let onHover = () => {};
+  let onHighlight = () => {};
+
   const manager = vtkWidgetManager.newInstance();
 
   const widgets = {
@@ -37,7 +44,8 @@ export function Widgets(painter, onEdit, onSelect, onHover, onHighlight) {
     split: createWidget(vtkRegionSelectWidget),
     merge: createWidget(vtkRegionSelectWidget),
     create: createWidget(vtkBrushWidget),
-    delete: createWidget(vtkRegionSelectWidget) 
+    delete: createWidget(vtkRegionSelectWidget),
+    navigate: createWidget(vtkPanZoomWidget)
   }; 
 
   widgets.create.setShowTrail(false);
@@ -71,6 +79,16 @@ export function Widgets(painter, onEdit, onSelect, onHover, onHighlight) {
   };
 
   return {
+    setCallback: (type, callback) => {
+      switch (type) {
+        case 'edit': onEdit = callback; break;
+        case 'select': onSelect = callback; break;
+        case 'hover': onHover = callback; break;
+        case 'highlight': onHighlight = callback; break;
+        default: 
+          console.warn(`Unknown callback type: ${ type }`);
+      }
+    },
     setRenderer: renderer => {
       manager.setRenderer(renderer);
 
@@ -90,8 +108,10 @@ export function Widgets(painter, onEdit, onSelect, onHover, onHighlight) {
       // Hover
       // There can be multiple handlers registered for a given widget.
       // Use same hover for all, and widget-specific for highlighting as needed below.
-      Object.entries(handles).forEach(([name, handle]) => {      
+      Object.entries(handles).forEach(([name, handle]) => {          
         const widget = widgets[name];
+
+        if (!widget.getLabel) return;
 
         handle.onInteractionEvent(() => {
           const { label, region } = getWidgetInfo(widget);

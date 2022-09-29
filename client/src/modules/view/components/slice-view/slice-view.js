@@ -2,11 +2,17 @@ import { RenderWindow, Slice, Image } from 'modules/view/components';
 import { Widgets } from 'modules/view/components/slice-view/widgets';
 import { MaskPainter } from 'modules/view/components/slice-view/mask-painter';
 
-export function SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight, onKeyDown, onKeyUp) {
+export function SliceView() {
+  // Callbacks
+  let onEdit = () => {};
+  let onSliceChange = () => {};
+
   const renderWindow = RenderWindow();
   const image = Image();
-  const slice = Slice(evt => evt.key === 'i' ? image.toggleInterpolation() : onKeyDown ? onKeyDown(evt) : null, onKeyUp);
+  const slice = Slice();
   const mask = MaskPainter();
+
+  renderWindow.test = renderWindow.test ? renderWindow.test + 1 : 1;
 
   /*
   const isValid = label => label !== null && label !== 0;
@@ -23,7 +29,7 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight,
   };
   */
 
-  const widgets = Widgets(mask.getPainter(), onEdit, onSelect, onHover, onHighlight);
+  const widgets = Widgets(mask.getPainter());
 
   return {
     initialize: rootNode => {
@@ -33,6 +39,29 @@ export function SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight,
       slice.initialize(renderWindow);
 
       widgets.setRenderer(renderWindow.getRenderer());
+    },
+    setCallback: (type, callback) => {
+      switch (type) {
+        case 'edit':
+          onEdit = callback;
+          widgets.setCallback(type, callback);
+        break;
+
+        case 'sliceChange':
+          onSliceChange = callback;
+          break;
+
+        case 'keyDown':
+          slice.setCallback(type, key => key === 'i' ? image.toggleInterpolation() : callback(key));
+          break;
+
+        case 'keyUp':
+          slice.setCallback(type, callback);
+          break;
+
+        default: 
+          widgets.setCallback(type, callback);
+      }
     },
     setData: (imageData, maskData, sliceRanges) => {
       image.setInputData(imageData);    

@@ -4,7 +4,7 @@ import {
   AnnotateContext, ANNOTATE_SET_TOOL, ANNOTATE_SET_CONTROL 
 } from 'contexts';
 import { 
-  ControlBar, ControlGroup, ControlButton, ControlLabel, ControlsInfo
+  ControlBar, ControlGroup, ControlButton, ControlLabel
 } from 'modules/common/components/control-bar';
 import { SplitButton } from 'modules/common/components/split-button';
 import { BrushOptions } from 'modules/common/components/brush-options';

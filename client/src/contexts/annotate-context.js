@@ -16,9 +16,13 @@ const disabled = type =>
   () => null;
 
 const tools = [
-  { group: 'edit', value: 'select', icon: 'map marker alternate', cursor: getCursor('map-marker-alternate.png', 16, 23), tooltip: 'select region', disabled: disabled('one region'),
+  { group: 'general', value: 'select', icon: 'map marker alternate', cursor: getCursor('map-marker-alternate.png', 16, 23), tooltip: 'select region', disabled: disabled('one region'),
     info: 'Click on a region in the assignment to select it as the active region for editing.' 
   },
+  { group: 'general', value: 'navigate', icon: 'location arrow', cursor: getCursor('location-arrow.png', 22, 8), tooltip: 'navigate', disabled: disabled('never'),
+    info: 'Left-click and drag to pan, right-click and drag to zoom.' 
+  },
+
   { group: 'edit', value: 'paint', icon: 'paint brush', cursor: getCursor('paint-brush.png', 11, 23), tooltip: 'paint', disabled: disabled('no active'),
     info: 'Click and drag to paint voxels with the active region label. A flood fill operation will fill any holes after painting. Change brush size by clicking the option button next to the icon.'  
   },
@@ -110,8 +114,6 @@ const reducer = (state, action) => {
       const brushName = state.tool + 'Brush';
 
       let brush = state[brushName];
-
-      console.log(brushName);
 
       brush += action.direction === 'down' ? -1 : 1;
       brush = Math.max(0, Math.min(brush, brushes.length - 1));

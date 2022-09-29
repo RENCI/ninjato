@@ -2,7 +2,7 @@ import { useContext, useState, useRef, useEffect } from 'react';
 import { UserContext, AnnotateContext } from 'contexts';
 import { useResize } from 'hooks';
 
-export const SliceViewWrapper = ({ sliceView }) => {
+export const SliceViewWrapper = ({ sliceView, onEdit, onSliceChange, onSelect, onHover, onHighlight, onKeyDown, onKeyUp }) => {
   const [{ imageData, maskData, assignment, volumes, activeRegion }] = useContext(UserContext);
   const [{ tool, tools, brushes, paintBrush, eraseBrush, createBrush, showContours }] = useContext(AnnotateContext);
   const [initialized, setInitialized] = useState(false);
@@ -12,11 +12,40 @@ export const SliceViewWrapper = ({ sliceView }) => {
   
   // Initialize
   useEffect(() => {
-    if (!initialized && div.current && width) { 
+    if (sliceView && !initialized && div.current && width) { 
       sliceView.initialize(div.current);
       setInitialized(true);
     }
   }, [initialized, div, width, sliceView]);
+
+  // Callbacks
+  useEffect(() => {
+    if (initialized) sliceView.setCallback('edit', onEdit);
+  }, [initialized, sliceView, onEdit]);
+
+  useEffect(() => {
+    if (initialized) sliceView.setCallback('sliceChange', onSliceChange);
+  }, [initialized, sliceView, onSliceChange]);
+
+  useEffect(() => {
+    if (initialized) sliceView.setCallback('select', onSelect);
+  }, [initialized, sliceView, onSelect]);
+
+  useEffect(() => {
+    if (initialized) sliceView.setCallback('hover', onHover);
+  }, [initialized, sliceView, onHover]);
+
+  useEffect(() => {
+    if (initialized) sliceView.setCallback('highlight', onHighlight);
+  }, [initialized, sliceView, onHighlight]);
+
+  useEffect(() => {
+    if (initialized) sliceView.setCallback('keyDown', onKeyDown);
+  }, [initialized, sliceView, onKeyDown]);
+
+  useEffect(() => {
+    if (initialized) sliceView.setCallback('keyUp', onKeyUp);
+  }, [initialized, sliceView, onKeyUp]);
 
   // Assignment
   useEffect(() => {
@@ -73,8 +102,10 @@ export const SliceViewWrapper = ({ sliceView }) => {
 
   // Clean up
   useEffect(() => {
-    return () => sliceView.cleanUp();
-  }, [sliceView]);
+    return () => {
+      if (initialized) sliceView.cleanUp();
+    }
+  }, [initialized, sliceView]);
 
   return (
     <div ref={ div } style={{ height: width }} />

@@ -1,4 +1,4 @@
-import { useContext, useRef, useCallback, useState, useEffect } from 'react';
+import { useContext, useCallback, useState, useEffect, useRef } from 'react';
 import { Grid } from 'semantic-ui-react';
 import { 
   UserContext, PUSH_REGION_HISTORY, SET_ACTIVE_REGION,
@@ -20,38 +20,49 @@ const { Column } = Grid;
 export const RefineContainer = () => {
   const [{ imageData }, userDispatch] = useContext(UserContext);
   const [{ tool }, annotateDispatch] = useContext(AnnotateContext);
-  const volumeView = useRef(VolumeView());
-  const sliceView = useRef(SliceView(onEdit, onSliceChange, onSelect, onHover, onHighlight, onKeyDown, onKeyUp));
+  const [volumeView, setVolumeView] = useState();
+  const [sliceView, setSliceView] = useState();
   const [loading, setLoading] = useState(true);
   const [slice, setSlice] = useState(0);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
   const [hoverRegion, setHoverRegion] = useState(null);
 
+  // Create views
   useEffect(() => {
+    setVolumeView(VolumeView());
+    setSliceView(SliceView());
+  }, []);
+
+  useEffect(() => {
+    if (!sliceView) return;
+
     // Should handle case where claiming or removing
-    setCanUndo(sliceView.current.canUndo());
-    setCanRedo(sliceView.current.canRedo());
-  }, [imageData]);
+    setCanUndo(sliceView.canUndo());
+    setCanRedo(sliceView.canRedo());
+  }, [sliceView, imageData]);
 
   // Slice view callbacks
-  function onEdit(activeRegion = null) {
-    volumeView.current.centerCamera();
-    volumeView.current.render();
+  const onEdit = useCallback((activeRegion = null) => {
+    volumeView.centerCamera();
+    volumeView.render();
 
-    setCanUndo(sliceView.current.canUndo());
-    setCanRedo(sliceView.current.canRedo());
+    setCanUndo(sliceView.canUndo());
+    setCanRedo(sliceView.canRedo());
 
     if (activeRegion) userDispatch({ type: PUSH_REGION_HISTORY, activeRegion: activeRegion });
-  }
+  }, [sliceView, volumeView, userDispatch]);
 
-  function onSliceChange(slice) {
-    volumeView.current.setSlice(slice);
-    volumeView.current.render();
+  const onSliceChange = useCallback(slice => {
+    if (!volumeView) return;
+
+    volumeView.setSlice(slice);
+    volumeView.render();
     setSlice(slice);
-  }
+  }, [volumeView, setSlice]);
 
-  function onSelect(region, type) {
+  const onSelect = useCallback((region, type) => {
+    /*
     switch (type) {
       case 'select':       
         userDispatch({ type: SET_ACTIVE_REGION, region: region });
@@ -85,45 +96,65 @@ export const RefineContainer = () => {
         console.warn('Unknown select type');
     }    
 
-    sliceView.current.setHighlightRegion(null);
+    sliceView.setHighlightRegion(null);
 
     annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
-  }
+    */
+  }, [sliceView, userDispatch, annotateDispatch]);
 
-  function onHover(region) {
+  const onHover = useCallback(region => {
     setHoverRegion(region);
-  }
+  }, [setHoverRegion]);
 
-  function onHighlight(region) {
-    sliceView.current.setHighlightRegion(region);
-  }
+  const onHighlight = useCallback(region => {
+    sliceView.setHighlightRegion(region);
+  }, [sliceView]);
 
-  const handleKeyDown = key => {
+  // For use in key callbacks to avoid useCallback
+  const localTool = useRef();
+
+  const onKeyDown = key => {
     switch (key) {
       case 'Control':
-        if (tool !== 'erase') annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'erase' });
+        if (localTool.current !== 'erase') {
+          annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'erase' });
+          localTool.current = 'erase';
+        }
         break;
 
       case 'Shift':
-        if (tool !== 'select') annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'select' });
+        if (localTool.current !== 'select') {
+          annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'select' });
+          localTool.current = 'select';
+        }
+        break;
+
+      case 'Alt':
+        if (localTool.current !== 'navigate') {
+          annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'navigate' });
+          localTool.current = 'navigate';
+        }
         break;
 
       default:
     }
   };
 
-  function onKeyDown(evt) {
-    handleKeyDown(evt.key);
-  }
-
-  const handleKeyUp = key => {
+  const onKeyUp = key => {
     switch (key) {
       case 'Control': 
         annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
+        localTool.current = 'paint';
         break;
 
       case 'Shift': 
         annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
+        localTool.current = 'paint';
+        break;
+
+      case 'Alt':
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
+        localTool.current = 'paint';
         break;
 
       case 'ArrowLeft':
@@ -138,20 +169,18 @@ export const RefineContainer = () => {
     }
   };
 
-  function onKeyUp(evt) {
-    handleKeyUp(evt.key);
-  }
-
   // Other callbacks
   const onLoaded = useCallback(() => {
     setLoading(false);
   }, []);
 
   const onSliderChange = useCallback(value => {
-    sliceView.current.setSlice(value);
-    volumeView.current.setSlice(value);
+    if (!sliceView || !volumeView) return;
+
+    sliceView.setSlice(value);
+    volumeView.setSlice(value);
     setSlice(value);
-  }, [sliceView]);
+  }, [sliceView, volumeView]);
 
   const numSlices = imageData ? imageData.getDimensions()[2] : 0; 
 
@@ -167,11 +196,22 @@ export const RefineContainer = () => {
           <VisualizationSection>
             <Grid columns='equal' stackable padded reversed='mobile'>
               <Column>
-                <VolumeViewWrapper volumeView={ volumeView.current } onLoaded={ onLoaded } />
+                <VolumeViewWrapper volumeView={ volumeView } onLoaded={ onLoaded } />
               </Column>
               <Column>
                 <RegionPopup 
-                  trigger={ <SliceViewWrapper sliceView={ sliceView.current } /> }
+                  trigger={ 
+                    <SliceViewWrapper 
+                      sliceView={ sliceView } 
+                      onEdit={ onEdit }
+                      onSliceChange={ onSliceChange }
+                      onSelect={ onSelect }
+                      onHover={ onHover }
+                      onHighlight={ onHighlight }
+                      onKeyDown={ onKeyDown }
+                      onKeyUp={ onKeyUp }
+                    /> 
+                  }
                   region={ hoverRegion }
                 /> 
               </Column>                  
@@ -189,7 +229,7 @@ export const RefineContainer = () => {
         </Column>
         { !loading && 
           <SliceControls 
-            sliceView={ sliceView.current }
+            sliceView={ sliceView }
             canUndo={ canUndo }
             canRedo={ canRedo }
           />
@@ -200,10 +240,10 @@ export const RefineContainer = () => {
           <SaveButtons /> 
           <ClaimDialog />
           <RemoveDialog />
-          <SplitDialog sliceView={ sliceView.current } />
-          <MergeDialog sliceView={ sliceView.current } />
-          <CreateDialog sliceView={ sliceView.current } />
-          <DeleteDialog sliceView={ sliceView.current } />
+          <SplitDialog sliceView={ sliceView } />
+          <MergeDialog sliceView={ sliceView } />
+          <CreateDialog sliceView={ sliceView } />
+          <DeleteDialog sliceView={ sliceView } />
         </>
       }
     </>
