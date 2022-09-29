@@ -7,6 +7,13 @@ export default function widgetBehavior(publicAPI, model) {
     
     console.log('left press')
 
+    if (!model.button) {
+      model.button = 'left';
+      model.startPos = callData.position;
+      model.startCameraPos = [...model.camera.getPosition()];
+      model.startCameraFocalPoint = [...model.camera.getFocalPoint()]
+    }
+
     publicAPI.invokeStartInteractionEvent();
     return macro.EVENT_ABORT;
   };
@@ -14,6 +21,12 @@ export default function widgetBehavior(publicAPI, model) {
   publicAPI.handleRightButtonPress = (callData) => {
     
     console.log('right press')
+
+    if (!model.button) {
+      model.button = 'right';
+      model.startPos = callData.position;
+      model.startCameraScale = model.camera.getParallelScale();
+    }
 
     publicAPI.invokeStartInteractionEvent();
     return macro.EVENT_ABORT;
@@ -26,6 +39,8 @@ export default function widgetBehavior(publicAPI, model) {
 
     console.log('left release')
 
+    if (model.button === 'left') model.button = null;
+
     return model.hasFocus ? macro.EVENT_ABORT : macro.VOID;
   };
 
@@ -33,6 +48,8 @@ export default function widgetBehavior(publicAPI, model) {
     publicAPI.invokeEndInteractionEvent();
 
     console.log('right release')
+
+    if (model.button === 'right') model.button = null;
 
     return model.hasFocus ? macro.EVENT_ABORT : macro.VOID;
   };
@@ -53,6 +70,31 @@ export default function widgetBehavior(publicAPI, model) {
       model.manipulator.setNormal(normal);
 
       console.log('moving');
+
+      if (model.button === 'left') {
+        const dx = model.startPos.x - callData.position.x;
+        const dy = model.startPos.y - callData.position.y;
+
+        const pos = [...model.startCameraPos];
+
+        const s = 0.1;
+        pos[0] += dx * s;
+        pos[1] -= dy * s;
+
+        model.camera.setPosition(...pos);
+        model.camera.setDirectionOfProjection(0, 0, 1);
+
+      }
+      else if (model.button === 'right') {
+        const dy = model.startPos.y - callData.position.y;
+
+        const s = 0.1;
+        const scale = Math.max(1, model.startCameraScale + dy * s);
+
+        console.log(scale);
+
+        model.camera.setParallelScale(scale);
+      }
 
       publicAPI.invokeInteractionEvent();
       return macro.EVENT_ABORT;
