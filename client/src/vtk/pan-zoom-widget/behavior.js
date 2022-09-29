@@ -1,12 +1,8 @@
 import macro from '@kitware/vtk.js/macros';
 import { vec3 } from 'gl-matrix';
-import { getLabel } from 'vtk/widget-utils';
 
 export default function widgetBehavior(publicAPI, model) {
   publicAPI.handleLeftButtonPress = (callData) => {
-    
-    console.log('left press')
-
     if (!model.button) {
       model.button = 'left';
       model.startPos = callData.position;
@@ -19,9 +15,6 @@ export default function widgetBehavior(publicAPI, model) {
   };
 
   publicAPI.handleRightButtonPress = (callData) => {
-    
-    console.log('right press')
-
     if (!model.button) {
       model.button = 'right';
       model.startPos = callData.position;
@@ -37,8 +30,6 @@ export default function widgetBehavior(publicAPI, model) {
   publicAPI.handleLeftButtonRelease = () => {
     publicAPI.invokeEndInteractionEvent();
 
-    console.log('left release')
-
     if (model.button === 'left') model.button = null;
 
     return model.hasFocus ? macro.EVENT_ABORT : macro.VOID;
@@ -46,8 +37,6 @@ export default function widgetBehavior(publicAPI, model) {
 
   publicAPI.handleRightButtonRelease = () => {
     publicAPI.invokeEndInteractionEvent();
-
-    console.log('right release')
 
     if (model.button === 'right') model.button = null;
 
@@ -69,8 +58,6 @@ export default function widgetBehavior(publicAPI, model) {
       model.activeState.setDirection(...normal);
       model.manipulator.setNormal(normal);
 
-      console.log('moving');
-
       if (model.button === 'left') {
         const dx = model.startPos.x - callData.position.x;
         const dy = model.startPos.y - callData.position.y;
@@ -90,8 +77,6 @@ export default function widgetBehavior(publicAPI, model) {
 
         const s = 0.1;
         const scale = Math.max(1, model.startCameraScale + dy * s);
-
-        console.log(scale);
 
         model.camera.setParallelScale(scale);
       }

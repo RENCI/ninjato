@@ -45,7 +45,7 @@ export function Widgets(painter) {
     merge: createWidget(vtkRegionSelectWidget),
     create: createWidget(vtkBrushWidget),
     delete: createWidget(vtkRegionSelectWidget),
-    panZoom: createWidget(vtkPanZoomWidget)
+    navigate: createWidget(vtkPanZoomWidget)
   }; 
 
   widgets.create.setShowTrail(false);
@@ -108,8 +108,10 @@ export function Widgets(painter) {
       // Hover
       // There can be multiple handlers registered for a given widget.
       // Use same hover for all, and widget-specific for highlighting as needed below.
-      Object.entries(handles).filter(([name]) => name !== 'panZoom').forEach(([name, handle]) => {      
+      Object.entries(handles).forEach(([name, handle]) => {          
         const widget = widgets[name];
+
+        if (!widget.getLabel) return;
 
         handle.onInteractionEvent(() => {
           const { label, region } = getWidgetInfo(widget);
@@ -290,8 +292,6 @@ export function Widgets(painter) {
       const position = activeWidget.getPosition();
 
       activeWidget = widgets[tool];
-
-      console.log(activeWidget);
 
       manager.grabFocus(activeWidget);
 

@@ -119,7 +119,7 @@ export const ReviewContainer = () => {
         break;
 
       case 'Alt':
-        if (tool !== 'panZoom') annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'panZoom' });
+        if (tool !== 'navigate') annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'navigate' });
         break;
 
       default:
