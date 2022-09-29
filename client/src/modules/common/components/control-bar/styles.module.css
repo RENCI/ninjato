@@ -43,6 +43,7 @@
 .controlsInfoShortCut {
   display: flex;
   flex-direction: row;
+  text-transform: capitalize;
 }
 
 .controlsInfoShortCut > div:first-child {

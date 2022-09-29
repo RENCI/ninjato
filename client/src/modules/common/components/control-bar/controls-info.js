@@ -18,6 +18,19 @@ export const ControlsInfo = ({ tools }) => {
 
   const getIcon = name => <Icon name={ tools.find(({ value }) => value === name).icon } />;
 
+  const holdShortcutInfo = (hold, release) => (
+    <div className={ styles.controlsInfoShortCut }>
+      <div>
+        <div>Hold</div>
+        <div>Release</div>
+      </div>
+      <div>
+        <div>{ getIcon(hold) } { hold }</div>
+        <div> { getIcon(release) } { release }</div>
+      </div>
+    </div>
+  );
+
   return (
     <Modal
       onClose={ closeModal }
@@ -59,33 +72,15 @@ export const ControlsInfo = ({ tools }) => {
           <List relaxed>
             <List.Item>
               <List.Header>Ctrl (PC) / Command (Mac)</List.Header> 
-              <List.Content>
-                <div className={ styles.controlsInfoShortCut }>
-                  <div>
-                    <div>Hold</div>
-                    <div>Release</div>
-                  </div>
-                  <div>
-                    <div>{ getIcon('erase') } Erase</div>
-                    <div> { getIcon('paint') } Paint</div>
-                  </div>
-                </div>
-                </List.Content>
+              <List.Content>{ holdShortcutInfo('erase', 'paint') }</List.Content>
             </List.Item>
             <List.Item>
               <List.Header>Shift</List.Header> 
-              <List.Content>
-                <div className={ styles.controlsInfoShortCut }>
-                  <div>
-                    <div>Hold</div>
-                    <div>Release</div>
-                  </div>
-                  <div>
-                    <div>{ getIcon('select') } Select</div>
-                    <div> { getIcon('paint') } Paint</div>
-                  </div>
-                </div>
-              </List.Content>
+              <List.Content>{ holdShortcutInfo('select', 'paint') }</List.Content>
+            </List.Item>
+            <List.Item>
+              <List.Header>Alt</List.Header> 
+              <List.Content>{ holdShortcutInfo('navigate', 'paint') }</List.Content>
             </List.Item>
             <List.Item>
               <List.Header>Arrow <Icon name='arrow up' /><Icon name='arrow down' /></List.Header> 
