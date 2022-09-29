@@ -4,6 +4,7 @@ import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants'
 import vtkBrushWidget from 'vtk/brush-widget';
 import vtkCropWidget from 'vtk/crop-widget';
 import vtkRegionSelectWidget from 'vtk/region-select-widget';
+import vtkPanZoomWidget from 'vtk/pan-zoom-widget';
 
 const setBrush = (handle, brush) => {  
   handle.getRepresentations()[0].setBrush(brush);
@@ -43,7 +44,8 @@ export function Widgets(painter) {
     split: createWidget(vtkRegionSelectWidget),
     merge: createWidget(vtkRegionSelectWidget),
     create: createWidget(vtkBrushWidget),
-    delete: createWidget(vtkRegionSelectWidget) 
+    delete: createWidget(vtkRegionSelectWidget),
+    panZoom: createWidget(vtkPanZoomWidget)
   }; 
 
   widgets.create.setShowTrail(false);
@@ -106,7 +108,7 @@ export function Widgets(painter) {
       // Hover
       // There can be multiple handlers registered for a given widget.
       // Use same hover for all, and widget-specific for highlighting as needed below.
-      Object.entries(handles).forEach(([name, handle]) => {      
+      Object.entries(handles).filter(([name]) => name !== 'panZoom').forEach(([name, handle]) => {      
         const widget = widgets[name];
 
         handle.onInteractionEvent(() => {
@@ -288,6 +290,8 @@ export function Widgets(painter) {
       const position = activeWidget.getPosition();
 
       activeWidget = widgets[tool];
+
+      console.log(activeWidget);
 
       manager.grabFocus(activeWidget);
 

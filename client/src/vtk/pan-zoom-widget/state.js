@@ -15,7 +15,7 @@ export default function generateState(radius) {
       name: 'handle',
       initialValues: {
         visible: true
-      }  
+      },      
     })
     .build();
 }
