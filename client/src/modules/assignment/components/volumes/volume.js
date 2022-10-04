@@ -73,7 +73,7 @@ export const Volume = ({ volume, enabled }) => {
             </div>
           </div>
         </div>
-        { process.env.NODE_ENV && 
+        { process.env.NODE_ENV === 'development' && 
           <div className={ styles.chooseButton }>
             <ChooseButton 
               volumeId={ volume.id }
