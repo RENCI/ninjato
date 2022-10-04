@@ -43,3 +43,7 @@
 .loadButton {
   width: 100%;
 }
+
+.chooseButton {
+  margin-top: .8em;
+}

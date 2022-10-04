@@ -2,8 +2,10 @@ import { useContext } from 'react';
 import { Segment, Header, Progress, Label } from 'semantic-ui-react';
 import { 
   UserContext, SET_ASSIGNMENT, 
-  ErrorContext, SET_ERROR } from 'contexts';
+  ErrorContext, SET_ERROR 
+} from 'contexts';
 import { ButtonWrapper } from 'modules/common/components/button-wrapper';
+import { ChooseButton } from './choose-button';
 import { useLoadData } from 'hooks';
 import { api } from 'utils/api';
 import styles from './styles.module.css';
@@ -71,6 +73,14 @@ export const Volume = ({ volume, enabled }) => {
             </div>
           </div>
         </div>
+        { process.env.NODE_ENV === 'development' && 
+          <div className={ styles.chooseButton }>
+            <ChooseButton 
+              volumeId={ volume.id }
+              disabled={ !isEnabled } 
+            />
+          </div>
+        }
       </Segment>
     </ButtonWrapper>
   );  

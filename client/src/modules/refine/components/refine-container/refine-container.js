@@ -19,7 +19,7 @@ const { Column } = Grid;
 
 export const RefineContainer = () => {
   const [{ imageData }, userDispatch] = useContext(UserContext);
-  const [{ tool }, annotateDispatch] = useContext(AnnotateContext);
+  const [, annotateDispatch] = useContext(AnnotateContext);
   const [volumeView, setVolumeView] = useState();
   const [sliceView, setSliceView] = useState();
   const [loading, setLoading] = useState(true);
@@ -62,7 +62,6 @@ export const RefineContainer = () => {
   }, [volumeView, setSlice]);
 
   const onSelect = useCallback((region, type) => {
-    /*
     switch (type) {
       case 'select':       
         userDispatch({ type: SET_ACTIVE_REGION, region: region });
@@ -99,7 +98,6 @@ export const RefineContainer = () => {
     sliceView.setHighlightRegion(null);
 
     annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
-    */
   }, [sliceView, userDispatch, annotateDispatch]);
 
   const onHover = useCallback(region => {
