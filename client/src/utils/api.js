@@ -57,10 +57,10 @@ const getComments = async (subvolumeId, regions) => {
   return comments;
 };
 
-const getAssignment = async (subvolumeId, itemId, regionId = null) => {
+const getAssignment = async (subvolumeId, itemId) => {
   // Get assignment info
   const infoResponse = await axios.get(`/item/${ subvolumeId }/subvolume_assignment_info`, {
-    params: itemId ? { assign_item_id: itemId } : regionId ? { region_id: regionId } : {}    
+    params: { assign_item_id: itemId }
   }); 
 
   const info = infoResponse.data;
@@ -292,7 +292,7 @@ export const api = {
     return comments;
   },
   requestAssignment: async (userId, subvolumeId, itemId) => {
-    const response = await axios.post(`/user/${ userId }/request_assignment`,
+    await axios.post(`/user/${ userId }/request_assignment`,
       null,
       {
         params: {
@@ -301,6 +301,20 @@ export const api = {
         }
       }
     );
+  },
+  requestAssignmentByLabel: async (userId, subvolumeId, label) => {
+    // Get assignment info
+    const response = await axios.post(`/user/${ userId }/request_assignment`,
+      null,
+      {
+        params: {
+          subvolume_id: subvolumeId,
+          region_label: label
+        } 
+      }
+    ); 
+
+    // XXX: What gets returned?
 
     console.log(response);
   },

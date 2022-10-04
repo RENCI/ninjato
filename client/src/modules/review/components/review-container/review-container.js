@@ -1,4 +1,4 @@
-import { useContext, useCallback, useState, useEffect } from 'react';
+import { useContext, useCallback, useState, useEffect, useRef } from 'react';
 import { Grid } from 'semantic-ui-react';
 import { 
   UserContext, PUSH_REGION_HISTORY, SET_ACTIVE_REGION,
@@ -108,36 +108,51 @@ export const ReviewContainer = () => {
     sliceView.setHighlightRegion(region);
   }, [sliceView]);
 
-  const onKeyDown = useCallback(key => {
+  // For use in key callbacks to avoid useCallback
+  const localTool = useRef();
+
+  const onKeyDown = key => {
     switch (key) {
       case 'Control':
-        if (tool !== 'erase') annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'erase' });
+        if (localTool.current !== 'erase') {
+          annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'erase' });
+          localTool.current = 'erase';
+        }
         break;
 
       case 'Shift':
-        if (tool !== 'select') annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'select' });
+        if (localTool.current !== 'select') {
+          annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'select' });
+          localTool.current = 'select';
+        }
         break;
 
       case 'Alt':
-        if (tool !== 'navigate') annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'navigate' });
+        if (localTool.current !== 'navigate') {
+          annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'navigate' });
+          localTool.current = 'navigate';
+        }
         break;
 
       default:
     }
-  }, [tool, annotateDispatch]);
+  };
 
-  const onKeyUp = useCallback(key => {
+  const onKeyUp = key => {
     switch (key) {
       case 'Control': 
         annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
+        localTool.current = 'paint';
         break;
 
       case 'Shift': 
         annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
+        localTool.current = 'paint';
         break;
 
       case 'Alt':
         annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
+        localTool.current = 'paint';
         break;
 
       case 'ArrowLeft':
@@ -150,7 +165,7 @@ export const ReviewContainer = () => {
 
       default:
     }
-  }, [annotateDispatch]);
+  };
 
   // Other callbacks
   const onLoaded = useCallback(() => {
