@@ -12,8 +12,17 @@ from girder.models.folder import Folder
 from girder.exceptions import RestException
 from girder.utility import assetstore_utilities
 from girder.utility import path as path_util
-from .constants import BUFFER_FACTOR, DATA_PATH
 from girder_jobs.models.job import Job
+
+
+COLLECTION_NAME = 'nuclei_image_collection'
+BUFFER_FACTOR = 3
+DATA_PATH = '/girder/data'
+ANNOT_ASSIGN_KEY = 'annotation_assigned_to'
+ANNOT_COMPLETE_KEY = 'annotation_completed_by'
+REVIEW_ASSIGN_KEY = 'review_assigned_to'
+REVIEW_COMPLETE_KEY = 'review_completed_by'
+REVIEW_APPROVE_KEY = 'review_approved'
 
 
 def _get_tif_file_content_and_path(item_file):
@@ -391,10 +400,10 @@ def reject_assignment(user, item, whole_item, has_files, comment, task='annotati
 def get_assignment_status(whole_item, assign_item_id):
     assign_item_id = str(assign_item_id)
     assign_item = Item().findOne({'_id': ObjectId(assign_item_id)})
-    if 'review_approved' in assign_item['meta'] and assign_item['meta']['review_approved'] == 'true':
+    if REVIEW_APPROVE_KEY in assign_item['meta'] and assign_item['meta'][REVIEW_APPROVE_KEY] == 'true':
         return 'completed'
-    assign_info = get_history_info(whole_item, assign_item_id, 'annotation_assigned_to')
-    complete_info = get_history_info(whole_item, assign_item_id, 'annotation_completed_by')
+    assign_info = get_history_info(whole_item, assign_item_id, ANNOT_ASSIGN_KEY)
+    complete_info = get_history_info(whole_item, assign_item_id, ANNOT_COMPLETE_KEY)
     if not assign_info:
         return 'inactive'
     if not complete_info:
@@ -403,8 +412,8 @@ def get_assignment_status(whole_item, assign_item_id):
         # assignment is reassigned to user after reviewer disapproved the annotation
         return 'active'
 
-    review_assign_info = get_history_info(whole_item, assign_item_id, 'review_assigned_to',)
-    review_complete_info = get_history_info(whole_item, assign_item_id, 'review_completed_by')
+    review_assign_info = get_history_info(whole_item, assign_item_id, REVIEW_ASSIGN_KEY)
+    review_complete_info = get_history_info(whole_item, assign_item_id, REVIEW_COMPLETE_KEY)
     if not review_assign_info:
         return 'awaiting review'
 
@@ -477,7 +486,7 @@ def assign_region_to_user(whole_item, user, region_key):
                                      })
     val['item_id'] = str(region_item['_id'])
     set_assignment_meta(whole_item, user, region_item['_id'],
-                        'annotation_assigned_to')
+                        ANNOT_ASSIGN_KEY)
 
     return region_item
 
@@ -531,7 +540,7 @@ def check_subvolume_done(whole_item, task='annotation'):
     if task == 'review':
         vol_approved = True
     for key, val in whole_item['meta']['regions'].items():
-        if 'review_approved' in val and val['review_approved'] == 'true':
+        if REVIEW_APPROVE_KEY in val and val[REVIEW_APPROVE_KEY] == 'true':
             continue
         complete_info = get_history_info(whole_item, key, f'{task}_completed_by')
         if not complete_info:
@@ -539,15 +548,15 @@ def check_subvolume_done(whole_item, task='annotation'):
             if task == 'review':
                 vol_approved = False
             break
-        if task == 'review' and 'review_approved' in val and val['review_approved'] == 'false':
+        if task == 'review' and REVIEW_APPROVE_KEY in val and val[REVIEW_APPROVE_KEY] == 'false':
             vol_approved = False
     if vol_done:
         add_meta = {f'{task}_done': 'true'}
         if task == 'review':
             if vol_approved:
-                add_meta['review_approved'] = 'true'
+                add_meta[REVIEW_APPROVE_KEY] = 'true'
             else:
-                add_meta['review_approved'] = 'false'
+                add_meta[REVIEW_APPROVE_KEY] = 'false'
         Item().setMetadata(whole_item, add_meta)
         Item().save(whole_item)
     return vol_done
@@ -702,7 +711,7 @@ def merge_region_to_active_assignment(whole_item, active_assign_id, region_id):
     _create_region_files(assign_item, whole_item)
 
     return get_history_info(whole_item, assign_item['_id'],
-                            'annotation_assigned_to')
+                            ANNOT_ASSIGN_KEY)
 
 
 def set_assignment_meta(whole_item, user, region_item_id, assign_type):
