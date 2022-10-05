@@ -19,7 +19,7 @@ const { Column } = Grid;
 
 export const ReviewContainer = () => {
   const [{ imageData }, userDispatch] = useContext(UserContext);
-  const [{ tool }, annotateDispatch] = useContext(AnnotateContext);
+  const [, annotateDispatch] = useContext(AnnotateContext);
   const [volumeView, setVolumeView] = useState();
   const [sliceView, setSliceView] = useState();
   const [loading, setLoading] = useState(true);
