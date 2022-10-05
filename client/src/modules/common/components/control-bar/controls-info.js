@@ -1,4 +1,6 @@
+import { useRef } from 'react';
 import { Modal, Button, List, Divider, Header, Icon } from 'semantic-ui-react';
+import html2pdf from 'html2pdf.js';
 import { useModal } from 'hooks';
 import styles from './styles.module.css';
 
@@ -10,6 +12,7 @@ const groupDescription = {
 
 export const ControlsInfo = ({ tools }) => {
   const [open, openModal, closeModal] = useModal();
+  const controlsRef = useRef();
 
   const groups = tools.reduce((groups, { group }) => {
     if (!groups.includes(group)) groups.push(group);
@@ -31,6 +34,19 @@ export const ControlsInfo = ({ tools }) => {
     </div>
   );
 
+  const onPDFClick = () => {
+    html2pdf()
+      .set({ 
+        margin: [5, 10, 5, 10],
+        pagebreak: { mode: 'avoid-all'} 
+      })
+      .from(controlsRef.current)
+      .toPdf()
+      .get('pdf').then(pdf => {
+        window.open(pdf.output('bloburl'), '_blank');
+      });
+  };
+
   return (
     <Modal
       onClose={ closeModal }
@@ -48,49 +64,62 @@ export const ControlsInfo = ({ tools }) => {
         </div>
       }
     >
-      <Modal.Header>Tool Information</Modal.Header>
+      <Modal.Header>
+        Tool Information
+        <span style={{ float: 'right '}}>
+          <Button 
+            basic
+            circular
+            compact
+            icon='file pdf outline'
+            onClick={ onPDFClick }
+          />
+        </span>
+      </Modal.Header>
       <Modal.Content>
-        { groups.map((group, i, a) => (
-          <div key={ i }>
-            <Header as='h4'>{ groupDescription[group] }</Header>
-            <List key={ i } relaxed>
-              { tools.filter(tool => tool.group === group).map((tool, i, a) => (
-                <List.Item key={ i }>
-                  <List.Icon name={ tool.icon } />
-                  <List.Content>
-                    <List.Header style={{ textTransform: 'capitalize' }}>{ tool.value }</List.Header>
-                    <List.Description>{ tool.info }</List.Description>
-                  </List.Content>
-                </List.Item>
-              ))}
+        <div ref={ controlsRef }>
+          { groups.map((group, i, a) => (
+            <div key={ i }>
+              <Header as='h4'>{ groupDescription[group] }</Header>
+              <List key={ i } relaxed>
+                { tools.filter(tool => tool.group === group).map((tool, i, a) => (
+                  <List.Item key={ i }>
+                    <List.Icon name={ tool.icon } />
+                    <List.Content>
+                      <List.Header style={{ textTransform: 'capitalize' }}>{ tool.value }</List.Header>
+                      <List.Description>{ tool.info }</List.Description>
+                    </List.Content>
+                  </List.Item>
+                ))}
+              </List>
+              <Divider /> 
+            </div>
+          ))}
+          <div>
+            <Header as='h4'>Shortcuts</Header>
+            <List relaxed>
+              <List.Item>
+                <List.Header>Ctrl (PC) / Command (Mac)</List.Header> 
+                <List.Content>{ holdShortcutInfo('erase', 'paint') }</List.Content>
+              </List.Item>
+              <List.Item>
+                <List.Header>Shift</List.Header> 
+                <List.Content>{ holdShortcutInfo('select', 'paint') }</List.Content>
+              </List.Item>
+              <List.Item>
+                <List.Header>Alt</List.Header> 
+                <List.Content>{ holdShortcutInfo('navigate', 'paint') }</List.Content>
+              </List.Item>
+              <List.Item>
+                <List.Header>Arrow <Icon name='arrow up' /><Icon name='arrow down' /></List.Header> 
+                <List.Content>Move slice up and down</List.Content>
+              </List.Item>
+              <List.Item>
+                <List.Header>Arrow <Icon name='arrow left' /><Icon name='arrow right' /></List.Header> 
+                <List.Content>Change brush size</List.Content>
+              </List.Item>
             </List>
-            <Divider /> 
           </div>
-        ))}
-        <div>
-          <Header as='h4'>Shortcuts</Header>
-          <List relaxed>
-            <List.Item>
-              <List.Header>Ctrl (PC) / Command (Mac)</List.Header> 
-              <List.Content>{ holdShortcutInfo('erase', 'paint') }</List.Content>
-            </List.Item>
-            <List.Item>
-              <List.Header>Shift</List.Header> 
-              <List.Content>{ holdShortcutInfo('select', 'paint') }</List.Content>
-            </List.Item>
-            <List.Item>
-              <List.Header>Alt</List.Header> 
-              <List.Content>{ holdShortcutInfo('navigate', 'paint') }</List.Content>
-            </List.Item>
-            <List.Item>
-              <List.Header>Arrow <Icon name='arrow up' /><Icon name='arrow down' /></List.Header> 
-              <List.Content>Move slice up and down</List.Content>
-            </List.Item>
-            <List.Item>
-              <List.Header>Arrow <Icon name='arrow left' /><Icon name='arrow right' /></List.Header> 
-              <List.Content>Change brush size</List.Content>
-            </List.Item>
-          </List>
         </div>
       </Modal.Content>
     </Modal> 
