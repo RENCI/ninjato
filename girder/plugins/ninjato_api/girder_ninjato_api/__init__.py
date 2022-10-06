@@ -72,21 +72,25 @@ def remove_region_from_assignment(user, subvolume_id, active_assignment_id, regi
 
 @access.public
 @autoDescribeRoute(
-    Description('Request a region assignment for annotation. If the requested item has already '
-                'been annotated or assigned to another user for annotation, the request will fail;'
-                'If the requesting user already has active annotation assignment, the request will '
-                'also fail since a user is only allowed to have one active assignment')
+    Description('Request a region assignment for annotation or review. If the requested item has '
+                'already been annotated or assigned to another user for annotation, the request '
+                'will fail; If the requesting user already has active annotation assignment, '
+                'the request will also fail since a user is only allowed to have one active '
+                'assignment')
     .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
     .param('subvolume_id', 'subvolume id that includes the requesting assignment.',
            required=True)
-    .param('request_region_id', 'region id or label to request the assignment containing the region',
-           required=True)
+    .param('assign_item_id', 'assignment item ID to request assignment for. If set, it will '
+                             'take precedence over request_region_id; otherwise, if not set, '
+                             'request_region_id has to be set.', required=False)
+    .param('request_region_id', 'region id to request the assignment containing the region',
+           required=False)
     .errorResponse()
     .errorResponse('Request action was denied on the user.', 403)
     .errorResponse('Failed to request the requested region', 500)
 )
-def request_region_assignment(user, subvolume_id, request_region_id):
-    return request_assignment(user, subvolume_id, request_region_id)
+def request_region_assignment(user, subvolume_id, assign_item_id, request_region_id):
+    return request_assignment(user, subvolume_id, assign_item_id, request_region_id)
 
 
 @access.public

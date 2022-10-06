@@ -134,39 +134,20 @@ def claim_assignment(user, subvolume_id, active_assignment_id, claim_region_id):
         return ret_dict
 
 
-def request_assignment(user, subvolume_id, request_region_id):
+def request_assignment(user, subvolume_id, assign_item_id, request_region_id):
     """
-    allow a user to request an assignment for annotation
+    allow a user to request an assignment for annotation or review
     :param user: requesting user
     :param subvolume_id: subvolume id that contains the requested region
+    :param assign_item_id: assign_item_id to request assignment for
     :param request_region_id: region id to request assignment for
     :return: a dict indicating success or failure
     """
+    if not assign_item_id and not request_region_id:
+        raise RestException('Either assign_item_id or region_id has to be provided in order to '
+                            'identify the assignment to get info for', code=400)
+
     whole_item = Item().findOne({'_id': ObjectId(subvolume_id)})
-    request_region_id = str(request_region_id)
-    ret_dict = {}
-
-    if request_region_id not in whole_item['meta']['regions']:
-        raise RestException('The requested region id is not valid', code=400)
-
-    val = whole_item['meta']['regions'][request_region_id]
-    if REVIEW_APPROVE_KEY in val and val[REVIEW_APPROVE_KEY] == 'true':
-        raise RestException('The requested region has been approved outside Ninjato', code=400)
-
-    if 'item_id' in val:
-        assign_item_id = val['item_id']
-        assign_info = get_history_info(whole_item, assign_item_id, ANNOT_ASSIGN_KEY)
-    else:
-        assign_info = None
-    if assign_info:
-        if assign_info[0]['user'] == user['login']:
-            ret_dict['status'] = 'success'
-        else:
-            ret_dict['status'] = 'failure'
-        ret_dict['assigned_user_info'] = assign_info[0]
-        ret_dict['assigned_item_id'] = assign_item_id
-        return ret_dict
-
     # check if the requesting user already has active assignment, and if yes, this user cannot
     # request other assignment
     uid = user['_id']
@@ -176,7 +157,70 @@ def request_assignment(user, subvolume_id, request_region_id):
                 raise RestException('Requesting user already has active assignment '
                                     'so cannot request a new assignment', code=400)
 
-    # assign this region to this user
+    ret_dict = {}
+    if not assign_item_id:
+        request_region_id = str(request_region_id)
+        if request_region_id not in whole_item['meta']['regions']:
+            raise RestException('The requested region id is not valid', code=400)
+        val = whole_item['meta']['regions'][request_region_id]
+        if REVIEW_APPROVE_KEY in val and val[REVIEW_APPROVE_KEY] == 'true':
+            raise RestException('The requested region has been approved outside Ninjato', code=400)
+        assign_item_id = val['item_id'] if 'item_id' in val else ''
+
+    if assign_item_id:
+        assign_item = Item().findOne({'_id': ObjectId(assign_item_id)})
+        complete_info = get_history_info(whole_item, assign_item_id, ANNOT_COMPLETE_KEY)
+        review_complete_info = get_history_info(whole_item, assign_item_id, REVIEW_COMPLETE_KEY)
+        if review_complete_info:
+            ret_dict['status'] = 'failure'
+            if 'review_approved' in assign_item['meta'] and \
+                assign_item['meta']['review_approved'] == 'false' and \
+                user['login'] == review_complete_info[0]['user']:
+                ret_dict['status'] = 'success'
+
+            ret_dict['annotation_user_info'] = complete_info
+            ret_dict['review_user_info'] = review_complete_info[0]
+            ret_dict['assigned_item_id'] = assign_item_id
+            return ret_dict
+        review_assign_info = get_history_info(whole_item, assign_item_id, REVIEW_ASSIGN_KEY)
+        if review_assign_info:
+            if user['login'] == review_assign_info[0]['user']:
+                ret_dict['status'] = 'success'
+            else:
+                ret_dict['status'] = 'failure'
+
+            ret_dict['annotation_user_info'] = complete_info
+            ret_dict['review_user_info'] = review_assign_info[0]
+            ret_dict['assigned_item_id'] = assign_item_id
+            return ret_dict
+        if complete_info:
+            # annotation is done, ready for review
+            # assign this item for review
+            assign_info = set_assignment_meta(whole_item, user, assign_item_id,
+                                              REVIEW_ASSIGN_KEY)
+            ret_dict['status'] = 'success'
+            ret_dict['annotation_user_info'] = complete_info[0]
+            ret_dict['review_user_info'] = assign_info
+            ret_dict['assigned_item_id'] = assign_item_id
+            return ret_dict
+        assign_info = get_history_info(whole_item, assign_item_id, ANNOT_ASSIGN_KEY)
+        if assign_info:
+            if assign_info[0]['user'] == user['login']:
+                ret_dict['status'] = 'success'
+            else:
+                ret_dict['status'] = 'failure'
+            ret_dict['assigned_user_info'] = assign_info[0]
+            ret_dict['assigned_item_id'] = assign_item_id
+            return ret_dict
+        # available to be assigned
+        set_assignment_meta(whole_item, user, assign_item_id, ANNOT_ASSIGN_KEY)
+        assign_info = get_history_info(whole_item, assign_item_id, ANNOT_ASSIGN_KEY)
+        ret_dict['status'] = 'success'
+        ret_dict['assigned_user_info'] = assign_info[0] if assign_info else {}
+        ret_dict['assigned_item_id'] = str(assign_item['_id'])
+        return ret_dict
+
+    # assign_item_id does not exist, assign this region to this user
     assign_item = assign_region_to_user(whole_item, user, request_region_id)
     assign_item_id = assign_item['_id']
     assign_info = get_history_info(whole_item, assign_item_id, ANNOT_ASSIGN_KEY)
