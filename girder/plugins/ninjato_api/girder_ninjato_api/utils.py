@@ -114,7 +114,7 @@ def _get_buffered_extent(minx, maxx, miny, maxy, minz, maxz, xrange, yrange, zra
     return int(minx), int(maxx), int(miny), int(maxy), int(minz), int(maxz)
 
 
-def _create_region_files(region_item, whole_item):
+def create_region_files(region_item, whole_item):
     """
     extract region files from the whole subvolume item based on bounding box extent and
     save files to region item
@@ -199,7 +199,7 @@ def _create_region(region_key, whole_item, extent_dict):
     }
     Item().setMetadata(region_item, add_meta)
 
-    _create_region_files(region_item, whole_item)
+    create_region_files(region_item, whole_item)
 
     return region_item
 
@@ -657,7 +657,7 @@ def remove_region_from_active_assignment(whole_item, assign_item, region_id):
         assign_item = Item().save(assign_item)
         # update assign_item based on updated extent that has region removed
         if min_z_ary:
-            _create_region_files(assign_item, whole_item)
+            create_region_files(assign_item, whole_item)
 
         return assign_item['_id']
 
@@ -708,7 +708,7 @@ def merge_region_to_active_assignment(whole_item, active_assign_id, region_id):
     val['item_id'] = str(assign_item['_id'])
     Item().save(whole_item)
     # update assign_item based on updated extent that includes claimed region
-    _create_region_files(assign_item, whole_item)
+    create_region_files(assign_item, whole_item)
 
     return get_history_info(whole_item, assign_item['_id'],
                             ANNOT_ASSIGN_KEY)
