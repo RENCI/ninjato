@@ -1,4 +1,5 @@
 import { RenderWindow, Surface, BoundingBox } from 'modules/view/components';
+import { Widgets } from 'modules/view/components/volume-view/widgets';
 import { getUniqueLabels } from 'utils/data';
 import { backgroundColors } from 'utils/colors';
 import { interpolate, distance } from 'utils/math';
@@ -102,6 +103,7 @@ const applyActiveRegion = (region, surfaces) => {
 
 export function VolumeView() {  
   const renderWindow = RenderWindow();
+  const widgets = Widgets();
 
   let surfaces = [];
 
@@ -132,6 +134,33 @@ export function VolumeView() {
       if (renderWindow.initialized()) return;
 
       renderWindow.initialize(rootNode);      
+
+      widgets.setRenderer(renderWindow.getRenderer());
+    },
+    setCallback: (type, callback) => {
+      switch (type) {
+/*        
+        case 'edit':
+          onEdit = callback;
+          widgets.setCallback(type, callback);
+        break;
+
+        case 'sliceChange':
+          onSliceChange = callback;
+          break;
+
+        case 'keyDown':
+          slice.setCallback(type, key => key === 'i' ? image.toggleInterpolation() : callback(key));
+          break;
+
+        case 'keyUp':
+          slice.setCallback(type, callback);
+          break;
+*/          
+
+        default: 
+          widgets.setCallback(type, callback);
+      }
     },
     setData: maskData => {
       if (maskData) {
@@ -147,6 +176,8 @@ export function VolumeView() {
         surfaces.forEach(surface => renderer.addActor(surface.getActor()));
         renderer.addActor(background.getActor());
         renderer.addActor(boundingBox.getActor());
+
+        widgets.setImageData(maskData);
       } 
       else {
         const renderer = renderWindow.getRenderer();
@@ -208,6 +239,10 @@ export function VolumeView() {
       centerCamera(renderWindow, surface.getOutput(), background.getInputData());
     },
     //setHighlightLabel: label => mask.setHighlightLabel(label),
+    setTool: (tool, cursor) => {
+      widgets.setTool(tool)
+      renderWindow.setCursor(cursor);
+    },
     setSlice: sliceNumber => {
       slice = sliceNumber;
       surfaces.forEach(surface => {

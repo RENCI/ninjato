@@ -65,7 +65,6 @@ export function Widgets(painter) {
     return region ? region : null;
   };
 
-
   const getWidgetInfo = widget => {
     const startLabel = widget.getStartLabel ? widget.getStartLabel() : null;
     const label = widget.getLabel();
@@ -286,7 +285,7 @@ export function Widgets(painter) {
       Object.values(handles).forEach(handle => handle.updateRepresentationForRender());
     },
     setImageData: imageData => {
-      Object.values(widgets).forEach(widget => widget.setImageData(imageData))    
+      Object.values(widgets).forEach(widget => widget.setImageData(imageData));
     },
     setTool: tool => {
       const position = activeWidget.getPosition();

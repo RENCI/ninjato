@@ -11,24 +11,6 @@ export function SliceView() {
   const image = Image();
   const slice = Slice();
   const mask = MaskPainter();
-
-  renderWindow.test = renderWindow.test ? renderWindow.test + 1 : 1;
-
-  /*
-  const isValid = label => label !== null && label !== 0;
-
-  const onRegionHover = (label, highlight) => {
-    onHover(label);
-
-    if (isValid(label)) {
-      onHighlight(label);
-    }
-    else {
-      onHighlight(null);
-    }
-  };
-  */
-
   const widgets = Widgets(mask.getPainter());
 
   return {
