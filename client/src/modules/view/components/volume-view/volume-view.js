@@ -177,7 +177,7 @@ export function VolumeView() {
         renderer.addActor(background.getActor());
         renderer.addActor(boundingBox.getActor());
 
-        widgets.setImageData(maskData);
+//        widgets.setImageData(maskData);
       } 
       else {
         const renderer = renderWindow.getRenderer();

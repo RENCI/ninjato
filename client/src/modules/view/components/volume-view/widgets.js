@@ -1,7 +1,7 @@
 import vtkWidgetManager from '@kitware/vtk.js/Widgets/Core/WidgetManager';
 import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
-import vtkRegionSelectWidget from 'vtk/region-select-widget';
+import vtkRegionSelect3DWidget from 'vtk/region-select-3d-widget';
 
 const createWidget = type => type.newInstance();
 
@@ -15,7 +15,7 @@ export function Widgets(painter) {
   const manager = vtkWidgetManager.newInstance();
 
   const widgets = {
-    select: createWidget(vtkRegionSelectWidget)
+    select: createWidget(vtkRegionSelect3DWidget)
   }; 
 
   let handles = null;
@@ -55,18 +55,13 @@ export function Widgets(painter) {
     },
     setRenderer: renderer => {
       manager.setRenderer(renderer);
-
-      console.log(ViewTypes);
-
       handles = Object.entries(widgets).reduce((handles, [key, value]) => {
-        handles[key] = manager.addWidget(value, ViewTypes.SLICE);
+        handles[key] = manager.addWidget(value, ViewTypes.GEOMETRY);
         return handles;
       }, {});
     
       activeWidget = widgets.select;
       manager.grabFocus(activeWidget);
-
-      console.log(activeWidget);
 
       // Interaction overrides
       handles.select.onInteractionEvent(() => {
@@ -92,9 +87,11 @@ export function Widgets(painter) {
       Object.values(widgets).forEach(widget => widget.getManipulator().setOrigin(position));
       Object.values(handles).forEach(handle => handle.updateRepresentationForRender());
     },
+    /*
     setImageData: imageData => {
       Object.values(widgets).forEach(widget => widget.setImageData(imageData));
     },
+    */
     setTool: tool => {
       const position = activeWidget.getPosition();
 
