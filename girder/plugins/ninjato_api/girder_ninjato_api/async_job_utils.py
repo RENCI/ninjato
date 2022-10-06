@@ -1,6 +1,6 @@
 from girder.models.item import Item
 from bson.objectid import ObjectId
-from .utils import _create_region_files
+from .utils import create_region_files
 
 
 def update_all_assignment_masks(job):
@@ -24,7 +24,7 @@ def update_all_assignment_masks(job):
         if 'annotation_done' in assign_item['meta'] and assign_item['meta']['annotation_done'] == 'true':
             # if annotation is done, does not update
             continue
-        _create_region_files(assign_item, whole_item)
+        create_region_files(assign_item, whole_item)
         updated_assign_item_ids.append(val['item_id'])
         print(f"updated assignment masks for {val['item_id']} in whole item {whole_item['_id']}",
               flush=True)

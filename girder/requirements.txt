@@ -1,16 +1,8 @@
 -e plugins/ninjato_api
 
 # External dependencies
-configparser==3.5.0
-coverage
-girder-worker
-httmock
-mongomock
-moto[server]>=1.3.7,<2
+coverage==6.5.0
 pytest>=3.6
 pytest-cov>=2.6
-python-dateutil
+python-dateutil==2.8.1
 libtiff==0.4.2
-tifffile==2021.11.2
-tox
-virtualenv
