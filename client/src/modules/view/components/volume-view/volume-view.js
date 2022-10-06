@@ -1,3 +1,5 @@
+import vtkCellPicker from '@kitware/vtk.js/Rendering/Core/CellPicker';
+
 import { RenderWindow, Surface, BoundingBox } from 'modules/view/components';
 import { Widgets } from 'modules/view/components/volume-view/widgets';
 import { getUniqueLabels } from 'utils/data';
@@ -134,6 +136,8 @@ export function VolumeView() {
       if (renderWindow.initialized()) return;
 
       renderWindow.initialize(rootNode);      
+
+      renderWindow.getInteractor().setPicker(vtkCellPicker.newInstance());
 
       widgets.setRenderer(renderWindow.getRenderer());
     },

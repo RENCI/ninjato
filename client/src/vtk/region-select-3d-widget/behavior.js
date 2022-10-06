@@ -11,7 +11,31 @@ export default function widgetBehavior(publicAPI, model) {
     model.factory.setStartLabel(label);
     model.factory.setLabel(label);
 */    
-    console.log("PRESS");
+
+    
+    const p = callData.position;
+
+    const picker = model.interactor.getPicker();
+    picker.pick([p.x, p.y, p.z], model.renderer);
+
+    const id = picker.getCellId();
+
+    const data = picker.getDataSet();
+
+    console.log(data);
+
+    console.log(picker);
+    console.log(id);
+
+    data.getPointData().getArrays().forEach(d => {
+      console.log(d.getName());
+    });
+
+    if (id > -1) {
+      console.log(data.getPointData().getArray(0).getTuple(id));
+    }
+
+    //const label = data.getPointData().getAbstractArray(0).getVariantValue(cell->GetPointId(0));
 
     publicAPI.invokeStartInteractionEvent();
     return macro.EVENT_ABORT;
