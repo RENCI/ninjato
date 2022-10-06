@@ -178,6 +178,7 @@ def request_assignment(user, subvolume_id, request_region_id):
 
     # assign this region to this user
     assign_item = assign_region_to_user(whole_item, user, request_region_id)
+    assign_item_id = assign_item['_id']
     assign_info = get_history_info(whole_item, assign_item_id, ANNOT_ASSIGN_KEY)
     ret_dict['status'] = 'success'
     ret_dict['assigned_user_info'] = assign_info[0] if assign_info else {}
@@ -308,7 +309,7 @@ def get_item_assignment(user, subvolume_id):
     # item to find a region for assignment
     # filter out those regions unavailable for assignment first
     avail_region_items = {}
-    for key, val in whole_item['meta']['regions']:
+    for key, val in whole_item['meta']['regions'].items():
         if REVIEW_APPROVE_KEY in val and val[REVIEW_APPROVE_KEY] == 'true':
             # if a region is approved/verified outside ninjato, this review_approved_key can be
             # set to true for the region metadata, so this region will not be assigned to new users
