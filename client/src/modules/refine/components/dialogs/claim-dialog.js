@@ -68,7 +68,7 @@ console.log(maskData.getExtent());
         setSuccess(false);
         annotateDispatch({ type: ANNOTATE_SET_ACTION, action: null }); 
 
-        setNeedToSave(true);
+        //setNeedToSave(true);
       }, 1000); 
     }
     catch (error) {
