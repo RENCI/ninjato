@@ -76,6 +76,8 @@ const getAssignment = async (subvolumeId, itemId) => {
   // Get region comments
   const comments = await getComments(subvolumeId, info.regions);
 
+  // XXX: TEST FIX FOR CHOOSE ASSIGNMENT, MERGE WITH MAIN, ADD FIX FOR GETTING RIGHT MASK, MERGE AGAIN
+
   // Copy info and rename to be more concise
   return {
     id: itemId,
@@ -309,7 +311,7 @@ export const api = {
       {
         params: {
           subvolume_id: subvolumeId,
-          region_label: label
+          request_region_id: label
         } 
       }
     ); 
