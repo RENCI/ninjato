@@ -15,7 +15,7 @@ from .utils import COLLECTION_NAME, DATA_PATH, ANNOT_ASSIGN_KEY, ANNOT_COMPLETE_
     assign_region_to_user, save_file, add_meta_to_history, check_subvolume_done, \
     reject_assignment, update_assignment_in_whole_item, get_assignment_status, remove_regions, \
     find_region_item_from_label, get_region_extent, save_content_bytes_to_tiff, \
-    update_all_assignment_masks_async
+    save_added_and_removed_regions, update_all_assignment_masks_async
 
 
 def get_available_region_ids(whole_item, count=1):
@@ -67,8 +67,11 @@ def remove_region_from_item_assignment(user, subvolume_id, active_assignment_id,
     if assign_info:
         assign_user_login = assign_info[0]['user']
         if assign_user_login != user['login']:
-            raise RestException('input region id to be removed is not currently assigned '
-                                'to the requesting user', code=400)
+            review_assign_info = get_history_info(whole_item, active_assignment_id,
+                                                  REVIEW_ASSIGN_KEY)
+            if review_assign_info and review_assign_info[0]['user'] != user['login']:
+                raise RestException('input region id to be removed is not currently assigned '
+                                    'to the requesting user', code=400)
         ret = remove_region_from_active_assignment(whole_item, assign_item, region_id)
         if ret:
             ret_dict['assignment_item_id'] = ret
@@ -78,8 +81,7 @@ def remove_region_from_item_assignment(user, subvolume_id, active_assignment_id,
             ret_dict['assignment_region_key'] = ''
         return ret_dict
     else:
-        raise RestException('input region id to be removed is not currently assigned to the '
-                            'requesting user', code=400)
+        raise RestException('input region id to be removed is not currently assigned', code=400)
 
 
 def claim_assignment(user, subvolume_id, active_assignment_id, claim_region_id):
@@ -466,49 +468,10 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
     if color:
         add_meta['color'] = color
 
-    removed_region_ids = []
-    added_region_ids = []
-    if current_region_ids:
-        # make sure each item is a string
-        current_region_ids = [str(rid) for rid in current_region_ids]
-        exist_region_ids = item['meta']['region_ids']
-        removed_region_ids = [
-            rid for rid in exist_region_ids if rid not in current_region_ids
-        ]
-        added_region_ids = [rid for rid in current_region_ids if rid not in exist_region_ids]
-
-        if added_region_ids:
-            add_meta['added_region_ids'] = added_region_ids
-        if removed_region_ids:
-            add_meta['removed_region_ids'] = removed_region_ids
-
-    Item().setMetadata(item, add_meta)
+    whole_item = save_added_and_removed_regions(whole_item, item, current_region_ids,
+                                                done, uid, add_meta)
 
     if done:
-        if removed_region_ids:
-            remove_regions(removed_region_ids, whole_item, item_id)
-            del item['meta']['removed_region_ids']
-
-        for aid in added_region_ids:
-            reg_item = find_region_item_from_label(whole_item, aid)
-            if not reg_item:
-                # create the region metadata in the whole subvolume
-                reg_extent = get_region_extent(item, aid)
-                whole_item['meta']['regions'][aid] = {
-                    "item_id": str(item['_id']),
-                    "x_max": reg_extent['x_max'],
-                    "x_min": reg_extent['x_min'],
-                    "y_max": reg_extent['y_max'],
-                    "y_min": reg_extent['y_min'],
-                    "z_max": reg_extent['z_max'],
-                    "z_min": reg_extent['z_min']
-                }
-        uid = str(uid)
-        if uid in whole_item['meta']:
-            whole_item['meta'][uid].remove(str(item['_id']))
-            if not whole_item['meta'][uid]:
-                del whole_item['meta'][uid]
-        whole_item = Item().save(whole_item)
         info = {
             'type': 'annotation_completed_by',
             'user': uname,
@@ -524,7 +487,8 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
     }
 
 
-def save_user_review_result_as_item(user, item_id, done, reject, comment, approve, content_data):
+def save_user_review_result_as_item(user, item_id, done, reject, comment, approve,
+                                    current_region_ids, content_data):
     """
     save user review result
     :param user: the review user
@@ -533,6 +497,7 @@ def save_user_review_result_as_item(user, item_id, done, reject, comment, approv
     :param reject: whether to reject the review assignment rather than save it.
     :param comment: review comment per region added by the user
     :param approve: whether to approve the annotation or not
+    :param current_region_ids: list of region ids that are included in the annotated mask
     :param content_data: reviewer annotation content blob to be saved on server
     :return: JSON response to indicate success or not
     """
@@ -608,15 +573,8 @@ def save_user_review_result_as_item(user, item_id, done, reject, comment, approv
                               'time': datetime.now().strftime("%m/%d/%Y %H:%M")},
                              key='comment_history')
 
-    Item().setMetadata(item, add_meta)
-
-    uid = str(uid)
-    if done and uid in whole_item['meta']:
-        whole_item['meta'][uid].remove(str(item['_id']))
-        if not whole_item['meta'][uid]:
-            del whole_item['meta'][uid]
-
-    whole_item = Item().save(whole_item)
+    whole_item = save_added_and_removed_regions(whole_item, item, current_region_ids,
+                                                done, uid, add_meta)
 
     if done:
         info = {

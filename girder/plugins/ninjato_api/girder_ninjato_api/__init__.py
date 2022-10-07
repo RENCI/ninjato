@@ -144,15 +144,20 @@ def save_user_annotation(user, item_id, done, reject, comment, color, current_re
                paramType='form', requireObject=True, required=False)
     .param('approve', 'A boolean True or False to indicate whether the review user approves '
                       'the annotation', dataType='boolean', required=True)
+    .jsonParam('current_region_ids', 'list of region ids that are included in the annotated mask',
+               required=False, requireArray=True, paramType='formData')
     .param('content_data', 'reviewer annotation content blob data to be saved on server. If reject '
                            'is False, this content_data needs to be saved',
            required=False, paramType='formData')
 )
-def save_user_review_result(user, item_id, done, reject, comment, approve, content_data):
+def save_user_review_result(user, item_id, done, reject, comment, approve, current_region_ids,
+                            content_data):
     if comment is None:
         comment = {}
+    if current_region_ids is None:
+        current_region_ids = []
     return save_user_review_result_as_item(user, item_id, done, reject, comment, approve,
-                                           content_data)
+                                           current_region_ids, content_data)
 
 
 @access.public

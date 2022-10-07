@@ -761,6 +761,62 @@ def save_content_bytes_to_tiff(content, out_file, item):
     return
 
 
+def save_added_and_removed_regions(whole_item, item, current_region_ids, done, uid, add_meta):
+    """
+    save added and removed regions based on current_region_ids for item
+    :param whole_item: whole subvolume item
+    :param item: the item to be saved
+    :param current_region_ids: current region ids for the item to derive added and removed regions
+    :param done: whether the annotation is done and final
+    :param uid: id of the annotation user who can be a regular user or a reviewer
+    :param add_meta: the metadata dictionary to add to for the item to be saved to
+    :return: updated whole_item
+    """
+    removed_region_ids = []
+    added_region_ids = []
+    if current_region_ids:
+        # make sure each item is a string
+        current_region_ids = [str(rid) for rid in current_region_ids]
+        exist_region_ids = item['meta']['region_ids']
+        removed_region_ids = [
+            rid for rid in exist_region_ids if rid not in current_region_ids
+        ]
+        added_region_ids = [rid for rid in current_region_ids if rid not in exist_region_ids]
+
+        if added_region_ids:
+            add_meta['added_region_ids'] = added_region_ids
+        if removed_region_ids:
+            add_meta['removed_region_ids'] = removed_region_ids
+
+    Item().setMetadata(item, add_meta)
+
+    if done:
+        if removed_region_ids:
+            remove_regions(removed_region_ids, whole_item, str(item['_id']))
+            del item['meta']['removed_region_ids']
+
+        for aid in added_region_ids:
+            reg_item = find_region_item_from_label(whole_item, aid)
+            if not reg_item:
+                # create the region metadata in the whole subvolume
+                reg_extent = get_region_extent(item, aid)
+                whole_item['meta']['regions'][aid] = {
+                    "item_id": str(item['_id']),
+                    "x_max": reg_extent['x_max'],
+                    "x_min": reg_extent['x_min'],
+                    "y_max": reg_extent['y_max'],
+                    "y_min": reg_extent['y_min'],
+                    "z_max": reg_extent['z_max'],
+                    "z_min": reg_extent['z_min']
+                }
+        uid = str(uid)
+        if uid in whole_item['meta']:
+            whole_item['meta'][uid].remove(str(item['_id']))
+            if not whole_item['meta'][uid]:
+                del whole_item['meta'][uid]
+        return Item().save(whole_item)
+
+
 def update_all_assignment_masks_async(whole_item, saved_assign_item_id):
     """
     update all assignments except for the saved_assign_item_id assignment of the whole item
