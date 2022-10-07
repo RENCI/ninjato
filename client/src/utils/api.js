@@ -69,7 +69,13 @@ const getAssignment = async (subvolumeId, itemId) => {
   const filesResponse = await axios.get(`/item/${ itemId }/files`);
 
   const { imageInfo, maskInfo } = filesResponse.data.reduce((info, item) => {
-    item.name.includes('mask') ? info.maskInfo = item : info.imageInfo = item;
+    //if (item.name.includes('_masks_regions_user.tif')) {
+    if (item.name.includes('_masks')) {
+      info.maskInfo = item;
+    }
+    else if (item.name.includes('_regions.tif')) {
+      info.imageInfo = item;
+    }
     return info;
   }, {});
 
