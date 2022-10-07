@@ -811,7 +811,8 @@ def save_added_and_removed_regions(whole_item, item, current_region_ids, done, u
                 }
         uid = str(uid)
         if uid in whole_item['meta']:
-            whole_item['meta'][uid].remove(str(item['_id']))
+            if str(item['_id']) in whole_item['meta'][uid]:
+                whole_item['meta'][uid].remove(str(item['_id']))
             if not whole_item['meta'][uid]:
                 del whole_item['meta'][uid]
         return Item().save(whole_item)
