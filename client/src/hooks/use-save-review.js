@@ -6,6 +6,7 @@ import {
 import { api } from 'utils/api';
 import { createByteStream, encodeTIFF, saveTIFF } from 'utils/data-conversion';
 
+// Download for testing
 const download = false;
 
 const saveDownload = maskData => {
@@ -17,9 +18,11 @@ export const useSaveReview = () => {
   const [{ user, assignment, maskData }, userDispatch] = useContext(UserContext);
   const [, errorDispatch] = useContext(ErrorContext);
 
-  return async (done = false, approve = false) => {
+  return async (done = false, approve = false, updateInfo = null) => {
     try {
-      const buffer = createByteStream(maskData);
+      // Use update info if supplied
+      const buffer = createByteStream(updateInfo ? updateInfo.maskData : maskData);
+      const regions = updateInfo ? updateInfo.regions : assignment.regions;
 
       if (download) {  
         saveDownload(maskData);
@@ -27,10 +30,10 @@ export const useSaveReview = () => {
         //return;
       }
 
-      await api.saveReview(user._id, assignment.id, buffer, assignment.regions, done, approve);  
+      await api.saveReview(user._id, assignment.id, buffer, regions, done, approve);  
       
       if (!done) {
-        const comments = await api.updateComments(assignment.subvolumeId, assignment.regions);
+        const comments = await api.updateComments(assignment.subvolumeId, regions);
 
         userDispatch({ type: SET_COMMENTS, comments: comments });
       }

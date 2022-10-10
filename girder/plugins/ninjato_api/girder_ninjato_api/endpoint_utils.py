@@ -446,6 +446,7 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
         out_path = os.path.join(out_dir_path, annot_file_name)
         if not os.path.isdir(out_dir_path):
             os.makedirs(out_dir_path)
+
         save_content_bytes_to_tiff(content, out_path, item)
         file = save_file(assetstore_id, item, out_path, user, annot_file_name)
     except Exception as e:
@@ -534,7 +535,7 @@ def save_user_review_result_as_item(user, item_id, done, reject, comment, approv
             if not os.path.isdir(out_dir_path):
                 os.makedirs(out_dir_path)
             save_content_bytes_to_tiff(content, out_path, item)
-            file = save_file(assetstore_id, item, out_path, user, annot_file_name)
+            save_file(assetstore_id, item, out_path, user, annot_file_name)
         except Exception as e:
             raise RestException(f'failure: {e}', 500)
 
@@ -586,7 +587,9 @@ def save_user_review_result_as_item(user, item_id, done, reject, comment, approv
         # check if all regions for the partition is done, and if so add done metadata to whole item
         check_subvolume_done(whole_item, task='review')
 
-    return {'status': 'success'}
+    return {
+        'status': 'success'
+    }
 
 
 def get_subvolume_item_info(item):

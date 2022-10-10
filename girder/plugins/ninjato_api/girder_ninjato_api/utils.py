@@ -743,6 +743,12 @@ def save_content_bytes_to_tiff(content, out_file, item):
     :param out_file: file name with full path to write content to
     :return:
     """
+    files = File().find({'itemId': item['_id']})
+    # if the region already has user file, existing file need to be removed before adding new ones.
+    for file in files:
+        if file['name'].endswith('_user.tif'):
+            File().remove(file)
+
     min_x = item['meta']['coordinates']['x_min']
     max_x = item['meta']['coordinates']['x_max']
     min_y = item['meta']['coordinates']['y_min']
@@ -758,6 +764,8 @@ def save_content_bytes_to_tiff(content, out_file, item):
         img_ary = np.frombuffer(content[low:high], dtype=np.uint16)
         img_ary.shape = (height, width)
         output_tif.write_image(img_ary)
+    # read the saved tif image back to see its dimensions
+    output_tif.close()
     return
 
 
