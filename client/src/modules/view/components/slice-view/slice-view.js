@@ -45,7 +45,7 @@ export function SliceView() {
         case 'edit':
           onEdit = callback;
           widgets.setCallback(type, callback);
-        break;
+          break;
 
         case 'sliceChange':
           onSliceChange = callback;
