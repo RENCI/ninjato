@@ -68,8 +68,6 @@ const getAssignment = async (subvolumeId, itemId, update = false) => {
   // Get files
   const filesResponse = await axios.get(`/item/${ itemId }/files`);
 
-  console.log(filesResponse);
-
   const { imageInfo, maskInfo, userMaskInfo } = filesResponse.data.reduce((info, item) => {
     // XXX: Depending on file naming conventions here. 
     if (item.name.includes('_masks_regions_user.tif')) {
@@ -84,8 +82,6 @@ const getAssignment = async (subvolumeId, itemId, update = false) => {
 
     return info;
   }, {});
-
-  console.log(imageInfo, maskInfo, userMaskInfo)
 
   // Get region comments
   const comments = await getComments(subvolumeId, info.regions);

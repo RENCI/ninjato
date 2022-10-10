@@ -23,6 +23,7 @@ export const ClaimDialog = () => {
   const [needToSave, setNeedToSave] = useState(false);
 
   // XXX: Hack to save after claiming
+/*  
   useEffect(() => {
 
     console.log(maskData.getExtent());
@@ -43,6 +44,7 @@ export const ClaimDialog = () => {
       setNeedToSave(false);
     }
   }, [needToSave, action]);
+*/  
 
   const onConfirm = async () => {
     setClaiming(true);
@@ -69,6 +71,11 @@ console.log(maskData.getExtent());
         annotateDispatch({ type: ANNOTATE_SET_ACTION, action: null }); 
 
         //setNeedToSave(true);
+/*
+        setTimeout(() => {
+          saveAnnotations();
+        }, 10000);
+        */
       }, 1000); 
     }
     catch (error) {

@@ -6,6 +6,7 @@ import {
   LoadingContext, SET_LOADING, CLEAR_LOADING,
   ErrorContext, SET_ERROR 
 } from 'contexts';
+import { useSaveAnnotations, useSaveReview } from 'hooks';
 import { api } from 'utils/api';
 import { decodeTIFF } from 'utils/data-conversion';
 import { combineMasks, getUniqueLabels } from 'utils/data';
@@ -31,10 +32,11 @@ const getBackgroundRegions = async (subvolumeId, mask, regions) => {
 
 export const useLoadData = ()  => {
   const [{ maskData }, userDispatch] = useContext(UserContext);
-  const navigate = useNavigate();
   const [, annotateDispatch] = useContext(AnnotateContext);
   const [, loadingDispatch] = useContext(LoadingContext);
   const [, errorDispatch] = useContext(ErrorContext);
+  const navigate = useNavigate();
+  const saveAnnotations = useSaveAnnotations();
 
   return async ({ subvolumeId, imageId, maskId, userMaskId, regions, location, status }, assignmentToUpdate = null) => {
     try {
@@ -106,6 +108,10 @@ export const useLoadData = ()  => {
           type: SET_ACTIVE_REGION,
           region: regions.length > 0 ? regions[regions.length - 1] : null
         });
+
+        console.log('load', regions);
+
+        saveAnnotations(false, { mask: combinedMasks, regions: regions });
       }
 
       loadingDispatch({ type: CLEAR_LOADING });
