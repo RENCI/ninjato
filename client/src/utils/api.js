@@ -57,7 +57,7 @@ const getComments = async (subvolumeId, regions) => {
   return comments;
 };
 
-const getAssignment = async (subvolumeId, itemId) => {
+const getAssignment = async (subvolumeId, itemId, update = false) => {
   // Get assignment info
   const infoResponse = await axios.get(`/item/${ subvolumeId }/subvolume_assignment_info`, {
     params: { assign_item_id: itemId }
@@ -68,8 +68,18 @@ const getAssignment = async (subvolumeId, itemId) => {
   // Get files
   const filesResponse = await axios.get(`/item/${ itemId }/files`);
 
-  const { imageInfo, maskInfo } = filesResponse.data.reduce((info, item) => {
-    item.name.includes('mask') ? info.maskInfo = item : info.imageInfo = item;
+  const { imageInfo, maskInfo, userMaskInfo } = filesResponse.data.reduce((info, item) => {
+    // XXX: Depending on file naming conventions here. 
+    if (item.name.includes('_masks_regions_user.tif')) {
+      info.userMaskInfo = item;
+    }
+    else if (item.name.includes('_masks_regions.tif')) {
+      info.maskInfo = item;
+    }
+    else if (item.name.includes('_regions.tif')) {
+      info.imageInfo = item;
+    }
+
     return info;
   }, {});
 
@@ -92,8 +102,9 @@ const getAssignment = async (subvolumeId, itemId) => {
       index: i
     })),
     status: getStatus(info),
-    imageId: imageInfo._id,
-    maskId: maskInfo._id,
+    imageId: imageInfo?._id,
+    maskId: maskInfo?._id,
+    userMaskId: userMaskInfo?._id,
     annotator: info.annotator ? info.annotator : null,
     reviewer: info.reviewer ? info.reviewer : null
   };
