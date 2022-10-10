@@ -37,6 +37,7 @@ export const useLoadData = ()  => {
   const [, errorDispatch] = useContext(ErrorContext);
   const navigate = useNavigate();
   const saveAnnotations = useSaveAnnotations();
+  const saveReview = useSaveReview();
 
   return async ({ subvolumeId, imageId, maskId, userMaskId, regions, location, status }, assignmentToUpdate = null) => {
     try {
@@ -111,7 +112,12 @@ export const useLoadData = ()  => {
 
         console.log('load', regions);
 
-        saveAnnotations(false, { mask: combinedMasks, regions: regions });
+        switch (status) {
+          case 'active': saveAnnotations(false, { maskData: combinedMasks, regions: regions }); break;
+          case 'review': saveReview(false, false, { maskData: combinedMasks, regions: regions }); break;
+          default:
+            console.warn(`Unknown status: ${ status }`);
+        }
       }
 
       loadingDispatch({ type: CLEAR_LOADING });

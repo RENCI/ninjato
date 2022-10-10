@@ -20,7 +20,6 @@ export const useSaveAnnotations = () => {
 
   return async (done = false, updateInfo = null) => {
     try {
-      console.log(updateInfo);
       // Use update info if supplied
       const buffer = createByteStream(updateInfo ? updateInfo.maskData : maskData);
       const regions = updateInfo ? updateInfo.regions : assignment.regions;

@@ -335,8 +335,6 @@ export const api = {
       axios.get(fileUrl(maskId), { responseType: 'arraybuffer' })      
     ]);
 
-console.log(responses);
-
     return {
       imageBuffer: responses[0].data,
       maskBuffer: responses[1].data
