@@ -27,9 +27,7 @@ export const ChooseButton = ({ volumeId, disabled }) => {
     setChoosing(true);
     
     try {
-      const assignment = await api.requestAssignmentByLabel(user.id, volumeId, label);
-
-      console.log(assignment);
+      const assignment = await api.requestAssignmentByLabel(user._id, volumeId, label);
 
       userDispatch({ type: SET_ASSIGNMENT, assignment: assignment });
 

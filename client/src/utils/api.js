@@ -325,11 +325,13 @@ export const api = {
           request_region_id: label
         } 
       }
-    ); 
+    );
 
-    // XXX: What gets returned?
+    if (response.data.status !== 'success') throw new Error(`Could not get assignment with label ${ label }`);
 
-    console.log(response);
+    const assignment = await getAssignment(subvolumeId, response.data.assigned_item_id);
+
+    return assignment;
   },
   getData: async (imageId, maskId) => {
     const responses = await Promise.all([
