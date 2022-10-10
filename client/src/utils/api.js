@@ -86,6 +86,8 @@ const getAssignment = async (subvolumeId, itemId, update = false) => {
   // Get region comments
   const comments = await getComments(subvolumeId, info.regions);
 
+  // XXX: TEST FIX FOR CHOOSE ASSIGNMENT, MERGE WITH MAIN, ADD FIX FOR GETTING RIGHT MASK, MERGE AGAIN
+
   // Copy info and rename to be more concise
   return {
     id: itemId,
@@ -320,14 +322,16 @@ export const api = {
       {
         params: {
           subvolume_id: subvolumeId,
-          region_label: label
+          request_region_id: label
         } 
       }
-    ); 
+    );
 
-    // XXX: What gets returned?
+    if (response.data.status !== 'success') throw new Error(`Could not get assignment with label ${ label }`);
 
-    console.log(response);
+    const assignment = await getAssignment(subvolumeId, response.data.assigned_item_id);
+
+    return assignment;
   },
   getData: async (imageId, maskId) => {
     const responses = await Promise.all([
