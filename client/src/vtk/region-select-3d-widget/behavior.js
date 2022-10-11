@@ -1,41 +1,16 @@
 import macro from '@kitware/vtk.js/macros';
 import { vec3 } from 'gl-matrix';
+import { getSurfaceLabel } from 'vtk/widget-utils';
 
 export default function widgetBehavior(publicAPI, model) {
   publicAPI.handleLeftButtonPress = (callData) => {
     if (!model.activeState || !model.activeState.getActive()) {
       return macro.VOID;
     }   
-/*
-    const label = getLabel(model, callData);
+
+    const label = getSurfaceLabel(model, callData);
     model.factory.setStartLabel(label);
     model.factory.setLabel(label);
-*/    
-
-    
-    const p = callData.position;
-
-    const picker = model.interactor.getPicker();
-    picker.pick([p.x, p.y, p.z], model.renderer);
-
-    const id = picker.getCellId();
-
-    const data = picker.getDataSet();
-
-    console.log(data);
-
-    console.log(picker);
-    console.log(id);
-
-    data.getPointData().getArrays().forEach(d => {
-      console.log(d.getName());
-    });
-
-    if (id > -1) {
-      console.log(data.getPointData().getArray(0).getTuple(id));
-    }
-
-    //const label = data.getPointData().getAbstractArray(0).getVariantValue(cell->GetPointId(0));
 
     publicAPI.invokeStartInteractionEvent();
     return macro.EVENT_ABORT;
@@ -46,11 +21,9 @@ export default function widgetBehavior(publicAPI, model) {
   publicAPI.handleLeftButtonRelease = () => {
     if (model.factory.getStartLabel() !== null) {      
       publicAPI.invokeEndInteractionEvent();
-    }
-/*    
+    }    
     model.factory.setStartLabel(null);
-    model.factory.setLabel(null);
-*/    
+    model.factory.setLabel(null);   
     return model.hasFocus ? macro.EVENT_ABORT : macro.VOID;
   };
 
@@ -69,7 +42,7 @@ export default function widgetBehavior(publicAPI, model) {
       model.activeState.setDirection(...normal);
       model.manipulator.setNormal(normal);
 
-//      model.factory.setLabel(getLabel(model, callData));       
+      model.factory.setLabel(getSurfaceLabel(model, callData));       
 
       publicAPI.invokeInteractionEvent();
       return macro.EVENT_ABORT;

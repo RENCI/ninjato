@@ -65,6 +65,7 @@ export function Widgets(painter) {
 
       // Interaction overrides
       handles.select.onInteractionEvent(() => {
+        /*
         const info = getWidgetInfo(widgets.select);
 
         if (info.label !== highlightLabel) {
@@ -72,6 +73,7 @@ export function Widgets(painter) {
 
           //onHighlight(notActiveValid(info, activeRegion) ? info.region : null);
         }
+        */
       });
 
       // End

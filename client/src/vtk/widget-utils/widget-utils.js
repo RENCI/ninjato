@@ -1,4 +1,4 @@
-export const getLabel = (model, callData) => {
+export const getImageLabel = (model, callData) => {
   const imageData = model.factory.getImageData();
 
   if (!imageData) return null;
@@ -22,4 +22,23 @@ export const getLabel = (model, callData) => {
   const value = imageData.getScalarValueFromWorld(worldCoords);
 
   return isNaN(value) ? null : value;
+};
+
+export const getSurfaceLabel = (model, callData) => {
+  const p = callData.position;
+
+  const picker = model.interactor.getPicker();
+  picker.pick([p.x, p.y, p.z], model.renderer);
+
+  const id = picker.getCellId();
+
+  if (id > -1) {
+    const data = picker.getDataSet();
+
+    if (data) {
+      return data.getPointData().getArray(0).getTuple(id)[0];
+    }
+  }
+
+  return null;
 };

@@ -1,6 +1,6 @@
 import macro from '@kitware/vtk.js/macros';
 import { vec3 } from 'gl-matrix';
-import { getLabel } from 'vtk/widget-utils';
+import { getImageLabel } from 'vtk/widget-utils';
 
 export default function widgetBehavior(publicAPI, model) {
   publicAPI.handleLeftButtonPress = (callData) => {
@@ -8,7 +8,7 @@ export default function widgetBehavior(publicAPI, model) {
       return macro.VOID;
     }   
 
-    const label = getLabel(model, callData);
+    const label = getImageLabel(model, callData);
     model.factory.setStartLabel(label);
     model.factory.setLabel(label);
     
@@ -42,7 +42,7 @@ export default function widgetBehavior(publicAPI, model) {
       model.activeState.setDirection(...normal);
       model.manipulator.setNormal(normal);
 
-      model.factory.setLabel(getLabel(model, callData));       
+      model.factory.setLabel(getImageLabel(model, callData));       
 
       publicAPI.invokeInteractionEvent();
       return macro.EVENT_ABORT;
