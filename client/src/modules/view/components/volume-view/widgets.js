@@ -95,13 +95,20 @@ export function Widgets(painter) {
     },
     */
     setTool: tool => {
-      const position = activeWidget.getPosition();
-
-      activeWidget = widgets[tool];
-
-      manager.grabFocus(activeWidget);
-
-      activeWidget.setPosition(position);
+      if (tool) {
+        // XXX: Maybe want a previous widget to handle this?
+        const position = activeWidget ? activeWidget.getPosition() : [0, 0, 0];
+  
+        activeWidget = widgets[tool];
+  
+        manager.grabFocus(activeWidget);
+  
+        activeWidget.setPosition(position);
+      }
+      else {
+        activeWidget = null;
+        manager.grabFocus(null);
+      }
 
       Object.values(widgets).forEach(widget => {
         widget.setVisibility(widget === activeWidget);

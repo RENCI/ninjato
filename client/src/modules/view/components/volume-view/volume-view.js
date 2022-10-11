@@ -248,7 +248,7 @@ export function VolumeView() {
       centerCamera(renderWindow, surface.getOutput(), background.getInputData());
     },
     //setHighlightLabel: label => mask.setHighlightLabel(label),
-    setTool: (tool, cursor) => {
+    setTool: (tool, cursor) => {      
       widgets.setTool(tool)
       renderWindow.setCursor(cursor);
     },
