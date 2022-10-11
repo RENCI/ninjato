@@ -25,7 +25,7 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded, onSelect }) => {
   // Regions
   useEffect(() => {
     if (initialized) {
-      volumeView.setRegions(assignment.regions);
+      volumeView.setRegions(assignment.regions, assignment.backgroundRegions);
     }
   }, [initialized, volumeView, assignment]); 
 

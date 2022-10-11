@@ -11,6 +11,9 @@ const actionValid = ({ region, inStartRegion, inAssignment }) =>
 const notActiveValid = ({ region, inStartRegion, inAssignment}, activeRegion) => 
   region && inStartRegion && inAssignment && region !== activeRegion;
 
+const claimValid = ({ region, inStartRegion }) =>
+  region?.info?.status === 'inactive' && inStartRegion;
+
 export function Widgets(painter) {
   // Callbacks
   let onSelect = () => {};
@@ -19,8 +22,11 @@ export function Widgets(painter) {
 
   const widgets = {
     select: createWidget(vtkRegionSelect3DWidget),
+    split: createWidget(vtkRegionSelect3DWidget),
     merge: createWidget(vtkRegionSelect3DWidget),
-    delete: createWidget(vtkRegionSelect3DWidget)
+    delete: createWidget(vtkRegionSelect3DWidget),
+    claim: createWidget(vtkRegionSelect3DWidget),
+    remove: createWidget(vtkRegionSelect3DWidget)
   }; 
 
   let handles = null;
@@ -90,6 +96,14 @@ export function Widgets(painter) {
         }
       });
 
+      handles.split.onEndInteractionEvent(() => {
+        const info = getWidgetInfo(widgets.split);
+
+        if (actionValid(info)) {
+          onSelect(info.region, 'split');
+        }
+      });
+
       handles.merge.onEndInteractionEvent(() => {
         const info = getWidgetInfo(widgets.merge);
 
@@ -103,6 +117,24 @@ export function Widgets(painter) {
 
         if (actionValid(info)) {
           onSelect(info.region, 'delete');
+        }
+      });
+
+      handles.claim.onEndInteractionEvent(() => {
+        const info = getWidgetInfo(widgets.claim);
+
+        console.log(info);
+
+        if (claimValid(info)) {
+          onSelect({ label: info.label }, 'claim');
+        }
+      });
+
+      handles.remove.onEndInteractionEvent(() => {
+        const info = getWidgetInfo(widgets.remove);
+
+        if (actionValid(info)) {
+          onSelect(info.region, 'remove');
         }
       });
     },

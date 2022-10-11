@@ -198,9 +198,8 @@ export function VolumeView() {
         resetCamera(renderWindow.getRenderer(), getSurface(activeRegion).getOutput());
       }
     },
-    // XXX: NEED TO SET BACKGROUND REGIONS?
-    setRegions: regionArray => {
-      widgets.setRegions(regionArray, []);
+    setRegions: (regionArray, backgroundRegions) => {
+      widgets.setRegions(regionArray, backgroundRegions);
 
       // Clean up any old surfaces
       surfaces.forEach(surface => surface.cleanUp());
