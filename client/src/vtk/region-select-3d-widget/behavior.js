@@ -16,7 +16,7 @@ export default function widgetBehavior(publicAPI, model) {
     return macro.EVENT_ABORT;
   };
 
-  publicAPI.handleMouseMove = (callData) => publicAPI.handleEvent(callData);
+//  publicAPI.handleMouseMove = (callData) => publicAPI.handleEvent(callData);
 
   publicAPI.handleLeftButtonRelease = () => {
     if (model.factory.getStartLabel() !== null) {      
