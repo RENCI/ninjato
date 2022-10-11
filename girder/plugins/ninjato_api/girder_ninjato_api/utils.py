@@ -12,8 +12,17 @@ from girder.models.folder import Folder
 from girder.exceptions import RestException
 from girder.utility import assetstore_utilities
 from girder.utility import path as path_util
-from .constants import BUFFER_FACTOR, DATA_PATH
 from girder_jobs.models.job import Job
+
+
+COLLECTION_NAME = 'nuclei_image_collection'
+BUFFER_FACTOR = 3
+DATA_PATH = '/girder/data'
+ANNOT_ASSIGN_KEY = 'annotation_assigned_to'
+ANNOT_COMPLETE_KEY = 'annotation_completed_by'
+REVIEW_ASSIGN_KEY = 'review_assigned_to'
+REVIEW_COMPLETE_KEY = 'review_completed_by'
+REVIEW_APPROVE_KEY = 'review_approved'
 
 
 def _get_tif_file_content_and_path(item_file):
@@ -105,7 +114,7 @@ def _get_buffered_extent(minx, maxx, miny, maxy, minz, maxz, xrange, yrange, zra
     return int(minx), int(maxx), int(miny), int(maxy), int(minz), int(maxz)
 
 
-def _create_region_files(region_item, whole_item):
+def create_region_files(region_item, whole_item):
     """
     extract region files from the whole subvolume item based on bounding box extent and
     save files to region item
@@ -190,7 +199,7 @@ def _create_region(region_key, whole_item, extent_dict):
     }
     Item().setMetadata(region_item, add_meta)
 
-    _create_region_files(region_item, whole_item)
+    create_region_files(region_item, whole_item)
 
     return region_item
 
@@ -391,10 +400,10 @@ def reject_assignment(user, item, whole_item, has_files, comment, task='annotati
 def get_assignment_status(whole_item, assign_item_id):
     assign_item_id = str(assign_item_id)
     assign_item = Item().findOne({'_id': ObjectId(assign_item_id)})
-    if 'review_approved' in assign_item['meta'] and assign_item['meta']['review_approved'] == 'true':
+    if REVIEW_APPROVE_KEY in assign_item['meta'] and assign_item['meta'][REVIEW_APPROVE_KEY] == 'true':
         return 'completed'
-    assign_info = get_history_info(whole_item, assign_item_id, 'annotation_assigned_to')
-    complete_info = get_history_info(whole_item, assign_item_id, 'annotation_completed_by')
+    assign_info = get_history_info(whole_item, assign_item_id, ANNOT_ASSIGN_KEY)
+    complete_info = get_history_info(whole_item, assign_item_id, ANNOT_COMPLETE_KEY)
     if not assign_info:
         return 'inactive'
     if not complete_info:
@@ -403,8 +412,8 @@ def get_assignment_status(whole_item, assign_item_id):
         # assignment is reassigned to user after reviewer disapproved the annotation
         return 'active'
 
-    review_assign_info = get_history_info(whole_item, assign_item_id, 'review_assigned_to',)
-    review_complete_info = get_history_info(whole_item, assign_item_id, 'review_completed_by')
+    review_assign_info = get_history_info(whole_item, assign_item_id, REVIEW_ASSIGN_KEY)
+    review_complete_info = get_history_info(whole_item, assign_item_id, REVIEW_COMPLETE_KEY)
     if not review_assign_info:
         return 'awaiting review'
 
@@ -477,7 +486,7 @@ def assign_region_to_user(whole_item, user, region_key):
                                      })
     val['item_id'] = str(region_item['_id'])
     set_assignment_meta(whole_item, user, region_item['_id'],
-                        'annotation_assigned_to')
+                        ANNOT_ASSIGN_KEY)
 
     return region_item
 
@@ -531,7 +540,7 @@ def check_subvolume_done(whole_item, task='annotation'):
     if task == 'review':
         vol_approved = True
     for key, val in whole_item['meta']['regions'].items():
-        if 'review_approved' in val and val['review_approved'] == 'true':
+        if REVIEW_APPROVE_KEY in val and val[REVIEW_APPROVE_KEY] == 'true':
             continue
         complete_info = get_history_info(whole_item, key, f'{task}_completed_by')
         if not complete_info:
@@ -539,15 +548,15 @@ def check_subvolume_done(whole_item, task='annotation'):
             if task == 'review':
                 vol_approved = False
             break
-        if task == 'review' and 'review_approved' in val and val['review_approved'] == 'false':
+        if task == 'review' and REVIEW_APPROVE_KEY in val and val[REVIEW_APPROVE_KEY] == 'false':
             vol_approved = False
     if vol_done:
         add_meta = {f'{task}_done': 'true'}
         if task == 'review':
             if vol_approved:
-                add_meta['review_approved'] = 'true'
+                add_meta[REVIEW_APPROVE_KEY] = 'true'
             else:
-                add_meta['review_approved'] = 'false'
+                add_meta[REVIEW_APPROVE_KEY] = 'false'
         Item().setMetadata(whole_item, add_meta)
         Item().save(whole_item)
     return vol_done
@@ -648,7 +657,7 @@ def remove_region_from_active_assignment(whole_item, assign_item, region_id):
         assign_item = Item().save(assign_item)
         # update assign_item based on updated extent that has region removed
         if min_z_ary:
-            _create_region_files(assign_item, whole_item)
+            create_region_files(assign_item, whole_item)
 
         return assign_item['_id']
 
@@ -699,10 +708,10 @@ def merge_region_to_active_assignment(whole_item, active_assign_id, region_id):
     val['item_id'] = str(assign_item['_id'])
     Item().save(whole_item)
     # update assign_item based on updated extent that includes claimed region
-    _create_region_files(assign_item, whole_item)
+    create_region_files(assign_item, whole_item)
 
     return get_history_info(whole_item, assign_item['_id'],
-                            'annotation_assigned_to')
+                            ANNOT_ASSIGN_KEY)
 
 
 def set_assignment_meta(whole_item, user, region_item_id, assign_type):
@@ -734,6 +743,12 @@ def save_content_bytes_to_tiff(content, out_file, item):
     :param out_file: file name with full path to write content to
     :return:
     """
+    files = File().find({'itemId': item['_id']})
+    # if the region already has user file, existing file need to be removed before adding new ones.
+    for file in files:
+        if file['name'].endswith('_user.tif'):
+            File().remove(file)
+
     min_x = item['meta']['coordinates']['x_min']
     max_x = item['meta']['coordinates']['x_max']
     min_y = item['meta']['coordinates']['y_min']
@@ -749,7 +764,66 @@ def save_content_bytes_to_tiff(content, out_file, item):
         img_ary = np.frombuffer(content[low:high], dtype=np.uint16)
         img_ary.shape = (height, width)
         output_tif.write_image(img_ary)
+    # read the saved tif image back to see its dimensions
+    output_tif.close()
     return
+
+
+def save_added_and_removed_regions(whole_item, item, current_region_ids, done, uid, add_meta):
+    """
+    save added and removed regions based on current_region_ids for item
+    :param whole_item: whole subvolume item
+    :param item: the item to be saved
+    :param current_region_ids: current region ids for the item to derive added and removed regions
+    :param done: whether the annotation is done and final
+    :param uid: id of the annotation user who can be a regular user or a reviewer
+    :param add_meta: the metadata dictionary to add to for the item to be saved to
+    :return: updated whole_item
+    """
+    removed_region_ids = []
+    added_region_ids = []
+    if current_region_ids:
+        # make sure each item is a string
+        current_region_ids = [str(rid) for rid in current_region_ids]
+        exist_region_ids = item['meta']['region_ids']
+        removed_region_ids = [
+            rid for rid in exist_region_ids if rid not in current_region_ids
+        ]
+        added_region_ids = [rid for rid in current_region_ids if rid not in exist_region_ids]
+
+        if added_region_ids:
+            add_meta['added_region_ids'] = added_region_ids
+        if removed_region_ids:
+            add_meta['removed_region_ids'] = removed_region_ids
+
+    Item().setMetadata(item, add_meta)
+
+    if done:
+        if removed_region_ids:
+            remove_regions(removed_region_ids, whole_item, str(item['_id']))
+            del item['meta']['removed_region_ids']
+
+        for aid in added_region_ids:
+            reg_item = find_region_item_from_label(whole_item, aid)
+            if not reg_item:
+                # create the region metadata in the whole subvolume
+                reg_extent = get_region_extent(item, aid)
+                whole_item['meta']['regions'][aid] = {
+                    "item_id": str(item['_id']),
+                    "x_max": reg_extent['x_max'],
+                    "x_min": reg_extent['x_min'],
+                    "y_max": reg_extent['y_max'],
+                    "y_min": reg_extent['y_min'],
+                    "z_max": reg_extent['z_max'],
+                    "z_min": reg_extent['z_min']
+                }
+        uid = str(uid)
+        if uid in whole_item['meta']:
+            if str(item['_id']) in whole_item['meta'][uid]:
+                whole_item['meta'][uid].remove(str(item['_id']))
+            if not whole_item['meta'][uid]:
+                del whole_item['meta'][uid]
+        return Item().save(whole_item)
 
 
 def update_all_assignment_masks_async(whole_item, saved_assign_item_id):

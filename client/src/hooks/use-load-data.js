@@ -6,6 +6,7 @@ import {
   LoadingContext, SET_LOADING, CLEAR_LOADING,
   ErrorContext, SET_ERROR 
 } from 'contexts';
+import { useSaveAnnotations, useSaveReview } from 'hooks';
 import { api } from 'utils/api';
 import { decodeTIFF } from 'utils/data-conversion';
 import { combineMasks, getUniqueLabels } from 'utils/data';
@@ -31,16 +32,21 @@ const getBackgroundRegions = async (subvolumeId, mask, regions) => {
 
 export const useLoadData = ()  => {
   const [{ maskData }, userDispatch] = useContext(UserContext);
-  const navigate = useNavigate();
   const [, annotateDispatch] = useContext(AnnotateContext);
   const [, loadingDispatch] = useContext(LoadingContext);
   const [, errorDispatch] = useContext(ErrorContext);
+  const navigate = useNavigate();
+  const saveAnnotations = useSaveAnnotations();
+  const saveReview = useSaveReview();
 
-  return async ({ subvolumeId, imageId, maskId, regions, location }, assignmentToUpdate = null) => {
+  return async ({ subvolumeId, imageId, maskId, userMaskId, regions, location, status }, assignmentToUpdate = null) => {
     try {
       loadingDispatch({ type: SET_LOADING });
 
-      const data = await api.getData(imageId, maskId);
+      const data = await api.getData(
+        imageId, 
+        assignmentToUpdate ? maskId : userMaskId ? userMaskId : maskId
+      );
 
       const newImageData = decodeTIFF(data.imageBuffer);
       const newMaskData = decodeTIFF(data.maskBuffer);
@@ -103,6 +109,15 @@ export const useLoadData = ()  => {
           type: SET_ACTIVE_REGION,
           region: regions.length > 0 ? regions[regions.length - 1] : null
         });
+
+        console.log('load', regions);
+
+        switch (status) {
+          case 'active': saveAnnotations(false, { maskData: combinedMasks, regions: regions }); break;
+          case 'review': saveReview(false, false, { maskData: combinedMasks, regions: regions }); break;
+          default:
+            console.warn(`Unknown status: ${ status }`);
+        }
       }
 
       loadingDispatch({ type: CLEAR_LOADING });

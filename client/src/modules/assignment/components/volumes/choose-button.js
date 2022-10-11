@@ -17,13 +17,17 @@ export const ChooseButton = ({ volumeId, disabled }) => {
   const [label, setLabel] = useState('');
   const [choosing, setChoosing] = useState(false);
 
+  const onClick = evt => {
+    evt.stopPropagation();
+
+    openModal();
+  };
+
   const onConfirm = async () => {
     setChoosing(true);
     
     try {
-      const assignment = await api.requestAssignmentByLabel(user.id, volumeId, label);
-
-      console.log(assignment);
+      const assignment = await api.requestAssignmentByLabel(user._id, volumeId, label);
 
       userDispatch({ type: SET_ASSIGNMENT, assignment: assignment });
 
@@ -39,7 +43,6 @@ export const ChooseButton = ({ volumeId, disabled }) => {
   };
 
   const onChange = evt => {
-    console.log(evt);
     setLabel(evt.target.value);
   };
 
@@ -48,13 +51,14 @@ export const ChooseButton = ({ volumeId, disabled }) => {
       <Button         
         basic
         disabled={ disabled }
-        onClick={ openModal }
+        onClick={ onClick }
       >
         Choose assignment
       </Button>
       <Modal
         dimmer='blurring'
         open={ open }        
+        onClick={ evt => evt.stopPropagation() }
       >
         <Header>Choose assignment</Header>
         <Content>          
@@ -75,7 +79,7 @@ export const ChooseButton = ({ volumeId, disabled }) => {
           </Button>
           <Button 
             primary 
-            disabled={ choosing }
+            disabled={ choosing || label.length === 0 }
             loading={ choosing }
             onClick={ onConfirm } 
           >

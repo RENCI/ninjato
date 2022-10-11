@@ -72,19 +72,25 @@ def remove_region_from_assignment(user, subvolume_id, active_assignment_id, regi
 
 @access.public
 @autoDescribeRoute(
-    Description('Request an assignment for annotation or review. If the requested item has already '
-                'been annotated, the requested item will be assigned for review; otherwise, '
-                'the requested item will be assigned for annotation.')
+    Description('Request a region assignment for annotation or review. If the requested item has '
+                'already been annotated or assigned to another user for annotation, the request '
+                'will fail; If the requesting user already has active annotation assignment, '
+                'the request will also fail since a user is only allowed to have one active '
+                'assignment')
     .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
     .param('subvolume_id', 'subvolume id that includes the requesting assignment.',
            required=True)
-    .param('assign_item_id', 'assignment item id to request assignment for', required=True)
+    .param('assign_item_id', 'assignment item ID to request assignment for. If set, it will '
+                             'take precedence over request_region_id; otherwise, if not set, '
+                             'request_region_id has to be set.', required=False)
+    .param('request_region_id', 'region id to request the assignment containing the region',
+           required=False)
     .errorResponse()
     .errorResponse('Request action was denied on the user.', 403)
     .errorResponse('Failed to request the requested region', 500)
 )
-def request_region_assignment(user, subvolume_id, assign_item_id):
-    return request_assignment(user, subvolume_id, assign_item_id)
+def request_region_assignment(user, subvolume_id, assign_item_id, request_region_id):
+    return request_assignment(user, subvolume_id, assign_item_id, request_region_id)
 
 
 @access.public
@@ -138,15 +144,20 @@ def save_user_annotation(user, item_id, done, reject, comment, color, current_re
                paramType='form', requireObject=True, required=False)
     .param('approve', 'A boolean True or False to indicate whether the review user approves '
                       'the annotation', dataType='boolean', required=True)
+    .jsonParam('current_region_ids', 'list of region ids that are included in the annotated mask',
+               required=False, requireArray=True, paramType='formData')
     .param('content_data', 'reviewer annotation content blob data to be saved on server. If reject '
                            'is False, this content_data needs to be saved',
            required=False, paramType='formData')
 )
-def save_user_review_result(user, item_id, done, reject, comment, approve, content_data):
+def save_user_review_result(user, item_id, done, reject, comment, approve, current_region_ids,
+                            content_data):
     if comment is None:
         comment = {}
+    if current_region_ids is None:
+        current_region_ids = []
     return save_user_review_result_as_item(user, item_id, done, reject, comment, approve,
-                                           content_data)
+                                           current_region_ids, content_data)
 
 
 @access.public
