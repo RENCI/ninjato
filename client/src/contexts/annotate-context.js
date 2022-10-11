@@ -35,13 +35,13 @@ const tools = [
   { group: 'region', value: 'split', icon: 'share alternate', cursor: getCursor('split.png', 12, 16), tooltip: 'split', disabled: disabled('no active'),
     info: 'Click on a region in the assignment to split it into two regions at the current z slice.'
   },
-  { group: 'region', value: 'merge', icon: 'sign-in', cursor: getCursor('merge.png', 12, 16), tooltip: 'merge', disabled: disabled('one region'),
+  { group: 'region', value: 'merge', icon: 'sign-in', cursor: getCursor('merge.png', 12, 16), tooltip: 'merge', disabled: disabled('one region'), volume: true,
     info: 'Click on a region in the assignment to assign all of its voxels to the active region.'
   },
   { group: 'region', value: 'create', icon: 'plus circle', cursor: getCursor('create.png', 15, 16), tooltip: 'create', disabled: disabled('never'),
     info: 'Click to add a new region.'
   },
-  { group: 'region', value: 'delete', icon: 'minus circle', cursor: getCursor('delete.png', 15, 16), tooltip: 'delete', disabled: disabled('no active'),
+  { group: 'region', value: 'delete', icon: 'minus circle', cursor: getCursor('delete.png', 15, 16), tooltip: 'delete', disabled: disabled('no active'), volume: true,
     info: 'Click to delete a region in the assignment, erasing all of its voxels.'
   },
   { group: 'claim', value: 'claim', icon: 'flag', cursor: getCursor('flag.png', 10, 23), tooltip: 'claim', disabled: disabled('never'),

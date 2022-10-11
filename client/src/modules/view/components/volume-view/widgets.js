@@ -5,6 +5,9 @@ import vtkRegionSelect3DWidget from 'vtk/region-select-3d-widget';
 
 const createWidget = type => type.newInstance();
 
+const actionValid = ({ region, inStartRegion, inAssignment }) =>
+  region && inStartRegion && inAssignment;
+
 const notActiveValid = ({ region, inStartRegion, inAssignment}, activeRegion) => 
   region && inStartRegion && inAssignment && region !== activeRegion;
 
@@ -15,7 +18,9 @@ export function Widgets(painter) {
   const manager = vtkWidgetManager.newInstance();
 
   const widgets = {
-    select: createWidget(vtkRegionSelect3DWidget)
+    select: createWidget(vtkRegionSelect3DWidget),
+    merge: createWidget(vtkRegionSelect3DWidget),
+    delete: createWidget(vtkRegionSelect3DWidget)
   }; 
 
   let handles = null;
@@ -82,6 +87,22 @@ export function Widgets(painter) {
 
         if (notActiveValid(info, activeRegion)) {
           onSelect(info.region, 'select');
+        }
+      });
+
+      handles.merge.onEndInteractionEvent(() => {
+        const info = getWidgetInfo(widgets.merge);
+
+        if (notActiveValid(info, activeRegion)) {
+          onSelect(info.region, 'merge');
+        }
+      });
+
+      handles.delete.onEndInteractionEvent(() => {
+        const info = getWidgetInfo(widgets.delete);
+
+        if (actionValid(info)) {
+          onSelect(info.region, 'delete');
         }
       });
     },
