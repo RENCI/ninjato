@@ -35,8 +35,13 @@ export const getSurfaceLabel = (model, callData) => {
   if (id > -1) {
     const data = picker.getDataSet();
 
+    // XXX: This works because we know they are triangles. 
+    // Using vtk cell accesor didn't work properly. 
+    // Maybe try again after updating vtk version.
+    const p = data.getPolys().getData()[id * 4 + 1];
+
     if (data) {
-      return data.getPointData().getArray(0).getTuple(id)[0];
+      return data.getPointData().getArray(0).getTuple(p)[0];
     }
   }
 

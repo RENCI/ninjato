@@ -63,8 +63,6 @@ export const ClaimDialog = () => {
           assignment: update
         });
 
-console.log(maskData.getExtent());
-
         loadData(update, assignment);   
 
         setSuccess(false);
