@@ -15,6 +15,8 @@ import stateGenerator from './state';
 function vtkRegionSelectWidget(publicAPI, model) {
   model.classHierarchy.push('vtkRegionSelectWidget');
 
+  const superClass = { ...publicAPI };
+
   // --- Widget Requirement ---------------------------------------------------
   model.behavior = widgetBehavior;
   model.widgetState = stateGenerator();
@@ -34,36 +36,49 @@ function vtkRegionSelectWidget(publicAPI, model) {
         ];
     }
   };
-  // --- Widget Requirement ---------------------------------------------------
 
-  const handle = model.widgetState.getHandle();
+  // --- Public methods -------------------------------------------------------
 
-  // Default manipulator
-  model._manipulator = vtkPlaneManipulator.newInstance();
-  handle.setManipulator(model._manipulator);
+  publicAPI.setManipulator = (manipulator) => {
+    superClass.setManipulator(manipulator);
+    model.widgetState.getHandle().setManipulator(manipulator);
+  };
 
   publicAPI.setPosition = (position) => {
-    handle.setOrigin(position);
+    model.widgetState.getHandle().setOrigin(position);
   };
 
   publicAPI.getPosition = () => {
-    return handle.getOrigin();
+    return model.widgetState.getHandle().getOrigin();
   };
+
+  // --------------------------------------------------------------------------
+  // initialization
+  // --------------------------------------------------------------------------
+
+  // Default manipulator
+  publicAPI.setManipulator(
+    model.manipulator ||
+      vtkPlaneManipulator.newInstance({ useCameraNormal: true })
+  );
 } 
 
 // ----------------------------------------------------------------------------
 
-const DEFAULT_VALUES = {
-  manipulator: null,
+const defaultValues = (initialValues) => ({
+  // manipulator: null,
   startLabel: null,
   label: null,
-  imageData: null
-};
+  imageData: null,
+  behavior: widgetBehavior,
+  widgetState: stateGenerator(),
+  ...initialValues
+});
 
 // ----------------------------------------------------------------------------
 
 export function extend(publicAPI, model, initialValues = {}) {
-  Object.assign(model, DEFAULT_VALUES, initialValues);
+  Object.assign(model, defaultValues(initialValues));
 
   vtkAbstractWidgetFactory.extend(publicAPI, model, initialValues);
 

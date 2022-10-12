@@ -52,11 +52,11 @@ function vtkBrushWidget(publicAPI, model) {
   };
 
   publicAPI.setPosition = (position) => {
-//    model.widgetState.getHandle().setOrigin(position);
+    model.widgetState.getHandle().setOrigin(position);
   };
 
   publicAPI.getPosition = () => {
-//    return model.widgetState.getHandle().getOrigin();
+    return model.widgetState.getHandle().getOrigin();
   };
 
   // --------------------------------------------------------------------------
@@ -77,12 +77,12 @@ const defaultValues = (initialValues) => ({
   radius: 1,
   painting: false,
   color: [1],
-  behavior: widgetBehavior,
-  widgetState: stateGenerator(initialValues?.radius ?? 1),
   imageData: null,
   showTrail: true,
   label: null,
-  ...initialValues,
+  behavior: widgetBehavior,
+  widgetState: stateGenerator(initialValues?.radius ?? 1),
+  ...initialValues
 });
 
 // ----------------------------------------------------------------------------

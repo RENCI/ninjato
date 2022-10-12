@@ -14,9 +14,11 @@ import stateGenerator from './state';
 function vtkPanZoomWidget(publicAPI, model) {
   model.classHierarchy.push('vtkPanZoomWidget');
 
+  const superClass = { ...publicAPI };
+
   // --- Widget Requirement ---------------------------------------------------
   model.behavior = widgetBehavior;
-  model.widgetState = stateGenerator(model.radius);
+  model.widgetState = stateGenerator();
 
   publicAPI.getRepresentationsForViewType = (viewType) => {
     switch (viewType) {
@@ -33,39 +35,52 @@ function vtkPanZoomWidget(publicAPI, model) {
         ];
     }
   };
-  // --- Widget Requirement ---------------------------------------------------
 
-  const handle = model.widgetState.getHandle();
+  // --- Public methods -------------------------------------------------------
 
-  // Default manipulator
-  model._manipulator = vtkPlaneManipulator.newInstance();
-  handle.setManipulator(model._manipulator);
+  publicAPI.setManipulator = (manipulator) => {
+    superClass.setManipulator(manipulator);
+    model.widgetState.getHandle().setManipulator(manipulator);
+  };
 
   publicAPI.setPosition = (position) => {
-    handle.setOrigin(position);
+    model.widgetState.getHandle().setOrigin(position);
   };
 
   publicAPI.getPosition = () => {
-    return handle.getOrigin();
+    return model.widgetState.getHandle().getOrigin();
   };
+
+  // --------------------------------------------------------------------------
+  // initialization
+  // --------------------------------------------------------------------------
+
+  // Default manipulator
+  publicAPI.setManipulator(
+    model.manipulator ||
+      vtkPlaneManipulator.newInstance({ useCameraNormal: true })
+  );
 } 
 
 // ----------------------------------------------------------------------------
 
-const DEFAULT_VALUES = {
-  manipulator: null,
-  imageData: null
-};
+const defaultValues = (initialValues) => ({
+  // manipulator: null,
+  imageData: null,
+  behavior: widgetBehavior,
+  widgetState: stateGenerator(),
+  ...initialValues,
+});
 
 // ----------------------------------------------------------------------------
 
 export function extend(publicAPI, model, initialValues = {}) {
-  Object.assign(model, DEFAULT_VALUES, initialValues);
+  Object.assign(model, defaultValues(initialValues));
 
   vtkAbstractWidgetFactory.extend(publicAPI, model, initialValues);
 
   macro.get(publicAPI, model, ['painting']);
-  macro.setGet(publicAPI, model, ['manipulator', 'imageData', 'showTrail']);
+  macro.setGet(publicAPI, model, ['manipulator', 'imageData']);
 
   vtkPanZoomWidget(publicAPI, model);
 }
