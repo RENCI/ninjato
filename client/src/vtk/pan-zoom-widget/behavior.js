@@ -44,11 +44,9 @@ export default function widgetBehavior(publicAPI, model) {
   };
 
   publicAPI.handleEvent = (callData) => {
-    if (
-      model._manipulator &&
-      model.activeState &&
-      model.activeState.getActive()
-    ) {
+    const manipulator =
+      model.activeState?.getManipulator?.() ?? model.manipulator;
+    if (manipulator && model.activeState && model.activeState.getActive()) {
       const normal = model._camera.getDirectionOfProjection();
       const up = model._camera.getViewUp();
       const right = [];
@@ -56,7 +54,6 @@ export default function widgetBehavior(publicAPI, model) {
       model.activeState.setUp(...up);
       model.activeState.setRight(...right);
       model.activeState.setDirection(...normal);
-      model._manipulator.setNormal(normal);
 
       if (model.button === 'left') {
         const dx = model.startPos.x - callData.position.x;
