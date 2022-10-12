@@ -3,7 +3,7 @@ import vtkAbstractWidgetFactory from '@kitware/vtk.js/Widgets/Core/AbstractWidge
 import vtkPlaneManipulator from '@kitware/vtk.js/Widgets/Manipulators/PlaneManipulator';
 import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
-import vtkRegionSelectRepresentation from 'vtk/region-select-representation';
+import vtkRegionSelectRepresentation from 'vtk/widgets/region-select-representation';
 
 import widgetBehavior from './behavior';
 import stateGenerator from './state';

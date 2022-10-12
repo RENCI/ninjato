@@ -3,8 +3,7 @@ import vtkAbstractWidgetFactory from '@kitware/vtk.js/Widgets/Core/AbstractWidge
 import vtkPlaneManipulator from '@kitware/vtk.js/Widgets/Manipulators/PlaneManipulator';
 import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
-import vtkCropRepresentation from 'vtk/crop-representation';
-
+import vtkBrushRepresentation from 'vtk/widgets/brush-representation';
 import widgetBehavior from './behavior';
 import stateGenerator from './state';
 
@@ -12,8 +11,8 @@ import stateGenerator from './state';
 // Factory
 // ----------------------------------------------------------------------------
 
-function vtkCropWidget(publicAPI, model) {
-  model.classHierarchy.push('vtkCropWidget');
+function vtkPanZoomWidget(publicAPI, model) {
+  model.classHierarchy.push('vtkPanZoomWidget');
 
   const superClass = { ...publicAPI };
 
@@ -30,7 +29,7 @@ function vtkCropWidget(publicAPI, model) {
       default:
         return [
           {
-            builder: vtkCropRepresentation,
+            builder: vtkBrushRepresentation,
             labels: ['handle']
           },
         ];
@@ -44,46 +43,12 @@ function vtkCropWidget(publicAPI, model) {
     model.widgetState.getHandle().setManipulator(manipulator);
   };
 
-  publicAPI.setPosition = (position) => {  
-    if (!position) return;
-
-    const handle = model.widgetState.getHandle();
-
-    if (model.imageData) {
-      const spacing = model.imageData.getSpacing();
-      handle.setOrigin([
-        position[0] - spacing[0] / 2,
-        position[1] - spacing[1] / 2,
-        position[2]
-      ]);
-      handle.setCorner([
-        position[0] + spacing[0] / 2,
-        position[1] + spacing[1] / 2,
-        position[2]
-      ]);
-    }
-    else {
-      handle.setOrigin(position);
-      handle.setCorner(position);
-    }
+  publicAPI.setPosition = (position) => {
+    model.widgetState.getHandle().setOrigin(position);
   };
 
   publicAPI.getPosition = () => {
-    const handle = model.widgetState.getHandle();
-
-    if (model.imageData) {
-      const spacing = model.imageData.getSpacing();
-      const origin = handle.getOrigin();
-
-      return [
-        origin[0] + spacing[0] / 2,
-        origin[1] + spacing[1] / 2,
-        origin[2]
-      ];
-    }
-    else {
-      return handle.getOrigin();
-    }
+    return model.widgetState.getHandle().getOrigin();
   };
 
   // --------------------------------------------------------------------------
@@ -101,12 +66,10 @@ function vtkCropWidget(publicAPI, model) {
 
 const defaultValues = (initialValues) => ({
   // manipulator: null,
-  cropping: false,
   imageData: null,
-  label: null,
   behavior: widgetBehavior,
   widgetState: stateGenerator(),
-  ...initialValues
+  ...initialValues,
 });
 
 // ----------------------------------------------------------------------------
@@ -116,15 +79,15 @@ export function extend(publicAPI, model, initialValues = {}) {
 
   vtkAbstractWidgetFactory.extend(publicAPI, model, initialValues);
 
-  macro.get(publicAPI, model, ['cropping']);
-  macro.setGet(publicAPI, model, ['manipulator', 'imageData', 'label']);
+  macro.get(publicAPI, model, ['painting']);
+  macro.setGet(publicAPI, model, ['manipulator', 'imageData']);
 
-  vtkCropWidget(publicAPI, model);
+  vtkPanZoomWidget(publicAPI, model);
 }
 
 // ----------------------------------------------------------------------------
 
-export const newInstance = macro.newInstance(extend, 'vtkCropWidget');
+export const newInstance = macro.newInstance(extend, 'vtkPanZoomWidget');
 
 // ----------------------------------------------------------------------------
 

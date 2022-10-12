@@ -3,7 +3,7 @@ import vtkAbstractWidgetFactory from '@kitware/vtk.js/Widgets/Core/AbstractWidge
 import vtkPlaneManipulator from '@kitware/vtk.js/Widgets/Manipulators/PlaneManipulator';
 import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
-import vtkBrushRepresentation from 'vtk/brush-representation';
+import vtkBrushRepresentation from 'vtk/widgets/brush-representation';
 import widgetBehavior from './behavior';
 import stateGenerator from './state';
 

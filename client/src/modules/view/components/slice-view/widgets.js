@@ -1,10 +1,10 @@
 import vtkWidgetManager from '@kitware/vtk.js/Widgets/Core/WidgetManager';
 import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
-import vtkBrushWidget from 'vtk/brush-widget';
-import vtkCropWidget from 'vtk/crop-widget';
-import vtkRegionSelectWidget from 'vtk/region-select-widget';
-import vtkPanZoomWidget from 'vtk/pan-zoom-widget';
+import vtkBrushWidget from 'vtk/widgets/brush-widget';
+import vtkCropWidget from 'vtk/widgets/crop-widget';
+import vtkRegionSelectWidget from 'vtk/widgets/region-select-widget';
+import vtkPanZoomWidget from 'vtk/widgets/pan-zoom-widget';
 
 const setBrush = (handle, brush) => {  
   handle.getRepresentations()[0].setBrush(brush);

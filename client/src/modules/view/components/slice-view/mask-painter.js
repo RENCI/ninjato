@@ -3,8 +3,8 @@ import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransf
 import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 
-import vtkNinjatoPainter from 'vtk/ninjato-painter';
-import vtkImageContour from 'vtk/image-contour';
+import vtkNinjatoPainter from 'vtk/filters/ninjato-painter';
+import vtkImageContour from 'vtk/filters/image-contour';
 import { backgroundColors } from 'utils/colors';
 
 const sliceMode = vtkImageMapper.SlicingMode.K;

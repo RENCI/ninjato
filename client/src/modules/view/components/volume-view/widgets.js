@@ -1,7 +1,7 @@
 import vtkWidgetManager from '@kitware/vtk.js/Widgets/Core/WidgetManager';
 import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
-import vtkRegionSelect3DWidget from 'vtk/region-select-3d-widget';
+import vtkRegionSelect3DWidget from 'vtk/widgets/region-select-3d-widget';
 
 const createWidget = type => type.newInstance();
 
@@ -122,8 +122,6 @@ export function Widgets(painter) {
 
       handles.claim.onEndInteractionEvent(() => {
         const info = getWidgetInfo(widgets.claim);
-
-        console.log(info);
 
         if (claimValid(info)) {
           onSelect({ label: info.label }, 'claim');

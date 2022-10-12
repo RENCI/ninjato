@@ -1,26 +1,17 @@
 import macro from '@kitware/vtk.js/macros';
 import { vec3 } from 'gl-matrix';
-import { toPixelCenter, getImageLabel } from 'vtk/widget-utils';
+import { getImageLabel } from 'vtk/widgets/widget-utils';
 
 export default function widgetBehavior(publicAPI, model) {
-  model.painting = model._factory.getPainting();
-
-  publicAPI.getPoints = () => 
-    model.representations[0].getOutputData().getPoints().getData();
-
   publicAPI.handleLeftButtonPress = (callData) => {
     if (!model.activeState || !model.activeState.getActive()) {
       return macro.VOID;
-    }
+    }   
 
-    model.painting = true;
-    if (model._factory.getShowTrail()) {
-      const trail = model.widgetState.addTrail();
-      trail.set(
-        model.activeState.get('origin', 'up', 'right', 'direction')
-      );
-      trail.setScale1(model._factory.getImageData().getSpacing()[0]);
-    }
+    const label = getImageLabel(model, callData);
+    model._factory.setStartLabel(label);
+    model._factory.setLabel(label);
+    
     publicAPI.invokeStartInteractionEvent();
     return macro.EVENT_ABORT;
   };
@@ -28,11 +19,11 @@ export default function widgetBehavior(publicAPI, model) {
   publicAPI.handleMouseMove = (callData) => publicAPI.handleEvent(callData);
 
   publicAPI.handleLeftButtonRelease = () => {
-    if (model.painting) {
+    if (model._factory.getStartLabel() !== null) {      
       publicAPI.invokeEndInteractionEvent();
-      model.widgetState.clearTrailList();
     }
-    model.painting = false;
+    model._factory.setStartLabel(null);
+    model._factory.setLabel(null);
     return model.hasFocus ? macro.EVENT_ABORT : macro.VOID;
   };
 
@@ -48,40 +39,7 @@ export default function widgetBehavior(publicAPI, model) {
       model.activeState.setRight(...right);
       model.activeState.setDirection(...normal);
 
-      const worldCoords = manipulator.handleEvent(
-        callData,
-        model._apiSpecificRenderWindow
-      );
-
-      if (worldCoords.length) {
-        const imageData = model._factory.getImageData();
-
-        if (imageData) {
-          const ijk = imageData.worldToIndex([...worldCoords]);
-          const dims = imageData.getDimensions();
-          const spacing = imageData.getSpacing();
-
-          worldCoords[0] = toPixelCenter(ijk[0], spacing[0], dims[0]);
-          worldCoords[1] = toPixelCenter(ijk[1], spacing[1], dims[1]);
-
-          model.activeState.setOrigin(...worldCoords);
-
-          if (model._factory.getShowTrail() && model.painting) {
-            const trail = model.widgetState.addTrail();
-            trail.set(
-              model.activeState.get(
-                'origin',
-                'up',
-                'right',
-                'direction'
-              )
-            );
-            trail.setScale1(spacing[0]);
-          }
-        }
-      }
-      
-      model._factory.setLabel(getImageLabel(model, callData));    
+      model._factory.setLabel(getImageLabel(model, callData));       
 
       publicAPI.invokeInteractionEvent();
       return macro.EVENT_ABORT;
@@ -125,6 +83,4 @@ export default function widgetBehavior(publicAPI, model) {
     model.activeState = null;
     model.hasFocus = false;
   };
-
-  macro.get(publicAPI, model, ['painting']);
 }

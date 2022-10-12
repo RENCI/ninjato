@@ -10,7 +10,7 @@ import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransf
 
 import { ScalarMode } from '@kitware/vtk.js/Rendering/Core/Mapper/Constants';
 
-import vtkBrushSource from 'vtk/brush-source';
+import vtkBrushSource from 'vtk/widgets/brush-source';
 
 // ----------------------------------------------------------------------------
 // vtkBrushRepresentation methods
