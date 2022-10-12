@@ -30,8 +30,8 @@ export const getImageLabel = (model, callData) => {
 export const getSurfaceLabel = (model, callData) => {
   const p = callData.position;
 
-  const picker = model.interactor.getPicker();
-  picker.pick([p.x, p.y, p.z], model.renderer);
+  const picker = model._interactor.getPicker();
+  picker.pick([p.x, p.y, p.z], model._renderer);
 
   const id = picker.getCellId();
 
