@@ -10,7 +10,7 @@ const toPixelCenter = (v, spacing, max) => {
 };
 
 export default function widgetBehavior(publicAPI, model) {
-  model.painting = model.factory.getPainting();
+  model.painting = model._factory.getPainting();
 
   publicAPI.getPoints = () => 
     model.representations[0].getOutputData().getPoints().getData();
@@ -21,12 +21,12 @@ export default function widgetBehavior(publicAPI, model) {
     }
 
     model.painting = true;
-    if (model.factory.getShowTrail()) {
+    if (model._factory.getShowTrail()) {
       const trail = model.widgetState.addTrail();
       trail.set(
         model.activeState.get('origin', 'up', 'right', 'direction')
       );
-      trail.setScale1(model.factory.getImageData().getSpacing()[0]);
+      trail.setScale1(model._factory.getImageData().getSpacing()[0]);
     }
     publicAPI.invokeStartInteractionEvent();
     return macro.EVENT_ABORT;
@@ -44,27 +44,24 @@ export default function widgetBehavior(publicAPI, model) {
   };
 
   publicAPI.handleEvent = (callData) => {
-    if (
-      model.manipulator &&
-      model.activeState &&
-      model.activeState.getActive()
-    ) {
-      const normal = model.camera.getDirectionOfProjection();
-      const up = model.camera.getViewUp();
+    const manipulator =
+      model.activeState?.getManipulator?.() ?? model.manipulator;
+    if (manipulator && model.activeState && model.activeState.getActive()) {
+      const normal = model._camera.getDirectionOfProjection();
+      const up = model._camera.getViewUp();
       const right = [];
       vec3.cross(right, up, normal);
       model.activeState.setUp(...up);
       model.activeState.setRight(...right);
       model.activeState.setDirection(...normal);
-      model.manipulator.setNormal(normal);
 
-      const worldCoords = model.manipulator.handleEvent(
+      const worldCoords = manipulator.handleEvent(
         callData,
-        model.apiSpecificRenderWindow
+        model._apiSpecificRenderWindow
       );
 
       if (worldCoords.length) {
-        const imageData = model.factory.getImageData();
+        const imageData = model._factory.getImageData();
 
         if (imageData) {
           const ijk = imageData.worldToIndex([...worldCoords]);
@@ -76,7 +73,7 @@ export default function widgetBehavior(publicAPI, model) {
 
           model.activeState.setOrigin(...worldCoords);
 
-          if (model.factory.getShowTrail() && model.painting) {
+          if (model._factory.getShowTrail() && model.painting) {
             const trail = model.widgetState.addTrail();
             trail.set(
               model.activeState.get(
@@ -91,7 +88,7 @@ export default function widgetBehavior(publicAPI, model) {
         }
       }
       
-      model.factory.setLabel(getImageLabel(model, callData));    
+      model._factory.setLabel(getImageLabel(model, callData));    
 
       publicAPI.invokeInteractionEvent();
       return macro.EVENT_ABORT;
@@ -103,9 +100,9 @@ export default function widgetBehavior(publicAPI, model) {
     if (!model.hasFocus) {
       model.activeState = model.widgetState.getHandle();
       model.activeState.activate();
-      model.interactor.requestAnimation(publicAPI);
+      model._interactor.requestAnimation(publicAPI);
 
-      const canvas = model.apiSpecificRenderWindow.getCanvas();
+      const canvas = model._apiSpecificRenderWindow.getCanvas();
       canvas.onmouseenter = () => {
         if (
           model.hasFocus &&
@@ -128,7 +125,7 @@ export default function widgetBehavior(publicAPI, model) {
 
   publicAPI.loseFocus = () => {
     if (model.hasFocus) {
-      model.interactor.cancelAnimation(publicAPI);
+      model._interactor.cancelAnimation(publicAPI);
     }
     model.widgetState.deactivate();
     model.widgetState.getHandle().deactivate();

@@ -139,6 +139,8 @@ export function VolumeView() {
 
       renderWindow.getInteractor().setPicker(vtkCellPicker.newInstance());
 
+      console.log(renderWindow.getInteractor().getInteractorStyle().getClassName());
+
       widgets.setRenderer(renderWindow.getRenderer());
     },
     setCallback: (type, callback) => {

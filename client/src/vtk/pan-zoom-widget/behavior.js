@@ -6,8 +6,8 @@ export default function widgetBehavior(publicAPI, model) {
     if (!model.button) {
       model.button = 'left';
       model.startPos = callData.position;
-      model.startCameraPos = [...model.camera.getPosition()];
-      model.startCameraFocalPoint = [...model.camera.getFocalPoint()]
+      model.startCameraPos = [...model._camera.getPosition()];
+      model.startCameraFocalPoint = [...model._camera.getFocalPoint()]
     }
 
     publicAPI.invokeStartInteractionEvent();
@@ -18,7 +18,7 @@ export default function widgetBehavior(publicAPI, model) {
     if (!model.button) {
       model.button = 'right';
       model.startPos = callData.position;
-      model.startCameraScale = model.camera.getParallelScale();
+      model.startCameraScale = model._camera.getParallelScale();
     }
 
     publicAPI.invokeStartInteractionEvent();
@@ -45,18 +45,18 @@ export default function widgetBehavior(publicAPI, model) {
 
   publicAPI.handleEvent = (callData) => {
     if (
-      model.manipulator &&
+      model._manipulator &&
       model.activeState &&
       model.activeState.getActive()
     ) {
-      const normal = model.camera.getDirectionOfProjection();
-      const up = model.camera.getViewUp();
+      const normal = model._camera.getDirectionOfProjection();
+      const up = model._camera.getViewUp();
       const right = [];
       vec3.cross(right, up, normal);
       model.activeState.setUp(...up);
       model.activeState.setRight(...right);
       model.activeState.setDirection(...normal);
-      model.manipulator.setNormal(normal);
+      model._manipulator.setNormal(normal);
 
       if (model.button === 'left') {
         const dx = model.startPos.x - callData.position.x;
@@ -68,8 +68,8 @@ export default function widgetBehavior(publicAPI, model) {
         pos[0] += dx * s;
         pos[1] -= dy * s;
 
-        model.camera.setPosition(...pos);
-        model.camera.setDirectionOfProjection(0, 0, 1);
+        model._camera.setPosition(...pos);
+        model._camera.setDirectionOfProjection(0, 0, 1);
 
       }
       else if (model.button === 'right') {
@@ -78,7 +78,7 @@ export default function widgetBehavior(publicAPI, model) {
         const s = 0.1;
         const scale = Math.max(1, model.startCameraScale + dy * s);
 
-        model.camera.setParallelScale(scale);
+        model._camera.setParallelScale(scale);
       }
 
       publicAPI.invokeInteractionEvent();

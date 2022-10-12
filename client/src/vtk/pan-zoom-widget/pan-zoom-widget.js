@@ -38,8 +38,8 @@ function vtkPanZoomWidget(publicAPI, model) {
   const handle = model.widgetState.getHandle();
 
   // Default manipulator
-  model.manipulator = vtkPlaneManipulator.newInstance();
-  handle.setManipulator(model.manipulator);
+  model._manipulator = vtkPlaneManipulator.newInstance();
+  handle.setManipulator(model._manipulator);
 
   publicAPI.setPosition = (position) => {
     handle.setOrigin(position);

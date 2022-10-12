@@ -3,7 +3,7 @@ export const getImageLabel = (model, callData) => {
 
   if (!imageData) return null;
 
-  const worldCoords = model.manipulator.handleEvent(
+  const worldCoords = model._manipulator.handleEvent(
     callData,
     model.apiSpecificRenderWindow
   );

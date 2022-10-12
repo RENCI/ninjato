@@ -29,18 +29,18 @@ export default function widgetBehavior(publicAPI, model) {
 
   publicAPI.handleEvent = (callData) => {
     if (
-      model.manipulator &&
+      model._manipulator &&
       model.activeState &&
       model.activeState.getActive()
     ) {
-      const normal = model.camera.getDirectionOfProjection();
-      const up = model.camera.getViewUp();
+      const normal = model._camera.getDirectionOfProjection();
+      const up = model._camera.getViewUp();
       const right = [];
       vec3.cross(right, up, normal);
       model.activeState.setUp(...up);
       model.activeState.setRight(...right);
       model.activeState.setDirection(...normal);
-      model.manipulator.setNormal(normal);
+      model._manipulator.setNormal(normal);
 
       model.factory.setLabel(getImageLabel(model, callData));       
 

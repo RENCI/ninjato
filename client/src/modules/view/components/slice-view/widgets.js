@@ -278,7 +278,9 @@ export function Widgets(painter) {
       // XXX: Why is the 0.85 necessary here?
       const radius = Math.max(spacing[0], spacing[1]) * 0.85;  
 
-      Object.values(widgets).forEach(widget => widget.getManipulator().setOrigin(position));
+      console.log(Object.values(widgets).map(w => w.getManipulator()));
+
+      Object.values(widgets).forEach(widget => widget.getManipulator().setWidgetOrigin(position));
 
       [widgets.paint, widgets.erase, widgets.create].forEach(widget => widget.setRadius(radius));
 
