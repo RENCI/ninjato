@@ -1,5 +1,6 @@
 import vtkCellPicker from '@kitware/vtk.js/Rendering/Core/CellPicker';
 
+import vtkInteractorStyleNinjato3D from 'vtk/interaction/interactor-style-ninjato-3d';
 import { RenderWindow, Surface, BoundingBox } from 'modules/view/components';
 import { Widgets } from 'modules/view/components/volume-view/widgets';
 import { getUniqueLabels } from 'utils/data';
@@ -137,9 +138,8 @@ export function VolumeView() {
 
       renderWindow.initialize(rootNode);      
 
+      renderWindow.getInteractor().setInteractorStyle(vtkInteractorStyleNinjato3D.newInstance());
       renderWindow.getInteractor().setPicker(vtkCellPicker.newInstance());
-
-      console.log(renderWindow.getInteractor().getInteractorStyle().getClassName());
 
       widgets.setRenderer(renderWindow.getRenderer());
     },

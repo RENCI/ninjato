@@ -19,7 +19,7 @@ const tools = [
   { group: 'general', value: 'select', icon: 'map marker alternate', cursor: getCursor('map-marker-alternate.png', 16, 23), tooltip: 'select region', disabled: disabled('one region'), volume: true,
     info: 'Click on a region in the assignment to select it as the active region for editing.' 
   },
-  { group: 'general', value: 'navigate', icon: 'location arrow', cursor: getCursor('location-arrow.png', 22, 8), tooltip: 'navigate', disabled: disabled('never'), volume: true,
+  { group: 'general', value: 'navigate', icon: 'location arrow', cursor: getCursor('location-arrow.png', 22, 8), tooltip: 'navigate', disabled: disabled('never'),
     info: 'Left-click and drag to pan, right-click and drag to zoom.' 
   },
 

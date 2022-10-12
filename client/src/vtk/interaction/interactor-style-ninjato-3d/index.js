@@ -1,0 +1,1 @@
+export { default } from './interactor-style-ninjato-3d';
