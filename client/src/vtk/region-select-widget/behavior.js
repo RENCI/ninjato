@@ -9,8 +9,8 @@ export default function widgetBehavior(publicAPI, model) {
     }   
 
     const label = getImageLabel(model, callData);
-    model.factory.setStartLabel(label);
-    model.factory.setLabel(label);
+    model._factory.setStartLabel(label);
+    model._factory.setLabel(label);
     
     publicAPI.invokeStartInteractionEvent();
     return macro.EVENT_ABORT;
@@ -19,11 +19,11 @@ export default function widgetBehavior(publicAPI, model) {
   publicAPI.handleMouseMove = (callData) => publicAPI.handleEvent(callData);
 
   publicAPI.handleLeftButtonRelease = () => {
-    if (model.factory.getStartLabel() !== null) {      
+    if (model._factory.getStartLabel() !== null) {      
       publicAPI.invokeEndInteractionEvent();
     }
-    model.factory.setStartLabel(null);
-    model.factory.setLabel(null);
+    model._factory.setStartLabel(null);
+    model._factory.setLabel(null);
     return model.hasFocus ? macro.EVENT_ABORT : macro.VOID;
   };
 
@@ -42,7 +42,7 @@ export default function widgetBehavior(publicAPI, model) {
       model.activeState.setDirection(...normal);
       model._manipulator.setNormal(normal);
 
-      model.factory.setLabel(getImageLabel(model, callData));       
+      model._factory.setLabel(getImageLabel(model, callData));       
 
       publicAPI.invokeInteractionEvent();
       return macro.EVENT_ABORT;
@@ -56,7 +56,7 @@ export default function widgetBehavior(publicAPI, model) {
       model.activeState.activate();
       model.interactor.requestAnimation(publicAPI);
 
-      const canvas = model.apiSpecificRenderWindow.getCanvas();
+      const canvas = model._apiSpecificRenderWindow.getCanvas();
       canvas.onmouseenter = () => {
         if (
           model.hasFocus &&

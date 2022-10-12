@@ -93,7 +93,7 @@ export default function widgetBehavior(publicAPI, model) {
       model.activeState.activate();
       model.interactor.requestAnimation(publicAPI);
 
-      const canvas = model.apiSpecificRenderWindow.getCanvas();
+      const canvas = model._apiSpecificRenderWindow.getCanvas();
       canvas.onmouseenter = () => {
         if (
           model.hasFocus &&

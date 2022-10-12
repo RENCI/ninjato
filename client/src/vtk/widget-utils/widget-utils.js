@@ -1,11 +1,11 @@
-export const getImageLabel = (model, callData) => {
-  const imageData = model.factory.getImageData();
+export const getImageLabel = (model, callData) => {  
+  const imageData = model._factory.getImageData();
 
   if (!imageData) return null;
 
-  const worldCoords = model._manipulator.handleEvent(
+  const worldCoords = model.manipulator.handleEvent(
     callData,
-    model.apiSpecificRenderWindow
+    model._apiSpecificRenderWindow
   );
 
   const bounds = imageData.getBounds();

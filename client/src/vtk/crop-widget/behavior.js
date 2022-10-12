@@ -50,11 +50,11 @@ export default function widgetBehavior(publicAPI, model) {
 
       const worldCoords = model._manipulator.handleEvent(
         callData,
-        model.apiSpecificRenderWindow
+        model._apiSpecificRenderWindow
       );
 
       if (worldCoords.length) {
-        const imageData = model.factory.getImageData();
+        const imageData = model._factory.getImageData();
 
         if (imageData) {
           const ijk = imageData.worldToIndex([...worldCoords]);
@@ -86,7 +86,7 @@ export default function widgetBehavior(publicAPI, model) {
         }
       }
 
-      model.factory.setLabel(getImageLabel(model, callData));  
+      model._factory.setLabel(getImageLabel(model, callData));  
 
       publicAPI.invokeInteractionEvent();
       return macro.EVENT_ABORT;
@@ -100,7 +100,7 @@ export default function widgetBehavior(publicAPI, model) {
       model.activeState.activate();
       model.interactor.requestAnimation(publicAPI);
 
-      const canvas = model.apiSpecificRenderWindow.getCanvas();
+      const canvas = model._apiSpecificRenderWindow.getCanvas();
       canvas.onmouseenter = () => {
         if (
           model.hasFocus &&
