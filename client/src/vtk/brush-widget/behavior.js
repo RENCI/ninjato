@@ -1,13 +1,6 @@
 import macro from '@kitware/vtk.js/macros';
 import { vec3 } from 'gl-matrix';
-import { getImageLabel } from 'vtk/widget-utils';
-
-const toPixelCenter = (v, spacing, max) => {
-  if (v < 0) v = 0;
-  else if (v > max - 1) v = max - 1.5;
-  
-  return (Math.floor(v * max / (max - 1)) + 0.5) * spacing * (max - 1) / max;
-};
+import { toPixelCenter, getImageLabel } from 'vtk/widget-utils';
 
 export default function widgetBehavior(publicAPI, model) {
   model.painting = model._factory.getPainting();

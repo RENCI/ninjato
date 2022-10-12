@@ -1,3 +1,10 @@
+export const toPixelCenter = (v, spacing, max) => {
+  if (v < -spacing / 2) v = -spacing / 2;
+  else if (v > max - spacing * 1.5) v = max - spacing * 1.5
+  
+  return Math.floor((v - spacing / 2) / spacing) * spacing + spacing;
+};
+
 export const getImageLabel = (model, callData) => {  
   const imageData = model._factory.getImageData();
 
@@ -11,13 +18,9 @@ export const getImageLabel = (model, callData) => {
   const bounds = imageData.getBounds();
 
   // Check x and y position
-  if (worldCoords[0] < bounds[0] || worldCoords[0] > bounds[1] ||
-      worldCoords[1] < bounds[2] || worldCoords[1] > bounds[3]) {
-    return null;
-  }
-
-  // Make sure in a slice
-  worldCoords[2] = Math.max(bounds[4], Math.min(worldCoords[2], bounds[5]));
+  worldCoords[0] = Math.max(bounds[0] + 0.5, Math.min(worldCoords[0], bounds[1] - 0.5));
+  worldCoords[1] = Math.max(bounds[2] + 0.5, Math.min(worldCoords[1], bounds[3] - 0.5));
+  worldCoords[2] = Math.max(bounds[4] + 0.5, Math.min(worldCoords[2], bounds[5] - 0.5));
 
   const value = imageData.getScalarValueFromWorld(worldCoords);
 

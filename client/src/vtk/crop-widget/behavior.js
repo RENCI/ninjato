@@ -1,13 +1,6 @@
 import macro from '@kitware/vtk.js/macros';
 import { vec3 } from 'gl-matrix';
-import { getImageLabel } from 'vtk/widget-utils';
-
-const toPixelCenter = (v, spacing, max) => {
-  if (v < 0) v = 0;
-  else if (v > max - 1) v = max - 1.5;
-  
-  return (Math.floor(v * max / (max - 1)) + 0.5) * spacing * (max - 1) / max;
-};
+import { toPixelCenter, getImageLabel } from 'vtk/widget-utils';
 
 export default function widgetBehavior(publicAPI, model) {
   model.handle = model.widgetState.getHandle();
@@ -34,11 +27,9 @@ export default function widgetBehavior(publicAPI, model) {
   };
 
   publicAPI.handleEvent = (callData) => {
-    if (
-      model._manipulator &&
-      model.activeState &&
-      model.activeState.getActive()
-    ) {
+    const manipulator =
+      model.activeState?.getManipulator?.() ?? model.manipulator;
+    if (manipulator && model.activeState && model.activeState.getActive()) {
       const normal = model._camera.getDirectionOfProjection();
       const up = model._camera.getViewUp();
       const right = [];
@@ -46,9 +37,8 @@ export default function widgetBehavior(publicAPI, model) {
       model.activeState.setUp(...up);
       model.activeState.setRight(...right);
       model.activeState.setDirection(...normal);
-      model._manipulator.setNormal(normal);
 
-      const worldCoords = model._manipulator.handleEvent(
+      const worldCoords = manipulator.handleEvent(
         callData,
         model._apiSpecificRenderWindow
       );
@@ -98,7 +88,7 @@ export default function widgetBehavior(publicAPI, model) {
     if (!model.hasFocus) {
       model.activeState = model.widgetState.getHandle();
       model.activeState.activate();
-      model.interactor.requestAnimation(publicAPI);
+      model._interactor.requestAnimation(publicAPI);
 
       const canvas = model._apiSpecificRenderWindow.getCanvas();
       canvas.onmouseenter = () => {
@@ -123,7 +113,7 @@ export default function widgetBehavior(publicAPI, model) {
 
   publicAPI.loseFocus = () => {
     if (model.hasFocus) {
-      model.interactor.cancelAnimation(publicAPI);
+      model._interactor.cancelAnimation(publicAPI);
     }
     model.widgetState.deactivate();
     model.widgetState.getHandle().deactivate();
