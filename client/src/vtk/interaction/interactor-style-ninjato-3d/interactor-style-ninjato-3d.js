@@ -12,12 +12,12 @@ const { States } = vtkInteractorStyleConstants;
 /* eslint-disable no-lonely-if */
 
 // ----------------------------------------------------------------------------
-// vtkInteractorStyleTrackballCamera methods
+// vtkInteractorStyleNinjato3D methods
 // ----------------------------------------------------------------------------
 
-function vtkInteractorStyleTrackballCamera(publicAPI, model) {
+function vtkInteractorStyleNinjato3D(publicAPI, model) {
   // Set our className
-  model.classHierarchy.push('vtkInteractorStyleTrackballCamera');
+  model.classHierarchy.push('vtkInteractorStyleNinjato3D');
 
   // Public API methods
   publicAPI.handleMouseMove = (callData) => {
@@ -139,13 +139,13 @@ function vtkInteractorStyleTrackballCamera(publicAPI, model) {
 
   //----------------------------------------------------------------------------
   publicAPI.handleStartMouseWheel = (callData) => {
-    publicAPI.startDolly();
-    publicAPI.handleMouseWheel(callData);
+    //publicAPI.startDolly();
+    //publicAPI.handleMouseWheel(callData);
   };
 
   //--------------------------------------------------------------------------
   publicAPI.handleEndMouseWheel = () => {
-    publicAPI.endDolly();
+    //publicAPI.endDolly();
   };
 
   //----------------------------------------------------------------------------
@@ -401,8 +401,8 @@ function vtkInteractorStyleTrackballCamera(publicAPI, model) {
 
   //----------------------------------------------------------------------------
   publicAPI.handleMouseWheel = (callData) => {
-    const dyf = 1 - callData.spinY / model.zoomFactor;
-    publicAPI.dollyByFactor(callData.pokedRenderer, dyf);
+    //const dyf = 1 - callData.spinY / model.zoomFactor;
+    //publicAPI.dollyByFactor(callData.pokedRenderer, dyf);
   };
 
   //----------------------------------------------------------------------------
@@ -450,14 +450,14 @@ export function extend(publicAPI, model, initialValues = {}) {
   // For more macro methods, see "Sources/macros.js"
 
   // Object specific methods
-  vtkInteractorStyleTrackballCamera(publicAPI, model);
+  vtkInteractorStyleNinjato3D(publicAPI, model);
 }
 
 // ----------------------------------------------------------------------------
 
 export const newInstance = macro.newInstance(
   extend,
-  'vtkInteractorStyleTrackballCamera'
+  'vtkInteractorStyleNinjato3D'
 );
 
 // ----------------------------------------------------------------------------

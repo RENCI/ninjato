@@ -97,7 +97,7 @@ export function Widgets(painter) {
       }, {});
     
       activeWidget = widgets.paint;
-      manager.grabFocus(activeWidget);
+//      manager.grabFocus(activeWidget);
 
       // Start
       [handles.paint, handles.erase, handles.crop].forEach(handle => {
@@ -288,13 +288,19 @@ export function Widgets(painter) {
       Object.values(widgets).forEach(widget => widget.setImageData(imageData));
     },
     setTool: tool => {
-      const position = activeWidget.getPosition();
+      if (tool) {
+        const position = activeWidget.getPosition();
 
-      activeWidget = widgets[tool];
+        activeWidget = widgets[tool];
 
-      manager.grabFocus(activeWidget);
+//        manager.grabFocus(activeWidget);
 
-      activeWidget.setPosition(position);
+        activeWidget.setPosition(position);
+      }
+      else {
+        activeWidget = null;
+        manager.grabFocus(null);
+      }
 
       Object.values(widgets).forEach(widget => {
         widget.setVisibility(widget === activeWidget);

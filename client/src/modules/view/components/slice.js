@@ -1,6 +1,9 @@
-import vtkInteractorStyleManipulator from '@kitware/vtk.js/Interaction/Style/InteractorStyleManipulator';
+//import vtkInteractorStyleManipulator from '@kitware/vtk.js/Interaction/Style/InteractorStyleManipulator';
+//import vtkInteractorStyleImage from '@kitware/vtk.js/Interaction/Style/InteractorStyleImage';
 import vtkMouseRangeManipulator from '@kitware/vtk.js/Interaction/Manipulators/MouseRangeManipulator';
 import vtkImageMapper from '@kitware/vtk.js/Rendering/Core/ImageMapper';
+
+import vtkInteractorStyleNinjatoSlice from 'vtk/interaction/interactor-style-ninjato-slice';
 
 const slicingMode = vtkImageMapper.SlicingMode.K;
 
@@ -73,8 +76,10 @@ export function Slice() {
     scrollEnabled: true
   });
 
-  const interactorStyle = vtkInteractorStyleManipulator.newInstance();
-  interactorStyle.addMouseManipulator(manipulator);
+  //const interactorStyle = vtkInteractorStyleManipulator.newInstance();
+  //interactorStyle.addMouseManipulator(manipulator);
+
+  const interactorStyle = vtkInteractorStyleNinjatoSlice.newInstance();
 
   const keySliceChange = key => {
     if (!imageMapper) return;

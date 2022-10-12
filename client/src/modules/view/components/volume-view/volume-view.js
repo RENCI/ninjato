@@ -105,6 +105,10 @@ const applyActiveRegion = (region, surfaces) => {
 */
 
 export function VolumeView() {  
+  // Callbacks
+  let onEdit = () => {};
+  let onSliceChange = () => {};
+
   const renderWindow = RenderWindow();
   const widgets = Widgets();
 
@@ -138,8 +142,10 @@ export function VolumeView() {
 
       renderWindow.initialize(rootNode);      
 
-      renderWindow.getInteractor().setInteractorStyle(vtkInteractorStyleNinjato3D.newInstance());
-      renderWindow.getInteractor().setPicker(vtkCellPicker.newInstance());
+      const interactor = renderWindow.getInteractor();
+      interactor.setInteractorStyle(vtkInteractorStyleNinjato3D.newInstance());
+      interactor.setPicker(vtkCellPicker.newInstance());
+      interactor.onStartMouseWheel(() => console.log("WHEELIE"))
 
       widgets.setRenderer(renderWindow.getRenderer());
     },
@@ -150,11 +156,11 @@ export function VolumeView() {
           onEdit = callback;
           widgets.setCallback(type, callback);
         break;
-
+*/
         case 'sliceChange':
           onSliceChange = callback;
           break;
-
+/*
         case 'keyDown':
           slice.setCallback(type, key => key === 'i' ? image.toggleInterpolation() : callback(key));
           break;
