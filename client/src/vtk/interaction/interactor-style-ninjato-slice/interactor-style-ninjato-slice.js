@@ -139,13 +139,11 @@ function vtkInteractorStyleNinjatoSlice(publicAPI, model) {
 
   //----------------------------------------------------------------------------
   publicAPI.handleStartMouseWheel = (callData) => {
-    //publicAPI.startSlice();
     publicAPI.handleMouseWheel(callData);
   };
 
   //--------------------------------------------------------------------------
   publicAPI.handleEndMouseWheel = () => {
-    //publicAPI.endSlice();
   };
 
   //----------------------------------------------------------------------------
@@ -400,10 +398,7 @@ function vtkInteractorStyleNinjatoSlice(publicAPI, model) {
   };
 
   //----------------------------------------------------------------------------
-  publicAPI.handleMouseWheel = (callData) => {
-    //const dyf = 1 - callData.spinY / model.zoomFactor;
-    //publicAPI.dollyByFactor(callData.pokedRenderer, dyf);
-    
+  publicAPI.handleMouseWheel = (callData) => {    
     if (model.imageMapper) {
       const extent = model.imageMapper.getInputData().getExtent();
       const slice = model.imageMapper.getSlice() - callData.spinY;

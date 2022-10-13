@@ -139,13 +139,10 @@ function vtkInteractorStyleNinjato3D(publicAPI, model) {
 
   //----------------------------------------------------------------------------
   publicAPI.handleStartMouseWheel = (callData) => {
-    //publicAPI.startDolly();
-    //publicAPI.handleMouseWheel(callData);
   };
 
   //--------------------------------------------------------------------------
   publicAPI.handleEndMouseWheel = () => {
-    //publicAPI.endDolly();
   };
 
   //----------------------------------------------------------------------------
