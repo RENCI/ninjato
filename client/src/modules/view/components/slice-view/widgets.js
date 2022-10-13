@@ -4,7 +4,6 @@ import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants'
 import vtkBrushWidget from 'vtk/widgets/brush-widget';
 import vtkCropWidget from 'vtk/widgets/crop-widget';
 import vtkRegionSelectWidget from 'vtk/widgets/region-select-widget';
-import vtkPanZoomWidget from 'vtk/widgets/pan-zoom-widget';
 
 const setBrush = (handle, brush) => {  
   handle.getRepresentations()[0].setBrush(brush);
@@ -44,8 +43,7 @@ export function Widgets(painter) {
     split: createWidget(vtkRegionSelectWidget),
     merge: createWidget(vtkRegionSelectWidget),
     create: createWidget(vtkBrushWidget),
-    delete: createWidget(vtkRegionSelectWidget),
-    navigate: createWidget(vtkPanZoomWidget)
+    delete: createWidget(vtkRegionSelectWidget)
   }; 
 
   widgets.create.setShowTrail(false);
