@@ -112,10 +112,7 @@ function vtkInteractorStyleNinjatoSlice(publicAPI, model) {
   };
 
   //----------------------------------------------------------------------------
-  publicAPI.handleLeftButtonPress = (callData) => {
-
-    console.log("DFL:J");
-    
+  publicAPI.handleLeftButtonPress = (callData) => {    
     const pos = callData.position;
     model.previousPosition = pos;
 
@@ -142,13 +139,13 @@ function vtkInteractorStyleNinjatoSlice(publicAPI, model) {
 
   //----------------------------------------------------------------------------
   publicAPI.handleStartMouseWheel = (callData) => {
-    publicAPI.startDolly();
-    publicAPI.handleMouseWheel(callData);
+//    publicAPI.startDolly();
+//    publicAPI.handleMouseWheel(callData);
   };
 
   //--------------------------------------------------------------------------
   publicAPI.handleEndMouseWheel = () => {
-    publicAPI.endDolly();
+//    publicAPI.endDolly();
   };
 
   //----------------------------------------------------------------------------

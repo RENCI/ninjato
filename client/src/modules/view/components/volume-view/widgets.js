@@ -66,6 +66,7 @@ export function Widgets(painter) {
     },
     setRenderer: renderer => {
       manager.setRenderer(renderer);
+      
       handles = Object.entries(widgets).reduce((handles, [key, value]) => {
         handles[key] = manager.addWidget(value, ViewTypes.GEOMETRY);
         return handles;

@@ -88,6 +88,9 @@ export function SliceView() {
     setTool: (tool, cursor) => {
       widgets.setTool(tool)
       renderWindow.setCursor(cursor);
+
+      
+      renderWindow.getInteractor().getInteractorStyle().getInteractor(renderWindow.getInteractor());
     },
     setBrush: (type, brush) => widgets.setBrush(type, brush),
     setSlice: slice => image.getMapper().setSlice(slice),

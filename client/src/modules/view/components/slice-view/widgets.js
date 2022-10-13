@@ -88,7 +88,7 @@ export function Widgets(painter) {
           console.warn(`Unknown callback type: ${ type }`);
       }
     },
-    setRenderer: renderer => {
+    setRenderer: renderer => {      
       manager.setRenderer(renderer);
 
       handles = Object.entries(widgets).reduce((handles, [key, value]) => {
@@ -97,7 +97,7 @@ export function Widgets(painter) {
       }, {});
     
       activeWidget = widgets.paint;
-//      manager.grabFocus(activeWidget);
+      manager.grabFocus(activeWidget);
 
       // Start
       [handles.paint, handles.erase, handles.crop].forEach(handle => {
@@ -289,17 +289,27 @@ export function Widgets(painter) {
     },
     setTool: tool => {
       if (tool) {
-        const position = activeWidget.getPosition();
+        // XXX: Maybe want a previous widget to handle this?
+        const position = activeWidget ? activeWidget.getPosition() : [0, 0, 0];
 
         activeWidget = widgets[tool];
 
-//        manager.grabFocus(activeWidget);
+        // XXX: Need to enable widget because it may have been disabled below
+        activeWidget.getWidgetForView({ viewId: manager.getViewId() }).setEnabled(true);
+        manager.grabFocus(activeWidget);
 
         activeWidget.setPosition(position);
       }
       else {
         activeWidget = null;
         manager.grabFocus(null);
+
+        // XXX: For some reason neither grabFocus(null) nor releaseFocus are working properly.
+        // This workaround disables all widgets here, requiring the newly active widget to be enabled above.
+        Object.values(widgets).forEach(w => {
+          const widget = w.getWidgetForView({ viewId: manager.getViewId() });
+          widget.setEnabled(false);
+        });
       }
 
       Object.values(widgets).forEach(widget => {
