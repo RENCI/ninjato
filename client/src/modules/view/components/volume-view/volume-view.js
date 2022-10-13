@@ -145,7 +145,6 @@ export function VolumeView() {
       const interactor = renderWindow.getInteractor();
       interactor.setInteractorStyle(vtkInteractorStyleNinjato3D.newInstance());
       interactor.setPicker(vtkCellPicker.newInstance());
-      interactor.onStartMouseWheel(() => console.log("WHEELIE"))
 
       widgets.setRenderer(renderWindow.getRenderer());
     },

@@ -137,7 +137,9 @@ export function Slice() {
       const kGet = imageMapper.getSlice;
       const kSet = k => imageMapper.setSlice(k);
 
-      manipulator.setScrollListener(kMin, kMax, -1, kGet, kSet);
+      //manipulator.setScrollListener(kMin, kMax, -1, kGet, kSet);
+
+      interactorStyle.setImageMapper(imageMapper);
     
       if (firstTime) {
         const updateSlice = () => {  
