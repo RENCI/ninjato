@@ -1,4 +1,4 @@
-import { useContext, useState, useEffect, useRef } from 'react';
+import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { 
   UserContext, UPDATE_ASSIGNMENT,
@@ -6,45 +6,18 @@ import {
   ErrorContext, SET_ERROR
 } from 'contexts';
 import { RegionLabel } from 'modules/region/components/region-label';
-import { useLoadData, useSaveAnnotations, useSaveReview } from 'hooks';
+import { useLoadData } from 'hooks';
 import { api } from 'utils/api';
 
 const { Header, Content, Actions } = Modal;
 
 export const ClaimDialog = () => {
-  const [{ user, assignment, maskData }, userDispatch] = useContext(UserContext);
+  const [{ user, assignment }, userDispatch] = useContext(UserContext);
   const [{ action }, annotateDispatch] = useContext(AnnotateContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const loadData = useLoadData();
-  const saveAnnotations = useSaveAnnotations();
-  const saveReview = useSaveReview();
   const [claiming, setClaiming] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [needToSave, setNeedToSave] = useState(false);
-
-  // XXX: Hack to save after claiming
-/*  
-  useEffect(() => {
-
-    console.log(maskData.getExtent());
-    if (needToSave && action === null) {
-      switch (assignment.status) {
-        case 'active':
-          saveAnnotations();
-          break;
-
-        case 'review':
-          saveReview();
-          break;
-
-        default:
-          console.warn('Unknown assignment type');
-      }
-
-      setNeedToSave(false);
-    }
-  }, [needToSave, action]);
-*/  
 
   const onConfirm = async () => {
     setClaiming(true);

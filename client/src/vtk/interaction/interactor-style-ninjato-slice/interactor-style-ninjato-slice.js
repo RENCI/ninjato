@@ -465,4 +465,5 @@ export const newInstance = macro.newInstance(
 
 // ----------------------------------------------------------------------------
 
+// eslint-disable-next-line import/no-anonymous-default-export
 export default { newInstance, extend };

@@ -131,14 +131,6 @@ export function Slice() {
 
       resetCamera(camera, imageData);
 
-      const extent = imageData.getExtent();
-      const kMin = extent[4];
-      const kMax = extent[5];
-      const kGet = imageMapper.getSlice;
-      const kSet = k => imageMapper.setSlice(k);
-
-      //manipulator.setScrollListener(kMin, kMax, -1, kGet, kSet);
-
       interactorStyle.setImageMapper(imageMapper);
     
       if (firstTime) {
