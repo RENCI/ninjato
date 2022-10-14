@@ -1,0 +1,1 @@
+export { default } from './brush-widget-3d';
