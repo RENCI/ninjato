@@ -23,10 +23,10 @@ const tools = [
     info: 'Left-click and drag to pan, right-click and drag to zoom.' 
   },
 
-  { group: 'edit', value: 'paint', icon: 'paint brush', cursor: getCursor('paint-brush.png', 11, 23), tooltip: 'paint', disabled: disabled('no active'),
+  { group: 'edit', value: 'paint', icon: 'paint brush', cursor: getCursor('paint-brush.png', 11, 23), tooltip: 'paint', disabled: disabled('no active'), volume: true,
     info: 'Click and drag to paint voxels with the active region label. A flood fill operation will fill any holes after painting. Change brush size by clicking the option button next to the icon.'  
   },
-  { group: 'edit', value: 'erase', icon: 'eraser', cursor: getCursor('eraser.png', 12, 22), tooltip: 'erase', disabled: disabled('no active'),
+  { group: 'edit', value: 'erase', icon: 'eraser', cursor: getCursor('eraser.png', 12, 22), tooltip: 'erase', disabled: disabled('no active'), volume: true,
     info: 'Click and drag to erase voxels containing the active region label. Change brush size by clicking the option button next to the icon.'  
   },
   { group: 'edit', value: 'crop', icon: 'crop', cursor: getCursor('crop.png', 11, 21), tooltip: 'crop', disabled: disabled('no active'),

@@ -1,6 +1,7 @@
 import vtkWidgetManager from '@kitware/vtk.js/Widgets/Core/WidgetManager';
 import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
+import vtkBrush3DWidget from 'vtk/widgets/brush-3d-widget';
 import vtkRegionSelect3DWidget from 'vtk/widgets/region-select-3d-widget';
 
 const createWidget = type => type.newInstance();
@@ -21,6 +22,8 @@ export function Widgets(painter) {
   const manager = vtkWidgetManager.newInstance();
 
   const widgets = {
+    paint: createWidget(vtkBrush3DWidget),
+    erase: createWidget(vtkBrush3DWidget),
     select: createWidget(vtkRegionSelect3DWidget),
     split: createWidget(vtkRegionSelect3DWidget),
     merge: createWidget(vtkRegionSelect3DWidget),
@@ -72,8 +75,8 @@ export function Widgets(painter) {
         return handles;
       }, {});
     
-      activeWidget = widgets.select;
-      manager.grabFocus(activeWidget);
+      activeWidget = widgets.paint;
+      manager.grabFocus(activeWidget);      
 
       // Interaction overrides
       handles.select.onInteractionEvent(() => {
