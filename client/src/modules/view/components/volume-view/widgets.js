@@ -78,6 +78,26 @@ export function Widgets(painter) {
       activeWidget = widgets.paint;
       manager.grabFocus(activeWidget);      
 
+/*
+      // Hover
+      // There can be multiple handlers registered for a given widget.
+      // Use same hover for all, and widget-specific for highlighting as needed below.
+      Object.entries(handles).forEach(([name, handle]) => {          
+        const widget = widgets[name];
+
+        if (!widget.getLabel) return;
+
+        handle.onInteractionEvent(() => {
+          const { label, region } = getWidgetInfo(widget);
+          
+          if (label !== hoverLabel) {
+            hoverLabel = label;
+            onHover(region);
+          }
+        });
+      });
+*/
+
       // Interaction overrides
       handles.select.onInteractionEvent(() => {
         /*
@@ -92,6 +112,23 @@ export function Widgets(painter) {
       });
 
       // End
+      handles.paint.onEndInteractionEvent(async () => {
+        /*
+        painter.paintFloodFill(
+          handles.paint.getPoints(), 
+          handles.paint.getRepresentations()[0].getBrush()
+        );
+
+        await painter.endStroke();
+  
+        onEdit(activeRegion);
+        */
+      });
+
+      handles.erase.onEndInteractionEvent(async () => {
+        // XXX: Copy from paint when implemented
+      });
+
       handles.select.onEndInteractionEvent(() => {
         const info = getWidgetInfo(widgets.select);
 
