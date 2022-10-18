@@ -113,16 +113,16 @@ export function Widgets(painter) {
 
       // End
       handles.paint.onEndInteractionEvent(async () => {
-        /*
-        painter.paintFloodFill(
+        painter.startStroke();
+
+        painter.paint(
           handles.paint.getPoints(), 
           handles.paint.getRepresentations()[0].getBrush()
         );
 
         await painter.endStroke();
-  
-        onEdit(activeRegion);
-        */
+
+        //onEdit(activeRegion);
       });
 
       handles.erase.onEndInteractionEvent(async () => {

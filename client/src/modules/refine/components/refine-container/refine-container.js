@@ -30,8 +30,9 @@ export const RefineContainer = () => {
 
   // Create views
   useEffect(() => {
-    setVolumeView(VolumeView());
-    setSliceView(SliceView());
+    const sliceView = SliceView();
+    setSliceView(sliceView);
+    setVolumeView(VolumeView(sliceView.getPainter()));
   }, []);
 
   useEffect(() => {

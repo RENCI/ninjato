@@ -22,6 +22,7 @@ export function SliceView() {
 
       widgets.setRenderer(renderWindow.getRenderer());
     },
+    getPainter: () => mask.getPainter(),
     setCallback: (type, callback) => {
       switch (type) {
         case 'edit':

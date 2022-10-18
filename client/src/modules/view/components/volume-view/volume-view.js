@@ -104,13 +104,13 @@ const applyActiveRegion = (region, surfaces) => {
 };
 */
 
-export function VolumeView() {  
+export function VolumeView(painter) {  
   // Callbacks
   let onEdit = () => {};
   let onSliceChange = () => {};
 
   const renderWindow = RenderWindow();
-  const widgets = Widgets();
+  const widgets = Widgets(painter);
 
   let surfaces = [];
 

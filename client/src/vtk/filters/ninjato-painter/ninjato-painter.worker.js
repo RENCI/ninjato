@@ -12,7 +12,7 @@ const globals = {
 // --------------------------------------------------------------------------
 
 // center and brush are in IJK coordinates
-function handlePaintBrush({ center, brush }) {
+function paintWithBrush({ center, brush }) {
   const indexCenter = center.map((val) => Math.round(val));
   const z = indexCenter[2];
   const yStride = globals.dimensions[0];
@@ -35,7 +35,7 @@ function handlePaintBrush({ center, brush }) {
 
 // --------------------------------------------------------------------------
 
-function handlePaint({ point, brush }) {
+function paint({ point, brush }) {
   if (!globals.prevPoint) {
     globals.prevPoint = point;
   }
@@ -59,7 +59,7 @@ function handlePaint({ point, brush }) {
   const thresh = [step, step, step];
   const pt = [...globals.prevPoint];
   for (let s = 0; s <= step; s++) {
-    handlePaintBrush({ center: pt, brush });
+    paintWithBrush({ center: pt, brush });
 
     for (let ii = 0; ii < 3; ii++) {
       thresh[ii] -= delta[ii];
@@ -111,6 +111,18 @@ function floodFillScanlineStack({ buffer, w, h, seed }) {
 } 
 
 // XXX: Currently assuming z slice
+function handlePaint({ pointList, brush }) {
+  if (pointList.length === 0) return;
+
+  // Paint points
+  pointList.forEach((point, i) => {
+    paint({ point, brush });
+
+    if (i === 0) globals.prevPoint = null;
+  });
+}
+
+// XXX: Currently assuming z slice
 function handlePaintFloodFill({ labels, label, labelConstraint, pointList, brush }) {
   if (pointList.length === 0) return;
 
@@ -118,7 +130,7 @@ function handlePaintFloodFill({ labels, label, labelConstraint, pointList, brush
 
   // Paint points
   pointList.forEach((point, i) => {
-    handlePaint({ point, brush });
+    paint({ point, brush });
 
     if (i === 0) globals.prevPoint = null;
   });
@@ -188,7 +200,7 @@ function handleErase({ pointList, brush }) {
 
   // Paint points
   pointList.forEach((point, i) => {
-    handlePaint({ point, brush });
+    paint({ point, brush });
 
     if (i === 0) globals.prevPoint = null;
   });
@@ -251,6 +263,7 @@ registerWebworker()
       globals.slicingMode = slicingMode;
     }
   })
+  .operation('paint', handlePaint)
   .operation('paintFloodFill', handlePaintFloodFill)
   .operation('erase', handleErase)
   .operation('crop', handleCrop)
