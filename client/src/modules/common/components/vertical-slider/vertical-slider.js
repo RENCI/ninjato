@@ -9,6 +9,11 @@ export const VerticalSlider = ({ value, min, max, onChange }) => (
     min={ min }
     max={ max }
     onChange={ evt => onChange(+evt.target.value) }
+
+    // Turn off default arrow key behavior
+    onKeyDown={ evt => evt.preventDefault() }
+    onKeyPress={ evt => evt.preventDefault() }
+    onKeyUp={ evt => evt.preventDefault() }
   />
 );
 
