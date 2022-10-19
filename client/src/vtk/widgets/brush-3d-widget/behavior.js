@@ -65,8 +65,6 @@ export default function widgetBehavior(publicAPI, model) {
         }
         */
         model.pickPosition = worldCoords;
-
-        console.log(model.pickPosition)
       }      
       
       //model._factory.setLabel(getImageLabel(model, callData));          
