@@ -426,10 +426,9 @@ export const api = {
   saveReview: async (userId, itemId, buffer, regions, done = false, approve = false) => {
     const blob = new Blob([buffer], { type: 'application/octet' });
 
-    // XXX: Create save review hook, similar to assignment, pass in buffer
-
     // Set form data
     const formData = new FormData();
+    formData.append('current_region_ids', JSON.stringify(regions.map(({ label }) => label)));
     formData.append('comment', JSON.stringify(regionObject(regions, 'comment')));
     formData.append('content_data', blob);    
 

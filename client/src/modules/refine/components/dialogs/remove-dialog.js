@@ -6,7 +6,7 @@ import {
   ErrorContext, SET_ERROR
 } from 'contexts';
 import { RegionLabel } from 'modules/region/components/region-label';
-import { useLoadData } from 'hooks';
+import { useLoadData, useSaveAnnotations, useSaveReview } from 'hooks';
 import { api } from 'utils/api';
 
 const { Header, Content, Actions } = Modal;
@@ -16,12 +16,23 @@ export const RemoveDialog = () => {
   const [{ action }, annotateDispatch] = useContext(AnnotateContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const loadData = useLoadData();
+  const saveAnnotations = useSaveAnnotations();
+  const saveReview = useSaveReview();
   const [removing, setRemoving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [cantRemove, setCantRemove] = useState(false);
 
   const onConfirm = async () => {
     setRemoving(true);
+          
+    // XXX: Hack to handle adding regions before claiming
+      // Should be removed when merging current edits with new volume incorporating claimed/removed region on the server
+    if (assignment.status === 'review') {
+      await saveReview();
+    }
+    else {
+      await saveAnnotations();
+    }
 
     try {      
       await api.removeRegion(user._id, assignment.subvolumeId, assignment.id, action.region.label);

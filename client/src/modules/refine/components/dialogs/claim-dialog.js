@@ -1,4 +1,4 @@
-import { useContext, useState, useEffect, useRef } from 'react';
+import { useContext, useState } from 'react';
 import { Button, Modal, Icon } from 'semantic-ui-react';
 import { 
   UserContext, UPDATE_ASSIGNMENT,
@@ -20,36 +20,20 @@ export const ClaimDialog = () => {
   const saveReview = useSaveReview();
   const [claiming, setClaiming] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [needToSave, setNeedToSave] = useState(false);
-
-  // XXX: Hack to save after claiming
-/*  
-  useEffect(() => {
-
-    console.log(maskData.getExtent());
-    if (needToSave && action === null) {
-      switch (assignment.status) {
-        case 'active':
-          saveAnnotations();
-          break;
-
-        case 'review':
-          saveReview();
-          break;
-
-        default:
-          console.warn('Unknown assignment type');
-      }
-
-      setNeedToSave(false);
-    }
-  }, [needToSave, action]);
-*/  
 
   const onConfirm = async () => {
     setClaiming(true);
 
     try {      
+      // XXX: Hack to handle adding regions before claiming
+      // Should be removed when merging current edits with new volume incorporating claimed/removed region on the server
+      if (assignment.status === 'review') {
+        await saveReview();
+      }
+      else {
+        await saveAnnotations();
+      }
+
       await api.claimRegion(user._id, assignment.subvolumeId, assignment.id, action.region.label);
 
       setClaiming(false);
@@ -63,19 +47,10 @@ export const ClaimDialog = () => {
           assignment: update
         });
 
-console.log(maskData.getExtent());
-
         loadData(update, assignment);   
 
         setSuccess(false);
         annotateDispatch({ type: ANNOTATE_SET_ACTION, action: null }); 
-
-        //setNeedToSave(true);
-/*
-        setTimeout(() => {
-          saveAnnotations();
-        }, 10000);
-        */
       }, 1000); 
     }
     catch (error) {

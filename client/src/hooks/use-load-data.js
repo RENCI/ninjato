@@ -110,8 +110,6 @@ export const useLoadData = ()  => {
           region: regions.length > 0 ? regions[regions.length - 1] : null
         });
 
-        console.log('load', regions);
-
         switch (status) {
           case 'active': saveAnnotations(false, { maskData: combinedMasks, regions: regions }); break;
           case 'review': saveReview(false, false, { maskData: combinedMasks, regions: regions }); break;
