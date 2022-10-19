@@ -1,12 +1,12 @@
 import macro from '@kitware/vtk.js/macros';
 import { vec3 } from 'gl-matrix';
-import { toPixelCenter, getImageLabel } from 'vtk/widgets/widget-utils';
+import { getSurfaceLabel } from 'vtk/widgets/widget-utils';
 
 export default function widgetBehavior(publicAPI, model) {
   model.painting = model._factory.getPainting();
+  model.pickPosition = [];
 
-  publicAPI.getPoints = () => 
-    model.representations[0].getOutputData().getPoints().getData();
+  publicAPI.getPoint = () => model.pickPosition;
 
   publicAPI.handleLeftButtonPress = (callData) => {
     if (!model.activeState || !model.activeState.getActive()) {
@@ -41,12 +41,16 @@ export default function widgetBehavior(publicAPI, model) {
       model.activeState.setRight(...right);
       model.activeState.setDirection(...normal);
 
-      const worldCoords = manipulator.handleEvent(
-        callData,
-        model._apiSpecificRenderWindow
-      );
+      const p = callData.position;
+      const picker = model._interactor.getPicker();
+      picker.pick([p.x, p.y, p.z], model._renderer);
+      const pos = picker.getPickedPositions();
 
-      if (worldCoords.length) {
+      model.pickPosition = [];
+
+      if (pos.length > 0) {
+        const worldCoords = pos[0];
+        /*
         const imageData = model._factory.getImageData();
 
         if (imageData) {
@@ -57,11 +61,15 @@ export default function widgetBehavior(publicAPI, model) {
           worldCoords[0] = toPixelCenter(ijk[0], spacing[0], dims[0]);
           worldCoords[1] = toPixelCenter(ijk[1], spacing[1], dims[1]);
 
-          model.activeState.setOrigin(...worldCoords);
+          //model.activeState.setOrigin(...worldCoords);
         }
-      }
+        */
+        model.pickPosition = worldCoords;
+
+        console.log(model.pickPosition)
+      }      
       
-      model._factory.setLabel(getImageLabel(model, callData));    
+      //model._factory.setLabel(getImageLabel(model, callData));          
 
       publicAPI.invokeInteractionEvent();
       return macro.EVENT_ABORT;

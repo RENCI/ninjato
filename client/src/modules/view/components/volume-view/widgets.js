@@ -116,7 +116,7 @@ export function Widgets(painter) {
         painter.startStroke();
 
         painter.paint(
-          handles.paint.getPoints(), 
+          handles.paint.getPoint(), 
           handles.paint.getRepresentations()[0].getBrush()
         );
 
@@ -126,7 +126,18 @@ export function Widgets(painter) {
       });
 
       handles.erase.onEndInteractionEvent(async () => {
-        // XXX: Copy from paint when implemented
+        painter.startStroke();
+
+        // Use paint
+        painter.paint(
+          handles.erase.getPoint(), 
+          handles.erase.getRepresentations()[0].getBrush()
+        );
+
+        // Set erase to true
+        await painter.endStroke(true);
+
+        //onEdit(activeRegion);
       });
 
       handles.select.onEndInteractionEvent(() => {

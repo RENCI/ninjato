@@ -194,11 +194,13 @@ export function Widgets(painter) {
       });
 
       handles.erase.onEndInteractionEvent(async () => {
-        painter.erase(
+        // Use paint
+        painter.paint(
           handles.erase.getPoints(), 
           handles.erase.getRepresentations()[0].getBrush()
         );
 
+        // Set erase to true
         await painter.endStroke(true);
 
         onEdit(activeRegion);
