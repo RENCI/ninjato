@@ -1,4 +1,5 @@
 import macro from '@kitware/vtk.js/macros';
+import * as vtkMath from '@kitware/vtk.js/Common/Core/Math';
 import { vec3 } from 'gl-matrix';
 import { getSurfaceLabel } from 'vtk/widgets/widget-utils';
 
@@ -50,6 +51,26 @@ export default function widgetBehavior(publicAPI, model) {
 
       if (pos.length > 0) {
         const worldCoords = pos[0];
+
+        const camPos = model._camera.getPosition();
+        
+        const v = [];
+        vec3.sub(v, worldCoords, camPos);
+        
+        const vn = [];
+        vec3.normalize(vn, v);
+
+        const spacing = [1, 1, 2];
+
+        const ab = vec3.dot(spacing, vn);
+        const bb = vec3.dot(vn, vn);
+        const s = [];
+        vec3.scale(s, vn, Math.abs(ab / bb) * 0.5);
+        //vtkMath.projectVector(spacing, vn, s);
+
+        vec3.sub(v, v, s);
+        vec3.add(model.pickPosition, camPos, v);
+        
         /*
         const imageData = model._factory.getImageData();
 
@@ -64,7 +85,7 @@ export default function widgetBehavior(publicAPI, model) {
           //model.activeState.setOrigin(...worldCoords);
         }
         */
-        model.pickPosition = worldCoords;
+        //model.pickPosition = worldCoords;
       }      
       
       //model._factory.setLabel(getImageLabel(model, callData));          
