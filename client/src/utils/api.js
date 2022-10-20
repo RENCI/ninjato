@@ -244,12 +244,16 @@ export const api = {
       assignments.push(assignment); 
     }
 
+    console.log(...assignments);
+
     // If reviewer, Get available review assignments
     if (reviewer) {
       const volumeResponse = await axios.get('/system/subvolume_ids');
 
       for (const { id } of volumeResponse.data) {
         const reviewResponse = await axios.get(`/item/${ id }/available_items_for_review`);
+
+        console.log(reviewResponse);
 
         for (const review of reviewResponse.data) {
           // Check we don't already have it
@@ -261,6 +265,8 @@ export const api = {
         }
       }
     }
+
+    console.log(...assignments);
 
     return assignments;
   },

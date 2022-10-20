@@ -51,7 +51,7 @@ export const Assignment = ({ assignment, enabled }) => {
       disabled={ !enabled || selected }
     >
       <Segment
-        color={ statusColor(assignment.status) ?? 'grey' } 
+        color={ statusColor(assignment.status, assignment.reviewer) ?? 'grey' } 
         raised={ enabled }
         circular
         className={ styles.assignment }
