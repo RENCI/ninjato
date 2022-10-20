@@ -41,12 +41,12 @@ export const RefineSelection = ({ assignments }) => {
           <Assignments 
             type='refine' 
             header={ 'Under review' }
-            assignments={ assignments.filter(({ status }) => status === 'review') }
+            assignments={ assignments.filter(({ status, reviewer }) => status !== 'active' && reviewer?.login) }
           />
           <Assignments 
             type='refine' 
             header={ 'Awaiting review' }
-            assignments={ assignments.filter(({ status }) => status === 'waiting') }
+            assignments={ assignments.filter(({ status, reviewer }) => status === 'waiting' && !reviewer?.login) }
           />
         </Column>
         <Column>

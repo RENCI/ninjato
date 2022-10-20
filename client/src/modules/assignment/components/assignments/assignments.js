@@ -14,6 +14,10 @@ const sortOrder = (a, b) => (
 export const Assignments = ({ type, header, subheader, assignments }) => {
   const enabledStatus = type === 'refine' ? 'active' : type;
 
+  const enabled = ({ status, reviewer }) => 
+    type === 'refine' ? status === 'active' :
+    status !== 'active' || !reviewer?.login;
+
   return (
     <>
       <Header as='h5'>
@@ -30,7 +34,7 @@ export const Assignments = ({ type, header, subheader, assignments }) => {
             <div key={ i }>
               <Assignment 
                 assignment={ assignment } 
-                enabled={ assignment.status === enabledStatus }
+                enabled={ enabled(assignment) }
               />
             </div>
           ))}
