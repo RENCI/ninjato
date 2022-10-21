@@ -1,5 +1,4 @@
 import macro from '@kitware/vtk.js/macros';
-import * as vtkMath from '@kitware/vtk.js/Common/Core/Math';
 import { vec3 } from 'gl-matrix';
 import { getSurfaceLabel } from 'vtk/widgets/widget-utils';
 
@@ -56,19 +55,24 @@ export default function widgetBehavior(publicAPI, model) {
         
         const v = [];
         vec3.sub(v, worldCoords, camPos);
-        
-        const vn = [];
-        vec3.normalize(vn, v);
 
-        const spacing = [1, 1, 2];
+        if (model._factory.getMode() === 'paint') {
+          // Step back toward the camera for painting
+          const vn = [];
+          vec3.normalize(vn, v);
 
-        const ab = vec3.dot(spacing, vn);
-        const bb = vec3.dot(vn, vn);
-        const s = [];
-        vec3.scale(s, vn, Math.abs(ab / bb) * 0.5);
-        //vtkMath.projectVector(spacing, vn, s);
+          // XXX: Need to set this or the image data to get this
+          const spacing = [1, 1, 2];
 
-        vec3.sub(v, v, s);
+          const ab = vec3.dot(spacing, vn);
+          const bb = vec3.dot(vn, vn);
+
+          const s = [];
+          vec3.scale(s, vn, Math.abs(ab / bb) * 0.5);
+
+          vec3.sub(v, v, s);
+        }
+
         vec3.add(model.pickPosition, camPos, v);
         
         /*

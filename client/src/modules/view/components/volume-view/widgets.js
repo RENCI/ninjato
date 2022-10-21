@@ -32,6 +32,8 @@ export function Widgets(painter) {
     remove: createWidget(vtkRegionSelect3DWidget)
   }; 
 
+  widgets.erase.setMode('erase');
+
   let handles = null;
 
   let activeWidget = null; 

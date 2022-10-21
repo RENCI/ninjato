@@ -71,6 +71,7 @@ const defaultValues = (initialValues) => ({
   color: [1],
   imageData: null,
   label: null,
+  mode: 'paint',
   behavior: widgetBehavior,
   widgetState: stateGenerator(),
   ...initialValues
@@ -84,7 +85,7 @@ export function extend(publicAPI, model, initialValues = {}) {
   vtkAbstractWidgetFactory.extend(publicAPI, model, initialValues);
 
   macro.get(publicAPI, model, ['painting']);
-  macro.setGet(publicAPI, model, ['manipulator', 'color', 'imageData', 'label']);
+  macro.setGet(publicAPI, model, ['manipulator', 'color', 'imageData', 'label', 'mode']);
 
   vtkBrush3DWidget(publicAPI, model);
 }
