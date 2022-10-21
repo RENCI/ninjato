@@ -636,8 +636,6 @@ def _update_user_mask(item_id, old_content, old_extent, new_extent=None):
         out_path = os.path.join(out_dir_path, user_mask_file_name)
         if not os.path.isdir(out_dir_path):
             os.makedirs(out_dir_path)
-        if not os.path.isdir(out_dir_path):
-            os.makedirs(out_dir_path)
         output_tif = TIFF.open(out_path, mode="w")
         for mask in item_mask:
             output_tif.write_image(mask)
