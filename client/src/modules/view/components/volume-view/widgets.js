@@ -190,12 +190,13 @@ export function Widgets(painter) {
         }
       });
     },
-    update: (position, spacing) => {           
+    update: (spacing) => {         
+      
+        console.log("HERE")
+
       // XXX: Why is the 0.85 necessary here?
       //const radius = Math.max(spacing[0], spacing[1]) * 0.85;
-      const radius = 1.0;
-
-      Object.values(widgets).forEach(widget => widget.getManipulator().setWidgetOrigin(position));
+      const radius = 0.85;
 
       [widgets.paint, widgets.erase,].forEach(widget => widget.setRadius(radius));
 

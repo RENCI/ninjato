@@ -22,6 +22,9 @@ export default function widgetBehavior(publicAPI, model) {
 
     model.painting = true;    
 
+
+    // XXX: NEED TO SET PICK POSITION HERE
+
     publicAPI.invokeStartInteractionEvent();
     return macro.EVENT_ABORT;
   };
