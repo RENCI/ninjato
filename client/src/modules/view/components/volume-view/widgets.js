@@ -190,8 +190,15 @@ export function Widgets(painter) {
         }
       });
     },
-    update: (position) => {      
-      Object.values(widgets).forEach(widget => widget.getManipulator().setOrigin(position));
+    update: (position, spacing) => {           
+      // XXX: Why is the 0.85 necessary here?
+      //const radius = Math.max(spacing[0], spacing[1]) * 0.85;
+      const radius = 1.0;
+
+      Object.values(widgets).forEach(widget => widget.getManipulator().setWidgetOrigin(position));
+
+      [widgets.paint, widgets.erase,].forEach(widget => widget.setRadius(radius));
+
       Object.values(handles).forEach(handle => handle.updateRepresentationForRender());
     },
     /*

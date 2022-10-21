@@ -30,7 +30,7 @@ function vtkBrush3DWidget(publicAPI, model) {
         return [
           {
             builder: vtkBrushRepresentation,
-            labels: ['handle',]
+            labels: ['handle']
           },
         ];
     }
@@ -41,6 +41,14 @@ function vtkBrush3DWidget(publicAPI, model) {
   publicAPI.setManipulator = (manipulator) => {
     superClass.setManipulator(manipulator);
     model.widgetState.getHandle().setManipulator(manipulator);
+  };
+
+  // override
+  const superSetRadius = publicAPI.setRadius;
+  publicAPI.setRadius = (r) => {
+    if (superSetRadius(r)) {
+      model.widgetState.getHandle().setScale1(r);
+    }
   };
 
   // override
@@ -67,6 +75,7 @@ function vtkBrush3DWidget(publicAPI, model) {
 
 const defaultValues = (initialValues) => ({
   // manipulator: null,
+  radius: 1,
   painting: false,
   color: [1],
   imageData: null,
@@ -85,7 +94,7 @@ export function extend(publicAPI, model, initialValues = {}) {
   vtkAbstractWidgetFactory.extend(publicAPI, model, initialValues);
 
   macro.get(publicAPI, model, ['painting']);
-  macro.setGet(publicAPI, model, ['manipulator', 'color', 'imageData', 'label', 'mode']);
+  macro.setGet(publicAPI, model, ['manipulator', 'radius', 'color', 'imageData', 'label', 'mode']);
 
   vtkBrush3DWidget(publicAPI, model);
 }

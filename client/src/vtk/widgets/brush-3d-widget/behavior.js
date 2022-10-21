@@ -2,6 +2,13 @@ import macro from '@kitware/vtk.js/macros';
 import { vec3 } from 'gl-matrix';
 import { getSurfaceLabel } from 'vtk/widgets/widget-utils';
 
+const toVoxelCenter = (p, spacing) => {
+  return p.map((v, i) => {
+    const s = spacing[i];
+    return Math.floor((v - s / 2) / s) * s + s;
+  });
+};
+
 export default function widgetBehavior(publicAPI, model) {
   model.painting = model._factory.getPainting();
   model.pickPosition = [];
@@ -49,20 +56,20 @@ export default function widgetBehavior(publicAPI, model) {
       model.pickPosition = [];
 
       if (pos.length > 0) {
-        const worldCoords = pos[0];
+        // XXX: Need to set this or the image data to get this
+        const spacing = [1, 1, 2];
 
-        const camPos = model._camera.getPosition();
-        
-        const v = [];
-        vec3.sub(v, worldCoords, camPos);
+        let p = pos[0];
 
         if (model._factory.getMode() === 'paint') {
           // Step back toward the camera for painting
+          const camPos = model._camera.getPosition();
+          
+          const v = [];
+          vec3.sub(v, p, camPos);
+
           const vn = [];
           vec3.normalize(vn, v);
-
-          // XXX: Need to set this or the image data to get this
-          const spacing = [1, 1, 2];
 
           const ab = vec3.dot(spacing, vn);
           const bb = vec3.dot(vn, vn);
@@ -71,9 +78,13 @@ export default function widgetBehavior(publicAPI, model) {
           vec3.scale(s, vn, Math.abs(ab / bb) * 0.5);
 
           vec3.sub(v, v, s);
+
+          vec3.add(p, camPos, v);
         }
 
-        vec3.add(model.pickPosition, camPos, v);
+        model.pickPosition = toVoxelCenter(p, spacing);
+
+        model.activeState.setOrigin(...model.pickPosition);
         
         /*
         const imageData = model._factory.getImageData();
