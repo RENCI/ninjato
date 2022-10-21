@@ -46,21 +46,22 @@ def get_available_region_ids(whole_item, count=1):
     return id_list
 
 
-def remove_region_from_item_assignment(user, subvolume_id, active_assignment_id, region_id):
+def remove_region_from_item_assignment(user, subvolume_id, active_assignment_id, region_id,
+                                       current_region_ids, content_data):
     """
     remove a region from item assignment
     :param user: requesting user
     :param subvolume_id: subvolume_id that contains the region to be removed
     :param active_assignment_id: the user's active assignment id to remove the region from
     :param region_id: region id or label to remove from the assignment
+    :param current_region_ids: current region ids of the user mask of the current assignment
+    :param content_data: current assignment user mask
     :return: a dict with status
     """
     ret_dict = {}
     whole_item = Item().findOne({'_id': ObjectId(subvolume_id)})
     region_id = str(region_id)
-    assign_item = Item().findOne({'_id': ObjectId(active_assignment_id)})
-    assign_info = get_history_info(whole_item, assign_item['_id'],
-                                    ANNOT_ASSIGN_KEY)
+    assign_info = get_history_info(whole_item, active_assignment_id, ANNOT_ASSIGN_KEY)
     if assign_info:
         assign_user_login = assign_info[0]['user']
         if assign_user_login != user['login']:
@@ -69,7 +70,8 @@ def remove_region_from_item_assignment(user, subvolume_id, active_assignment_id,
             if review_assign_info and review_assign_info[0]['user'] != user['login']:
                 raise RestException('input region id to be removed is not currently assigned '
                                     'to the requesting user', code=400)
-        ret = remove_region_from_active_assignment(whole_item, assign_item, region_id)
+        ret = remove_region_from_active_assignment(whole_item, active_assignment_id, region_id,
+                                                   current_region_ids, content_data)
         if ret:
             ret_dict['assignment_item_id'] = ret
             ret_dict['status'] = 'success'
@@ -127,7 +129,7 @@ def claim_assignment(user, subvolume_id, active_assignment_id, claim_region_id,
 
         # available to be claimed, merge claimed region to the user's active assignment
         annot_info = merge_region_to_active_assignment(whole_item, active_assignment_id,
-                                                        claim_region_id, current_region_ids,
+                                                       claim_region_id, current_region_ids,
                                                        content_data)
 
         ret_dict['status'] = 'success'
