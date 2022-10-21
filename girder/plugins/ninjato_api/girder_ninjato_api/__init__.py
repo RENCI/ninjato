@@ -41,12 +41,21 @@ def get_user_assign_info(user, subvolume_id):
            required=True)
     .param('claim_region_id', 'region id or label to find the assignment to be claimed',
            required=True)
+    .jsonParam('current_region_ids', 'list of region ids that are included in the current assignment',
+               required=False, requireArray=True, paramType='formData')
+    .param('content_data', 'current assignment user annotated mask content blob data to be saved '
+                           'on server before merging',
+           required=False, paramType='formData')
     .errorResponse()
     .errorResponse('Request action was denied on the user.', 403)
     .errorResponse('Failed to claim the requested region', 500)
 )
-def claim_region_assignment(user, subvolume_id, active_assignment_id, claim_region_id):
-    return claim_assignment(user, subvolume_id, active_assignment_id, claim_region_id)
+def claim_region_assignment(user, subvolume_id, active_assignment_id, claim_region_id,
+                            current_region_ids, content_data):
+    if current_region_ids is None:
+        current_region_ids = []
+    return claim_assignment(user, subvolume_id, active_assignment_id, claim_region_id,
+                            current_region_ids, content_data)
 
 
 @access.public

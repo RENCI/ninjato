@@ -423,7 +423,6 @@ def get_assignment_status(whole_item, assign_item_id):
         # reannotated assignment is ready to be reviewed
         return 'awaiting review'
 
-    # annotation could be assigned to a new reviewer who has not completed reviewer yet
     return 'under review'
 
 
@@ -664,17 +663,24 @@ def remove_region_from_active_assignment(whole_item, assign_item, region_id):
     return assign_item['_id']
 
 
-def merge_region_to_active_assignment(whole_item, active_assign_id, region_id):
+def merge_region_to_active_assignment(whole_item, active_assign_id, region_id, user=None,
+                                      active_region_ids=[], active_content_data=[]):
     """
     merge a region into a user's active assignment
     :param whole_item: whole subvolume item
     :param active_assign_id: a user's active assignment item id
     :param region_id: region id/label to be added into the active assignment
+    :param user: user requesting the merge action
+    :param active_region_ids: active assignment region id list
+    :param active_content_data: active assignment mask content data
     :return: active assignment annotation assigned to info
     """
+    if user and active_content_data:
+        save_content_data(user, active_assign_id, active_content_data)
+
     region_id = str(region_id)
-    val = whole_item['meta']['regions'][region_id]
     assign_item = Item().findOne({'_id': ObjectId(active_assign_id)})
+    val = whole_item['meta']['regions'][region_id]
     # get buffered extent for the region
     min_x = val['x_min']
     max_x = val['x_max']
@@ -709,7 +715,60 @@ def merge_region_to_active_assignment(whole_item, active_assign_id, region_id):
     Item().save(whole_item)
     # update assign_item based on updated extent that includes claimed region
     create_region_files(assign_item, whole_item)
+    if user and active_content_data:
+        # merge active_content_data with updated assign item extent with claimed region included
+        assign_item_coords = assign_item['meta']['coordinates']
+        assign_item_files = File().find({'itemId': ObjectId(active_assign_id)})
+        assign_item_user_images = []
+        assign_item_images = []
+        for assign_item_file in assign_item_files:
+            if '_masks' not in assign_item_file['name']:
+                continue
+            assign_item_tif, _ = _get_tif_file_content_and_path(assign_item_file)
+            if assign_item_file['name'].endswith('_user.tif'):
+                # user mask
+                for assign_image in assign_item_tif.iter_images():
+                    assign_item_user_images.append(assign_image)
+            else:
+                # initial mask
+                for assign_image in assign_item_tif.iter_images():
+                    assign_item_images.append(assign_image)
+        # check user mask and initial mask to merge user mask with updated initial mask
+        for
+        assign_item_images
+            item_files = File().find({'itemId': whole_item['_id']})
+            for item_file in item_files:
+                if '_masks' not in item_file['name']:
+                    continue
+                file_res_path = path_util.getResourcePath('file', item_file, force=True)
+                file_name = os.path.basename(file_res_path)
+                whole_tif, whole_path = _get_tif_file_content_and_path(item_file)
+                out_dir_path = os.path.dirname(whole_path)
+                output_path = os.path.join(out_dir_path, f'{uuid.uuid4()}_{file_name}')
+                whole_out_tif = TIFF.open(output_path, mode='w')
+                counter = 0
+                # region_imarray should be in order of ZYX
+                for image in whole_tif.iter_images():
+                    if assign_item_coords['z_min'] <= counter <= assign_item_coords['z_max']:
+                        image[assign_item_coords['y_min']: assign_item_coords['y_max'] + 1,
+                        assign_item_coords['x_min']: assign_item_coords['x_max'] + 1] = \
+                            assign_item_images[counter - assign_item_coords['z_min']]
+                    whole_out_tif.write_image(np.copy(image))
+                    counter += 1
 
+                assetstore_id = item_file['assetstoreId']
+                # remove the original file and create new file using updated TIFF mask
+                File().remove(item_file)
+                # for some reason, the file on disk is not really removed, so double check to make
+                # sure it is deleted
+                if os.path.exists(whole_path):
+                    os.remove(whole_path)
+                save_file(assetstore_id, whole_item, output_path, User().getAdmins()[0], file_name)
+
+
+        save_content_data(user, active_assign_id, active_content_data)
+        if active_region_ids:
+            whole_item = save_added_and_removed_regions(whole_item, assign_item, active_region_ids)
     return get_history_info(whole_item, assign_item['_id'],
                             ANNOT_ASSIGN_KEY)
 
@@ -736,7 +795,7 @@ def set_assignment_meta(whole_item, user, region_item_id, assign_type):
     return assign_info
 
 
-def save_content_bytes_to_tiff(content, out_file, item):
+def _save_content_bytes_to_tiff(content, out_file, item):
     """
     save content bytes to TIFF file
     :param content: content byte stream
@@ -769,7 +828,53 @@ def save_content_bytes_to_tiff(content, out_file, item):
     return
 
 
-def save_added_and_removed_regions(whole_item, item, current_region_ids, done, uid, add_meta):
+def save_content_data(user, item_id, content_data, review=False):
+    """
+    Save content byte data to item
+    :param user: user object to save content data to
+    :param item_id: item id to get user mask file name and assetstore id from
+    :param content_data: content byte data to save to the item
+    :param review: indicating whether it is being reviewed by a reviewer or not
+    :return: user mask file name and assetstore id
+    """
+    files = File().find({'itemId': ObjectId(item_id)})
+    annot_file_name = ''
+    assetstore_id = ''
+    for file in files:
+        if review:
+            if '_masks' in file['name'] and file['name'].endswith('_user.tif'):
+                annot_file_name = file['name']
+                assetstore_id = file['assetstoreId']
+                break
+        elif '_masks' in file['name']:
+            mask_file_name = file['name']
+            if mask_file_name.endswith('_user.tif'):
+                annot_file_name = mask_file_name
+            else:
+                annot_file_name = f'{os.path.splitext(mask_file_name)[0]}_user.tif'
+            assetstore_id = file['assetstoreId']
+            break
+
+    if not annot_file_name or not assetstore_id:
+        raise RestException('failure: cannot find the mask file for the annotated item', 500)
+
+    content = content_data.file.read()
+    try:
+        # save file to local file system before adding it to asset store
+        out_dir_path = os.path.join(DATA_PATH, str(item_id))
+        out_path = os.path.join(out_dir_path, annot_file_name)
+        if not os.path.isdir(out_dir_path):
+            os.makedirs(out_dir_path)
+        item = Item().findOne({'_id': ObjectId(item_id)})
+        _save_content_bytes_to_tiff(content, out_path, item)
+        save_file(assetstore_id, item, out_path, user, annot_file_name)
+    except Exception as e:
+        raise RestException(f'failure: {e}', 500)
+    return annot_file_name
+
+
+def save_added_and_removed_regions(whole_item, item, current_region_ids,
+                                   done=False, uid='', add_meta={}):
     """
     save added and removed regions based on current_region_ids for item
     :param whole_item: whole subvolume item
