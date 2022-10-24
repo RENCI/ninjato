@@ -244,16 +244,12 @@ export const api = {
       assignments.push(assignment); 
     }
 
-    console.log(...assignments);
-
     // If reviewer, Get available review assignments
     if (reviewer) {
       const volumeResponse = await axios.get('/system/subvolume_ids');
 
       for (const { id } of volumeResponse.data) {
         const reviewResponse = await axios.get(`/item/${ id }/available_items_for_review`);
-
-        console.log(reviewResponse);
 
         for (const review of reviewResponse.data) {
           // Check we don't already have it
@@ -265,8 +261,6 @@ export const api = {
         }
       }
     }
-
-    console.log(...assignments);
 
     return assignments;
   },
@@ -391,8 +385,16 @@ export const api = {
       }
     );
   },
-  claimRegion: async (userId, subvolumeId, assignmentId, label) => {
-    const response = await axios.post(`/user/${ userId }/claim_assignment`, null, {
+  claimRegion: async (userId, subvolumeId, assignmentId, label, buffer, regions) => {
+    const blob = new Blob([buffer], { type: 'application/octet' });
+
+    // Set form data
+    const formData = new FormData();
+    formData.append('current_region_ids', JSON.stringify(regions.map(({ label }) => label)));
+    formData.append('content_data', blob);    
+
+    const response = await axios.post(`/user/${ userId }/claim_assignment`, 
+      formData, {
       params: {
         subvolume_id: subvolumeId,
         active_assignment_id: assignmentId,
@@ -404,8 +406,16 @@ export const api = {
 
     return response.data;
   },
-  removeRegion: async (userId, subvolumeId, assignmentId, label) => {
-    const response = await axios.post(`/user/${ userId }/remove_region_from_assignment`, null, {
+  removeRegion: async (userId, subvolumeId, assignmentId, label, buffer, regions) => {
+    const blob = new Blob([buffer], { type: 'application/octet' });
+
+    // Set form data
+    const formData = new FormData();
+    formData.append('current_region_ids', JSON.stringify(regions.map(({ label }) => label)));
+    formData.append('content_data', blob);   
+
+    const response = await axios.post(`/user/${ userId }/remove_region_from_assignment`, 
+      formData, {
       params: {
         subvolume_id: subvolumeId,
         active_assignment_id: assignmentId,

@@ -6,8 +6,9 @@ import {
   ErrorContext, SET_ERROR
 } from 'contexts';
 import { RegionLabel } from 'modules/region/components/region-label';
-import { useLoadData, useSaveAnnotations, useSaveReview } from 'hooks';
+import { useLoadData } from 'hooks';
 import { api } from 'utils/api';
+import { createByteStream } from 'utils/data-conversion';
 
 const { Header, Content, Actions } = Modal;
 
@@ -16,8 +17,6 @@ export const ClaimDialog = () => {
   const [{ action }, annotateDispatch] = useContext(AnnotateContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const loadData = useLoadData();
-  const saveAnnotations = useSaveAnnotations();
-  const saveReview = useSaveReview();
   const [claiming, setClaiming] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -25,16 +24,9 @@ export const ClaimDialog = () => {
     setClaiming(true);
 
     try {      
-      // XXX: Hack to handle adding regions before claiming
-      // Should be removed when merging current edits with new volume incorporating claimed/removed region on the server
-      if (assignment.status === 'review') {
-        await saveReview();
-      }
-      else {
-        await saveAnnotations();
-      }
+      const buffer = createByteStream(maskData);
 
-      await api.claimRegion(user._id, assignment.subvolumeId, assignment.id, action.region.label);
+      await api.claimRegion(user._id, assignment.subvolumeId, assignment.id, action.region.label, buffer, assignment.regions);
 
       setClaiming(false);
       setSuccess(true);
