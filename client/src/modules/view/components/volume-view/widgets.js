@@ -119,7 +119,8 @@ export function Widgets(painter) {
 
         painter.paint(
           handles.paint.getPoint(), 
-          handles.paint.getRepresentations()[0].getBrush()
+          //handles.paint.getRepresentations()[0].getBrush()
+          [[1]]
         );
 
         await painter.endStroke();
@@ -133,7 +134,8 @@ export function Widgets(painter) {
         // Use paint
         painter.paint(
           handles.erase.getPoint(), 
-          handles.erase.getRepresentations()[0].getBrush()
+          //handles.erase.getRepresentations()[0].getBrush()
+          [[1]]
         );
 
         // Set erase to true
@@ -190,15 +192,16 @@ export function Widgets(painter) {
         }
       });
     },
-    update: (spacing) => {         
-      
-        console.log("HERE")
-
+    update: (spacing) => {
       // XXX: Why is the 0.85 necessary here?
       //const radius = Math.max(spacing[0], spacing[1]) * 0.85;
       const radius = 0.85;
 
-      [widgets.paint, widgets.erase,].forEach(widget => widget.setRadius(radius));
+      [widgets.paint, widgets.erase].forEach(widget => widget.setRadius(radius));
+
+      [handles.paint, handles.erase].forEach(handle => 
+        handle.getRepresentations()[0].setLengths(...spacing)
+      );
 
       Object.values(handles).forEach(handle => handle.updateRepresentationForRender());
     },

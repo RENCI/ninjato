@@ -3,7 +3,7 @@ import vtkAbstractWidgetFactory from '@kitware/vtk.js/Widgets/Core/AbstractWidge
 import vtkPlaneManipulator from '@kitware/vtk.js/Widgets/Manipulators/PlaneManipulator';
 import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
-import vtkBrushRepresentation from 'vtk/widgets/brush-representation';
+import vtkBrush3DRepresentation from 'vtk/widgets/brush-3d-representation';
 import widgetBehavior from './behavior';
 import stateGenerator from './state';
 
@@ -29,7 +29,7 @@ function vtkBrush3DWidget(publicAPI, model) {
       default:
         return [
           {
-            builder: vtkBrushRepresentation,
+            builder: vtkBrush3DRepresentation,
             labels: ['handle']
           },
         ];
@@ -51,13 +51,16 @@ function vtkBrush3DWidget(publicAPI, model) {
     }
   };
 
-  // override
   publicAPI.setPosition = (position) => {
     model.widgetState.getHandle().setOrigin(position);
   };
 
   publicAPI.getPosition = () => {
     return model.widgetState.getHandle().getOrigin();
+  };
+
+  publicAPI.setScale = () => {
+    return model.widgetState.getHandle().setOrientation();
   };
 
   // --------------------------------------------------------------------------

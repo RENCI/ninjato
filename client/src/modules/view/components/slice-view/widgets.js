@@ -294,7 +294,7 @@ export function Widgets(painter) {
 
         activeWidget = widgets[tool];
 
-        // XXX: Need to enable widget because it may have been disabled below
+        // Need to enable widget because it may have been disabled below
         activeWidget.getWidgetForView({ viewId: manager.getViewId() }).setEnabled(true);
         manager.grabFocus(activeWidget);
 
@@ -304,7 +304,7 @@ export function Widgets(painter) {
         activeWidget = null;
         manager.grabFocus(null);
 
-        // XXX: For some reason neither grabFocus(null) nor releaseFocus are working properly.
+        // For some reason neither grabFocus(null) nor releaseFocus are working properly.
         // This workaround disables all widgets here, requiring the newly active widget to be enabled above.
         Object.values(widgets).forEach(w => {
           const widget = w.getWidgetForView({ viewId: manager.getViewId() });
