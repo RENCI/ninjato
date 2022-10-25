@@ -2,12 +2,13 @@ import macro from '@kitware/vtk.js/macros';
 import { vec3 } from 'gl-matrix';
 import { getSurfaceLabel } from 'vtk/widgets/widget-utils';
 
-const toVoxelCenter = (p, spacing) => {
-  // XXX: Need to handle case where it is wrapping for edge voxels
-
+const toVoxelCenter = (p, spacing, extent) => {
   return p.map((v, i) => {
     const s = spacing[i];
-    return Math.floor((v - s / 2) / s) * s + s;
+    const eMin = extent[i * 2];
+    const eMax = extent[i * 2 + 1];
+
+    return Math.max(eMin * s, Math.min(Math.floor((v - s / 2) / s) * s + s, eMax * s));
   });
 };
 
@@ -25,7 +26,7 @@ export default function widgetBehavior(publicAPI, model) {
     model.painting = true;    
 
 
-    // XXX: NEED TO SET PICK POSITION HERE
+    // XXX: NEED TO SET PICK POSITION HERE?
 
     publicAPI.invokeStartInteractionEvent();
     return macro.EVENT_ABORT;
@@ -86,7 +87,7 @@ export default function widgetBehavior(publicAPI, model) {
           vec3.add(p, camPos, v);
         }
 
-        model.pickPosition = toVoxelCenter(p, spacing);
+        model.pickPosition = toVoxelCenter(p, spacing, model._factory.getImageData().getExtent());
 
         model.activeState.setOrigin(...model.pickPosition);
         
