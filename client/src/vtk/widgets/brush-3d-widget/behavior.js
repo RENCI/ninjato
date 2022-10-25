@@ -60,7 +60,7 @@ export default function widgetBehavior(publicAPI, model) {
 
       if (pos.length > 0) {
         // XXX: Need to set this or the image data to get this
-        const spacing = [1, 1, 2];
+        const spacing = [1, 1, 3];
 
         let p = pos[0];
 
