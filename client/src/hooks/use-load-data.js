@@ -36,14 +36,11 @@ export const useLoadData = ()  => {
   const [, errorDispatch] = useContext(ErrorContext);
   const navigate = useNavigate();
 
-  return async ({ subvolumeId, imageId, maskId, userMaskId, regions }, assignmentToUpdate = null) => {
+  return async ({ subvolumeId, imageId, maskId, regions }, assignmentToUpdate = null) => {
     try {
       loadingDispatch({ type: SET_LOADING });
 
-      const data = await api.getData(
-        imageId, 
-        assignmentToUpdate ? maskId : userMaskId ? userMaskId : maskId
-      );
+      const data = await api.getData(imageId, maskId);
 
       const newImageData = decodeTIFF(data.imageBuffer);
       const newMaskData = decodeTIFF(data.maskBuffer);

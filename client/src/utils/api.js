@@ -57,7 +57,7 @@ const getComments = async (subvolumeId, regions) => {
   return comments;
 };
 
-const getAssignment = async (subvolumeId, itemId, update = false) => {
+const getAssignment = async (subvolumeId, itemId) => {
   // Get assignment info
   const infoResponse = await axios.get(`/item/${ subvolumeId }/subvolume_assignment_info`, {
     params: { assign_item_id: itemId }
@@ -68,13 +68,15 @@ const getAssignment = async (subvolumeId, itemId, update = false) => {
   // Get files
   const filesResponse = await axios.get(`/item/${ itemId }/files`);
 
-  const { imageInfo, maskInfo, userMaskInfo } = filesResponse.data.reduce((info, item) => {
+  const { imageInfo, maskInfo } = filesResponse.data.reduce((info, item) => {
     // XXX: Depending on file naming conventions here. 
     if (item.name.includes('_masks_regions_user.tif')) {
-      info.userMaskInfo = item;
+      info.maskInfo = item;
     }
     else if (item.name.includes('_masks_regions.tif')) {
-      info.maskInfo = item;
+      if (!info.maskInfo) {
+        info.maskInfo = item;
+      }
     }
     else if (item.name.includes('_regions.tif')) {
       info.imageInfo = item;
@@ -85,8 +87,6 @@ const getAssignment = async (subvolumeId, itemId, update = false) => {
 
   // Get region comments
   const comments = await getComments(subvolumeId, info.regions);
-
-  // XXX: TEST FIX FOR CHOOSE ASSIGNMENT, MERGE WITH MAIN, ADD FIX FOR GETTING RIGHT MASK, MERGE AGAIN
 
   // Copy info and rename to be more concise
   return {
@@ -106,7 +106,6 @@ const getAssignment = async (subvolumeId, itemId, update = false) => {
     status: getStatus(info),
     imageId: imageInfo?._id,
     maskId: maskInfo?._id,
-    userMaskId: userMaskInfo?._id,
     annotator: info.annotator ? info.annotator : null,
     reviewer: info.reviewer ? info.reviewer : null
   };
