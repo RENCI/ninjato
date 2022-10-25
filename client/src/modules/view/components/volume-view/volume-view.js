@@ -211,7 +211,10 @@ export function VolumeView(painter) {
       widgets.setRegions(regionArray, backgroundRegions);
 
       // Clean up any old surfaces
-      surfaces.forEach(surface => surface.cleanUp());
+      surfaces.forEach(surface => {
+        renderWindow.getRenderer().removeActor(surface.getActor());
+        surface.cleanUp();
+      });
 
       regions = regionArray;
 

@@ -48,6 +48,7 @@ function vtkBrush3DRepresentation(publicAPI, model) {
     },
   };
 
+  model.pipelines.cube.actor.getProperty().setOpacity(0.2);
   model.pipelines.cube.actor.getProperty().setEdgeVisibility(true);
   model.pipelines.cube.actor.getProperty().setOpacity(0.2);
 

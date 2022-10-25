@@ -53,7 +53,7 @@ export default function widgetBehavior(publicAPI, model) {
 
       const p = callData.position;
       const picker = model._interactor.getPicker();
-      picker.pick([p.x, p.y, p.z], model._renderer);
+      picker.pick([p.x, p.y, p.z], model._interactor.findPokedRenderer());
       const pos = picker.getPickedPositions();
 
       model.pickPosition = [];
