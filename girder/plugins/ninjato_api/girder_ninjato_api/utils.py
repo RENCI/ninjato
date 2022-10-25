@@ -667,7 +667,6 @@ def remove_region_from_active_assignment(whole_item, assign_item_id, region_id,
             'min_z': assign_item['meta']['coordinates']['z_min'],
             'max_z': assign_item['meta']['coordinates']['z_max']
         }
-        print(f'old_extent: {old_extent}', flush=True)
     region_id = str(region_id)
     if 'item_id' in whole_item['meta']['regions'][region_id]:
         del whole_item['meta']['regions'][region_id]['item_id']
@@ -751,22 +750,25 @@ def remove_region_from_active_assignment(whole_item, assign_item_id, region_id,
                 "z_max": max_z,
                 "z_min": min_z
             }
-            print(f"new_extent: {assign_item['meta']['coordinates']}", flush=True)
         assign_item = Item().save(assign_item)
         # update assign_item based on updated extent that has region removed
         if min_z_ary:
             create_region_files(assign_item, whole_item)
             if active_content_data:
                 # merge active_content_data with updated assign item extent with claimed region included
-                _update_user_mask(assign_item_id, active_content_data, old_extent, new_extent={
-                    'min_x': min_x,
-                    'max_x': max_x,
-                    'min_y': min_y,
-                    'max_y': max_y,
-                    'min_z': min_z,
-                    'max_z': max_z
-                })
+                _update_user_mask(assign_item_id, active_content_data.file.read(), old_extent,
+                                  new_extent={
+                                      'min_x': min_x,
+                                      'max_x': max_x,
+                                      'min_y': min_y,
+                                      'max_y': max_y,
+                                      'min_z': min_z,
+                                      'max_z': max_z
+                                      })
                 if active_region_ids:
+                    # make sure active_region_ids does not include the removed region id
+                    if region_id in active_region_ids:
+                        active_region_ids.remove(region_id)
                     save_added_and_removed_regions(whole_item, assign_item, active_region_ids)
 
         return assign_item['_id']
@@ -797,7 +799,6 @@ def merge_region_to_active_assignment(whole_item, active_assign_id, region_id,
             'min_z': assign_item['meta']['coordinates']['z_min'],
             'max_z': assign_item['meta']['coordinates']['z_max']
         }
-        print(f'old_extent: {old_extent}', flush=True)
 
     region_id = str(region_id)
 
@@ -827,7 +828,6 @@ def merge_region_to_active_assignment(whole_item, active_assign_id, region_id,
         "z_max": max_z,
         "z_min": min_z
     }
-    print(f"new_extent: {assign_item['meta']['coordinates']}", flush=True)
     region_ids = assign_item['meta']['region_ids']
     region_ids.append(region_id)
     assign_item['meta']['region_ids'] = region_ids
@@ -838,7 +838,7 @@ def merge_region_to_active_assignment(whole_item, active_assign_id, region_id,
     create_region_files(assign_item, whole_item)
     if active_content_data:
         # merge active_content_data with updated assign item extent with claimed region included
-        _update_user_mask(active_assign_id, active_content_data, old_extent, new_extent={
+        _update_user_mask(active_assign_id, active_content_data.file.read(), old_extent, new_extent={
             'min_x': min_x,
             'max_x': max_x,
             'min_y': min_y,
@@ -847,7 +847,11 @@ def merge_region_to_active_assignment(whole_item, active_assign_id, region_id,
             'max_z': max_z
         })
         if active_region_ids:
-            whole_item = save_added_and_removed_regions(whole_item, assign_item, active_region_ids)
+            # make sure claimed region_id is part of updated region ids to check for
+            # added and removed regions
+            active_region_ids.append(region_id)
+            whole_item = save_added_and_removed_regions(whole_item, assign_item,
+                                                        list(set(active_region_ids)))
     return get_history_info(whole_item, assign_item['_id'], ANNOT_ASSIGN_KEY)
 
 
@@ -1020,7 +1024,8 @@ def save_added_and_removed_regions(whole_item, item, current_region_ids,
                 whole_item['meta'][uid].remove(str(item['_id']))
             if not whole_item['meta'][uid]:
                 del whole_item['meta'][uid]
-        return Item().save(whole_item)
+        whole_item = Item().save(whole_item)
+    return whole_item
 
 
 def update_all_assignment_masks_async(whole_item, saved_assign_item_id):
