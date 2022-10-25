@@ -81,7 +81,7 @@ const defaultValues = (initialValues) => ({
   showTrail: true,
   label: null,
   behavior: widgetBehavior,
-  widgetState: stateGenerator(initialValues?.radius ?? 1),
+  widgetState: stateGenerator(),
   ...initialValues
 });
 

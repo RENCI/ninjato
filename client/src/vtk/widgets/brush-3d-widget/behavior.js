@@ -59,8 +59,7 @@ export default function widgetBehavior(publicAPI, model) {
       model.pickPosition = [];
 
       if (pos.length > 0) {
-        // XXX: Need to set this or the image data to get this
-        const spacing = [1, 1, 3];
+        const spacing = model._factory.getImageData().getSpacing();
 
         let p = pos[0];
 

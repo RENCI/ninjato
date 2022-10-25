@@ -188,9 +188,7 @@ export function VolumeView(painter) {
         renderer.addActor(background.getActor());
         renderer.addActor(boundingBox.getActor());
 
-//        widgets.setImageData(maskData);
-
-        widgets.update(maskData.getSpacing());
+        widgets.setImageData(maskData);
       } 
       else {
         const renderer = renderWindow.getRenderer();

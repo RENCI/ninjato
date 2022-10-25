@@ -191,25 +191,23 @@ export function Widgets(painter) {
           onSelect(info.region, 'remove');
         }
       });
-    },
-    update: (spacing) => {
+    },    
+    setImageData: imageData => {
       // XXX: Why is the 0.85 necessary here?
       //const radius = Math.max(spacing[0], spacing[1]) * 0.85;
       const radius = 0.85;
 
-      [widgets.paint, widgets.erase].forEach(widget => widget.setRadius(radius));
+      [widgets.paint, widgets.erase].forEach(widget => {
+        widget.setRadius(radius);
+        widget.setImageData(imageData);
+      });
 
-      [handles.paint, handles.erase].forEach(handle => 
-        handle.getRepresentations()[0].setLengths(...spacing)
+      [handles.paint, handles.erase].forEach(handle =>
+        handle.getRepresentations()[0].setLengths(...imageData.getSpacing())
       );
 
       Object.values(handles).forEach(handle => handle.updateRepresentationForRender());
-    },
-    /*
-    setImageData: imageData => {
-      Object.values(widgets).forEach(widget => widget.setImageData(imageData));
-    },
-    */
+    },    
     setTool: tool => {
       if (tool) {
         // XXX: Maybe want a previous widget to handle this?
