@@ -216,12 +216,14 @@ export function Widgets(painter) {
         activeWidget = widgets[tool];
   
         manager.grabFocus(activeWidget);
+        manager.enablePicking();
   
         activeWidget.setPosition(position);
       }
       else {
         activeWidget = null;
         manager.grabFocus(null);
+        manager.disablePicking();
       }
 
       Object.values(widgets).forEach(widget => {

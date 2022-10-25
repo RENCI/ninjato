@@ -258,8 +258,9 @@ export function VolumeView(painter) {
     },
     //setHighlightLabel: label => mask.setHighlightLabel(label),
     setTool: (tool, cursor) => {      
-      widgets.setTool(tool)
+      widgets.setTool(tool);
       renderWindow.setCursor(cursor);
+      renderWindow.render();
     },
     setSlice: sliceNumber => {
       slice = sliceNumber;

@@ -297,12 +297,14 @@ export function Widgets(painter) {
         // Need to enable widget because it may have been disabled below
         activeWidget.getWidgetForView({ viewId: manager.getViewId() }).setEnabled(true);
         manager.grabFocus(activeWidget);
+        manager.enablePicking();
 
         activeWidget.setPosition(position);
       }
       else {
         activeWidget = null;
         manager.grabFocus(null);
+        manager.disablePicking();
 
         // For some reason neither grabFocus(null) nor releaseFocus are working properly.
         // This workaround disables all widgets here, requiring the newly active widget to be enabled above.

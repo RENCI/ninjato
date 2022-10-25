@@ -87,11 +87,9 @@ export function SliceView() {
     },
     setHighlightRegion: region => mask.setHighlightRegion(region),
     setTool: (tool, cursor) => {
-      widgets.setTool(tool)
+      widgets.setTool(tool);
       renderWindow.setCursor(cursor);
-
-      
-      renderWindow.getInteractor().getInteractorStyle().getInteractor(renderWindow.getInteractor());
+      renderWindow.render();
     },
     setBrush: (type, brush) => widgets.setBrush(type, brush),
     setSlice: slice => image.getMapper().setSlice(slice),

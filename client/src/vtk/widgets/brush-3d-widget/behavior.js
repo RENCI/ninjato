@@ -3,6 +3,8 @@ import { vec3 } from 'gl-matrix';
 import { getSurfaceLabel } from 'vtk/widgets/widget-utils';
 
 const toVoxelCenter = (p, spacing) => {
+  // XXX: Need to handle case where it is wrapping for edge voxels
+
   return p.map((v, i) => {
     const s = spacing[i];
     return Math.floor((v - s / 2) / s) * s + s;
