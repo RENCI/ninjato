@@ -586,6 +586,7 @@ def _update_user_mask(item_id, old_content, old_extent, new_extent=None):
             # remove the user mask before writing a new mask to it
             user_mask_file_name = item_file['name']
             File().remove(item_file)
+            continue
 
         mask_file_name = item_file['name']
         assetstore_id = item_file['assetstoreId']
@@ -767,6 +768,7 @@ def remove_region_from_active_assignment(whole_item, assign_item_id, region_id,
                                       })
                 if active_region_ids:
                     # make sure active_region_ids does not include the removed region id
+                    active_region_ids = list(map(str, active_region_ids))
                     if region_id in active_region_ids:
                         active_region_ids.remove(region_id)
                     save_added_and_removed_regions(whole_item, assign_item, active_region_ids)
@@ -849,6 +851,7 @@ def merge_region_to_active_assignment(whole_item, active_assign_id, region_id,
         if active_region_ids:
             # make sure claimed region_id is part of updated region ids to check for
             # added and removed regions
+            active_region_ids = list(map(str, active_region_ids))
             active_region_ids.append(region_id)
             whole_item = save_added_and_removed_regions(whole_item, assign_item,
                                                         list(set(active_region_ids)))
@@ -987,16 +990,29 @@ def save_added_and_removed_regions(whole_item, item, current_region_ids,
         # make sure each item is a string
         current_region_ids = [str(rid) for rid in current_region_ids]
         exist_region_ids = item['meta']['region_ids']
-        removed_region_ids = [
+        if 'added_region_ids' in item['meta']:
+            added_region_ids = item['meta']['added_region_ids']
+            exist_region_ids = exist_region_ids + added_region_ids
+        if 'removed_region_ids' in item['meta']:
+            removed_region_ids = item['meta']['removed_region_ids']
+            exist_region_ids = [elem for elem in exist_region_ids if elem not in removed_region_ids]
+
+        removed_region_ids = removed_region_ids + [
             rid for rid in exist_region_ids if rid not in current_region_ids
         ]
-        added_region_ids = [rid for rid in current_region_ids if rid not in exist_region_ids]
-
+        added_region_ids = added_region_ids + \
+                           [rid for rid in current_region_ids if rid not in exist_region_ids]
+        duplicate_ids = [elem for elem in added_region_ids if elem in removed_region_ids]
+        if duplicate_ids:
+            added_region_ids = [elem for elem in added_region_ids if elem not in duplicate_ids]
+            removed_region_ids = [elem for elem in removed_region_ids if elem not in duplicate_ids]
         if added_region_ids:
+            # remove potential duplicates
+            added_region_ids = list(set(added_region_ids))
+        if 'added_region_ids' in add_meta or added_region_ids:
             add_meta['added_region_ids'] = added_region_ids
-        if removed_region_ids:
+        if 'removed_region_ids' in add_meta or removed_region_ids:
             add_meta['removed_region_ids'] = removed_region_ids
-
     Item().setMetadata(item, add_meta)
 
     if done:
