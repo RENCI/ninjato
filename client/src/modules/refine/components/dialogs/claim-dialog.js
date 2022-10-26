@@ -13,7 +13,7 @@ import { createByteStream } from 'utils/data-conversion';
 const { Header, Content, Actions } = Modal;
 
 export const ClaimDialog = () => {
-  const [{ user, assignment }, userDispatch] = useContext(UserContext);
+  const [{ user, assignment, maskData }, userDispatch] = useContext(UserContext);
   const [{ action }, annotateDispatch] = useContext(AnnotateContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const loadData = useLoadData();
