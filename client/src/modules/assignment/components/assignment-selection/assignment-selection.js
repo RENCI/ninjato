@@ -26,9 +26,6 @@ export const AssignmentSelection = () => {
     getAssignments(user._id, user.reviewer);
   };
 
-  console.log(assignments);
-  console.log(availableReviews);
-
   return (
     <div className={ styles.container }>
       { (assignments && volumes) && (user.reviewer ?

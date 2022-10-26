@@ -100,10 +100,6 @@ const reducer = (state, action) => {
 
     case ADD_REVIEWS: {
       const availableReviews = [...state.availableReviews];
-
-      console.log(availableReviews);
-      console.log(action);
-
       const volume = availableReviews.find(({ volumeId }) => volumeId === action.volumeId);
 
       action.reviews.forEach(review => {

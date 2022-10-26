@@ -33,11 +33,12 @@ export const Volume = ({ volume, availableReviews, enabled }) => {
     if (review) {
 
       const start = unloadedReviews.findIndex(({ needToLoad }) => needToLoad);
+      const end = Math.min(start + numLoad - 1, unloadedReviews.length - 1);
 
       const newReviews = [];
 
       try {
-        for (let i = start; i < start + numLoad; i++) {
+        for (let i = start; i <= end; i++) {
           const assignment = await api.getAssignment(volume.id, unloadedReviews[i].id);
 
           newReviews.push(assignment);          
@@ -119,11 +120,25 @@ export const Volume = ({ volume, availableReviews, enabled }) => {
         </Segment>
       </ButtonWrapper>
       { review &&        
-        <Assignments 
-          type='review' 
-          assignments={ loadedReviews } 
-          showEmpty={ false }
-        />
+        <>
+          <Header 
+            as='h5'
+            content=''
+            subheader={ unloadedReviews.length > 0 ? 
+              'Click volume to load more available reviews'
+            :
+              loadedReviews.length > 0 && unloadedReviews.length === 0 ? 
+              'All available reviews loaded'
+            : 
+              null
+            }
+          />
+          <Assignments 
+            type='review' 
+            assignments={ loadedReviews } 
+            showEmpty={ false }
+          />
+        </>
       }
     </>
   );  

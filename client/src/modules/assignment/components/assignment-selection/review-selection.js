@@ -11,7 +11,7 @@ export const ReviewSelection = ({ review, waiting }) => {
   const [{ volumes }] = useContext(UserContext);
   
   const hasReview = review.length > 0;
-  const hasWaiting = Object.values(waiting).reduce((n, assignments) => {
+  const hasWaiting = waiting.reduce((n, { assignments }) => {
     return n + assignments.length;
   }, 0) > 0;
 
@@ -19,7 +19,7 @@ export const ReviewSelection = ({ review, waiting }) => {
     hasWaiting ? <>No current reviews, select a new assignment to review <Icon name='arrow right' /></> :
     'No current reviews';
 
-  const waitingSubheader = hasWaiting ? 'Select a new assignment to review' :
+  const waitingSubheader = hasWaiting ? 'Select a volume to see available assignments to review' :
     'No assignments awaiting review, check back later';
 
   return (
