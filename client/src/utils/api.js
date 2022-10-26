@@ -244,21 +244,25 @@ export const api = {
     }
 
     // If reviewer, Get available review assignments
-    let availableReviews = {};
+    let availableReviews = [];
     if (reviewer) {
       const volumeResponse = await axios.get('/system/subvolume_ids');
 
       for (const { id } of volumeResponse.data) {
-        availableReviews[id] = [];
+        const n = availableReviews.push({
+          volumeId: id,
+          assignments: []
+        });
  
         const reviewResponse = await axios.get(`/item/${ id }/available_items_for_review`);
 
         for (const review of reviewResponse.data) {
           // Check we don't already have it
           if (!assignments.find(({ id }) => id === review.id)) {
-            const assignment = await getAssignment(id, review.id);
-
-            availableReviews[id].push(assignment);
+            availableReviews[n - 1].assignments.push({
+              id: review.id,
+              needToLoad: true
+            });
           }
         }
       }
@@ -268,6 +272,9 @@ export const api = {
       assignments: assignments,
       availableReviews: availableReviews
     };
+  },
+  getAssignment: async (subvolumeId, itemId) => {
+    return await getAssignment(subvolumeId, itemId);
   },
   getNewAssignment: async (userId, subvolumeId) => {
     const response = await axios.get(`/user/${ userId }/assignment`,

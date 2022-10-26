@@ -11,7 +11,7 @@ const sortOrder = (a, b) => (
   b.updated - a.updated
 );
 
-export const Assignments = ({ type, header, subheader, assignments }) => {
+export const Assignments = ({ type, header, subheader, assignments, showEmpty = true }) => {
   const enabledStatus = type === 'refine' ? 'active' : type;
 
   const enabled = ({ status, reviewer }) => 
@@ -40,7 +40,7 @@ export const Assignments = ({ type, header, subheader, assignments }) => {
           ))}
         </div>
       :
-        <EmptyList />
+        <>{ showEmpty && <EmptyList /> }</>
       }
     </>
   );

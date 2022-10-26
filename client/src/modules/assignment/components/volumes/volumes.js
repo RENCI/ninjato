@@ -21,7 +21,7 @@ export const Volumes = ({ header, subheader, volumes, availableReviews, enabled 
           <div key={ i }>
             <Volume 
               volume={ volume }
-              availableReviews={ availableReviews ? availableReviews[volume.id] : null }
+              availableReviews={ availableReviews ? availableReviews[i] : null }
               enabled={ enabled }
             />
           </div>

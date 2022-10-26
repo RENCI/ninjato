@@ -1,14 +1,17 @@
 import { useContext } from 'react';
-import { Segment, Header, Progress, Label, Button } from 'semantic-ui-react';
+import { Segment, Header, Progress, Label } from 'semantic-ui-react';
 import { 
-  UserContext, SET_ASSIGNMENT, 
+  UserContext, SET_ASSIGNMENT, ADD_REVIEWS,
   ErrorContext, SET_ERROR 
 } from 'contexts';
+import { Assignments } from 'modules/assignment/components/assignments';
 import { ButtonWrapper } from 'modules/common/components/button-wrapper';
 import { ChooseButton } from './choose-button';
 import { useLoadData } from 'hooks';
 import { api } from 'utils/api';
 import styles from './styles.module.css';
+
+const numLoad = 5;
 
 export const Volume = ({ volume, availableReviews, enabled }) => {
   const [{ user }, userDispatch] = useContext(UserContext);
@@ -20,9 +23,31 @@ export const Volume = ({ volume, availableReviews, enabled }) => {
 
   const review = Boolean(availableReviews);
 
+  const [unloadedReviews, loadedReviews] = availableReviews ? 
+    availableReviews.assignments.reduce((result, assignment) => {
+      assignment.needToLoad ? result[0].push(assignment) : result[1].push(assignment);
+      return result;
+    }, [[], []]) : [null, null];
+
   const onLoadClick = async () => {
     if (review) {
-      console.log(review);
+
+      const start = unloadedReviews.findIndex(({ needToLoad }) => needToLoad);
+
+      const newReviews = [];
+
+      try {
+        for (let i = start; i < start + numLoad; i++) {
+          const assignment = await api.getAssignment(volume.id, unloadedReviews[i].id);
+
+          newReviews.push(assignment);          
+
+          userDispatch({ type: ADD_REVIEWS, volumeId: volume.id, reviews: newReviews });
+        }
+      }
+      catch (error) {
+        errorDispatch({ type: SET_ERROR, error: error });
+      }
     }
     else {
       try {
@@ -38,7 +63,8 @@ export const Volume = ({ volume, availableReviews, enabled }) => {
     }
   };
 
-  const isEnabled = review ? availableReviews.length > 0 :
+  const isEnabled = review ? 
+    unloadedReviews.length > 0 :
     enabled && available > 0;
 
   return (    
@@ -92,15 +118,12 @@ export const Volume = ({ volume, availableReviews, enabled }) => {
           }
         </Segment>
       </ButtonWrapper>
-      { review &&
-        <>
-          <Button 
-            basic
-            disabled={ !isEnabled }
-          >
-            Load more
-          </Button>
-        </>
+      { review &&        
+        <Assignments 
+          type='review' 
+          assignments={ loadedReviews } 
+          showEmpty={ false }
+        />
       }
     </>
   );  

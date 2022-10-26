@@ -7,6 +7,7 @@ export const LOGOUT = 'user/LOGOUT';
 export const SET_VOLUMES = 'user/SET_VOLUMES';
 export const SET_ASSIGNMENTS = 'user/SET_ASSIGNMENTS';
 export const SET_AVAILABLE_REVIEWS = 'user/SET_AVAILABLE_REVIEWS';
+export const ADD_REVIEWS = 'user/ADD_REVIEWS';
 export const SET_ASSIGNMENT = 'user/SET_ASSIGNMENT';
 export const UPDATE_ASSIGNMENT = 'user/UPDATE_ASSIGNMENT';
 export const SET_DATA = 'user/SET_DATA';
@@ -96,6 +97,31 @@ const reducer = (state, action) => {
         ...state,
         availableReviews: action.availableReviews
       };
+
+    case ADD_REVIEWS: {
+      const availableReviews = [...state.availableReviews];
+
+      console.log(availableReviews);
+      console.log(action);
+
+      const volume = availableReviews.find(({ volumeId }) => volumeId === action.volumeId);
+
+      action.reviews.forEach(review => {
+        const index = volume.assignments.findIndex(({ id }) => id === review.id);
+
+        if (index < 0) {
+          console.warn(`Could not find review assignment: ${ review.id }`);
+          return;
+        }
+
+        volume.assignments[index] = review;
+      });
+
+      return {
+        ...state,
+        availableReviews: availableReviews
+      }
+    }
 
     case SET_ASSIGNMENT: {  
       const { regions } = action.assignment;
