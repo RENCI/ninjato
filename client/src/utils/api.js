@@ -57,7 +57,7 @@ const getComments = async (subvolumeId, regions) => {
   return comments;
 };
 
-const getAssignment = async (subvolumeId, itemId, update = false) => {
+const getAssignment = async (subvolumeId, itemId) => {
   // Get assignment info
   const infoResponse = await axios.get(`/item/${ subvolumeId }/subvolume_assignment_info`, {
     params: { assign_item_id: itemId }
@@ -68,13 +68,15 @@ const getAssignment = async (subvolumeId, itemId, update = false) => {
   // Get files
   const filesResponse = await axios.get(`/item/${ itemId }/files`);
 
-  const { imageInfo, maskInfo, userMaskInfo } = filesResponse.data.reduce((info, item) => {
+  const { imageInfo, maskInfo } = filesResponse.data.reduce((info, item) => {
     // XXX: Depending on file naming conventions here. 
     if (item.name.includes('_masks_regions_user.tif')) {
-      info.userMaskInfo = item;
+      info.maskInfo = item;
     }
     else if (item.name.includes('_masks_regions.tif')) {
-      info.maskInfo = item;
+      if (!info.maskInfo) {
+        info.maskInfo = item;
+      }
     }
     else if (item.name.includes('_regions.tif')) {
       info.imageInfo = item;
@@ -85,8 +87,6 @@ const getAssignment = async (subvolumeId, itemId, update = false) => {
 
   // Get region comments
   const comments = await getComments(subvolumeId, info.regions);
-
-  // XXX: TEST FIX FOR CHOOSE ASSIGNMENT, MERGE WITH MAIN, ADD FIX FOR GETTING RIGHT MASK, MERGE AGAIN
 
   // Copy info and rename to be more concise
   return {
@@ -106,7 +106,6 @@ const getAssignment = async (subvolumeId, itemId, update = false) => {
     status: getStatus(info),
     imageId: imageInfo?._id,
     maskId: maskInfo?._id,
-    userMaskId: userMaskInfo?._id,
     annotator: info.annotator ? info.annotator : null,
     reviewer: info.reviewer ? info.reviewer : null
   };
@@ -244,16 +243,12 @@ export const api = {
       assignments.push(assignment); 
     }
 
-    console.log(...assignments);
-
     // If reviewer, Get available review assignments
     if (reviewer) {
       const volumeResponse = await axios.get('/system/subvolume_ids');
 
       for (const { id } of volumeResponse.data) {
         const reviewResponse = await axios.get(`/item/${ id }/available_items_for_review`);
-
-        console.log(reviewResponse);
 
         for (const review of reviewResponse.data) {
           // Check we don't already have it
@@ -265,8 +260,6 @@ export const api = {
         }
       }
     }
-
-    console.log(...assignments);
 
     return assignments;
   },
@@ -391,8 +384,16 @@ export const api = {
       }
     );
   },
-  claimRegion: async (userId, subvolumeId, assignmentId, label) => {
-    const response = await axios.post(`/user/${ userId }/claim_assignment`, null, {
+  claimRegion: async (userId, subvolumeId, assignmentId, label, buffer, regions) => {
+    const blob = new Blob([buffer], { type: 'application/octet' });
+
+    // Set form data
+    const formData = new FormData();
+    formData.append('current_region_ids', JSON.stringify(regions.map(({ label }) => label)));
+    formData.append('content_data', blob);    
+
+    const response = await axios.post(`/user/${ userId }/claim_assignment`, 
+      formData, {
       params: {
         subvolume_id: subvolumeId,
         active_assignment_id: assignmentId,
@@ -404,8 +405,16 @@ export const api = {
 
     return response.data;
   },
-  removeRegion: async (userId, subvolumeId, assignmentId, label) => {
-    const response = await axios.post(`/user/${ userId }/remove_region_from_assignment`, null, {
+  removeRegion: async (userId, subvolumeId, assignmentId, label, buffer, regions) => {
+    const blob = new Blob([buffer], { type: 'application/octet' });
+
+    // Set form data
+    const formData = new FormData();
+    formData.append('current_region_ids', JSON.stringify(regions.map(({ label }) => label)));
+    formData.append('content_data', blob);   
+
+    const response = await axios.post(`/user/${ userId }/remove_region_from_assignment`, 
+      formData, {
       params: {
         subvolume_id: subvolumeId,
         active_assignment_id: assignmentId,
