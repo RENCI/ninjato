@@ -184,8 +184,6 @@ const reducer = (state, action) => {
         activeRegion = regions.length > 0 ? regions[0] : null;
       }
 
-      console.log(activeRegion)
-
       state.regionHistory.push(({ 
         regions: regions,
         activeRegion: activeRegion

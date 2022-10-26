@@ -3,7 +3,7 @@ import vtkAbstractWidgetFactory from '@kitware/vtk.js/Widgets/Core/AbstractWidge
 import vtkPlaneManipulator from '@kitware/vtk.js/Widgets/Manipulators/PlaneManipulator';
 import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
-import vtkCropRepresentation from 'vtk/crop-representation';
+import vtkCropRepresentation from 'vtk/widgets/crop-representation';
 
 import widgetBehavior from './behavior';
 import stateGenerator from './state';
@@ -14,6 +14,8 @@ import stateGenerator from './state';
 
 function vtkCropWidget(publicAPI, model) {
   model.classHierarchy.push('vtkCropWidget');
+
+  const superClass = { ...publicAPI };
 
   // --- Widget Requirement ---------------------------------------------------
   model.behavior = widgetBehavior;
@@ -34,16 +36,18 @@ function vtkCropWidget(publicAPI, model) {
         ];
     }
   };
-  // --- Widget Requirement ---------------------------------------------------
 
-  const handle = model.widgetState.getHandle();
+  // --- Public methods -------------------------------------------------------
 
-  // Default manipulator
-  model.manipulator = vtkPlaneManipulator.newInstance();
-  handle.setManipulator(model.manipulator);
+  publicAPI.setManipulator = (manipulator) => {
+    superClass.setManipulator(manipulator);
+    model.widgetState.getHandle().setManipulator(manipulator);
+  };
 
   publicAPI.setPosition = (position) => {  
     if (!position) return;
+
+    const handle = model.widgetState.getHandle();
 
     if (model.imageData) {
       const spacing = model.imageData.getSpacing();
@@ -65,6 +69,8 @@ function vtkCropWidget(publicAPI, model) {
   };
 
   publicAPI.getPosition = () => {
+    const handle = model.widgetState.getHandle();
+
     if (model.imageData) {
       const spacing = model.imageData.getSpacing();
       const origin = handle.getOrigin();
@@ -79,21 +85,34 @@ function vtkCropWidget(publicAPI, model) {
       return handle.getOrigin();
     }
   };
+
+  // --------------------------------------------------------------------------
+  // initialization
+  // --------------------------------------------------------------------------
+
+  // Default manipulator
+  publicAPI.setManipulator(
+    model.manipulator ||
+      vtkPlaneManipulator.newInstance({ useCameraNormal: true })
+  );
 } 
 
 // ----------------------------------------------------------------------------
 
-const DEFAULT_VALUES = {
-  manipulator: null,
+const defaultValues = (initialValues) => ({
+  // manipulator: null,
   cropping: false,
   imageData: null,
-  label: null
-};
+  label: null,
+  behavior: widgetBehavior,
+  widgetState: stateGenerator(),
+  ...initialValues
+});
 
 // ----------------------------------------------------------------------------
 
 export function extend(publicAPI, model, initialValues = {}) {
-  Object.assign(model, DEFAULT_VALUES, initialValues);
+  Object.assign(model, defaultValues(initialValues));
 
   vtkAbstractWidgetFactory.extend(publicAPI, model, initialValues);
 

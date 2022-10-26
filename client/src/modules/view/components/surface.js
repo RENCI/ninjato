@@ -2,8 +2,8 @@ import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 import { FieldDataTypes } from '@kitware/vtk.js/Common/DataModel/DataSet/Constants';
 
-import vtkCalculator from 'vtk/calculator';
-import vtkDiscreteFlyingEdges3D from 'vtk/discrete-flying-edges-3D';
+import vtkCalculator from 'vtk/filters/calculator';
+import vtkDiscreteFlyingEdges3D from 'vtk/filters/discrete-flying-edges-3D';
 import { SliceHighlightVP, SliceHighlightFP } from 'vtk/shaders';
 
 export function Surface() {

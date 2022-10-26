@@ -13,6 +13,7 @@ export function BoundingBox() {
   actor.getProperty().setLighting(false);
   actor.getProperty().setColor([0, 0, 0]);
   actor.getProperty().setOpacity(0.1);
+  actor.setPickable(false);
   actor.setMapper(mapper);
 
   return {

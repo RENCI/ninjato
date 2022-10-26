@@ -3,7 +3,7 @@ import vtkAbstractWidgetFactory from '@kitware/vtk.js/Widgets/Core/AbstractWidge
 import vtkPlaneManipulator from '@kitware/vtk.js/Widgets/Manipulators/PlaneManipulator';
 import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
-import vtkBrushRepresentation from 'vtk/brush-representation';
+import vtkBrushRepresentation from 'vtk/widgets/brush-representation';
 import widgetBehavior from './behavior';
 import stateGenerator from './state';
 
@@ -13,6 +13,8 @@ import stateGenerator from './state';
 
 function vtkBrushWidget(publicAPI, model) {
   model.classHierarchy.push('vtkBrushWidget');
+
+  const superClass = { ...publicAPI };
 
   // --- Widget Requirement ---------------------------------------------------
   model.behavior = widgetBehavior;
@@ -33,47 +35,60 @@ function vtkBrushWidget(publicAPI, model) {
         ];
     }
   };
-  // --- Widget Requirement ---------------------------------------------------
 
-  const handle = model.widgetState.getHandle();
+  // --- Public methods -------------------------------------------------------
 
-  // Default manipulator
-  model.manipulator = vtkPlaneManipulator.newInstance();
-  handle.setManipulator(model.manipulator);
+  publicAPI.setManipulator = (manipulator) => {
+    superClass.setManipulator(manipulator);
+    model.widgetState.getHandle().setManipulator(manipulator);
+  };
 
   // override
   const superSetRadius = publicAPI.setRadius;
   publicAPI.setRadius = (r) => {
     if (superSetRadius(r)) {
-      handle.setScale1(r);
+      model.widgetState.getHandle().setScale1(r);
     }
   };
 
   publicAPI.setPosition = (position) => {
-    handle.setOrigin(position);
+    model.widgetState.getHandle().setOrigin(position);
   };
 
   publicAPI.getPosition = () => {
-    return handle.getOrigin();
+    return model.widgetState.getHandle().getOrigin();
   };
+
+  // --------------------------------------------------------------------------
+  // initialization
+  // --------------------------------------------------------------------------
+
+  // Default manipulator
+  publicAPI.setManipulator(
+    model.manipulator ||
+      vtkPlaneManipulator.newInstance({ useCameraNormal: true })
+  );
 } 
 
 // ----------------------------------------------------------------------------
 
-const DEFAULT_VALUES = {
-  manipulator: null,
+const defaultValues = (initialValues) => ({
+  // manipulator: null,
   radius: 1,
   painting: false,
   color: [1],
   imageData: null,
   showTrail: true,
-  label: null
-};
+  label: null,
+  behavior: widgetBehavior,
+  widgetState: stateGenerator(),
+  ...initialValues
+});
 
 // ----------------------------------------------------------------------------
 
 export function extend(publicAPI, model, initialValues = {}) {
-  Object.assign(model, DEFAULT_VALUES, initialValues);
+  Object.assign(model, defaultValues(initialValues));
 
   vtkAbstractWidgetFactory.extend(publicAPI, model, initialValues);
 

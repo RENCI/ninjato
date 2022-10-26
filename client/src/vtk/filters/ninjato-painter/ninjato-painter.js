@@ -159,6 +159,31 @@ function vtkNinjatoPainter(publicAPI, model) {
 
   // --------------------------------------------------------------------------
 
+  publicAPI.paint = (pointList, brush) => {
+    if (workerPromise && pointList.length > 0) {
+      const points = [];
+      for (let i = 0; i < pointList.length / 3; i++) {
+        const worldPt = [
+          pointList[3 * i + 0],
+          pointList[3 * i + 1],
+          pointList[3 * i + 2]
+        ];
+        const indexPt = [0, 0, 0];
+        vec3.transformMat4(indexPt, worldPt, model.maskWorldToIndex);
+        indexPt[0] = Math.round(indexPt[0]);
+        indexPt[1] = Math.round(indexPt[1]);
+        indexPt[2] = Math.round(indexPt[2]);
+
+        points.push(indexPt);
+      }
+
+      workerPromise.exec('paint', {
+        pointList: points, 
+        brush 
+      });
+    }
+  };
+
   publicAPI.paintFloodFill = (pointList, brush) => {
     if (workerPromise && pointList.length > 0) {
       const points = [];
@@ -187,31 +212,6 @@ function vtkNinjatoPainter(publicAPI, model) {
     }
   };
   
-  publicAPI.erase = (pointList, brush) => {
-    if (workerPromise && pointList.length > 0) {
-      const points = [];
-      for (let i = 0; i < pointList.length / 3; i++) {
-        const worldPt = [
-          pointList[3 * i + 0],
-          pointList[3 * i + 1],
-          pointList[3 * i + 2]
-        ];
-        const indexPt = [0, 0, 0];
-        vec3.transformMat4(indexPt, worldPt, model.maskWorldToIndex);
-        indexPt[0] = Math.round(indexPt[0]);
-        indexPt[1] = Math.round(indexPt[1]);
-        indexPt[2] = Math.round(indexPt[2]);
-
-        points.push(indexPt);
-      }
-
-      workerPromise.exec('erase', {
-        pointList: points, 
-        brush 
-      });
-    }
-  };
-
   publicAPI.crop = (p1, p2) => {
     const ijk1 = [0, 0, 0];
     vec3.transformMat4(ijk1, p1, model.maskWorldToIndex);

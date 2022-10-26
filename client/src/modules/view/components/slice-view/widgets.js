@@ -1,10 +1,9 @@
 import vtkWidgetManager from '@kitware/vtk.js/Widgets/Core/WidgetManager';
 import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
-import vtkBrushWidget from 'vtk/brush-widget';
-import vtkCropWidget from 'vtk/crop-widget';
-import vtkRegionSelectWidget from 'vtk/region-select-widget';
-import vtkPanZoomWidget from 'vtk/pan-zoom-widget';
+import vtkBrushWidget from 'vtk/widgets/brush-widget';
+import vtkCropWidget from 'vtk/widgets/crop-widget';
+import vtkRegionSelectWidget from 'vtk/widgets/region-select-widget';
 
 const setBrush = (handle, brush) => {  
   handle.getRepresentations()[0].setBrush(brush);
@@ -44,8 +43,7 @@ export function Widgets(painter) {
     split: createWidget(vtkRegionSelectWidget),
     merge: createWidget(vtkRegionSelectWidget),
     create: createWidget(vtkBrushWidget),
-    delete: createWidget(vtkRegionSelectWidget),
-    navigate: createWidget(vtkPanZoomWidget)
+    delete: createWidget(vtkRegionSelectWidget)
   }; 
 
   widgets.create.setShowTrail(false);
@@ -64,7 +62,6 @@ export function Widgets(painter) {
     const region = regions.concat(backgroundRegions).find(region => region.label === label);
     return region ? region : null;
   };
-
 
   const getWidgetInfo = widget => {
     const startLabel = widget.getStartLabel ? widget.getStartLabel() : null;
@@ -89,7 +86,7 @@ export function Widgets(painter) {
           console.warn(`Unknown callback type: ${ type }`);
       }
     },
-    setRenderer: renderer => {
+    setRenderer: renderer => {      
       manager.setRenderer(renderer);
 
       handles = Object.entries(widgets).reduce((handles, [key, value]) => {
@@ -197,11 +194,13 @@ export function Widgets(painter) {
       });
 
       handles.erase.onEndInteractionEvent(async () => {
-        painter.erase(
+        // Use paint
+        painter.paint(
           handles.erase.getPoints(), 
           handles.erase.getRepresentations()[0].getBrush()
         );
 
+        // Set erase to true
         await painter.endStroke(true);
 
         onEdit(activeRegion);
@@ -277,25 +276,43 @@ export function Widgets(painter) {
     },
     update: (position, spacing) => {      
       // XXX: Why is the 0.85 necessary here?
-      const radius = Math.max(spacing[0], spacing[1]) * 0.85;  
+      const radius = Math.max(spacing[0], spacing[1]) * 0.85;
 
-      Object.values(widgets).forEach(widget => widget.getManipulator().setOrigin(position));
+      Object.values(widgets).forEach(widget => widget.getManipulator().setWidgetOrigin(position));
 
       [widgets.paint, widgets.erase, widgets.create].forEach(widget => widget.setRadius(radius));
 
       Object.values(handles).forEach(handle => handle.updateRepresentationForRender());
     },
     setImageData: imageData => {
-      Object.values(widgets).forEach(widget => widget.setImageData(imageData))    
+      Object.values(widgets).forEach(widget => widget.setImageData(imageData));
     },
     setTool: tool => {
-      const position = activeWidget.getPosition();
+      if (tool) {
+        // XXX: Maybe want a previous widget to handle this?
+        const position = activeWidget ? activeWidget.getPosition() : [0, 0, 0];
 
-      activeWidget = widgets[tool];
+        activeWidget = widgets[tool];
 
-      manager.grabFocus(activeWidget);
+        // Need to enable widget because it may have been disabled below
+        activeWidget.getWidgetForView({ viewId: manager.getViewId() }).setEnabled(true);
+        manager.grabFocus(activeWidget);
+        manager.enablePicking();
 
-      activeWidget.setPosition(position);
+        activeWidget.setPosition(position);
+      }
+      else {
+        activeWidget = null;
+        manager.grabFocus(null);
+        manager.disablePicking();
+
+        // For some reason neither grabFocus(null) nor releaseFocus are working properly.
+        // This workaround disables all widgets here, requiring the newly active widget to be enabled above.
+        Object.values(widgets).forEach(w => {
+          const widget = w.getWidgetForView({ viewId: manager.getViewId() });
+          widget.setEnabled(false);
+        });
+      }
 
       Object.values(widgets).forEach(widget => {
         widget.setVisibility(widget === activeWidget);

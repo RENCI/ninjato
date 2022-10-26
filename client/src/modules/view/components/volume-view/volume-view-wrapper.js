@@ -2,9 +2,9 @@ import { useContext, useState, useRef, useEffect } from 'react';
 import { UserContext, AnnotateContext } from 'contexts';
 import { useResize } from 'hooks';
 
-export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
+export const VolumeViewWrapper = ({ volumeView, onLoaded, onSelect }) => {
   const [{ maskData, assignment, activeRegion }] = useContext(UserContext);
-  const [{ showBackground }] = useContext(AnnotateContext);
+  const [{ tool, tools, showBackground }] = useContext(AnnotateContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);
   const { width } = useResize(div);
@@ -17,10 +17,15 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
     }
   }, [initialized, div, width, volumeView]);
 
+  // Callbacks
+  useEffect(() => {
+    if (initialized) volumeView.setCallback('select', onSelect);
+  }, [initialized, volumeView, onSelect]);
+
   // Regions
   useEffect(() => {
     if (initialized) {
-      volumeView.setRegions(assignment.regions);
+      volumeView.setRegions(assignment.regions, assignment.backgroundRegions);
     }
   }, [initialized, volumeView, assignment]); 
 
@@ -32,10 +37,29 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded }) => {
     }
   }, [initialized, volumeView, maskData, onLoaded]);   
 
-  // Active label
+  // Active region
   useEffect(() => {
     if (initialized) volumeView.setActiveRegion(activeRegion);
   }, [initialized, volumeView, activeRegion]);
+
+  // Tool
+  useEffect(() => {
+    if (initialized) {
+      const toolObject = tools.find(({ value }) => value === tool);
+
+      if (toolObject.volume) {
+        volumeView.setTool(tool, toolObject.cursor);
+      }
+      else {
+        // Default to navigate
+        const toolObject = tools.find(({ value }) => value === 'navigate');
+        volumeView.setTool(null, toolObject.cursor);
+        
+        //const toolObject = tools.find(({ value }) => value === 'select');
+        //volumeView.setTool('select', toolObject.cursor);
+      }
+    }
+  }, [initialized, volumeView, tool, tools]);
 
   // Show background
   useEffect(() => {

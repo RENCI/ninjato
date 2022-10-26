@@ -30,8 +30,9 @@ export const RefineContainer = () => {
 
   // Create views
   useEffect(() => {
-    setVolumeView(VolumeView());
-    setSliceView(SliceView());
+    const sliceView = SliceView();
+    setSliceView(sliceView);
+    setVolumeView(VolumeView(sliceView.getPainter()));
   }, []);
 
   useEffect(() => {
@@ -194,7 +195,11 @@ export const RefineContainer = () => {
           <VisualizationSection>
             <Grid columns='equal' stackable padded reversed='mobile'>
               <Column>
-                <VolumeViewWrapper volumeView={ volumeView } onLoaded={ onLoaded } />
+                <VolumeViewWrapper 
+                  volumeView={ volumeView } 
+                  onLoaded={ onLoaded }
+                  onSelect={ onSelect }
+                />
               </Column>
               <Column>
                 <RegionPopup 

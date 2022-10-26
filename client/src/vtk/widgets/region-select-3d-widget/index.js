@@ -1,0 +1,1 @@
+export { default } from './region-select-3d-widget';

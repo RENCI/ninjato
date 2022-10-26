@@ -11,24 +11,6 @@ export function SliceView() {
   const image = Image();
   const slice = Slice();
   const mask = MaskPainter();
-
-  renderWindow.test = renderWindow.test ? renderWindow.test + 1 : 1;
-
-  /*
-  const isValid = label => label !== null && label !== 0;
-
-  const onRegionHover = (label, highlight) => {
-    onHover(label);
-
-    if (isValid(label)) {
-      onHighlight(label);
-    }
-    else {
-      onHighlight(null);
-    }
-  };
-  */
-
   const widgets = Widgets(mask.getPainter());
 
   return {
@@ -40,6 +22,7 @@ export function SliceView() {
 
       widgets.setRenderer(renderWindow.getRenderer());
     },
+    getPainter: () => mask.getPainter(),
     setCallback: (type, callback) => {
       switch (type) {
         case 'edit':
@@ -104,8 +87,9 @@ export function SliceView() {
     },
     setHighlightRegion: region => mask.setHighlightRegion(region),
     setTool: (tool, cursor) => {
-      widgets.setTool(tool)
+      widgets.setTool(tool);
       renderWindow.setCursor(cursor);
+      renderWindow.render();
     },
     setBrush: (type, brush) => widgets.setBrush(type, brush),
     setSlice: slice => image.getMapper().setSlice(slice),

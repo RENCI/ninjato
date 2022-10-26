@@ -73,7 +73,13 @@ export const SliceViewWrapper = ({ sliceView, onEdit, onSliceChange, onSelect, o
   useEffect(() => {
     if (initialized) {
       const toolObject = tools.find(({ value }) => value === tool);
-      sliceView.setTool(tool, toolObject.cursor);
+
+      if (tool === 'navigate') {
+        sliceView.setTool(null, toolObject.cursor);
+      }
+      else {
+        sliceView.setTool(tool, toolObject.cursor);
+      }
     }
   }, [initialized, sliceView, tool, tools]);
 
