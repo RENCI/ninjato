@@ -2,7 +2,7 @@ import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransf
 import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 
-import vtkImageContour from 'vtk/image-contour';
+import vtkImageContour from 'vtk/filters/image-contour';
 import { backgroundColors } from 'utils/colors';
 
 export function Mask() {        

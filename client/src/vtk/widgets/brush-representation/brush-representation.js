@@ -10,7 +10,7 @@ import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransf
 
 import { ScalarMode } from '@kitware/vtk.js/Rendering/Core/Mapper/Constants';
 
-import vtkBrushSource from 'vtk/brush-source';
+import vtkBrushSource from 'vtk/widgets/brush-source';
 
 // ----------------------------------------------------------------------------
 // vtkBrushRepresentation methods
@@ -53,8 +53,6 @@ function vtkBrushRepresentation(publicAPI, model) {
   // Generic rendering pipeline
   // --------------------------------------------------------------------------
 
-  const color = vtkColorTransferFunction.newInstance();
-
   model.pipelines = {
     brush: {
       source: publicAPI,
@@ -65,7 +63,7 @@ function vtkBrushRepresentation(publicAPI, model) {
         scaleMode: vtkGlyph3DMapper.ScaleModes.SCALE_BY_COMPONENTS,
         colorByArrayName: 'color',
         scalarMode: ScalarMode.USE_POINT_FIELD_DATA,
-        lookupTable: color
+        lookupTable: vtkColorTransferFunction.newInstance()
       }),
       actor: vtkActor.newInstance({ pickable: false, parentProp: publicAPI }),
     },

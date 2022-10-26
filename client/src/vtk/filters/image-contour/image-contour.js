@@ -63,10 +63,7 @@ function vtkImageContour(publicAPI, model) {
     const halfSpacing = spacing.map(d => d / 2);
     const w = model.width / 2 * spacing[kernelX];
 
-    const toPixelCenter = (v, spacing, max) => (
-      v === max - 1 ? (max - 1.5) * spacing :
-      (Math.floor(v * max / (max - 1)) + 0.5) * spacing * (max - 1) / max
-    );
+    const toPixelCenter = v => Math.floor(v);;
 
     const jStride = dims[0];
     const kStride = dims[0] * dims[1];

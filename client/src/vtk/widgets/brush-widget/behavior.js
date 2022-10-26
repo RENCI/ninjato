@@ -1,24 +1,26 @@
 import macro from '@kitware/vtk.js/macros';
 import { vec3 } from 'gl-matrix';
-import { getLabel } from 'vtk/widget-utils';
-
-const toPixelCenter = (v, spacing, max) => {
-  if (v < 0) v = 0;
-  else if (v > max - 1) v = max - 1.5;
-  
-  return (Math.floor(v * max / (max - 1)) + 0.5) * spacing * (max - 1) / max;
-};
+import { toPixelCenter, getImageLabel } from 'vtk/widgets/widget-utils';
 
 export default function widgetBehavior(publicAPI, model) {
-  model.handle = model.widgetState.getHandle();
+  model.painting = model._factory.getPainting();
+
+  publicAPI.getPoints = () => 
+    model.representations[0].getOutputData().getPoints().getData();
 
   publicAPI.handleLeftButtonPress = (callData) => {
     if (!model.activeState || !model.activeState.getActive()) {
       return macro.VOID;
     }
 
-    model.cropping = true;
-
+    model.painting = true;
+    if (model._factory.getShowTrail()) {
+      const trail = model.widgetState.addTrail();
+      trail.set(
+        model.activeState.get('origin', 'up', 'right', 'direction')
+      );
+      trail.setScale1(model._factory.getImageData().getSpacing()[0]);
+    }
     publicAPI.invokeStartInteractionEvent();
     return macro.EVENT_ABORT;
   };
@@ -26,35 +28,33 @@ export default function widgetBehavior(publicAPI, model) {
   publicAPI.handleMouseMove = (callData) => publicAPI.handleEvent(callData);
 
   publicAPI.handleLeftButtonRelease = () => {
-    if (model.cropping) {
+    if (model.painting) {
       publicAPI.invokeEndInteractionEvent();
+      model.widgetState.clearTrailList();
     }
-    model.cropping = false;
+    model.painting = false;
     return model.hasFocus ? macro.EVENT_ABORT : macro.VOID;
   };
 
   publicAPI.handleEvent = (callData) => {
-    if (
-      model.manipulator &&
-      model.activeState &&
-      model.activeState.getActive()
-    ) {
-      const normal = model.camera.getDirectionOfProjection();
-      const up = model.camera.getViewUp();
+    const manipulator =
+      model.activeState?.getManipulator?.() ?? model.manipulator;
+    if (manipulator && model.activeState && model.activeState.getActive()) {
+      const normal = model._camera.getDirectionOfProjection();
+      const up = model._camera.getViewUp();
       const right = [];
       vec3.cross(right, up, normal);
       model.activeState.setUp(...up);
       model.activeState.setRight(...right);
       model.activeState.setDirection(...normal);
-      model.manipulator.setNormal(normal);
 
-      const worldCoords = model.manipulator.handleEvent(
+      const worldCoords = manipulator.handleEvent(
         callData,
-        model.apiSpecificRenderWindow
+        model._apiSpecificRenderWindow
       );
 
       if (worldCoords.length) {
-        const imageData = model.factory.getImageData();
+        const imageData = model._factory.getImageData();
 
         if (imageData) {
           const ijk = imageData.worldToIndex([...worldCoords]);
@@ -64,29 +64,24 @@ export default function widgetBehavior(publicAPI, model) {
           worldCoords[0] = toPixelCenter(ijk[0], spacing[0], dims[0]);
           worldCoords[1] = toPixelCenter(ijk[1], spacing[1], dims[1]);
 
-          const dx = spacing[0] / 2;
-          const dy = spacing[1] / 2;
+          model.activeState.setOrigin(...worldCoords);
 
-          if (!model.cropping) {
-            model.handle.setOrigin(
-              worldCoords[0] - dx,
-              worldCoords[1] - dy,
-              worldCoords[2]
+          if (model._factory.getShowTrail() && model.painting) {
+            const trail = model.widgetState.addTrail();
+            trail.set(
+              model.activeState.get(
+                'origin',
+                'up',
+                'right',
+                'direction'
+              )
             );
+            trail.setScale1(spacing[0]);
           }
-
-          const o = model.handle.getOrigin();
-          const c = model.handle.getCorner();
-
-          model.handle.setCorner(
-            worldCoords[0] + (c[0] >= o[0] ? dx : -dx), 
-            worldCoords[1] + (c[1] >= o[1] ? dy : -dy), 
-            worldCoords[2]
-          );
         }
       }
-
-      model.factory.setLabel(getLabel(model, callData));  
+      
+      model._factory.setLabel(getImageLabel(model, callData));    
 
       publicAPI.invokeInteractionEvent();
       return macro.EVENT_ABORT;
@@ -98,9 +93,9 @@ export default function widgetBehavior(publicAPI, model) {
     if (!model.hasFocus) {
       model.activeState = model.widgetState.getHandle();
       model.activeState.activate();
-      model.interactor.requestAnimation(publicAPI);
+      model._interactor.requestAnimation(publicAPI);
 
-      const canvas = model.apiSpecificRenderWindow.getCanvas();
+      const canvas = model._apiSpecificRenderWindow.getCanvas();
       canvas.onmouseenter = () => {
         if (
           model.hasFocus &&
@@ -123,11 +118,13 @@ export default function widgetBehavior(publicAPI, model) {
 
   publicAPI.loseFocus = () => {
     if (model.hasFocus) {
-      model.interactor.cancelAnimation(publicAPI);
+      model._interactor.cancelAnimation(publicAPI);
     }
     model.widgetState.deactivate();
     model.widgetState.getHandle().deactivate();
     model.activeState = null;
     model.hasFocus = false;
   };
+
+  macro.get(publicAPI, model, ['painting']);
 }

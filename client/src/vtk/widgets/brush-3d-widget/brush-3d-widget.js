@@ -3,7 +3,7 @@ import vtkAbstractWidgetFactory from '@kitware/vtk.js/Widgets/Core/AbstractWidge
 import vtkPlaneManipulator from '@kitware/vtk.js/Widgets/Manipulators/PlaneManipulator';
 import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
-import vtkBrushRepresentation from 'vtk/brush-representation';
+import vtkBrush3DRepresentation from 'vtk/widgets/brush-3d-representation';
 import widgetBehavior from './behavior';
 import stateGenerator from './state';
 
@@ -11,8 +11,10 @@ import stateGenerator from './state';
 // Factory
 // ----------------------------------------------------------------------------
 
-function vtkPanZoomWidget(publicAPI, model) {
-  model.classHierarchy.push('vtkPanZoomWidget');
+function vtkBrush3DWidget(publicAPI, model) {
+  model.classHierarchy.push('vtkBrush3DWidget');
+
+  const superClass = { ...publicAPI };
 
   // --- Widget Requirement ---------------------------------------------------
   model.behavior = widgetBehavior;
@@ -27,52 +29,82 @@ function vtkPanZoomWidget(publicAPI, model) {
       default:
         return [
           {
-            builder: vtkBrushRepresentation,
+            builder: vtkBrush3DRepresentation,
             labels: ['handle']
           },
         ];
     }
   };
-  // --- Widget Requirement ---------------------------------------------------
 
-  const handle = model.widgetState.getHandle();
+  // --- Public methods -------------------------------------------------------
 
-  // Default manipulator
-  model.manipulator = vtkPlaneManipulator.newInstance();
-  handle.setManipulator(model.manipulator);
+  publicAPI.setManipulator = (manipulator) => {
+    superClass.setManipulator(manipulator);
+    model.widgetState.getHandle().setManipulator(manipulator);
+  };
+
+  // override
+  const superSetRadius = publicAPI.setRadius;
+  publicAPI.setRadius = (r) => {
+    if (superSetRadius(r)) {
+      model.widgetState.getHandle().setScale1(r);
+    }
+  };
 
   publicAPI.setPosition = (position) => {
-    handle.setOrigin(position);
+    model.widgetState.getHandle().setOrigin(position);
   };
 
   publicAPI.getPosition = () => {
-    return handle.getOrigin();
+    return model.widgetState.getHandle().getOrigin();
   };
+
+  publicAPI.setScale = () => {
+    return model.widgetState.getHandle().setOrientation();
+  };
+
+  // --------------------------------------------------------------------------
+  // initialization
+  // --------------------------------------------------------------------------
+
+  // Default manipulator
+  publicAPI.setManipulator(
+    model.manipulator ||
+      vtkPlaneManipulator.newInstance({ useCameraNormal: true })
+  );
 } 
 
 // ----------------------------------------------------------------------------
 
-const DEFAULT_VALUES = {
-  manipulator: null,
-  imageData: null
-};
+const defaultValues = (initialValues) => ({
+  // manipulator: null,
+  radius: 1,
+  painting: false,
+  color: [1],
+  imageData: null,
+  label: null,
+  mode: 'paint',
+  behavior: widgetBehavior,
+  widgetState: stateGenerator(),
+  ...initialValues
+});
 
 // ----------------------------------------------------------------------------
 
 export function extend(publicAPI, model, initialValues = {}) {
-  Object.assign(model, DEFAULT_VALUES, initialValues);
+  Object.assign(model, defaultValues(initialValues));
 
   vtkAbstractWidgetFactory.extend(publicAPI, model, initialValues);
 
   macro.get(publicAPI, model, ['painting']);
-  macro.setGet(publicAPI, model, ['manipulator', 'imageData', 'showTrail']);
+  macro.setGet(publicAPI, model, ['manipulator', 'radius', 'color', 'imageData', 'label', 'mode']);
 
-  vtkPanZoomWidget(publicAPI, model);
+  vtkBrush3DWidget(publicAPI, model);
 }
 
 // ----------------------------------------------------------------------------
 
-export const newInstance = macro.newInstance(extend, 'vtkPanZoomWidget');
+export const newInstance = macro.newInstance(extend, 'vtkBrush3DWidget');
 
 // ----------------------------------------------------------------------------
 

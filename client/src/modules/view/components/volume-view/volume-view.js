@@ -1,4 +1,8 @@
+import vtkCellPicker from '@kitware/vtk.js/Rendering/Core/CellPicker';
+
+import vtkInteractorStyleNinjato3D from 'vtk/interaction/interactor-style-ninjato-3d';
 import { RenderWindow, Surface, BoundingBox } from 'modules/view/components';
+import { Widgets } from 'modules/view/components/volume-view/widgets';
 import { getUniqueLabels } from 'utils/data';
 import { backgroundColors } from 'utils/colors';
 import { interpolate, distance } from 'utils/math';
@@ -100,8 +104,13 @@ const applyActiveRegion = (region, surfaces) => {
 };
 */
 
-export function VolumeView() {  
+export function VolumeView(painter) {  
+  // Callbacks
+  let onEdit = () => {};
+  let onSliceChange = () => {};
+
   const renderWindow = RenderWindow();
+  const widgets = Widgets(painter);
 
   let surfaces = [];
 
@@ -132,6 +141,37 @@ export function VolumeView() {
       if (renderWindow.initialized()) return;
 
       renderWindow.initialize(rootNode);      
+
+      const interactor = renderWindow.getInteractor();
+      interactor.setInteractorStyle(vtkInteractorStyleNinjato3D.newInstance());
+      interactor.setPicker(vtkCellPicker.newInstance());
+
+      widgets.setRenderer(renderWindow.getRenderer());
+    },
+    setCallback: (type, callback) => {
+      switch (type) {
+/*        
+        case 'edit':
+          onEdit = callback;
+          widgets.setCallback(type, callback);
+        break;
+*/
+        case 'sliceChange':
+          onSliceChange = callback;
+          break;
+/*
+        case 'keyDown':
+          slice.setCallback(type, key => key === 'i' ? image.toggleInterpolation() : callback(key));
+          break;
+
+        case 'keyUp':
+          slice.setCallback(type, callback);
+          break;
+*/          
+
+        default: 
+          widgets.setCallback(type, callback);
+      }
     },
     setData: maskData => {
       if (maskData) {
@@ -147,6 +187,8 @@ export function VolumeView() {
         surfaces.forEach(surface => renderer.addActor(surface.getActor()));
         renderer.addActor(background.getActor());
         renderer.addActor(boundingBox.getActor());
+
+        widgets.setImageData(maskData);
       } 
       else {
         const renderer = renderWindow.getRenderer();
@@ -163,9 +205,14 @@ export function VolumeView() {
         resetCamera(renderWindow.getRenderer(), getSurface(activeRegion).getOutput());
       }
     },
-    setRegions: regionArray => {
+    setRegions: (regionArray, backgroundRegions) => {
+      widgets.setRegions(regionArray, backgroundRegions);
+
       // Clean up any old surfaces
-      surfaces.forEach(surface => surface.cleanUp());
+      surfaces.forEach(surface => {
+        renderWindow.getRenderer().removeActor(surface.getActor());
+        surface.cleanUp();
+      });
 
       regions = regionArray;
 
@@ -205,9 +252,16 @@ export function VolumeView() {
 
 //      applyActiveRegion(, regions, renderWindow);
 
+      widgets.setActiveRegion(region);
+
       centerCamera(renderWindow, surface.getOutput(), background.getInputData());
     },
     //setHighlightLabel: label => mask.setHighlightLabel(label),
+    setTool: (tool, cursor) => {      
+      widgets.setTool(tool);
+      renderWindow.setCursor(cursor);
+      renderWindow.render();
+    },
     setSlice: sliceNumber => {
       slice = sliceNumber;
       surfaces.forEach(surface => {

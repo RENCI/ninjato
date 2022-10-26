@@ -1,0 +1,1 @@
+export { default } from './interactor-style-ninjato-slice';

@@ -1,6 +1,6 @@
 import macro from '@kitware/vtk.js/macros';
 import { vec3 } from 'gl-matrix';
-import { getLabel } from 'vtk/widget-utils';
+import { getImageLabel } from 'vtk/widgets/widget-utils';
 
 export default function widgetBehavior(publicAPI, model) {
   publicAPI.handleLeftButtonPress = (callData) => {
@@ -8,9 +8,9 @@ export default function widgetBehavior(publicAPI, model) {
       return macro.VOID;
     }   
 
-    const label = getLabel(model, callData);
-    model.factory.setStartLabel(label);
-    model.factory.setLabel(label);
+    const label = getImageLabel(model, callData);
+    model._factory.setStartLabel(label);
+    model._factory.setLabel(label);
     
     publicAPI.invokeStartInteractionEvent();
     return macro.EVENT_ABORT;
@@ -19,30 +19,27 @@ export default function widgetBehavior(publicAPI, model) {
   publicAPI.handleMouseMove = (callData) => publicAPI.handleEvent(callData);
 
   publicAPI.handleLeftButtonRelease = () => {
-    if (model.factory.getStartLabel() !== null) {      
+    if (model._factory.getStartLabel() !== null) {      
       publicAPI.invokeEndInteractionEvent();
     }
-    model.factory.setStartLabel(null);
-    model.factory.setLabel(null);
+    model._factory.setStartLabel(null);
+    model._factory.setLabel(null);
     return model.hasFocus ? macro.EVENT_ABORT : macro.VOID;
   };
 
   publicAPI.handleEvent = (callData) => {
-    if (
-      model.manipulator &&
-      model.activeState &&
-      model.activeState.getActive()
-    ) {
-      const normal = model.camera.getDirectionOfProjection();
-      const up = model.camera.getViewUp();
+    const manipulator =
+      model.activeState?.getManipulator?.() ?? model.manipulator;
+    if (manipulator && model.activeState && model.activeState.getActive()) {
+      const normal = model._camera.getDirectionOfProjection();
+      const up = model._camera.getViewUp();
       const right = [];
       vec3.cross(right, up, normal);
       model.activeState.setUp(...up);
       model.activeState.setRight(...right);
       model.activeState.setDirection(...normal);
-      model.manipulator.setNormal(normal);
 
-      model.factory.setLabel(getLabel(model, callData));       
+      model._factory.setLabel(getImageLabel(model, callData));       
 
       publicAPI.invokeInteractionEvent();
       return macro.EVENT_ABORT;
@@ -54,9 +51,9 @@ export default function widgetBehavior(publicAPI, model) {
     if (!model.hasFocus) {
       model.activeState = model.widgetState.getHandle();
       model.activeState.activate();
-      model.interactor.requestAnimation(publicAPI);
+      model._interactor.requestAnimation(publicAPI);
 
-      const canvas = model.apiSpecificRenderWindow.getCanvas();
+      const canvas = model._apiSpecificRenderWindow.getCanvas();
       canvas.onmouseenter = () => {
         if (
           model.hasFocus &&
@@ -79,7 +76,7 @@ export default function widgetBehavior(publicAPI, model) {
 
   publicAPI.loseFocus = () => {
     if (model.hasFocus) {
-      model.interactor.cancelAnimation(publicAPI);
+      model._interactor.cancelAnimation(publicAPI);
     }
     model.widgetState.deactivate();
     model.widgetState.getHandle().deactivate();
