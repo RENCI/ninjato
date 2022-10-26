@@ -111,7 +111,7 @@ export const ReviewContainer = () => {
   // For use in key callbacks to avoid useCallback
   const localTool = useRef();
 
-  const onKeyDown = key => {
+  const onKeyDown = useCallback(key => {
     switch (key) {
       case 'Control':
         if (localTool.current !== 'erase') {
@@ -134,11 +134,19 @@ export const ReviewContainer = () => {
         }
         break;
 
+      case 'ArrowLeft':
+        annotateDispatch({ type: ANNOTATE_CHANGE_BRUSH_SIZE, direction: 'down' });
+        break;
+
+      case 'ArrowRight':
+        annotateDispatch({ type: ANNOTATE_CHANGE_BRUSH_SIZE, direction: 'up' });
+        break;
+
       default:
     }
-  };
-
-  const onKeyUp = key => {
+  }, [annotateDispatch]);
+  
+  const onKeyUp = useCallback(key => {
     switch (key) {
       case 'Control': 
         annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
@@ -155,17 +163,9 @@ export const ReviewContainer = () => {
         localTool.current = 'paint';
         break;
 
-      case 'ArrowLeft':
-        annotateDispatch({ type: ANNOTATE_CHANGE_BRUSH_SIZE, direction: 'down' });
-        break;
-
-      case 'ArrowRight':
-        annotateDispatch({ type: ANNOTATE_CHANGE_BRUSH_SIZE, direction: 'up' });
-        break;
-
       default:
     }
-  };
+  }, [annotateDispatch]);
 
   // Other callbacks
   const onLoaded = useCallback(() => {

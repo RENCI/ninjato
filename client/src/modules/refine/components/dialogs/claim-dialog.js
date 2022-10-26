@@ -8,6 +8,7 @@ import {
 import { RegionLabel } from 'modules/region/components/region-label';
 import { useLoadData } from 'hooks';
 import { api } from 'utils/api';
+import { createByteStream } from 'utils/data-conversion';
 
 const { Header, Content, Actions } = Modal;
 
@@ -23,7 +24,9 @@ export const ClaimDialog = () => {
     setClaiming(true);
 
     try {      
-      await api.claimRegion(user._id, assignment.subvolumeId, assignment.id, action.region.label);
+      const buffer = createByteStream(maskData);
+
+      await api.claimRegion(user._id, assignment.subvolumeId, assignment.id, action.region.label, buffer, assignment.regions);
 
       setClaiming(false);
       setSuccess(true);
@@ -40,13 +43,6 @@ export const ClaimDialog = () => {
 
         setSuccess(false);
         annotateDispatch({ type: ANNOTATE_SET_ACTION, action: null }); 
-
-        //setNeedToSave(true);
-/*
-        setTimeout(() => {
-          saveAnnotations();
-        }, 10000);
-        */
       }, 1000); 
     }
     catch (error) {

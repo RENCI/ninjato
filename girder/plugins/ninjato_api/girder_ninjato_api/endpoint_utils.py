@@ -1,21 +1,18 @@
-import os
 import random
 from datetime import datetime
 from girder.models.item import Item
-from girder.models.file import File
 from girder.models.user import User
 from bson.objectid import ObjectId
 from girder.models.collection import Collection
 from girder.models.folder import Folder
 from girder.exceptions import RestException
-from .utils import COLLECTION_NAME, DATA_PATH, ANNOT_ASSIGN_KEY, ANNOT_COMPLETE_KEY, \
+from .utils import COLLECTION_NAME, ANNOT_ASSIGN_KEY, ANNOT_COMPLETE_KEY, \
     REVIEW_ASSIGN_KEY, REVIEW_COMPLETE_KEY, REVIEW_APPROVE_KEY, get_max_region_id, \
     set_max_region_id, remove_region_from_active_assignment, \
     merge_region_to_active_assignment, set_assignment_meta, get_history_info, \
-    assign_region_to_user, save_file, add_meta_to_history, check_subvolume_done, \
-    reject_assignment, update_assignment_in_whole_item, get_assignment_status, remove_regions, \
-    find_region_item_from_label, get_region_extent, save_content_bytes_to_tiff, \
-    save_added_and_removed_regions, update_all_assignment_masks_async
+    assign_region_to_user, add_meta_to_history, check_subvolume_done, \
+    reject_assignment, update_assignment_in_whole_item, get_assignment_status, \
+    save_content_data, save_added_and_removed_regions, update_all_assignment_masks_async
 
 
 def get_available_region_ids(whole_item, count=1):
@@ -49,21 +46,22 @@ def get_available_region_ids(whole_item, count=1):
     return id_list
 
 
-def remove_region_from_item_assignment(user, subvolume_id, active_assignment_id, region_id):
+def remove_region_from_item_assignment(user, subvolume_id, active_assignment_id, region_id,
+                                       current_region_ids, content_data):
     """
     remove a region from item assignment
     :param user: requesting user
     :param subvolume_id: subvolume_id that contains the region to be removed
     :param active_assignment_id: the user's active assignment id to remove the region from
     :param region_id: region id or label to remove from the assignment
+    :param current_region_ids: current region ids of the user mask of the current assignment
+    :param content_data: current assignment user mask
     :return: a dict with status
     """
     ret_dict = {}
     whole_item = Item().findOne({'_id': ObjectId(subvolume_id)})
     region_id = str(region_id)
-    assign_item = Item().findOne({'_id': ObjectId(active_assignment_id)})
-    assign_info = get_history_info(whole_item, assign_item['_id'],
-                                    ANNOT_ASSIGN_KEY)
+    assign_info = get_history_info(whole_item, active_assignment_id, ANNOT_ASSIGN_KEY)
     if assign_info:
         assign_user_login = assign_info[0]['user']
         if assign_user_login != user['login']:
@@ -72,7 +70,8 @@ def remove_region_from_item_assignment(user, subvolume_id, active_assignment_id,
             if review_assign_info and review_assign_info[0]['user'] != user['login']:
                 raise RestException('input region id to be removed is not currently assigned '
                                     'to the requesting user', code=400)
-        ret = remove_region_from_active_assignment(whole_item, assign_item, region_id)
+        ret = remove_region_from_active_assignment(whole_item, active_assignment_id, region_id,
+                                                   current_region_ids, content_data)
         if ret:
             ret_dict['assignment_item_id'] = ret
             ret_dict['status'] = 'success'
@@ -84,13 +83,16 @@ def remove_region_from_item_assignment(user, subvolume_id, active_assignment_id,
         raise RestException('input region id to be removed is not currently assigned', code=400)
 
 
-def claim_assignment(user, subvolume_id, active_assignment_id, claim_region_id):
+def claim_assignment(user, subvolume_id, active_assignment_id, claim_region_id,
+                     current_region_ids, content_data):
     """
     allow a user to claim a neighboring region to add to their assignment
     :param user: requesting user
     :param subvolume_id: subvolume id that contains the claimed region
     :param active_assignment_id: the user's active assignment id to add the claimed region into
     :param claim_region_id: region id or label to find the assignment item to be claimed
+    :param current_region_ids: current region ids of the user mask of the current assignment
+    :param content_data: current assignment user mask
     :return: a dict with status and assigned_user_info keys
     """
     ret_dict = {}
@@ -127,7 +129,8 @@ def claim_assignment(user, subvolume_id, active_assignment_id, claim_region_id):
 
         # available to be claimed, merge claimed region to the user's active assignment
         annot_info = merge_region_to_active_assignment(whole_item, active_assignment_id,
-                                                        claim_region_id)
+                                                       claim_region_id, current_region_ids,
+                                                       content_data)
 
         ret_dict['status'] = 'success'
         ret_dict['assigned_user_info'] = annot_info
@@ -425,32 +428,7 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
             "status": "success"
         }
 
-    files = File().find({'itemId': ObjectId(item_id)})
-    annot_file_name = ''
-    assetstore_id = ''
-    for file in files:
-        if '_masks' in file['name']:
-            mask_file_name = file['name']
-            if mask_file_name.endswith('_user.tif'):
-                annot_file_name = mask_file_name
-            else:
-                annot_file_name = f'{os.path.splitext(mask_file_name)[0]}_user.tif'
-            assetstore_id = file['assetstoreId']
-            break
-    if not annot_file_name or not assetstore_id:
-        raise RestException('failure: cannot find the mask file for the annotated item', 500)
-    content = content_data.file.read()
-    try:
-        # save file to local file system before adding it to asset store
-        out_dir_path = os.path.join(DATA_PATH, str(item_id))
-        out_path = os.path.join(out_dir_path, annot_file_name)
-        if not os.path.isdir(out_dir_path):
-            os.makedirs(out_dir_path)
-
-        save_content_bytes_to_tiff(content, out_path, item)
-        file = save_file(assetstore_id, item, out_path, user, annot_file_name)
-    except Exception as e:
-        raise RestException(f'failure: {e}', 500)
+    annot_file_name = save_content_data(user, item_id, content_data)
 
     done_key = f'annotation_done'
     if done:
@@ -483,7 +461,7 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
         check_subvolume_done(whole_item)
 
     return {
-        'annotation_file_id': file['_id'],
+        'annotation_file_name': annot_file_name,
         'status': 'success'
     }
 
@@ -514,30 +492,10 @@ def save_user_review_result_as_item(user, item_id, done, reject, comment, approv
             "status": "success"
         }
 
-    annot_file_name = None
     if content_data:
-        files = File().find({'itemId': ObjectId(item_id)})
+        annot_file_name = save_content_data(user, item_id, content_data, review=True)
+    else:
         annot_file_name = ''
-        assetstore_id = ''
-        for file in files:
-            if '_masks' in file['name'] and file['name'].endswith('_user.tif'):
-                annot_file_name = file['name']
-                assetstore_id = file['assetstoreId']
-                break
-        if not annot_file_name or not assetstore_id:
-            raise RestException('failure: cannot find the mask file for the annotated item', 500)
-        content = content_data.file.read()
-
-        try:
-            # save file to local file system before adding it to asset store
-            out_dir_path = os.path.join(DATA_PATH, str(item_id))
-            out_path = os.path.join(out_dir_path, annot_file_name)
-            if not os.path.isdir(out_dir_path):
-                os.makedirs(out_dir_path)
-            save_content_bytes_to_tiff(content, out_path, item)
-            save_file(assetstore_id, item, out_path, user, annot_file_name)
-        except Exception as e:
-            raise RestException(f'failure: {e}', 500)
 
     add_meta = {}
     if approve:

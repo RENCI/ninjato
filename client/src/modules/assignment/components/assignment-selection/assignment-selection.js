@@ -9,11 +9,11 @@ import styles from './styles.module.css';
 
 // For refine, want anything where this user is the annotator
 // For review, want anything where this user is the reviewer
-// For waiting, want anything that is waiting and not this user's
+// For waiting, want anything that is waiting and not assigned a reviewer
 const filterAssignments = (assignments, type, login) => (
   type === 'refine' ? assignments.filter(({ annotator }) => annotator?.login === login) :
   type === 'review' ? assignments.filter(({ reviewer }) => reviewer?.login === login) :
-  assignments.filter(({ status, annotator }) => status === 'waiting' && annotator.login !== login)
+  assignments.filter(({ status, reviewer }) => status === 'waiting' && !reviewer?.login)
 );
 
 export const AssignmentSelection = () => {

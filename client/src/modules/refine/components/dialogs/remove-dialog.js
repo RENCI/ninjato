@@ -8,11 +8,12 @@ import {
 import { RegionLabel } from 'modules/region/components/region-label';
 import { useLoadData } from 'hooks';
 import { api } from 'utils/api';
+import { createByteStream } from 'utils/data-conversion';
 
 const { Header, Content, Actions } = Modal;
 
 export const RemoveDialog = () => {
-  const [{ user, assignment }, userDispatch] = useContext(UserContext);
+  const [{ user, assignment, maskData }, userDispatch] = useContext(UserContext);
   const [{ action }, annotateDispatch] = useContext(AnnotateContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const loadData = useLoadData();
@@ -24,7 +25,9 @@ export const RemoveDialog = () => {
     setRemoving(true);
 
     try {      
-      await api.removeRegion(user._id, assignment.subvolumeId, assignment.id, action.region.label);
+      const buffer = createByteStream(maskData);
+
+      await api.removeRegion(user._id, assignment.subvolumeId, assignment.id, action.region.label, buffer, assignment.regions);
 
       setRemoving(false);
       setSuccess(true);

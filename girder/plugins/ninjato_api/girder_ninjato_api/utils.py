@@ -423,7 +423,6 @@ def get_assignment_status(whole_item, assign_item_id):
         # reannotated assignment is ready to be reviewed
         return 'awaiting review'
 
-    # annotation could be assigned to a new reviewer who has not completed reviewer yet
     return 'under review'
 
 
@@ -562,14 +561,113 @@ def check_subvolume_done(whole_item, task='annotation'):
     return vol_done
 
 
-def remove_region_from_active_assignment(whole_item, assign_item, region_id):
+def _update_user_mask(item_id, old_content, old_extent, new_extent=None):
+    item = Item().findOne({'_id': ObjectId(item_id)})
+    if not new_extent:
+        item_coords = item['meta']['coordinates']
+        new_extent = {
+            'min_x': item_coords['x_min'],
+            'max_x': item_coords['x_max'],
+            'min_y': item_coords['y_min'],
+            'max_y': item_coords['y_max'],
+            'min_z': item_coords['z_min'],
+            'max_z': item_coords['z_max']
+        }
+    item_files = File().find({'itemId': ObjectId(item_id)})
+    item_user_mask = _reshape_content_bytes_to_array(old_content, old_extent)
+    item_mask = []
+    user_mask_file_name = ''
+    mask_file_name = ''
+    assetstore_id = ''
+    for item_file in item_files:
+        if '_masks' not in item_file['name']:
+            continue
+        if item_file['name'].endswith('_user.tif'):
+            # remove the user mask before writing a new mask to it
+            user_mask_file_name = item_file['name']
+            File().remove(item_file)
+            continue
+
+        mask_file_name = item_file['name']
+        assetstore_id = item_file['assetstoreId']
+        item_tif, _ = _get_tif_file_content_and_path(item_file)
+        # initial mask
+        for mask in item_tif.iter_images():
+            item_mask.append(mask)
+    # check user mask and initial mask to combine the extent to update user mask
+    z = new_extent['min_z']
+    for mask in item_mask:
+        if z < old_extent['min_z']:
+            # not covered by user content
+            z += 1
+            continue
+        if z > old_extent['max_z']:
+            # done combining
+            break
+        # z is in range of old extent
+        copy_extent = {
+            'min_x': max(old_extent['min_x'], new_extent['min_x']),
+            'max_x': min(old_extent['max_x'], new_extent['max_x']),
+            'min_y': max(old_extent['min_y'], new_extent['min_y']),
+            'max_y': min(old_extent['max_y'], new_extent['max_y']),
+        }
+        mask_min_y = copy_extent['min_y'] - new_extent['min_y']
+        mask_max_y = copy_extent['max_y'] - new_extent['min_y'] + 1
+        mask_min_x = copy_extent['min_x'] - new_extent['min_x']
+        mask_max_x = copy_extent['max_x'] - new_extent['min_x'] + 1
+        user_mask_min_y = copy_extent['min_y'] - old_extent['min_y']
+        user_mask_max_y = copy_extent['max_y'] - old_extent['min_y'] + 1
+        user_mask_min_x = copy_extent['min_x'] - old_extent['min_x']
+        user_mask_max_x = copy_extent['max_x'] - old_extent['min_x'] + 1
+        user_z = z - old_extent['min_z']
+        mask[mask_min_y:mask_max_y, mask_min_x:mask_max_x] = \
+            item_user_mask[user_z][user_mask_min_y:user_mask_max_y, user_mask_min_x:user_mask_max_x]
+        z += 1
+
+    if not mask_file_name:
+        # nothing to update, no initial mask file
+        return
+    # write updated mask to user mask file
+    try:
+        # save file to local file system before adding it to asset store
+        admin_user = User().getAdmins()[0]
+        out_dir_path = os.path.join(DATA_PATH, str(item_id))
+        if not user_mask_file_name:
+            user_mask_file_name = f'{os.path.splitext(mask_file_name)[0]}_user.tif'
+        out_path = os.path.join(out_dir_path, user_mask_file_name)
+        if not os.path.isdir(out_dir_path):
+            os.makedirs(out_dir_path)
+        output_tif = TIFF.open(out_path, mode="w")
+        for mask in item_mask:
+            output_tif.write_image(mask)
+        save_file(assetstore_id, item, out_path, admin_user, user_mask_file_name)
+    except Exception as e:
+        raise RestException(f'failure: {e}', 500)
+
+
+def remove_region_from_active_assignment(whole_item, assign_item_id, region_id,
+                                         active_region_ids=[], active_content_data=[]):
     """
     remove a region from a user's active assignment
     :param whole_item: whole subvolume item
-    :param assign_item: a user's active assignment item
+    :param assign_item_id: a user's active assignment item id
     :param region_id: region id/label to be removed from the active assignment
+    :param active_region_ids: active assignment region id list
+    :param active_content_data: active assignment mask content data
     :return: assignment item id
     """
+    assign_item = Item().findOne({'_id': ObjectId(assign_item_id)})
+    if active_content_data:
+        # get old_extent that corresponds to active_content_data before assign_item's coordinates
+        # is updated with merged region extent
+        old_extent = {
+            'min_x': assign_item['meta']['coordinates']['x_min'],
+            'max_x': assign_item['meta']['coordinates']['x_max'],
+            'min_y': assign_item['meta']['coordinates']['y_min'],
+            'max_y': assign_item['meta']['coordinates']['y_max'],
+            'min_z': assign_item['meta']['coordinates']['z_min'],
+            'max_z': assign_item['meta']['coordinates']['z_max']
+        }
     region_id = str(region_id)
     if 'item_id' in whole_item['meta']['regions'][region_id]:
         del whole_item['meta']['regions'][region_id]['item_id']
@@ -653,28 +751,60 @@ def remove_region_from_active_assignment(whole_item, assign_item, region_id):
                 "z_max": max_z,
                 "z_min": min_z
             }
-
         assign_item = Item().save(assign_item)
         # update assign_item based on updated extent that has region removed
         if min_z_ary:
             create_region_files(assign_item, whole_item)
+            if active_content_data:
+                # merge active_content_data with updated assign item extent with claimed region included
+                _update_user_mask(assign_item_id, active_content_data.file.read(), old_extent,
+                                  new_extent={
+                                      'min_x': min_x,
+                                      'max_x': max_x,
+                                      'min_y': min_y,
+                                      'max_y': max_y,
+                                      'min_z': min_z,
+                                      'max_z': max_z
+                                      })
+                if active_region_ids:
+                    # make sure active_region_ids does not include the removed region id
+                    active_region_ids = list(map(str, active_region_ids))
+                    if region_id in active_region_ids:
+                        active_region_ids.remove(region_id)
+                    save_added_and_removed_regions(whole_item, assign_item, active_region_ids)
 
         return assign_item['_id']
 
     return assign_item['_id']
 
 
-def merge_region_to_active_assignment(whole_item, active_assign_id, region_id):
+def merge_region_to_active_assignment(whole_item, active_assign_id, region_id,
+                                      active_region_ids=[], active_content_data=[]):
     """
     merge a region into a user's active assignment
     :param whole_item: whole subvolume item
     :param active_assign_id: a user's active assignment item id
     :param region_id: region id/label to be added into the active assignment
+    :param active_region_ids: active assignment region id list
+    :param active_content_data: active assignment mask content data
     :return: active assignment annotation assigned to info
     """
-    region_id = str(region_id)
-    val = whole_item['meta']['regions'][region_id]
     assign_item = Item().findOne({'_id': ObjectId(active_assign_id)})
+    if active_content_data:
+        # get old_extent that corresponds to active_content_data before assign_item's coordinates
+        # is updated with merged region extent
+        old_extent = {
+            'min_x': assign_item['meta']['coordinates']['x_min'],
+            'max_x': assign_item['meta']['coordinates']['x_max'],
+            'min_y': assign_item['meta']['coordinates']['y_min'],
+            'max_y': assign_item['meta']['coordinates']['y_max'],
+            'min_z': assign_item['meta']['coordinates']['z_min'],
+            'max_z': assign_item['meta']['coordinates']['z_max']
+        }
+
+    region_id = str(region_id)
+
+    val = whole_item['meta']['regions'][region_id]
     # get buffered extent for the region
     min_x = val['x_min']
     max_x = val['x_max']
@@ -700,7 +830,6 @@ def merge_region_to_active_assignment(whole_item, active_assign_id, region_id):
         "z_max": max_z,
         "z_min": min_z
     }
-
     region_ids = assign_item['meta']['region_ids']
     region_ids.append(region_id)
     assign_item['meta']['region_ids'] = region_ids
@@ -709,9 +838,24 @@ def merge_region_to_active_assignment(whole_item, active_assign_id, region_id):
     Item().save(whole_item)
     # update assign_item based on updated extent that includes claimed region
     create_region_files(assign_item, whole_item)
-
-    return get_history_info(whole_item, assign_item['_id'],
-                            ANNOT_ASSIGN_KEY)
+    if active_content_data:
+        # merge active_content_data with updated assign item extent with claimed region included
+        _update_user_mask(active_assign_id, active_content_data.file.read(), old_extent, new_extent={
+            'min_x': min_x,
+            'max_x': max_x,
+            'min_y': min_y,
+            'max_y': max_y,
+            'min_z': min_z,
+            'max_z': max_z
+        })
+        if active_region_ids:
+            # make sure claimed region_id is part of updated region ids to check for
+            # added and removed regions
+            active_region_ids = list(map(str, active_region_ids))
+            active_region_ids.append(region_id)
+            whole_item = save_added_and_removed_regions(whole_item, assign_item,
+                                                        list(set(active_region_ids)))
+    return get_history_info(whole_item, assign_item['_id'], ANNOT_ASSIGN_KEY)
 
 
 def set_assignment_meta(whole_item, user, region_item_id, assign_type):
@@ -736,7 +880,26 @@ def set_assignment_meta(whole_item, user, region_item_id, assign_type):
     return assign_info
 
 
-def save_content_bytes_to_tiff(content, out_file, item):
+def _reshape_content_bytes_to_array(content, extent):
+    max_x = extent['max_x']
+    min_x = extent['min_x']
+    max_y = extent['max_y']
+    min_y = extent['min_y']
+    min_z = extent['min_z']
+    max_z = extent['max_z']
+    width = max_x - min_x + 1
+    height = max_y - min_y + 1
+    contents = []
+    for z in range(min_z, max_z + 1):
+        low = (z - min_z) * height * width * 2
+        high = low + height * width * 2
+        img_ary = np.frombuffer(content[low:high], dtype=np.uint16)
+        img_ary.shape = (height, width)
+        contents.append(img_ary)
+    return contents
+
+
+def _save_content_bytes_to_tiff(content, out_file, item):
     """
     save content bytes to TIFF file
     :param content: content byte stream
@@ -749,27 +912,68 @@ def save_content_bytes_to_tiff(content, out_file, item):
         if file['name'].endswith('_user.tif'):
             File().remove(file)
 
-    min_x = item['meta']['coordinates']['x_min']
-    max_x = item['meta']['coordinates']['x_max']
-    min_y = item['meta']['coordinates']['y_min']
-    max_y = item['meta']['coordinates']['y_max']
-    min_z = item['meta']['coordinates']['z_min']
-    max_z = item['meta']['coordinates']['z_max']
+    mask_contents = _reshape_content_bytes_to_array(content, {
+        'min_x': item['meta']['coordinates']['x_min'],
+        'max_x': item['meta']['coordinates']['x_max'],
+        'min_y': item['meta']['coordinates']['y_min'],
+        'max_y': item['meta']['coordinates']['y_max'],
+        'min_z': item['meta']['coordinates']['z_min'],
+        'max_z': item['meta']['coordinates']['z_max']
+    })
     output_tif = TIFF.open(out_file, mode="w")
-    width = max_x - min_x + 1
-    height = max_y - min_y + 1
-    for z in range(min_z, max_z+1):
-        low = (z - min_z) * height * width * 2
-        high = low + height * width * 2
-        img_ary = np.frombuffer(content[low:high], dtype=np.uint16)
-        img_ary.shape = (height, width)
-        output_tif.write_image(img_ary)
-    # read the saved tif image back to see its dimensions
+    for mask in mask_contents:
+        output_tif.write_image(mask)
     output_tif.close()
     return
 
 
-def save_added_and_removed_regions(whole_item, item, current_region_ids, done, uid, add_meta):
+def save_content_data(user, item_id, content_data, review=False):
+    """
+    Save content byte data to item
+    :param user: user object to save content data to
+    :param item_id: item id to get user mask file name and assetstore id from
+    :param content_data: content byte data to save to the item
+    :param review: indicating whether it is being reviewed by a reviewer or not
+    :return: user mask file name and assetstore id
+    """
+    files = File().find({'itemId': ObjectId(item_id)})
+    annot_file_name = ''
+    assetstore_id = ''
+    for file in files:
+        if review:
+            if '_masks' in file['name'] and file['name'].endswith('_user.tif'):
+                annot_file_name = file['name']
+                assetstore_id = file['assetstoreId']
+                break
+        elif '_masks' in file['name']:
+            mask_file_name = file['name']
+            if mask_file_name.endswith('_user.tif'):
+                annot_file_name = mask_file_name
+            else:
+                annot_file_name = f'{os.path.splitext(mask_file_name)[0]}_user.tif'
+            assetstore_id = file['assetstoreId']
+            break
+
+    if not annot_file_name or not assetstore_id:
+        raise RestException('failure: cannot find the mask file for the annotated item', 500)
+
+    content = content_data.file.read()
+    try:
+        # save file to local file system before adding it to asset store
+        out_dir_path = os.path.join(DATA_PATH, str(item_id))
+        out_path = os.path.join(out_dir_path, annot_file_name)
+        if not os.path.isdir(out_dir_path):
+            os.makedirs(out_dir_path)
+        item = Item().findOne({'_id': ObjectId(item_id)})
+        _save_content_bytes_to_tiff(content, out_path, item)
+        save_file(assetstore_id, item, out_path, user, annot_file_name)
+    except Exception as e:
+        raise RestException(f'failure: {e}', 500)
+    return annot_file_name
+
+
+def save_added_and_removed_regions(whole_item, item, current_region_ids,
+                                   done=False, uid='', add_meta={}):
     """
     save added and removed regions based on current_region_ids for item
     :param whole_item: whole subvolume item
@@ -786,16 +990,29 @@ def save_added_and_removed_regions(whole_item, item, current_region_ids, done, u
         # make sure each item is a string
         current_region_ids = [str(rid) for rid in current_region_ids]
         exist_region_ids = item['meta']['region_ids']
-        removed_region_ids = [
+        if 'added_region_ids' in item['meta']:
+            added_region_ids = item['meta']['added_region_ids']
+            exist_region_ids = exist_region_ids + added_region_ids
+        if 'removed_region_ids' in item['meta']:
+            removed_region_ids = item['meta']['removed_region_ids']
+            exist_region_ids = [elem for elem in exist_region_ids if elem not in removed_region_ids]
+
+        removed_region_ids = removed_region_ids + [
             rid for rid in exist_region_ids if rid not in current_region_ids
         ]
-        added_region_ids = [rid for rid in current_region_ids if rid not in exist_region_ids]
-
+        added_region_ids = added_region_ids + \
+                           [rid for rid in current_region_ids if rid not in exist_region_ids]
+        duplicate_ids = [elem for elem in added_region_ids if elem in removed_region_ids]
+        if duplicate_ids:
+            added_region_ids = [elem for elem in added_region_ids if elem not in duplicate_ids]
+            removed_region_ids = [elem for elem in removed_region_ids if elem not in duplicate_ids]
         if added_region_ids:
+            # remove potential duplicates
+            added_region_ids = list(set(added_region_ids))
+        if 'added_region_ids' in add_meta or added_region_ids:
             add_meta['added_region_ids'] = added_region_ids
-        if removed_region_ids:
+        if 'removed_region_ids' in add_meta or removed_region_ids:
             add_meta['removed_region_ids'] = removed_region_ids
-
     Item().setMetadata(item, add_meta)
 
     if done:
@@ -823,7 +1040,8 @@ def save_added_and_removed_regions(whole_item, item, current_region_ids, done, u
                 whole_item['meta'][uid].remove(str(item['_id']))
             if not whole_item['meta'][uid]:
                 del whole_item['meta'][uid]
-        return Item().save(whole_item)
+        whole_item = Item().save(whole_item)
+    return whole_item
 
 
 def update_all_assignment_masks_async(whole_item, saved_assign_item_id):

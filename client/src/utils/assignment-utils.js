@@ -28,7 +28,12 @@ export const statusDisplay = (status) => statusValues[status];
 
 export const statusOrder = (status) => statusValuesOrder[status];
 
-export const statusColor = (status) => statusColors[status];
+export const statusColor = (status, reviewer) => 
+  // Need to check reviewer login because review status is not always set...
+  status === 'active' || status === 'review' || status === 'completed' ? statusColors[status] :
+  reviewer?.login ? statusColors['review'] :
+  status === 'waiting' ? statusColors['waiting'] : 
+  null;
 
 export const isActive = ({ status }) => status === 'active';
 
