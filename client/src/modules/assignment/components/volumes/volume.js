@@ -94,10 +94,11 @@ export const Volume = ({ volume, availableReviews, enabled }) => {
       </ButtonWrapper>
       { review &&
         <>
-          Available reviews
           <Button 
+            basic
+            disabled={ !isEnabled }
           >
-            Decline
+            Load more
           </Button>
         </>
       }
