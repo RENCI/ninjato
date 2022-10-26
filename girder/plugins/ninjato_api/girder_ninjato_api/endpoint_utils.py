@@ -31,7 +31,7 @@ def get_available_region_ids(whole_item, count=1):
             Item().save(whole_item)
             return id_list
         if id_list_cnt > count:
-            whole_item['meta']['removed_region_ids'] = id_list_cnt[count:]
+            whole_item['meta']['removed_region_ids'] = id_list[count:]
             Item().save(whole_item)
             return id_list[:count]
         # id_list_cnt < count, so append more available ids
