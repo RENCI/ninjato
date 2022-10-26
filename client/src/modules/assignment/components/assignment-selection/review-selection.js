@@ -1,18 +1,25 @@
+import { useContext } from 'react';
 import { Grid, Header, Icon } from 'semantic-ui-react';
+import { UserContext } from 'contexts';
 import { Assignments } from 'modules/assignment/components/assignments';
+import { Volumes } from 'modules/assignment/components/volumes';
 
 const { Row, Column } = Grid;
 const { Subheader } = Header;
 
 export const ReviewSelection = ({ review, waiting }) => {
+  const [{ volumes }] = useContext(UserContext);
+  
   const hasReview = review.length > 0;
-  const hasWaiting = waiting.length > 0;
+  const hasWaiting = waiting.reduce((n, { assignments }) => {
+    return n + assignments.length;
+  }, 0) > 0;
 
   const reviewSubheader = hasReview > 0 ? 'Select a review to continue' :
     hasWaiting ? <>No current reviews, select a new assignment to review <Icon name='arrow right' /></> :
     'No current reviews';
 
-  const waitingSubheader = hasWaiting ? 'Select a new assignment to review' :
+  const waitingSubheader = hasWaiting ? 'Select a volume to see available assignments to review' :
     'No assignments awaiting review, check back later';
 
   return (
@@ -43,10 +50,10 @@ export const ReviewSelection = ({ review, waiting }) => {
               { waitingSubheader }
             </Subheader>
           </Header>
-          <Assignments 
-            type='waiting' 
-            assignments={ waiting } 
-          />
+          <Volumes 
+            volumes={ volumes } 
+            availableReviews={ waiting }
+          />   
           </Column>
       </Row>
     </Grid>

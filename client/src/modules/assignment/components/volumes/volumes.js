@@ -4,7 +4,7 @@ import styles from './styles.module.css';
 
 const { Subheader } = Header;
 
-export const Volumes = ({ header, subheader, volumes, enabled }) => {
+export const Volumes = ({ header, subheader, volumes, availableReviews, enabled }) => {
   return (     
     !volumes ? null :    
     <>    
@@ -21,6 +21,7 @@ export const Volumes = ({ header, subheader, volumes, enabled }) => {
           <div key={ i }>
             <Volume 
               volume={ volume }
+              availableReviews={ availableReviews ? availableReviews[i] : null }
               enabled={ enabled }
             />
           </div>

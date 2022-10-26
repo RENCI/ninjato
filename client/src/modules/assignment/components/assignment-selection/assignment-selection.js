@@ -9,15 +9,13 @@ import styles from './styles.module.css';
 
 // For refine, want anything where this user is the annotator
 // For review, want anything where this user is the reviewer
-// For waiting, want anything that is waiting and not assigned a reviewer
 const filterAssignments = (assignments, type, login) => (
-  type === 'refine' ? assignments.filter(({ annotator }) => annotator?.login === login) :
   type === 'review' ? assignments.filter(({ reviewer }) => reviewer?.login === login) :
-  assignments.filter(({ status, reviewer }) => status === 'waiting' && !reviewer?.login)
+  assignments.filter(({ annotator }) => annotator?.login === login)
 );
 
 export const AssignmentSelection = () => {
-  const [{ user, assignments, volumes }] = useContext(UserContext);
+  const [{ user, assignments, availableReviews, volumes }] = useContext(UserContext);
   const getAssignments = useGetAssignments();
 
   useEffect(() => {  
@@ -40,7 +38,7 @@ export const AssignmentSelection = () => {
                 <Tab.Pane>
                   <ReviewSelection 
                     review={ filterAssignments(assignments, 'review', user.login) } 
-                    waiting={ filterAssignments(assignments, 'waiting', user.login) } 
+                    waiting={ availableReviews } 
                   />                      
                 </Tab.Pane>
               )

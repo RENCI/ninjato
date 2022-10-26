@@ -1,6 +1,6 @@
 import { useContext, useCallback } from 'react';
 import { 
-  UserContext, SET_ASSIGNMENTS, SET_VOLUMES,
+  UserContext, SET_ASSIGNMENTS, SET_AVAILABLE_REVIEWS, SET_VOLUMES,
   LoadingContext, SET_LOADING, CLEAR_LOADING,
   ErrorContext, SET_ERROR
 } from 'contexts';
@@ -16,7 +16,7 @@ export const useGetAssignments = () => {
       try {
         loadingDispatch({ type: SET_LOADING }); 
 
-        const assignments = await api.getAssignments(id, reviewer);
+        const { assignments, availableReviews } = await api.getAssignments(id, reviewer);
 
         const volumes = await api.getVolumes();
 
@@ -24,6 +24,13 @@ export const useGetAssignments = () => {
           type: SET_ASSIGNMENTS,
           assignments: assignments
         });
+
+        if (reviewer) {
+          userDispatch({
+            type: SET_AVAILABLE_REVIEWS,
+            availableReviews: availableReviews
+          });
+        }
 
         userDispatch({
           type: SET_VOLUMES,

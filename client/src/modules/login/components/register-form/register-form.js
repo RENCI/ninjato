@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Modal, Button, Form, Message } from 'semantic-ui-react';
 import { LOGIN, UserContext } from 'contexts';
@@ -22,7 +22,12 @@ export const RegisterForm = ({ trigger }) => {
     password: ''
   });
   const [success, setSuccess] = useState();
+  const [doNavigate, setDoNavigate] = useState();
   const [errorMessage, setErrorMessage] = useState(null);
+
+  useEffect(() => () => {
+    if (doNavigate) navigate('/select');
+  }, [doNavigate, navigate]);
 
   const onOpenModal = () => {
     setSuccess();
@@ -39,15 +44,15 @@ export const RegisterForm = ({ trigger }) => {
       const user = await api.register(username, email, firstname, lastname, password);
 
       setSuccess(true);
+      setDoNavigate(true);
+
       setTimeout(() => {      
         userDispatch({
           type: LOGIN,
           user: user
         });
 
-        setSuccess();
         closeModal();
-        navigate('/select');
       }, 1000);   
     }
     catch (error) {
