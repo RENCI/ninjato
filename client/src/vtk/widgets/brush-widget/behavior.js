@@ -53,15 +53,16 @@ export default function widgetBehavior(publicAPI, model) {
         model._apiSpecificRenderWindow
       );
 
+      // XXX: Magic value based highlight region used in MaskPainter
+      worldCoords[2] -= 0.4;
+
       if (worldCoords.length) {
         const imageData = model._factory.getImageData();
 
         if (imageData) {
-          const spacing = imageData.getSpacing();
-          const dims = imageData.getDimensions();
-          
-          worldCoords[2] -= spacing[2] * 0.1;
           const ijk = imageData.worldToIndex([...worldCoords]);
+          const dims = imageData.getDimensions();
+          const spacing = imageData.getSpacing();
 
           worldCoords[0] = toPixelCenter(ijk[0], spacing[0], dims[0]);
           worldCoords[1] = toPixelCenter(ijk[1], spacing[1], dims[1]);
