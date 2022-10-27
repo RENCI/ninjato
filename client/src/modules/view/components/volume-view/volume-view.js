@@ -178,6 +178,7 @@ export function VolumeView(painter) {
 
         const renderer = renderWindow.getRenderer();
         surfaces.forEach(surface => renderer.addActor(surface.getActor()));
+surfaces.forEach(surface => renderer.addActor(surface.getHighlight()));
         renderer.addActor(background.getActor());
         renderer.addActor(boundingBox.getActor());
 
@@ -227,6 +228,7 @@ export function VolumeView(painter) {
         surfaces.forEach((surface, i) => {
           surface.setInputData(data);     
           renderer.addActor(surface.getActor());
+renderer.addActor(surface.getHighlight());
 
           if (slice >= 0) {
             const region = getRegion(surface);

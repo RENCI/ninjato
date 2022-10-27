@@ -1,5 +1,6 @@
 import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
+import vtkWarpScalar from '@kitware/vtk.js/Filters/General/WarpScalar';
 import { FieldDataTypes } from '@kitware/vtk.js/Common/DataModel/DataSet/Constants';
 
 import vtkCalculator from 'vtk/filters/calculator';
@@ -24,8 +25,26 @@ export function Surface() {
   const actor = vtkActor.newInstance();
   actor.setMapper(mapper); 
 
+
+  const warp = vtkWarpScalar.newInstance();
+  warp.setScaleFactor(1.1);
+  warp.setInputArrayToProcess(0, 'ones', 'PointData', 'Scalars');
+  warp.setInputConnection(flyingEdges.getOutputPort());
+
+  const highlightMapper = vtkMapper.newInstance();
+  highlightMapper.setScalarVisibility(false);
+  highlightMapper.setInputConnection(warp.getOutputPort()); 
+
+  const highlight = vtkActor.newInstance();
+  highlight.getProperty().setLighting(false);
+  highlight.getProperty().setFrontfaceCulling(true);
+  highlight.getProperty().setAmbient(1);
+  highlight.getProperty().setDiffuse(0);
+  highlight.setMapper(highlightMapper);
+
   return {
     getActor: () => actor,
+    getHighlight: () => highlight,
     setInputData: data => maskCalculator.setInputData(data),
     getInputData: () => maskCalculator.getInputData(),
     setOpaqueColor: color => {
@@ -34,6 +53,8 @@ export function Surface() {
       property.setAmbient(0);
       property.setOpacity(1);
       property.setBackfaceCulling(false);
+
+      highlight.getProperty().setColor(color);
     },
     setTranslucentColors: (color1, color2) => {
       const property = actor.getProperty();
@@ -130,6 +151,8 @@ export function Surface() {
       flyingEdges.delete();
       mapper.delete();
       actor.delete();
+      highlightMapper.delete();
+      highlight.delete();
       if (sliceCalculator) sliceCalculator.delete();
     }
   };

@@ -334,7 +334,7 @@ export function Widgets(painter) {
     mouseOut: () => {
       hoverLabel = null;
       highlightLabel = null;
-      activeWidget.setPosition(null);
+      if (activeWidget) activeWidget.setPosition(null);
     },
     createRegion: async () => {
       painter.startStroke();
