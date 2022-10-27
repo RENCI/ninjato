@@ -1,6 +1,6 @@
 import macro from '@kitware/vtk.js/macros';
 import { vec3 } from 'gl-matrix';
-import { getSurfaceLabel } from 'vtk/widgets/widget-utils';
+//import { getSurfaceLabel } from 'vtk/widgets/widget-utils';
 
 const toVoxelCenter = (p, spacing, extent) => {
   return p.map((v, i) => {

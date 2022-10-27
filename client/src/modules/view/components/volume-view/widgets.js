@@ -41,8 +41,8 @@ export function Widgets(painter) {
   let regions = [];
   let backgroundRegions = [];
   let activeRegion = null;
-  let hoverLabel = null;
-  let highlightLabel = null;
+//  let hoverLabel = null;
+//  let highlightLabel = null;
 
   const getRegion = label => {
     const region = regions.concat(backgroundRegions).find(region => region.label === label);

@@ -106,7 +106,7 @@ const applyActiveRegion = (region, surfaces) => {
 
 export function VolumeView(painter) {  
   // Callbacks
-  let onEdit = () => {};
+//  let onEdit = () => {};
   let onSliceChange = () => {};
 
   const renderWindow = RenderWindow();
