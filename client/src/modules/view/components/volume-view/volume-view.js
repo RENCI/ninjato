@@ -249,6 +249,7 @@ export function VolumeView(painter) {
 
       centerCamera(renderWindow, surface.getOutput(), background.getInputData());
     },
+    setHoverLabel: label => widgets.setHoverLabel(label),
     //setHighlightLabel: label => mask.setHighlightLabel(label),
     setTool: (tool, cursor) => {      
       widgets.setTool(tool);

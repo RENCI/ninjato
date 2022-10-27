@@ -93,6 +93,9 @@ export default function widgetBehavior(publicAPI, model) {
 
         model._factory.setLabel(getSurfaceLabel(model, callData));
       }              
+      else {
+        model._factory.setLabel(null);
+      }
 
       publicAPI.invokeInteractionEvent();
       return macro.EVENT_ABORT;

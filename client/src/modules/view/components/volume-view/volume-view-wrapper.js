@@ -81,6 +81,13 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded, onSelect, onHover }) =
   }, [initialized, volumeView]);
 
   return (
-    <div ref={ div } style={{ height: width }}></div>
+    <div 
+      ref={ div } 
+      style={{ height: width }}
+      onMouseOut={ () => {
+        onHover(null);
+        if (volumeView) volumeView.setHoverLabel(null);
+      }}
+    />
   );
 };

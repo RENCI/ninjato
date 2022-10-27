@@ -114,6 +114,13 @@ export const SliceViewWrapper = ({ sliceView, onEdit, onSliceChange, onSelect, o
   }, [initialized, sliceView]);
 
   return (
-    <div ref={ div } style={{ height: width }} />
+    <div 
+      ref={ div } 
+      style={{ height: width }}
+      onMouseOut={ () => {
+        onHover(null);
+        if (sliceView) sliceView.setHoverLabel(null);
+      }}
+    />
   );
 };

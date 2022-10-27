@@ -85,6 +85,7 @@ export function SliceView() {
       mask.setActiveRegion(region);
       widgets.setActiveRegion(region);
     },
+    setHoverLabel: label => widgets.setHoverLabel(label),
     setHighlightRegion: region => mask.setHighlightRegion(region),
     setTool: (tool, cursor) => {
       widgets.setTool(tool);

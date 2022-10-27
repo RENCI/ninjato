@@ -237,6 +237,9 @@ export function Widgets(painter) {
     setActiveRegion: region => {
       activeRegion = region;
     },
+    setHoverLabel: label => {
+      hoverLabel = label;
+    },
     cleanUp: () => {
       console.log('Clean up widgets');
 
