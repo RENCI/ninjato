@@ -13,7 +13,7 @@ import { SliceControls } from 'modules/refine/components/slice-controls';
 import { SliceSlider, SliceLabel } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
 import { RegionPopup } from 'modules/region/components/region-popup';
-import { ClaimDialog, RemoveDialog, SplitDialog, MergeDialog, CreateDialog, DeleteDialog } from 'modules/refine/components/dialogs';
+import { ClaimDialog, RemoveDialog, SplitDialog, MergeDialog, CreateDialog, DeleteDialog } from 'modules/view/components/dialogs';
 
 const { Column } = Grid;
 
@@ -26,7 +26,8 @@ export const ViewContainer = ({ review = false }) => {
   const [slice, setSlice] = useState(0);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
-  const [hoverRegion, setHoverRegion] = useState(null);
+  const [sliceHoverRegion, setSliceHoverRegion] = useState(null);
+  const [volumeHoverRegion, setVolumeHoverRegion] = useState(null);
 
   // Create views
   useEffect(() => {
@@ -101,9 +102,13 @@ export const ViewContainer = ({ review = false }) => {
     annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
   }, [sliceView, userDispatch, annotateDispatch]);
 
-  const onHover = useCallback(region => {
-    setHoverRegion(region);
-  }, [setHoverRegion]);
+  const onSliceHover = useCallback(region => {
+    setSliceHoverRegion(region);
+  }, [setSliceHoverRegion]);
+
+  const onVolumeHover = useCallback(region => {
+    setVolumeHoverRegion(region);
+  }, [setVolumeHoverRegion]);
 
   const onHighlight = useCallback(region => {
     sliceView.setHighlightRegion(region);
@@ -195,10 +200,16 @@ export const ViewContainer = ({ review = false }) => {
           <VisualizationSection>
             <Grid columns='equal' stackable padded reversed='mobile'>
               <Column>
-                <VolumeViewWrapper 
-                  volumeView={ volumeView } 
-                  onLoaded={ onLoaded }
-                  onSelect={ onSelect }
+                <RegionPopup 
+                  trigger={ 
+                    <VolumeViewWrapper 
+                      volumeView={ volumeView } 
+                      onLoaded={ onLoaded }
+                      onSelect={ onSelect }
+                      onHover={ onVolumeHover }
+                    />
+                  }
+                  region={ volumeHoverRegion }
                 />
               </Column>
               <Column>
@@ -209,13 +220,13 @@ export const ViewContainer = ({ review = false }) => {
                       onEdit={ onEdit }
                       onSliceChange={ onSliceChange }
                       onSelect={ onSelect }
-                      onHover={ onHover }
+                      onHover={ onSliceHover }
                       onHighlight={ onHighlight }
                       onKeyDown={ onKeyDown }
                       onKeyUp={ onKeyUp }
                     /> 
                   }
-                  region={ hoverRegion }
+                  region={ sliceHoverRegion }
                 /> 
               </Column>                  
                 { !loading &&

@@ -2,7 +2,7 @@ import { useContext, useState, useRef, useEffect } from 'react';
 import { UserContext, AnnotateContext } from 'contexts';
 import { useResize } from 'hooks';
 
-export const VolumeViewWrapper = ({ volumeView, onLoaded, onSelect }) => {
+export const VolumeViewWrapper = ({ volumeView, onLoaded, onSelect, onHover }) => {
   const [{ maskData, assignment, activeRegion }] = useContext(UserContext);
   const [{ tool, tools, showBackground }] = useContext(AnnotateContext);
   const [initialized, setInitialized] = useState(false);
@@ -21,6 +21,10 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded, onSelect }) => {
   useEffect(() => {
     if (initialized) volumeView.setCallback('select', onSelect);
   }, [initialized, volumeView, onSelect]);
+
+  useEffect(() => {
+    if (initialized) volumeView.setCallback('hover', onHover);
+  }, [initialized, volumeView, onHover]);
 
   // Regions
   useEffect(() => {

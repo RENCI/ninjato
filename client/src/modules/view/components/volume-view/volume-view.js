@@ -106,7 +106,6 @@ const applyActiveRegion = (region, surfaces) => {
 
 export function VolumeView(painter) {  
   // Callbacks
-//  let onEdit = () => {};
   let onSliceChange = () => {};
 
   const renderWindow = RenderWindow();
@@ -149,13 +148,7 @@ export function VolumeView(painter) {
       widgets.setRenderer(renderWindow.getRenderer());
     },
     setCallback: (type, callback) => {
-      switch (type) {
-/*        
-        case 'edit':
-          onEdit = callback;
-          widgets.setCallback(type, callback);
-        break;
-*/
+      switch (type) { 
         case 'sliceChange':
           onSliceChange = callback;
           break;

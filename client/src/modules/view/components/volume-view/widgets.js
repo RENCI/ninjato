@@ -18,6 +18,7 @@ const claimValid = ({ region, inStartRegion }) =>
 export function Widgets(painter) {
   // Callbacks
   let onSelect = () => {};
+  let onHover = () => {};
 
   const manager = vtkWidgetManager.newInstance();
 
@@ -41,7 +42,7 @@ export function Widgets(painter) {
   let regions = [];
   let backgroundRegions = [];
   let activeRegion = null;
-//  let hoverLabel = null;
+  let hoverLabel = null;
 //  let highlightLabel = null;
 
   const getRegion = label => {
@@ -65,6 +66,7 @@ export function Widgets(painter) {
     setCallback: (type, callback) => {
       switch (type) {
         case 'select': onSelect = callback; break;
+        case 'hover': onHover = callback; break;
         default: 
           console.warn(`Unknown callback type: ${ type }`);
       }
@@ -80,7 +82,6 @@ export function Widgets(painter) {
       activeWidget = widgets.paint;
       manager.grabFocus(activeWidget);      
 
-/*
       // Hover
       // There can be multiple handlers registered for a given widget.
       // Use same hover for all, and widget-specific for highlighting as needed below.
@@ -98,7 +99,6 @@ export function Widgets(painter) {
           }
         });
       });
-*/
 
       // Interaction overrides
       handles.select.onInteractionEvent(() => {
