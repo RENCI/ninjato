@@ -44,11 +44,18 @@ export const ViewContainer = ({ review = false }) => {
     setCanRedo(sliceView.canRedo());
   }, [sliceView, imageData]);
 
-  // Slice view callbacks
-  const onEdit = useCallback((activeRegion = null) => {
+  // View callbacks
+  const onSliceEdit = useCallback((activeRegion = null) => {
     volumeView.centerCamera();
     volumeView.render();
 
+    setCanUndo(sliceView.canUndo());
+    setCanRedo(sliceView.canRedo());
+
+    if (activeRegion) userDispatch({ type: PUSH_REGION_HISTORY, activeRegion: activeRegion });
+  }, [sliceView, volumeView, userDispatch]);
+
+  const onVolumeEdit = useCallback((activeRegion = null) => {
     setCanUndo(sliceView.canUndo());
     setCanRedo(sliceView.canRedo());
 
@@ -204,6 +211,7 @@ export const ViewContainer = ({ review = false }) => {
                   trigger={ 
                     <VolumeViewWrapper 
                       volumeView={ volumeView } 
+                      onEdit={ onVolumeEdit }
                       onLoaded={ onLoaded }
                       onSelect={ onSelect }
                       onHover={ onVolumeHover }
@@ -217,7 +225,7 @@ export const ViewContainer = ({ review = false }) => {
                   trigger={ 
                     <SliceViewWrapper 
                       sliceView={ sliceView } 
-                      onEdit={ onEdit }
+                      onEdit={ onSliceEdit }
                       onSliceChange={ onSliceChange }
                       onSelect={ onSelect }
                       onHover={ onSliceHover }

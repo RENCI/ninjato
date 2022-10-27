@@ -17,6 +17,7 @@ const claimValid = ({ region, inStartRegion }) =>
 
 export function Widgets(painter) {
   // Callbacks
+  let onEdit = () => {};
   let onSelect = () => {};
   let onHover = () => {};
 
@@ -65,6 +66,7 @@ export function Widgets(painter) {
   return {
     setCallback: (type, callback) => {
       switch (type) {
+        case 'edit': onEdit = callback; break;
         case 'select': onSelect = callback; break;
         case 'hover': onHover = callback; break;
         default: 
@@ -119,13 +121,12 @@ export function Widgets(painter) {
 
         painter.paint(
           handles.paint.getPoint(), 
-          //handles.paint.getRepresentations()[0].getBrush()
           [[1]]
         );
 
         await painter.endStroke();
 
-        //onEdit(activeRegion);
+        onEdit(activeRegion);
       });
 
       handles.erase.onEndInteractionEvent(async () => {
@@ -134,14 +135,13 @@ export function Widgets(painter) {
         // Use paint
         painter.paint(
           handles.erase.getPoint(), 
-          //handles.erase.getRepresentations()[0].getBrush()
           [[1]]
         );
 
         // Set erase to true
         await painter.endStroke(true);
 
-        //onEdit(activeRegion);
+        onEdit(activeRegion);
       });
 
       handles.select.onEndInteractionEvent(() => {
