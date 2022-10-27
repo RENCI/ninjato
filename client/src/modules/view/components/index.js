@@ -4,3 +4,4 @@ export * from './image';
 export * from './mask';
 export * from './surface';
 export * from './bounding-box';
+export * from './view-container';
