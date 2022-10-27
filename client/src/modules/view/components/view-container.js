@@ -17,7 +17,7 @@ import { ClaimDialog, RemoveDialog, SplitDialog, MergeDialog, CreateDialog, Dele
 
 const { Column } = Grid;
 
-export const RefineContainer = () => {
+export const ViewContainer = ({ review = false }) => {
   const [{ imageData }, userDispatch] = useContext(UserContext);
   const [, annotateDispatch] = useContext(AnnotateContext);
   const [volumeView, setVolumeView] = useState();
@@ -240,7 +240,7 @@ export const RefineContainer = () => {
       </Grid>
       { !loading && 
         <>
-          <SaveButtons /> 
+          <SaveButtons review={ review } /> 
           <ClaimDialog />
           <RemoveDialog />
           <SplitDialog sliceView={ sliceView } />

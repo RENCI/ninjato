@@ -146,4 +146,5 @@ export const newInstance = macro.newInstance(
   'vtkBrush3DRepresentation'
 );
 
+// eslint-disable-next-line import/no-anonymous-default-export
 export default { newInstance, extend };

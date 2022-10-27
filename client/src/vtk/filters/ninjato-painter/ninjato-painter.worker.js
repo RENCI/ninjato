@@ -194,18 +194,6 @@ function handlePaintFloodFill({ labels, label, labelConstraint, pointList, brush
   }
 }
 
-// XXX: Currently assuming z slice
-function handleErase({ pointList, brush }) {
-  if (pointList.length === 0) return;
-
-  // Paint points
-  pointList.forEach((point, i) => {
-    paint({ point, brush });
-
-    if (i === 0) globals.prevPoint = null;
-  });
-}
-
 function handleCrop({ p1, p2 }) {
   const xStart = p1[0];
   const xStop = p2[0];

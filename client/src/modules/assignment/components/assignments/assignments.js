@@ -12,8 +12,6 @@ const sortOrder = (a, b) => (
 );
 
 export const Assignments = ({ type, header, subheader, assignments, showEmpty = true }) => {
-  const enabledStatus = type === 'refine' ? 'active' : type;
-
   const enabled = ({ status, reviewer }) => 
     type === 'refine' ? status === 'active' :
     status !== 'active' || !reviewer?.login;

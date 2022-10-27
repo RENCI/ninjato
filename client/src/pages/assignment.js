@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Message } from 'semantic-ui-react';
 import { UserContext } from 'contexts';
 import { RedirectMessage } from 'modules/common/components/redirect-message';
-import { RefineContainer } from 'modules/refine/components/refine-container';
-import { ReviewContainer } from 'modules/review/components/review-container';
+import { ViewContainer } from 'modules/view/components';
 
 export const Assignment = () => {
   const [{ user, assignment }] = useContext(UserContext);
@@ -21,9 +20,9 @@ export const Assignment = () => {
     : !assignment ? 
       <RedirectMessage message='No Assignment' /> 
     : assignment.status === 'active' ? 
-      <RefineContainer />
+      <ViewContainer />
     : assignment.status === 'review' ?
-      <ReviewContainer />
+      <ViewContainer review={ true } />
     :
       <Message>Unknown assignment type { assignment.type }</Message>
   );
