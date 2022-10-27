@@ -333,6 +333,7 @@ export function Widgets(painter) {
     },
     mouseOut: () => {
       hoverLabel = null;
+      highlightLabel = null;
       activeWidget.setPosition(null);
     },
     createRegion: async () => {
