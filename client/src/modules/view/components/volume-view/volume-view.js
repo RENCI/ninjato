@@ -249,7 +249,6 @@ export function VolumeView(painter) {
 
       centerCamera(renderWindow, surface.getOutput(), background.getInputData());
     },
-    setHoverLabel: label => widgets.setHoverLabel(label),
     //setHighlightLabel: label => mask.setHighlightLabel(label),
     setTool: (tool, cursor) => {      
       widgets.setTool(tool);
@@ -277,6 +276,7 @@ export function VolumeView(painter) {
       render();
       if (onRendered) onRendered();
     },
+    mouseOut: () => widgets.mouseOut(),
     cleanUp: () => {
       console.log('Clean up volume view');
 

@@ -90,7 +90,7 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded, onEdit, onSelect, onHo
       style={{ height: width }}
       onMouseOut={ () => {
         onHover(null);
-        if (volumeView) volumeView.setHoverLabel(null);
+        if (volumeView) volumeView.mouseOut();
       }}
     />
   );

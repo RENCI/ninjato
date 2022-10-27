@@ -331,8 +331,9 @@ export function Widgets(painter) {
       setColor(handles.erase, color);
       setColor(handles.crop, color);
     },
-    setHoverLabel: label => {
-      hoverLabel = label;
+    mouseOut: () => {
+      hoverLabel = null;
+      activeWidget.setPosition(null);
     },
     createRegion: async () => {
       painter.startStroke();

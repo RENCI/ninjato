@@ -84,6 +84,8 @@ export function Widgets(painter) {
       activeWidget = widgets.paint;
       manager.grabFocus(activeWidget);      
 
+      console.log(activeWidget.getPosition());
+
       // Hover
       // There can be multiple handlers registered for a given widget.
       // Use same hover for all, and widget-specific for highlighting as needed below.
@@ -115,14 +117,13 @@ export function Widgets(painter) {
         */
       });
 
+      const brush = [[1]];
+
       // End
       handles.paint.onEndInteractionEvent(async () => {
         painter.startStroke();
 
-        painter.paint(
-          handles.paint.getPoint(), 
-          [[1]]
-        );
+        painter.paint(handles.paint.getPoint(), brush);
 
         await painter.endStroke();
 
@@ -134,9 +135,7 @@ export function Widgets(painter) {
 
         // Use paint
         painter.paint(
-          handles.erase.getPoint(), 
-          [[1]]
-        );
+          handles.erase.getPoint(), brush);
 
         // Set erase to true
         await painter.endStroke(true);
@@ -237,8 +236,9 @@ export function Widgets(painter) {
     setActiveRegion: region => {
       activeRegion = region;
     },
-    setHoverLabel: label => {
-      hoverLabel = label;
+    mouseOut: () => {
+      hoverLabel = null;
+      if (activeWidget) activeWidget.setPosition(null);
     },
     cleanUp: () => {
       console.log('Clean up widgets');

@@ -85,7 +85,6 @@ export function SliceView() {
       mask.setActiveRegion(region);
       widgets.setActiveRegion(region);
     },
-    setHoverLabel: label => widgets.setHoverLabel(label),
     setHighlightRegion: region => mask.setHighlightRegion(region),
     setTool: (tool, cursor) => {
       widgets.setTool(tool);
@@ -157,6 +156,7 @@ export function SliceView() {
     },
     canUndo: () => mask.getPainter().canUndo(),
     canRedo: () => mask.getPainter().canRedo(),
+    mouseOut: () => widgets.mouseOut(),
     cleanUp: () => {
       console.log('Clean up slice view');
 
