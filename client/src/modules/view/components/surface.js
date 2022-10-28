@@ -39,20 +39,16 @@ export function Surface() {
   // (only render highlight that doesn't overlap with surface)
   // https://kitware.github.io/vtk-js/api/Rendering_SceneGraph_RenderPass.html
   const highlightMapper = vtkMapper.newInstance();
-
   highlightMapper.setScalarVisibility(false);        
-  /*
   highlightMapper.getViewSpecificProperties().OpenGL = {
     VertexShaderCode: RegionHighlightVP,
     FragmentShaderCode: RegionHighlightFP
   };
-  */
- 
   highlightMapper.setInputConnection(warp.getOutputPort()); 
 
   const highlight = vtkActor.newInstance();
-  highlight.getProperty().setLighting(false);
-  highlight.getProperty().setFrontfaceCulling(true);
+  //highlight.getProperty().setLighting(false);
+  //highlight.getProperty().setFrontfaceCulling(true);
   highlight.setMapper(highlightMapper);
 
   return {
@@ -90,11 +86,11 @@ export function Surface() {
         sliceCalculator.setInputConnection(flyingEdges.getOutputPort());
 
         mapper.setInputConnection(sliceCalculator.getOutputPort());
-/*
+
         mapper.getViewSpecificProperties().OpenGL = {
           VertexShaderCode: SliceHighlightVP,
           FragmentShaderCode: SliceHighlightFP
-        };*/
+        };
       }
       else {
         mapper.setInputConnection(flyingEdges.getOutputPort());
@@ -140,8 +136,6 @@ export function Surface() {
               halfWidth *= scale;
               borderWidth *= scale;
             }
-
-            console.log(cellBO.getProgram().getVertexShader().getSource());
 
             const program = cellBO.getProgram();
             program.setUniformf('sliceMin', z - halfWidth);
