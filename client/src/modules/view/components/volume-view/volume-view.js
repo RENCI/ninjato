@@ -247,17 +247,15 @@ export function VolumeView(painter) {
 
       widgets.setActiveRegion(region);
 
-
-
+      centerCamera(renderWindow, surface.getOutput(), background.getInputData());
+    },
+    setHighlightRegion: highlightRegion => {
       regions.forEach(region => 
-        region === activeRegion ? 
+        region === highlightRegion ? 
           renderWindow.getRenderer().addActor(getSurface(region).getHighlight()) :
           renderWindow.getRenderer().removeActor(getSurface(region).getHighlight())
       );
-
-      centerCamera(renderWindow, surface.getOutput(), background.getInputData());
     },
-    //setHighlightLabel: label => mask.setHighlightLabel(label),
     setTool: (tool, cursor) => {      
       widgets.setTool(tool);
       renderWindow.setCursor(cursor);

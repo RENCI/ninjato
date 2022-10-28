@@ -105,6 +105,7 @@ export const ViewContainer = ({ review = false }) => {
     }    
 
     sliceView.setHighlightRegion(null);
+    volumeView.setHighlightRegion(null);
 
     annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
   }, [sliceView, userDispatch, annotateDispatch]);
@@ -119,7 +120,8 @@ export const ViewContainer = ({ review = false }) => {
 
   const onHighlight = useCallback(region => {
     sliceView.setHighlightRegion(region);
-  }, [sliceView]);
+    volumeView.setHighlightRegion(region);
+  }, [sliceView, volumeView]);
 
   // For use in key callbacks to avoid needing tool as an argument to useCallback
   const localTool = useRef();
