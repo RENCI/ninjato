@@ -1,6 +1,5 @@
 import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
-import vtkWarpScalar from '@kitware/vtk.js/Filters/General/WarpScalar';
 import { FieldDataTypes } from '@kitware/vtk.js/Common/DataModel/DataSet/Constants';
 
 import vtkCalculator from 'vtk/filters/calculator';
@@ -27,13 +26,7 @@ export function Surface() {
   
   const actor = vtkActor.newInstance();
   actor.setMapper(mapper); 
-
-
-  const warp = vtkWarpScalar.newInstance();
-  warp.setScaleFactor(1.1);
-  warp.setInputArrayToProcess(0, 'ones', 'PointData', 'Scalars');
-  warp.setInputConnection(flyingEdges.getOutputPort());
-
+  
   // XXX: Experimental highlight code
   // Look into RenderPass to see if we can do some compositing to improve the effect 
   // (only render highlight that doesn't overlap with surface)
@@ -44,11 +37,12 @@ export function Surface() {
     VertexShaderCode: RegionHighlightVP,
     FragmentShaderCode: RegionHighlightFP
   };
-  highlightMapper.setInputConnection(warp.getOutputPort()); 
+  highlightMapper.setInputConnection(flyingEdges.getOutputPort()); 
 
   const highlight = vtkActor.newInstance();
   //highlight.getProperty().setLighting(false);
-  //highlight.getProperty().setFrontfaceCulling(true);
+  highlight.getProperty().setFrontfaceCulling(true);
+  highlight.getProperty().setAmbient(1);
   highlight.setMapper(highlightMapper);
 
   return {
@@ -63,7 +57,7 @@ export function Surface() {
       property.setOpacity(1);
       property.setBackfaceCulling(false);
 
-      highlight.getProperty().setColor(color.map(c => c * 2));
+      highlight.getProperty().setColor(color);
     },
     setTranslucentColors: (color1, color2) => {
       const property = actor.getProperty();

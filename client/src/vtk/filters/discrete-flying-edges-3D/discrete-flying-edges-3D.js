@@ -113,11 +113,8 @@ function vtkDiscreteFlyingEdges3D(publicAPI, model) {
     if (sBuffer) {
       polydata.getPointData().setScalars(vtkDataArray.newInstance({
         numberOfComponents: 1,
-        //values: sBuffer,
-        //name: input.getPointData().getScalars().getName()
-        // XXX: HUGE HACK, USE CALCULACTOR ELSEWHERE INSTEAD
-        values: sBuffer.map(v => 1),
-        name: 'ones'
+        values: sBuffer,
+        name: input.getPointData().getScalars().getName()
       }));
     }
     if (nBuffer) {

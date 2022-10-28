@@ -19,9 +19,9 @@ export const SliceHighlightVP =
 
   void main()
   {
-      vertexVCVSOutput = MCVCMatrix * vertexMC;
-      gl_Position = MCPCMatrix * vertexMC;
+    vertexVCVSOutput = MCVCMatrix * vertexMC;
+    gl_Position = MCPCMatrix * vertexMC;
 
-      positionFP = vertexMC;
-      normalFP = normalMC;
+    positionFP = vertexMC;
+    normalFP = normalMC;
   }`;
