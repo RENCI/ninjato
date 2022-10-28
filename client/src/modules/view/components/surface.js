@@ -5,7 +5,10 @@ import { FieldDataTypes } from '@kitware/vtk.js/Common/DataModel/DataSet/Constan
 
 import vtkCalculator from 'vtk/filters/calculator';
 import vtkDiscreteFlyingEdges3D from 'vtk/filters/discrete-flying-edges-3D';
-import { SliceHighlightVP, SliceHighlightFP } from 'vtk/shaders';
+import { 
+  SliceHighlightVP, SliceHighlightFP, 
+  RegionHighlightVP, RegionHighlightFP 
+} from 'vtk/shaders';
 
 export function Surface() {
   const maskCalculator = vtkCalculator.newInstance();
@@ -31,8 +34,20 @@ export function Surface() {
   warp.setInputArrayToProcess(0, 'ones', 'PointData', 'Scalars');
   warp.setInputConnection(flyingEdges.getOutputPort());
 
+  // XXX: Experimental highlight code
+  // Look into RenderPass to see if we can do some compositing to improve the effect 
+  // (only render highlight that doesn't overlap with surface)
+  // https://kitware.github.io/vtk-js/api/Rendering_SceneGraph_RenderPass.html
   const highlightMapper = vtkMapper.newInstance();
-  highlightMapper.setScalarVisibility(false);
+
+  highlightMapper.setScalarVisibility(false);        
+  /*
+  highlightMapper.getViewSpecificProperties().OpenGL = {
+    VertexShaderCode: RegionHighlightVP,
+    FragmentShaderCode: RegionHighlightFP
+  };
+  */
+ 
   highlightMapper.setInputConnection(warp.getOutputPort()); 
 
   const highlight = vtkActor.newInstance();
@@ -75,12 +90,11 @@ export function Surface() {
         sliceCalculator.setInputConnection(flyingEdges.getOutputPort());
 
         mapper.setInputConnection(sliceCalculator.getOutputPort());
-
-        const mapperSpecificProp = mapper.getViewSpecificProperties();
-        mapperSpecificProp.OpenGL = {
+/*
+        mapper.getViewSpecificProperties().OpenGL = {
           VertexShaderCode: SliceHighlightVP,
           FragmentShaderCode: SliceHighlightFP
-        };
+        };*/
       }
       else {
         mapper.setInputConnection(flyingEdges.getOutputPort());
@@ -126,6 +140,8 @@ export function Surface() {
               halfWidth *= scale;
               borderWidth *= scale;
             }
+
+            console.log(cellBO.getProgram().getVertexShader().getSource());
 
             const program = cellBO.getProgram();
             program.setUniformf('sliceMin', z - halfWidth);

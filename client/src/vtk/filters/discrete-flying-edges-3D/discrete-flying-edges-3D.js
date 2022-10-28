@@ -106,8 +106,6 @@ function vtkDiscreteFlyingEdges3D(publicAPI, model) {
 
     algo.contour(model, input, pBuffer, tBuffer, sBuffer, nBuffer, gBuffer, cBuffer);
 
-    console.log(sBuffer);
-
     // Update output
     const polydata = vtkPolyData.newInstance();
     polydata.getPoints().setData(new Float32Array(pBuffer), 3);
@@ -117,6 +115,7 @@ function vtkDiscreteFlyingEdges3D(publicAPI, model) {
         numberOfComponents: 1,
         //values: sBuffer,
         //name: input.getPointData().getScalars().getName()
+        // XXX: HUGE HACK, USE CALCULACTOR ELSEWHERE INSTEAD
         values: sBuffer.map(v => 1),
         name: 'ones'
       }));
