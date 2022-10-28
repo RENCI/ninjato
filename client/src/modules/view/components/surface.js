@@ -40,9 +40,7 @@ export function Surface() {
   highlightMapper.setInputConnection(flyingEdges.getOutputPort()); 
 
   const highlight = vtkActor.newInstance();
-  //highlight.getProperty().setLighting(false);
   highlight.getProperty().setFrontfaceCulling(true);
-  highlight.getProperty().setAmbient(1);
   highlight.setMapper(highlightMapper);
 
   return {

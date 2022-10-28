@@ -178,7 +178,6 @@ export function VolumeView(painter) {
 
         const renderer = renderWindow.getRenderer();
         surfaces.forEach(surface => renderer.addActor(surface.getActor()));
-surfaces.forEach(surface => renderer.addActor(surface.getHighlight()));
         renderer.addActor(background.getActor());
         renderer.addActor(boundingBox.getActor());
 
@@ -228,7 +227,6 @@ surfaces.forEach(surface => renderer.addActor(surface.getHighlight()));
         surfaces.forEach((surface, i) => {
           surface.setInputData(data);     
           renderer.addActor(surface.getActor());
-renderer.addActor(surface.getHighlight());
 
           if (slice >= 0) {
             const region = getRegion(surface);
@@ -248,6 +246,14 @@ renderer.addActor(surface.getHighlight());
 //      applyActiveRegion(, regions, renderWindow);
 
       widgets.setActiveRegion(region);
+
+
+
+      regions.forEach(region => 
+        region === activeRegion ? 
+          renderWindow.getRenderer().addActor(getSurface(region).getHighlight()) :
+          renderWindow.getRenderer().removeActor(getSurface(region).getHighlight())
+      );
 
       centerCamera(renderWindow, surface.getOutput(), background.getInputData());
     },
