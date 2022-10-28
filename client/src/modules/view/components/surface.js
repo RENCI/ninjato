@@ -38,8 +38,6 @@ export function Surface() {
   const highlight = vtkActor.newInstance();
   highlight.getProperty().setLighting(false);
   highlight.getProperty().setFrontfaceCulling(true);
-  highlight.getProperty().setAmbient(1);
-  highlight.getProperty().setDiffuse(0);
   highlight.setMapper(highlightMapper);
 
   return {
@@ -54,7 +52,7 @@ export function Surface() {
       property.setOpacity(1);
       property.setBackfaceCulling(false);
 
-      highlight.getProperty().setColor(color);
+      highlight.getProperty().setColor(color.map(c => c * 2));
     },
     setTranslucentColors: (color1, color2) => {
       const property = actor.getProperty();
