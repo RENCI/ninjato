@@ -217,6 +217,7 @@ export const ViewContainer = ({ review = false }) => {
                       onLoaded={ onLoaded }
                       onSelect={ onSelect }
                       onHover={ onVolumeHover }
+                      onHighlight={ onHighlight }
                     />
                   }
                   region={ volumeHoverRegion }

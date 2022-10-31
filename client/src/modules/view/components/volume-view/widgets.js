@@ -14,12 +14,15 @@ const notActiveValid = ({ region, inStartRegion, inAssignment}, activeRegion) =>
 
 const claimValid = ({ region, inStartRegion }) =>
   region?.info?.status === 'inactive' && inStartRegion;
+  
+const brush = [[1]];
 
 export function Widgets(painter) {
   // Callbacks
   let onEdit = () => {};
   let onSelect = () => {};
   let onHover = () => {};
+  let onHighlight = () => {};
 
   const manager = vtkWidgetManager.newInstance();
 
@@ -44,7 +47,7 @@ export function Widgets(painter) {
   let backgroundRegions = [];
   let activeRegion = null;
   let hoverLabel = null;
-//  let highlightLabel = null;
+  let highlightLabel = null;
 
   const getRegion = label => {
     const region = regions.concat(backgroundRegions).find(region => region.label === label);
@@ -69,6 +72,7 @@ export function Widgets(painter) {
         case 'edit': onEdit = callback; break;
         case 'select': onSelect = callback; break;
         case 'hover': onHover = callback; break;
+        case 'highlight': onHighlight = callback; break;
         default: 
           console.warn(`Unknown callback type: ${ type }`);
       }
@@ -83,8 +87,6 @@ export function Widgets(painter) {
     
       activeWidget = widgets.paint;
       manager.grabFocus(activeWidget);      
-
-      console.log(activeWidget.getPosition());
 
       // Hover
       // There can be multiple handlers registered for a given widget.
@@ -106,18 +108,64 @@ export function Widgets(painter) {
 
       // Interaction overrides
       handles.select.onInteractionEvent(() => {
-        /*
         const info = getWidgetInfo(widgets.select);
 
         if (info.label !== highlightLabel) {
           highlightLabel = info.label;
 
-          //onHighlight(notActiveValid(info, activeRegion) ? info.region : null);
+          onHighlight(notActiveValid(info, activeRegion) ? info.region : null);
         }
-        */
       });
 
-      const brush = [[1]];
+      handles.claim.onInteractionEvent(() => {
+        const info = getWidgetInfo(widgets.claim);
+
+        if (info.label !== highlightLabel) {
+          highlightLabel = info.label;
+
+          onHighlight(claimValid(info) ? info.region : null);
+        }
+      });
+
+      handles.remove.onInteractionEvent(() => {
+        const info = getWidgetInfo(widgets.remove);
+        
+        if (info.label !== highlightLabel) {
+          highlightLabel = info.label;
+
+          onHighlight(actionValid(info) ? info.region : null);
+        }
+      });
+
+      handles.split.onInteractionEvent(() => {
+        const info = getWidgetInfo(widgets.split);
+
+        if (info.label !== highlightLabel) {
+          highlightLabel = info.label;
+
+          onHighlight(actionValid(info) ? info.region : null);
+        }
+      });
+
+      handles.merge.onInteractionEvent(() => {
+        const info = getWidgetInfo(widgets.merge);
+
+        if (info.label !== highlightLabel) {
+          highlightLabel = info.label;
+
+          onHighlight(notActiveValid(info, activeRegion) ? info.region : null);
+        }
+      });
+
+      handles.delete.onInteractionEvent(() => {
+        const info = getWidgetInfo(widgets.delete);
+
+        if (info.label !== highlightLabel) {
+          highlightLabel = info.label;
+
+          onHighlight(actionValid(info) ? info.region : null);
+        }
+      });
 
       // End
       handles.paint.onEndInteractionEvent(async () => {
