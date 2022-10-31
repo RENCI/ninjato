@@ -340,7 +340,7 @@ export function Widgets(painter) {
       painter.startStroke();
 
       painter.paintFloodFill(
-        handles.create.getPoints(), 
+        widgets.create.getEventPos(),
         handles.create.getRepresentations()[0].getBrush()
       );
 

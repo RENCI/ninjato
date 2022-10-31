@@ -80,6 +80,7 @@ const defaultValues = (initialValues) => ({
   imageData: null,
   showTrail: true,
   label: null,
+  eventPos: null,
   behavior: widgetBehavior,
   widgetState: stateGenerator(),
   ...initialValues
@@ -93,7 +94,7 @@ export function extend(publicAPI, model, initialValues = {}) {
   vtkAbstractWidgetFactory.extend(publicAPI, model, initialValues);
 
   macro.get(publicAPI, model, ['painting']);
-  macro.setGet(publicAPI, model, ['manipulator', 'radius', 'color', 'imageData', 'showTrail', 'label']);
+  macro.setGet(publicAPI, model, ['manipulator', 'radius', 'color', 'imageData', 'showTrail', 'label', 'eventPos']);
 
   vtkBrushWidget(publicAPI, model);
 }
