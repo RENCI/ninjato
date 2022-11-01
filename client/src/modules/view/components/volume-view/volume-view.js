@@ -255,6 +255,8 @@ export function VolumeView(painter) {
           renderWindow.getRenderer().addActor(getSurface(region).getHighlight()) :
           renderWindow.getRenderer().removeActor(getSurface(region).getHighlight())
       );
+
+      background.setHighlightRegion(highlightRegion);
     },
     setTool: (tool, cursor) => {      
       widgets.setTool(tool);

@@ -1,12 +1,15 @@
 import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
+import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
+import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
 import { FieldDataTypes } from '@kitware/vtk.js/Common/DataModel/DataSet/Constants';
 
 import vtkCalculator from 'vtk/filters/calculator';
 import vtkDiscreteFlyingEdges3D from 'vtk/filters/discrete-flying-edges-3D';
 import { 
   SliceHighlightVP, SliceHighlightFP, 
-  RegionHighlightVP, RegionHighlightFP 
+  RegionHighlightVP, RegionHighlightFP,
+  BackgroundSurfaceVP, BackgroundSurfaceFP 
 } from 'vtk/shaders';
 
 export function Surface() {
@@ -19,15 +22,17 @@ export function Surface() {
   flyingEdges.setInputConnection(maskCalculator.getOutputPort());
 
   let sliceCalculator = null;
+
+  let color = vtkColorTransferFunction.newInstance();
   
   const mapper = vtkMapper.newInstance();
-  mapper.setScalarVisibility(false);
+  mapper.setScalarVisibility(true);  
   mapper.setInputConnection(flyingEdges.getOutputPort()); 
   
   const actor = vtkActor.newInstance();
   actor.setMapper(mapper); 
   
-  // XXX: Experimental highlight code
+  // XXX: Highlight code
   // Look into RenderPass to see if we can do some compositing to improve the effect 
   // (only render highlight that doesn't overlap with surface)
   // https://kitware.github.io/vtk-js/api/Rendering_SceneGraph_RenderPass.html
@@ -59,11 +64,78 @@ export function Surface() {
     },
     setTranslucentColors: (color1, color2) => {
       const property = actor.getProperty();
-      property.setDiffuseColor(color1);
-      property.setAmbientColor(color2);
-      property.setAmbient(0.8);
-      property.setOpacity(0.4);
-      property.setBackfaceCulling(true); 
+      //property.setDiffuseColor(color1);
+      //property.setAmbientColor(color2);
+      //property.setAmbient(0.8);
+      //property.setOpacity(0.4);
+      //property.setBackfaceCulling(true); 
+
+      //property.setColor([0.5, 0.5, 0.5])
+
+
+  mapper.setCustomShaderAttributes(['scalars'])
+
+  // XXX: Look into useAttributeArray
+  // https://kitware.github.io/vtk-js/api/Rendering_OpenGL_ShaderProgram.html
+
+      mapper.getViewSpecificProperties().OpenGL = {
+        VertexShaderCode: BackgroundSurfaceVP,
+        FragmentShaderCode: BackgroundSurfaceFP
+      };
+      
+
+
+
+// XXX: THIS SORT OF WORKS, BUT OPACITY DOESN'T WORK PROPERLY
+/*
+
+
+  mapper.setScalarVisibility(true);  
+  mapper.setUseLookupTableScalarRange(true);
+  mapper.setInterpolateScalarsBeforeMapping(false);
+
+      const lut = mapper.getLookupTable();
+      
+      console.log(lut);
+
+      const numberOfColors = 2048;
+
+      const table = vtkDataArray.newInstance({
+        numberOfComponents: 4,
+        size: 4 * numberOfColors,
+        dataType: 'Uint8Array',
+      });
+
+      for (let i = 0; i < numberOfColors; i++) {        
+        table.setTuple(i, i === 490 ? [255, 255, 255, 255] : [255, 0, 255, 200]);
+        //table.setTuple(i, [255, 255, 255, 255]);
+      }
+      lut.setNumberOfColors(numberOfColors);
+      lut.setRange(0, numberOfColors);
+      lut.setAlphaRange(0, 255);
+      lut.setTable(table);
+      lut.setAlphaRange(0, 255);
+*/
+
+/*
+mapper.getViewSpecificProperties().OpenGL = {
+  VertexShaderCode: BackgroundSurfaceFP,
+  FragmentShaderCode: BackgroundSurfaceVP
+};
+*/
+    
+    
+
+    },
+    setHighlightRegion: region => {
+      color.removeAllPoints();
+      color.addRGBPoint(1, 1, 1, 1);
+      if (region) {
+        color.addRGBPoint(region.label - 1, 1, 1, 1);
+        color.addRGBPoint(region.label, 0, 0, 0);
+        color.addRGBPoint(region.label + 1, 1, 1, 1);
+      }
+      color.addRGBPoint(Number.MAX_SAFE_INTEGER, 1, 1, 1);
     },
     setSliceHighlight: highlight => {
       if (highlight) {
