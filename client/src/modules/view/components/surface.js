@@ -87,7 +87,7 @@ export function Surface() {
       property.setDiffuseColor(color1);
       property.setAmbientColor(color2);
       property.setAmbient(0.8);
-      property.setOpacity(0.2);
+      property.setOpacity(0.4);
       property.setBackfaceCulling(true); 
       property.setInterpolationToFlat();
 
@@ -108,6 +108,7 @@ export function Surface() {
       lut.setTable(colorTable);
 
 /*
+      // Print shader source
       mapper.getViewSpecificProperties().ShadersCallbacks = [
         {
           callback: (userData, cellBO) => {

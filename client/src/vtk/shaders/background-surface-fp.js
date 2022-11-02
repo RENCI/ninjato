@@ -83,9 +83,9 @@ void main()
   opacity = opacityUniform;
   specularColor = specularColorUniform;
   specularPower = specularPowerUniform;
-  diffuseColor = vertexColorVSOutput.rgb;
-  ambientColor = vertexColorVSOutput.rgb;
-  opacity = opacity*vertexColorVSOutput.a;
+//  diffuseColor = vertexColorVSOutput.rgb;
+//  ambientColor = vertexColorVSOutput.rgb;
+//  opacity = opacity*vertexColorVSOutput.a;
 
   // Generate the normal if we are not passed in one
     fdx = normalize(fdx);
@@ -100,6 +100,9 @@ void main()
   float sf = pow(df, specularPower);
   vec3 diffuseL = df * diffuseColor;
   vec3 specularL = sf * specularColor;
+
+  opacity = vertexColorVSOutput.r == 1.0 ? 1.0 : opacity * vertexColorVSOutput.a * (1.0 - 0.8 * df);
+
   fragOutput0 = vec4(ambientColor * ambient + diffuseL * diffuse + specularL * specular, opacity);
 
 

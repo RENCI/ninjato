@@ -36,7 +36,7 @@ export const BackgroundSurfaceVP =
   
   void main()
   {
-    vertexColorVSOutput =  scalarColor;
+    vertexColorVSOutput = scalarColor;
   
     //VTK::Normal::Impl
   
