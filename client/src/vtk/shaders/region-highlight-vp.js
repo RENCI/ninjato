@@ -7,7 +7,6 @@ export const RegionHighlightVP =
   
   // frag position in VC
   out vec4 vertexVCVSOutput;
-  uniform float pointSize;
   
   // optional normal declaration
   attribute vec3 normalMC;
@@ -18,14 +17,16 @@ export const RegionHighlightVP =
   uniform mat4 MCPCMatrix;
   uniform mat4 MCVCMatrix;
   
+  // Mapper scale
+  uniform vec3 scale;
+
   void main()
   {
     normalVCVSOutput = normalMatrix * normalMC;
 
     // Offset vertex along normal
-    float scale = 1.5;
-    vec4 v = (vertexMC + vec4(normalMC * scale, 0.0));
+    float s = 1.5;
+    vec4 v = (vertexMC + vec4(normalMC * scale * s, 0.0));
 
-    vertexVCVSOutput = MCVCMatrix * v;
     gl_Position = MCPCMatrix * v;
   }`;

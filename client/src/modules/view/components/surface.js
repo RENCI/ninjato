@@ -1,6 +1,5 @@
 import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
-import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
 import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
 import { FieldDataTypes } from '@kitware/vtk.js/Common/DataModel/DataSet/Constants';
 
@@ -23,7 +22,13 @@ export function Surface() {
 
   let sliceCalculator = null;
 
-  let color = vtkColorTransferFunction.newInstance();
+  // XXX: magic number
+  const numberOfColors = 2048;
+  const colorTable = vtkDataArray.newInstance({
+    numberOfComponents: 4,
+    size: 4 * numberOfColors,
+    dataType: 'Uint8Array',
+  });
   
   const mapper = vtkMapper.newInstance();
   mapper.setScalarVisibility(true);  
@@ -42,6 +47,21 @@ export function Surface() {
     VertexShaderCode: RegionHighlightVP,
     FragmentShaderCode: RegionHighlightFP
   };
+  highlightMapper.getViewSpecificProperties().ShadersCallbacks = [
+    {
+      callback: (userData, cellBO) => {
+        const cabo = cellBO.getCABO();
+
+        let scale = [1, 1, 1];
+        if (cabo.getCoordShiftAndScaleEnabled()) {
+          scale = cabo.getCoordScale();
+        }
+
+        const program = cellBO.getProgram();
+        program.setUniform3fArray('scale', Array.from(scale));
+      }
+    }
+  ];
   highlightMapper.setInputConnection(flyingEdges.getOutputPort()); 
 
   const highlight = vtkActor.newInstance();
@@ -63,77 +83,33 @@ export function Surface() {
       highlight.getProperty().setColor(color);
     },
     setTranslucentColors: (color1, color2) => {
-      console.log(color1, color2);
-
       const property = actor.getProperty();
       property.setDiffuseColor(color1);
       property.setAmbientColor(color2);
       property.setAmbient(0.8);
-      //property.setOpacity(0.4);
+      //property.setOpacity(0.9);
       property.setBackfaceCulling(true); 
 
-
-  //mapper.setCustomShaderAttributes(['scalars'])
-
-  // XXX: Look into useAttributeArray
-  // https://kitware.github.io/vtk-js/api/Rendering_OpenGL_ShaderProgram.html
-
+      mapper.setScalarVisibility(true);  
+      mapper.setUseLookupTableScalarRange(true);
       mapper.getViewSpecificProperties().OpenGL = {
         VertexShaderCode: BackgroundSurfaceVP,
         FragmentShaderCode: BackgroundSurfaceFP
       };
-      
-    console.log(mapper);
-
-
-
-// XXX: THIS SORT OF WORKS, BUT OPACITY DOESN'T WORK PROPERLY
-
-
-
-  mapper.setScalarVisibility(true);  
-  mapper.setUseLookupTableScalarRange(true);
-  //mapper.setInterpolateScalarsBeforeMapping(false);
 
       const lut = mapper.getLookupTable();
-      
-      console.log(lut);
-
-      const numberOfColors = 2048;
-      const table = vtkDataArray.newInstance({
-        numberOfComponents: 4,
-        size: 4 * numberOfColors,
-        dataType: 'Uint8Array',
-      });
-      for (let i = 0; i < numberOfColors; i++) {        
-        table.setTuple(i, i === -1 ? [255, 255, 255, 255] : [0, 0, 0, 255]);
+      for (let i = 0; i < colorTable.getNumberOfTuples(); i++) {        
+        colorTable.setTuple(i, [0, 0, 0, 255]);
       }
       lut.setNumberOfColors(numberOfColors);
       lut.setRange(0, numberOfColors);
-      lut.setAlphaRange(0, 255);
-      lut.setTable(table);
-      lut.setAlphaRange(0, 255);
-
-
-/*
-mapper.getViewSpecificProperties().OpenGL = {
-  VertexShaderCode: BackgroundSurfaceFP,
-  FragmentShaderCode: BackgroundSurfaceVP
-};
-*/
-    
-    
-
+      lut.setTable(colorTable);
     },
     setHighlightRegion: region => {
-      color.removeAllPoints();
-      color.addRGBPoint(1, 1, 1, 1);
-      if (region) {
-        color.addRGBPoint(region.label - 1, 1, 1, 1);
-        color.addRGBPoint(region.label, 0, 0, 0);
-        color.addRGBPoint(region.label + 1, 1, 1, 1);
-      }
-      color.addRGBPoint(Number.MAX_SAFE_INTEGER, 1, 1, 1);
+      for (let i = 0; i < colorTable.getNumberOfTuples(); i++) {        
+        colorTable.setTuple(i, i === region?.label ? [255, 255, 255, 255] : [0, 0, 0, 255]);
+      }      
+      mapper.getLookupTable().setTable(colorTable);
     },
     setSliceHighlight: highlight => {
       if (highlight) {
@@ -190,8 +166,8 @@ mapper.getViewSpecificProperties().OpenGL = {
           callback: ([z, halfWidth, borderWidth, color, borderColor], cellBO) => {
             const cabo = cellBO.getCABO();
             if (cabo.getCoordShiftAndScaleEnabled()) {
-              const scale = cabo.getCoordScale()[2];
               const shift = cabo.getCoordShift()[2];
+              const scale = cabo.getCoordScale()[2];
 
               z -= shift;
               z *= scale;
@@ -219,6 +195,7 @@ mapper.getViewSpecificProperties().OpenGL = {
       // Clean up anything we instantiated
       maskCalculator.delete();
       flyingEdges.delete();
+      colorTable.delete();
       mapper.delete();
       actor.delete();
       highlightMapper.delete();

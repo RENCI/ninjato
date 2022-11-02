@@ -5,9 +5,6 @@ export const RegionHighlightFP =
   
   uniform int PrimitiveIDOffset;
   
-  // VC position of this fragment
-  in vec4 vertexVCVSOutput;
-  
   // optional color passed in from the vertex shader, vertexColor
   uniform vec3 diffuseColorUniform;
   
@@ -22,10 +19,7 @@ export const RegionHighlightFP =
   uniform float coffset;
   
   void main()
-  {
-    // VC position of this fragment. This should not branch/return/discard.
-    vec4 vertexVC = vertexVCVSOutput;
-  
+  {  
     // Place any calls that require uniform flow (e.g. dFdx) here.
     float cscale = length(vec2(dFdx(gl_FragCoord.z),dFdy(gl_FragCoord.z)));
   
