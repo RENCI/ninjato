@@ -87,15 +87,17 @@ export function Surface() {
       property.setDiffuseColor(color1);
       property.setAmbientColor(color2);
       property.setAmbient(0.8);
-      //property.setOpacity(0.9);
+      property.setOpacity(0.2);
       property.setBackfaceCulling(true); 
+      property.setInterpolationToFlat();
 
       mapper.setScalarVisibility(true);  
       mapper.setUseLookupTableScalarRange(true);
+      
       mapper.getViewSpecificProperties().OpenGL = {
         VertexShaderCode: BackgroundSurfaceVP,
         FragmentShaderCode: BackgroundSurfaceFP
-      };
+      };      
 
       const lut = mapper.getLookupTable();
       for (let i = 0; i < colorTable.getNumberOfTuples(); i++) {        
@@ -104,6 +106,16 @@ export function Surface() {
       lut.setNumberOfColors(numberOfColors);
       lut.setRange(0, numberOfColors);
       lut.setTable(colorTable);
+
+/*
+      mapper.getViewSpecificProperties().ShadersCallbacks = [
+        {
+          callback: (userData, cellBO) => {
+            console.log(cellBO.getProgram().getFragmentShader().getSource());
+          }
+        }
+      ];
+*/      
     },
     setHighlightRegion: region => {
       for (let i = 0; i < colorTable.getNumberOfTuples(); i++) {        
