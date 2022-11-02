@@ -106,7 +106,7 @@ export function Surface() {
         dataType: 'Uint8Array',
       });
       for (let i = 0; i < numberOfColors; i++) {        
-        table.setTuple(i, i === 490 ? [255, 255, 255, 255] : [0, 0, 0, 255]);
+        table.setTuple(i, i === -1 ? [255, 255, 255, 255] : [0, 0, 0, 255]);
       }
       lut.setNumberOfColors(numberOfColors);
       lut.setRange(0, numberOfColors);

@@ -30,7 +30,7 @@ const tools = [
     info: 'Click and drag to erase voxels containing the active region label. Change brush size by clicking the option button next to the icon.'  
   },
   { group: 'edit', value: 'crop', icon: 'crop', cursor: getCursor('crop.png', 11, 21), tooltip: 'crop', disabled: disabled('no active'),
-    info: 'Click and drag to erase all voxels containing the active region label within the specified rectangle.'
+    info: 'Click and drag to erase all voxels containing the active region label within the specified rectangle - 2D only.'
   },
   { group: 'region', value: 'split', icon: 'share alternate', cursor: getCursor('split.png', 12, 16), tooltip: 'split', disabled: disabled('no active'), volume: true,
     info: 'Click on a region in the assignment to split it into two regions at the current z slice.'
@@ -39,7 +39,7 @@ const tools = [
     info: 'Click on a region in the assignment to assign all of its voxels to the active region.'
   },
   { group: 'region', value: 'create', icon: 'plus circle', cursor: getCursor('create.png', 15, 16), tooltip: 'create', disabled: disabled('never'),
-    info: 'Click to add a new region.'
+    info: 'Click to add a new region – 2D only.'
   },
   { group: 'region', value: 'delete', icon: 'minus circle', cursor: getCursor('delete.png', 15, 16), tooltip: 'delete', disabled: disabled('no active'), volume: true,
     info: 'Click to delete a region in the assignment, erasing all of its voxels.'
