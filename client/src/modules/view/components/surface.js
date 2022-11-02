@@ -63,17 +63,17 @@ export function Surface() {
       highlight.getProperty().setColor(color);
     },
     setTranslucentColors: (color1, color2) => {
+      console.log(color1, color2);
+
       const property = actor.getProperty();
-      //property.setDiffuseColor(color1);
-      //property.setAmbientColor(color2);
-      //property.setAmbient(0.8);
+      property.setDiffuseColor(color1);
+      property.setAmbientColor(color2);
+      property.setAmbient(0.8);
       //property.setOpacity(0.4);
-      //property.setBackfaceCulling(true); 
-
-      //property.setColor([0.5, 0.5, 0.5])
+      property.setBackfaceCulling(true); 
 
 
-  mapper.setCustomShaderAttributes(['scalars'])
+  //mapper.setCustomShaderAttributes(['scalars'])
 
   // XXX: Look into useAttributeArray
   // https://kitware.github.io/vtk-js/api/Rendering_OpenGL_ShaderProgram.html
@@ -83,39 +83,37 @@ export function Surface() {
         FragmentShaderCode: BackgroundSurfaceFP
       };
       
+    console.log(mapper);
 
 
 
 // XXX: THIS SORT OF WORKS, BUT OPACITY DOESN'T WORK PROPERLY
-/*
+
 
 
   mapper.setScalarVisibility(true);  
   mapper.setUseLookupTableScalarRange(true);
-  mapper.setInterpolateScalarsBeforeMapping(false);
+  //mapper.setInterpolateScalarsBeforeMapping(false);
 
       const lut = mapper.getLookupTable();
       
       console.log(lut);
 
       const numberOfColors = 2048;
-
       const table = vtkDataArray.newInstance({
         numberOfComponents: 4,
         size: 4 * numberOfColors,
         dataType: 'Uint8Array',
       });
-
       for (let i = 0; i < numberOfColors; i++) {        
-        table.setTuple(i, i === 490 ? [255, 255, 255, 255] : [255, 0, 255, 200]);
-        //table.setTuple(i, [255, 255, 255, 255]);
+        table.setTuple(i, i === 490 ? [255, 255, 255, 255] : [0, 0, 0, 255]);
       }
       lut.setNumberOfColors(numberOfColors);
       lut.setRange(0, numberOfColors);
       lut.setAlphaRange(0, 255);
       lut.setTable(table);
       lut.setAlphaRange(0, 255);
-*/
+
 
 /*
 mapper.getViewSpecificProperties().OpenGL = {
