@@ -111,9 +111,12 @@ export const ViewContainer = ({ review = false }) => {
   }, [sliceView, volumeView, userDispatch, annotateDispatch]);
 
   const onSliceWidgetMove = useCallback(position => {
-    console.log(position);
     volumeView.setWidgetPosition(position);
   }, [volumeView]);
+
+  const onVolumeWidgetMove = useCallback(position => {
+    sliceView.setWidgetPosition(position);
+  }, [sliceView]);
 
   const onSliceHover = useCallback(region => {
     setSliceHoverRegion(region);
@@ -229,6 +232,7 @@ export const ViewContainer = ({ review = false }) => {
                       onEdit={ onVolumeEdit }
                       onLoaded={ onLoaded }
                       onSelect={ onSelect }
+                      onWidgetMove={ onVolumeWidgetMove }
                       onHover={ onVolumeHover }
                       onHighlight={ onHighlight }
                     />

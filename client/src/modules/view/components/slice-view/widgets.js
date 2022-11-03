@@ -339,6 +339,9 @@ export function Widgets(painter) {
       setColor(handles.erase, color);
       setColor(handles.crop, color);
     },
+    setPosition: position => {
+      if (activeWidget) activeWidget.setPosition(position);
+    },
     mouseOut: () => {
       hoverLabel = null;
       highlightLabel = null;
