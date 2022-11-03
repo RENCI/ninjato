@@ -8,13 +8,27 @@ import vtkDiscreteFlyingEdges3D from 'vtk/filters/discrete-flying-edges-3D';
 import { 
   SliceHighlightVP, SliceHighlightFP, 
   RegionHighlightVP, RegionHighlightFP,
-  BackgroundSurfaceVP, BackgroundSurfaceFP 
+  BackgroundSurfaceFP 
 } from 'vtk/shaders';
 
 const setTableColors = (table, highlight = null) => {
   for (let i = 0; i < table.getNumberOfTuples(); i++) {        
     table.setTuple(i, highlight?.label === i ? [255, 255, 255, 255] : [0, 0, 0, 255]);
   } 
+};
+
+const printShaders = mapper => {
+  // Print shader source
+  const properties = mapper.getViewSpecificProperties();
+  const print = {
+    callback: (userData, cellBO) => {
+      console.log(cellBO.getProgram().getVertexShader().getSource());
+      console.log(cellBO.getProgram().getFragmentShader().getSource());
+    }
+  }
+
+  if (properties.ShadersCallbacks) properties.ShadersCallbacks.push(print);
+  else properties.ShadersCallbacks = [print];
 };
 
 export function Surface() {
@@ -28,7 +42,7 @@ export function Surface() {
 
   let sliceCalculator = null;
 
-  // XXX: magic number
+  // XXX: magic number, should use max value in background regions
   const numberOfColors = 2048;
   const colorTable = vtkDataArray.newInstance({
     numberOfComponents: 4,
@@ -37,7 +51,7 @@ export function Surface() {
   });
   
   const mapper = vtkMapper.newInstance();
-  mapper.setScalarVisibility(true);  
+  mapper.setScalarVisibility(false);  
   mapper.setInputConnection(flyingEdges.getOutputPort()); 
   
   const actor = vtkActor.newInstance();
@@ -110,16 +124,7 @@ export function Surface() {
       lut.setRange(0, numberOfColors);
       lut.setTable(colorTable);
 
-/*
-      // Print shader source
-      mapper.getViewSpecificProperties().ShadersCallbacks = [
-        {
-          callback: (userData, cellBO) => {
-            console.log(cellBO.getProgram().getFragmentShader().getSource());
-          }
-        }
-      ];
-*/      
+      //printShaders(mapper);
     },
     setHighlightRegion: region => {
       setTableColors(colorTable, region)    ;

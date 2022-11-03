@@ -12,7 +12,6 @@ export const SliceHighlightFP =
   uniform float borderWidth;
   uniform vec3 highlightColor;
   uniform vec3 borderColor;
-
   in vec4 positionFP;
   in vec3 normalFP;
   
@@ -38,6 +37,7 @@ export const SliceHighlightFP =
   
   // the output of this shader
   layout(location = 0) out vec4 fragOutput0;
+  layout(location = 1) out vec4 fragOutput1;
   
   // handle coincident offsets
   uniform float cfactor;
@@ -103,6 +103,10 @@ export const SliceHighlightFP =
       {
       discard;
       }
-  
-      fragOutput0 = picking != 0 ? vec4(mapperIndex,1.0) : fragOutput0;
+
+    fragOutput0 = picking != 0 ? vec4(mapperIndex,1.0) : fragOutput0;
+
+    float weight = fragOutput0.a * pow(max(1.1 - gl_FragCoord.z, 0.0), 2.0);
+    //fragOutput0 = vec4(fragOutput0.rgb*weight, fragOutput0.a);
+    fragOutput1.r = weight;
   }`;
