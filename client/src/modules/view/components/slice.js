@@ -1,5 +1,3 @@
-//import vtkInteractorStyleManipulator from '@kitware/vtk.js/Interaction/Style/InteractorStyleManipulator';
-//import vtkInteractorStyleImage from '@kitware/vtk.js/Interaction/Style/InteractorStyleImage';
 import vtkMouseRangeManipulator from '@kitware/vtk.js/Interaction/Manipulators/MouseRangeManipulator';
 import vtkImageMapper from '@kitware/vtk.js/Rendering/Core/ImageMapper';
 
@@ -147,6 +145,9 @@ export function Slice() {
           setWindowLevel(imageActor, sliceRanges[z]);
 
           if (onSliceChange) onSliceChange(z, position);
+
+          // Need this when no widget enabled
+          interactor.getFirstRenderer().getRenderWindow().render();
         };
 
         imageMapper.onModified(updateSlice);

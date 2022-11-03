@@ -400,8 +400,10 @@ function vtkInteractorStyleNinjatoSlice(publicAPI, model) {
   //----------------------------------------------------------------------------
   publicAPI.handleMouseWheel = (callData) => {    
     if (model.imageMapper) {
+      console.log(callData.spinY);
+
       const extent = model.imageMapper.getInputData().getExtent();
-      const slice = model.imageMapper.getSlice() - callData.spinY;
+      const slice = model.imageMapper.getSlice() - Math.sign(callData.spinY);
 
       model.imageMapper.setSlice(Math.max(extent[4], Math.min(slice, extent[5])));
     }
