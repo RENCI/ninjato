@@ -159,7 +159,11 @@ export const ViewContainer = ({ review = false }) => {
 
       default:
     }
-  }, [annotateDispatch]);
+
+    // Clear highlighted region
+    sliceView.setHighlightRegion(null);
+    volumeView.setHighlightRegion(null);
+  }, [annotateDispatch, sliceView, volumeView]);
 
   const onKeyUp = useCallback(key => {
     switch (key) {
