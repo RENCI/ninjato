@@ -106,7 +106,7 @@ const applyActiveRegion = (region, surfaces) => {
 
 export function VolumeView(painter) {  
   // Callbacks
-  let onSliceChange = () => {};
+  //let onSliceChange = () => {};
 
   const renderWindow = RenderWindow();
   const widgets = Widgets(painter);
@@ -149,10 +149,11 @@ export function VolumeView(painter) {
     },
     setCallback: (type, callback) => {
       switch (type) { 
+/*        
         case 'sliceChange':
           onSliceChange = callback;
           break;
-/*
+
         case 'keyDown':
           slice.setCallback(type, key => key === 'i' ? image.toggleInterpolation() : callback(key));
           break;

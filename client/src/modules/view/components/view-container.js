@@ -60,7 +60,7 @@ export const ViewContainer = ({ review = false }) => {
     setCanRedo(sliceView.canRedo());
 
     if (activeRegion) userDispatch({ type: PUSH_REGION_HISTORY, activeRegion: activeRegion });
-  }, [sliceView, volumeView, userDispatch]);
+  }, [sliceView, userDispatch]);
 
   const onSliceChange = useCallback(slice => {
     if (!volumeView) return;
@@ -108,7 +108,7 @@ export const ViewContainer = ({ review = false }) => {
     volumeView.setHighlightRegion(null);
 
     annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
-  }, [sliceView, userDispatch, annotateDispatch]);
+  }, [sliceView, volumeView, userDispatch, annotateDispatch]);
 
   const onSliceHover = useCallback(region => {
     setSliceHoverRegion(region);
