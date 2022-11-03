@@ -87,10 +87,10 @@ export default function widgetBehavior(publicAPI, model) {
         model.pickPosition = toVoxelCenter(p, spacing, model._factory.getImageData().getExtent());
 
         model.activeState.setOrigin(...model.pickPosition);
-
         model._factory.setLabel(getSurfaceLabel(model, callData));
       }              
       else {
+        model.activeState.setOrigin(null);
         model._factory.setLabel(null);
       }
 
