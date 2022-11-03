@@ -37,8 +37,8 @@ export function Surface() {
   const actor = vtkActor.newInstance();
   actor.setMapper(mapper); 
   
-  // XXX: Highlight code
-  // Look into RenderPass to see if we can do some compositing to improve the effect 
+  // Highlight code
+  // XXX: Look into RenderPass to see if we can do some compositing to improve the effect 
   // (only render highlight that doesn't overlap with surface)
   // https://kitware.github.io/vtk-js/api/Rendering_SceneGraph_RenderPass.html
   const highlightMapper = vtkMapper.newInstance();
@@ -77,7 +77,7 @@ export function Surface() {
       const property = actor.getProperty();
       property.setColor(color);
       property.setAmbient(0);
-      property.setOpacity(1);
+      property.setOpacity(1.0);
       property.setBackfaceCulling(false);
 
       highlight.getProperty().setColor(color);
@@ -95,7 +95,6 @@ export function Surface() {
       mapper.setUseLookupTableScalarRange(true);
       
       mapper.getViewSpecificProperties().OpenGL = {
-        VertexShaderCode: BackgroundSurfaceVP,
         FragmentShaderCode: BackgroundSurfaceFP
       };      
 
