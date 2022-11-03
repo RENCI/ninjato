@@ -127,17 +127,24 @@ export const ViewContainer = ({ review = false }) => {
   const localTool = useRef();
 
   const onKeyDown = useCallback(key => {
+    const clearHighlight = () => { 
+      sliceView.setHighlightRegion(null);
+      volumeView.setHighlightRegion(null);
+    };
+    
     switch (key) {
       case 'Control':
         if (localTool.current !== 'erase') {
           annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'erase' });
-          localTool.current = 'erase';
+          clearHighlight();
+          localTool.current = 'erase';          
         }
         break;
 
       case 'Shift':
         if (localTool.current !== 'select') {
           annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'select' });
+          clearHighlight();
           localTool.current = 'select';
         }
         break;
@@ -145,6 +152,7 @@ export const ViewContainer = ({ review = false }) => {
       case 'Alt':
         if (localTool.current !== 'navigate') {
           annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'navigate' });
+          clearHighlight();
           localTool.current = 'navigate';
         }
         break;
@@ -159,10 +167,6 @@ export const ViewContainer = ({ review = false }) => {
 
       default:
     }
-
-    // Clear highlighted region
-    sliceView.setHighlightRegion(null);
-    volumeView.setHighlightRegion(null);
   }, [annotateDispatch, sliceView, volumeView]);
 
   const onKeyUp = useCallback(key => {
