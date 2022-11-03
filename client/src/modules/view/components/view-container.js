@@ -110,6 +110,11 @@ export const ViewContainer = ({ review = false }) => {
     annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
   }, [sliceView, volumeView, userDispatch, annotateDispatch]);
 
+  const onSliceWidgetMove = useCallback(position => {
+    console.log(position);
+//    volumeView.setWidgetPosition(position);
+  }, [volumeView]);
+
   const onSliceHover = useCallback(region => {
     setSliceHoverRegion(region);
   }, [setSliceHoverRegion]);
@@ -239,6 +244,7 @@ export const ViewContainer = ({ review = false }) => {
                       onEdit={ onSliceEdit }
                       onSliceChange={ onSliceChange }
                       onSelect={ onSelect }
+                      onWidgetMove={ onSliceWidgetMove }
                       onHover={ onSliceHover }
                       onHighlight={ onHighlight }
                       onKeyDown={ onKeyDown }
