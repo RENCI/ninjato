@@ -33,10 +33,7 @@ export const RegionHighlightFP =
     float df = max(0.0, normalVCVSOutput.z);
 
     // Apply edge highlighting
-    //vec3 color = mix(diffuseColorUniform, vec3(1.0, 1.0, 1.0), pow(df, 0.5));
-    vec3 color = mix(diffuseColorUniform, vec3(1.0, 1.0, 1.0), 0.5);
-
-    fragOutput0 = vec4(color, 1.0);
+    fragOutput0 = vec4(diffuseColorUniform, 0.5);
   
     if (fragOutput0.a <= 0.0)
       {
