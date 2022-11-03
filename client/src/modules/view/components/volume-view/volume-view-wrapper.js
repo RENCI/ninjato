@@ -94,6 +94,7 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded, onEdit, onSelect, onHo
       style={{ height: width }}
       onMouseOut={ () => {
         onHover(null);
+        onHighlight(null);
         if (volumeView) volumeView.mouseOut();
       }}
     />
