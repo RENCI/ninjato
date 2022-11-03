@@ -284,6 +284,9 @@ export function Widgets(painter) {
     setActiveRegion: region => {
       activeRegion = region;
     },
+    setPosition: position => {
+      if (activeWidget) activeWidget.setPosition(position);
+    },
     mouseOut: () => {
       hoverLabel = null;
       if (activeWidget) activeWidget.setPosition(null);
