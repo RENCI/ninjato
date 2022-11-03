@@ -13,7 +13,7 @@ import { SliceControls } from 'modules/refine/components/slice-controls';
 import { SliceSlider, SliceLabel } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
 import { RegionPopup } from 'modules/region/components/region-popup';
-import { ClaimDialog, RemoveDialog, SplitDialog, MergeDialog, CreateDialog, DeleteDialog } from 'modules/refine/components/dialogs';
+import { ClaimDialog, RemoveDialog, SplitDialog, MergeDialog, CreateDialog, DeleteDialog } from 'modules/view/components/dialogs';
 
 const { Column } = Grid;
 
@@ -26,7 +26,8 @@ export const ViewContainer = ({ review = false }) => {
   const [slice, setSlice] = useState(0);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
-  const [hoverRegion, setHoverRegion] = useState(null);
+  const [sliceHoverRegion, setSliceHoverRegion] = useState(null);
+  const [volumeHoverRegion, setVolumeHoverRegion] = useState(null);
 
   // Create views
   useEffect(() => {
@@ -43,8 +44,8 @@ export const ViewContainer = ({ review = false }) => {
     setCanRedo(sliceView.canRedo());
   }, [sliceView, imageData]);
 
-  // Slice view callbacks
-  const onEdit = useCallback((activeRegion = null) => {
+  // View callbacks
+  const onSliceEdit = useCallback((activeRegion = null) => {
     volumeView.centerCamera();
     volumeView.render();
 
@@ -53,6 +54,13 @@ export const ViewContainer = ({ review = false }) => {
 
     if (activeRegion) userDispatch({ type: PUSH_REGION_HISTORY, activeRegion: activeRegion });
   }, [sliceView, volumeView, userDispatch]);
+
+  const onVolumeEdit = useCallback((activeRegion = null) => {
+    setCanUndo(sliceView.canUndo());
+    setCanRedo(sliceView.canRedo());
+
+    if (activeRegion) userDispatch({ type: PUSH_REGION_HISTORY, activeRegion: activeRegion });
+  }, [sliceView, userDispatch]);
 
   const onSliceChange = useCallback(slice => {
     if (!volumeView) return;
@@ -97,33 +105,46 @@ export const ViewContainer = ({ review = false }) => {
     }    
 
     sliceView.setHighlightRegion(null);
+    volumeView.setHighlightRegion(null);
 
     annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
-  }, [sliceView, userDispatch, annotateDispatch]);
+  }, [sliceView, volumeView, userDispatch, annotateDispatch]);
 
-  const onHover = useCallback(region => {
-    setHoverRegion(region);
-  }, [setHoverRegion]);
+  const onSliceHover = useCallback(region => {
+    setSliceHoverRegion(region);
+  }, [setSliceHoverRegion]);
+
+  const onVolumeHover = useCallback(region => {
+    setVolumeHoverRegion(region);
+  }, [setVolumeHoverRegion]);
 
   const onHighlight = useCallback(region => {
     sliceView.setHighlightRegion(region);
-  }, [sliceView]);
+    volumeView.setHighlightRegion(region);
+  }, [sliceView, volumeView]);
 
   // For use in key callbacks to avoid needing tool as an argument to useCallback
   const localTool = useRef();
 
   const onKeyDown = useCallback(key => {
+    const clearHighlight = () => { 
+      sliceView.setHighlightRegion(null);
+      volumeView.setHighlightRegion(null);
+    };
+    
     switch (key) {
       case 'Control':
         if (localTool.current !== 'erase') {
           annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'erase' });
-          localTool.current = 'erase';
+          clearHighlight();
+          localTool.current = 'erase';          
         }
         break;
 
       case 'Shift':
         if (localTool.current !== 'select') {
           annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'select' });
+          clearHighlight();
           localTool.current = 'select';
         }
         break;
@@ -131,6 +152,7 @@ export const ViewContainer = ({ review = false }) => {
       case 'Alt':
         if (localTool.current !== 'navigate') {
           annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'navigate' });
+          clearHighlight();
           localTool.current = 'navigate';
         }
         break;
@@ -145,7 +167,7 @@ export const ViewContainer = ({ review = false }) => {
 
       default:
     }
-  }, [annotateDispatch]);
+  }, [annotateDispatch, sliceView, volumeView]);
 
   const onKeyUp = useCallback(key => {
     switch (key) {
@@ -195,10 +217,18 @@ export const ViewContainer = ({ review = false }) => {
           <VisualizationSection>
             <Grid columns='equal' stackable padded reversed='mobile'>
               <Column>
-                <VolumeViewWrapper 
-                  volumeView={ volumeView } 
-                  onLoaded={ onLoaded }
-                  onSelect={ onSelect }
+                <RegionPopup 
+                  trigger={ 
+                    <VolumeViewWrapper 
+                      volumeView={ volumeView } 
+                      onEdit={ onVolumeEdit }
+                      onLoaded={ onLoaded }
+                      onSelect={ onSelect }
+                      onHover={ onVolumeHover }
+                      onHighlight={ onHighlight }
+                    />
+                  }
+                  region={ volumeHoverRegion }
                 />
               </Column>
               <Column>
@@ -206,16 +236,16 @@ export const ViewContainer = ({ review = false }) => {
                   trigger={ 
                     <SliceViewWrapper 
                       sliceView={ sliceView } 
-                      onEdit={ onEdit }
+                      onEdit={ onSliceEdit }
                       onSliceChange={ onSliceChange }
                       onSelect={ onSelect }
-                      onHover={ onHover }
+                      onHover={ onSliceHover }
                       onHighlight={ onHighlight }
                       onKeyDown={ onKeyDown }
                       onKeyUp={ onKeyUp }
                     /> 
                   }
-                  region={ hoverRegion }
+                  region={ sliceHoverRegion }
                 /> 
               </Column>                  
                 { !loading &&

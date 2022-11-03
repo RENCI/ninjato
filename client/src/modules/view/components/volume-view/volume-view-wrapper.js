@@ -2,7 +2,7 @@ import { useContext, useState, useRef, useEffect } from 'react';
 import { UserContext, AnnotateContext } from 'contexts';
 import { useResize } from 'hooks';
 
-export const VolumeViewWrapper = ({ volumeView, onLoaded, onSelect }) => {
+export const VolumeViewWrapper = ({ volumeView, onLoaded, onEdit, onSelect, onHover, onHighlight }) => {
   const [{ maskData, assignment, activeRegion }] = useContext(UserContext);
   const [{ tool, tools, showBackground }] = useContext(AnnotateContext);
   const [initialized, setInitialized] = useState(false);
@@ -19,8 +19,20 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded, onSelect }) => {
 
   // Callbacks
   useEffect(() => {
+    if (initialized) volumeView.setCallback('edit', onEdit);
+  }, [initialized, volumeView, onEdit]);
+
+  useEffect(() => {
     if (initialized) volumeView.setCallback('select', onSelect);
   }, [initialized, volumeView, onSelect]);
+
+  useEffect(() => {
+    if (initialized) volumeView.setCallback('hover', onHover);
+  }, [initialized, volumeView, onHover]);
+
+  useEffect(() => {
+    if (initialized) volumeView.setCallback('highlight', onHighlight);
+  }, [initialized, volumeView, onHighlight]);
 
   // Regions
   useEffect(() => {
@@ -77,6 +89,14 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded, onSelect }) => {
   }, [initialized, volumeView]);
 
   return (
-    <div ref={ div } style={{ height: width }}></div>
+    <div 
+      ref={ div } 
+      style={{ height: width }}
+      onMouseOut={ () => {
+        onHover(null);
+        onHighlight(null);
+        if (volumeView) volumeView.mouseOut();
+      }}
+    />
   );
 };

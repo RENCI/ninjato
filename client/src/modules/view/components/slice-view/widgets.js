@@ -331,11 +331,16 @@ export function Widgets(painter) {
       setColor(handles.erase, color);
       setColor(handles.crop, color);
     },
+    mouseOut: () => {
+      hoverLabel = null;
+      highlightLabel = null;
+      if (activeWidget) activeWidget.setPosition(null);
+    },
     createRegion: async () => {
       painter.startStroke();
 
       painter.paintFloodFill(
-        handles.create.getPoints(), 
+        widgets.create.getEventPos(),
         handles.create.getRepresentations()[0].getBrush()
       );
 

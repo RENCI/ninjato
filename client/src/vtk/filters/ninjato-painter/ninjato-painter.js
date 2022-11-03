@@ -185,6 +185,8 @@ function vtkNinjatoPainter(publicAPI, model) {
   };
 
   publicAPI.paintFloodFill = (pointList, brush) => {
+    // XXX: Filter repeated points from point list
+
     if (workerPromise && pointList.length > 0) {
       const points = [];
       for (let i = 0; i < pointList.length / 3; i++) {

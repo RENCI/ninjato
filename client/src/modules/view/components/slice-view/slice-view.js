@@ -156,6 +156,10 @@ export function SliceView() {
     },
     canUndo: () => mask.getPainter().canUndo(),
     canRedo: () => mask.getPainter().canRedo(),
+    mouseOut: () => {
+      widgets.mouseOut();
+      mask.setHighlightRegion(null);
+    },
     cleanUp: () => {
       console.log('Clean up slice view');
 

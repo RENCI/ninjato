@@ -1,6 +1,6 @@
 import macro from '@kitware/vtk.js/macros';
 import { vec3 } from 'gl-matrix';
-//import { getSurfaceLabel } from 'vtk/widgets/widget-utils';
+import { getSurfaceLabel } from 'vtk/widgets/widget-utils';
 
 const toVoxelCenter = (p, spacing, extent) => {
   return p.map((v, i) => {
@@ -23,10 +23,7 @@ export default function widgetBehavior(publicAPI, model) {
       return macro.VOID;
     }
 
-    model.painting = true;    
-
-
-    // XXX: NEED TO SET PICK POSITION HERE?
+    model.painting = true;
 
     publicAPI.invokeStartInteractionEvent();
     return macro.EVENT_ABORT;
@@ -90,25 +87,12 @@ export default function widgetBehavior(publicAPI, model) {
         model.pickPosition = toVoxelCenter(p, spacing, model._factory.getImageData().getExtent());
 
         model.activeState.setOrigin(...model.pickPosition);
-        
-        /*
-        const imageData = model._factory.getImageData();
 
-        if (imageData) {
-          const ijk = imageData.worldToIndex([...worldCoords]);
-          const dims = imageData.getDimensions();
-          const spacing = imageData.getSpacing();
-
-          worldCoords[0] = toPixelCenter(ijk[0], spacing[0], dims[0]);
-          worldCoords[1] = toPixelCenter(ijk[1], spacing[1], dims[1]);
-
-          //model.activeState.setOrigin(...worldCoords);
-        }
-        */
-        //model.pickPosition = worldCoords;
-      }      
-      
-      //model._factory.setLabel(getImageLabel(model, callData));          
+        model._factory.setLabel(getSurfaceLabel(model, callData));
+      }              
+      else {
+        model._factory.setLabel(null);
+      }
 
       publicAPI.invokeInteractionEvent();
       return macro.EVENT_ABORT;

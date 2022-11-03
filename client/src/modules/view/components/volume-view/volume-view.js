@@ -106,8 +106,7 @@ const applyActiveRegion = (region, surfaces) => {
 
 export function VolumeView(painter) {  
   // Callbacks
-//  let onEdit = () => {};
-  let onSliceChange = () => {};
+  //let onSliceChange = () => {};
 
   const renderWindow = RenderWindow();
   const widgets = Widgets(painter);
@@ -149,17 +148,12 @@ export function VolumeView(painter) {
       widgets.setRenderer(renderWindow.getRenderer());
     },
     setCallback: (type, callback) => {
-      switch (type) {
+      switch (type) { 
 /*        
-        case 'edit':
-          onEdit = callback;
-          widgets.setCallback(type, callback);
-        break;
-*/
         case 'sliceChange':
           onSliceChange = callback;
           break;
-/*
+
         case 'keyDown':
           slice.setCallback(type, key => key === 'i' ? image.toggleInterpolation() : callback(key));
           break;
@@ -256,7 +250,15 @@ export function VolumeView(painter) {
 
       centerCamera(renderWindow, surface.getOutput(), background.getInputData());
     },
-    //setHighlightLabel: label => mask.setHighlightLabel(label),
+    setHighlightRegion: highlightRegion => {
+      regions.forEach(region => 
+        region === highlightRegion ? 
+          renderWindow.getRenderer().addActor(getSurface(region).getHighlight()) :
+          renderWindow.getRenderer().removeActor(getSurface(region).getHighlight())
+      );
+
+      background.setHighlightRegion(highlightRegion);
+    },
     setTool: (tool, cursor) => {      
       widgets.setTool(tool);
       renderWindow.setCursor(cursor);
@@ -283,6 +285,7 @@ export function VolumeView(painter) {
       render();
       if (onRendered) onRendered();
     },
+    mouseOut: () => widgets.mouseOut(),
     cleanUp: () => {
       console.log('Clean up volume view');
 
