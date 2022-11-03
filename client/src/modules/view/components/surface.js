@@ -11,6 +11,12 @@ import {
   BackgroundSurfaceVP, BackgroundSurfaceFP 
 } from 'vtk/shaders';
 
+const setTableColors = (table, highlight = null) => {
+  for (let i = 0; i < table.getNumberOfTuples(); i++) {        
+    table.setTuple(i, highlight?.label === i ? [255, 255, 255, 255] : [0, 0, 0, 255]);
+  } 
+};
+
 export function Surface() {
   const maskCalculator = vtkCalculator.newInstance();
 
@@ -99,9 +105,7 @@ export function Surface() {
       };      
 
       const lut = mapper.getLookupTable();
-      for (let i = 0; i < colorTable.getNumberOfTuples(); i++) {        
-        colorTable.setTuple(i, [0, 0, 0, 255]);
-      }
+      setTableColors(colorTable);
       lut.setNumberOfColors(numberOfColors);
       lut.setRange(0, numberOfColors);
       lut.setTable(colorTable);
@@ -118,9 +122,7 @@ export function Surface() {
 */      
     },
     setHighlightRegion: region => {
-      for (let i = 0; i < colorTable.getNumberOfTuples(); i++) {        
-        colorTable.setTuple(i, i === region?.label ? [255, 255, 255, 255] : [0, 0, 0, 255]);
-      }      
+      setTableColors(colorTable, region)    ;
       mapper.getLookupTable().setTable(colorTable);
     },
     setSliceHighlight: highlight => {
