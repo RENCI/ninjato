@@ -3,6 +3,7 @@ import { Message } from 'semantic-ui-react';
 import { UserContext, UPDATE_ASSIGNMENT } from 'contexts';
 import { RegionSelect } from 'modules/region/components/region-select';
 import { CommentContainer } from 'modules/comment/components/comment-container';
+import { AnnotationOptions } from 'modules/options/components/annotation-options';
 import { RefreshButton } from 'modules/common/components/refresh-button';
 import { useLoadData } from 'hooks';
 import { api } from 'utils/api';
@@ -43,6 +44,7 @@ export const AssignmentMessage = () => {
                 </div>
                 <RegionSelect />
                 <CommentContainer />
+                <AnnotationOptions />
                 <RefreshButton 
                   className={ styles.refresh }
                   message={ 'refresh assignment'}

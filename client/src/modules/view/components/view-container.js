@@ -19,7 +19,7 @@ const { Column } = Grid;
 
 export const ViewContainer = ({ review = false }) => {
   const [{ imageData }, userDispatch] = useContext(UserContext);
-  const [, annotateDispatch] = useContext(AnnotateContext);
+  const [{ options }, annotateDispatch] = useContext(AnnotateContext);
   const [volumeView, setVolumeView] = useState();
   const [sliceView, setSliceView] = useState();
   const [loading, setLoading] = useState(true);
@@ -111,12 +111,12 @@ export const ViewContainer = ({ review = false }) => {
   }, [sliceView, volumeView, userDispatch, annotateDispatch]);
 
   const onSliceWidgetMove = useCallback(position => {
-    volumeView.setWidgetPosition(position);
-  }, [volumeView]);
+    if (options.linkPaintWidget) volumeView.setWidgetPosition(position);
+  }, [volumeView, options.linkPaintWidget]);
 
   const onVolumeWidgetMove = useCallback(position => {
-    sliceView.setWidgetPosition(position);
-  }, [sliceView]);
+    if (options.linkPaintWidget) sliceView.setWidgetPosition(position);
+  }, [sliceView, options.linkPaintWidget]);
 
   const onSliceHover = useCallback(region => {
     setSliceHoverRegion(region);
