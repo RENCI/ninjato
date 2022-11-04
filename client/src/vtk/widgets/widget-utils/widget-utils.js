@@ -17,10 +17,12 @@ export const getImageLabel = (model, callData) => {
 
   const bounds = imageData.getBounds();
 
+  const offset = imageData.getSpacing().map(d => d / 2);
+
   // Check x and y position
-  worldCoords[0] = Math.max(bounds[0] + 0.5, Math.min(worldCoords[0], bounds[1] - 0.5));
-  worldCoords[1] = Math.max(bounds[2] + 0.5, Math.min(worldCoords[1], bounds[3] - 0.5));
-  worldCoords[2] = Math.max(bounds[4] + 0.5, Math.min(worldCoords[2], bounds[5] - 0.5));
+  worldCoords[0] = Math.max(bounds[0] + offset[0], Math.min(worldCoords[0], bounds[1] - offset[0]));
+  worldCoords[1] = Math.max(bounds[2] + offset[1], Math.min(worldCoords[1], bounds[3] - offset[1]));
+  worldCoords[2] = Math.max(bounds[4] + offset[2], Math.min(worldCoords[2], bounds[5] - offset[2]));
 
   const value = imageData.getScalarValueFromWorld(worldCoords);
 
