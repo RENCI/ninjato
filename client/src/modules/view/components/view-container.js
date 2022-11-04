@@ -19,7 +19,7 @@ const { Column } = Grid;
 
 export const ViewContainer = ({ review = false }) => {
   const [{ imageData }, userDispatch] = useContext(UserContext);
-  const [, annotateDispatch] = useContext(AnnotateContext);
+  const [{ options }, annotateDispatch] = useContext(AnnotateContext);
   const [volumeView, setVolumeView] = useState();
   const [sliceView, setSliceView] = useState();
   const [loading, setLoading] = useState(true);
@@ -109,6 +109,14 @@ export const ViewContainer = ({ review = false }) => {
 
     annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
   }, [sliceView, volumeView, userDispatch, annotateDispatch]);
+
+  const onSliceWidgetMove = useCallback(position => {
+    volumeView.setWidgetPosition(position);
+  }, [volumeView]);
+
+  const onVolumeWidgetMove = useCallback(position => {
+    sliceView.setWidgetPosition(position, options.linkPaintSlice);
+  }, [sliceView, options.linkPaintSlice]);
 
   const onSliceHover = useCallback(region => {
     setSliceHoverRegion(region);
@@ -224,6 +232,7 @@ export const ViewContainer = ({ review = false }) => {
                       onEdit={ onVolumeEdit }
                       onLoaded={ onLoaded }
                       onSelect={ onSelect }
+                      onWidgetMove={ onVolumeWidgetMove }
                       onHover={ onVolumeHover }
                       onHighlight={ onHighlight }
                     />
@@ -239,6 +248,7 @@ export const ViewContainer = ({ review = false }) => {
                       onEdit={ onSliceEdit }
                       onSliceChange={ onSliceChange }
                       onSelect={ onSelect }
+                      onWidgetMove={ onSliceWidgetMove }
                       onHover={ onSliceHover }
                       onHighlight={ onHighlight }
                       onKeyDown={ onKeyDown }

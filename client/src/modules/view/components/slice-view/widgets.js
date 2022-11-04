@@ -28,6 +28,7 @@ export function Widgets(painter) {
   // Callbacks
   let onEdit = () => {};
   let onSelect = () => {};
+  let onWidgetMove = () => {};
   let onHover = () => {};
   let onHighlight = () => {};
 
@@ -80,6 +81,7 @@ export function Widgets(painter) {
       switch (type) {
         case 'edit': onEdit = callback; break;
         case 'select': onSelect = callback; break;
+        case 'widgetMove': onWidgetMove = callback; break;
         case 'hover': onHover = callback; break;
         case 'highlight': onHighlight = callback; break;
         default: 
@@ -108,16 +110,22 @@ export function Widgets(painter) {
       Object.entries(handles).forEach(([name, handle]) => {          
         const widget = widgets[name];
 
-        if (!widget.getLabel) return;
+        if (widget.getPosition) {
+          handle.onInteractionEvent(() => {
+            onWidgetMove(widget.getPosition());
+          });
+        }
 
-        handle.onInteractionEvent(() => {
-          const { label, region } = getWidgetInfo(widget);
-          
-          if (label !== hoverLabel) {
-            hoverLabel = label;
-            onHover(region);
-          }
-        });
+        if (widget.getLabel) {
+          handle.onInteractionEvent(() => {
+            const { label, region } = getWidgetInfo(widget);
+            
+            if (label !== hoverLabel) {
+              hoverLabel = label;
+              onHover(region);
+            }
+          });
+        }
       });
 
       // Interaction overrides
@@ -330,6 +338,9 @@ export function Widgets(painter) {
       setColor(handles.paint, color);
       setColor(handles.erase, color);
       setColor(handles.crop, color);
+    },
+    setPosition: position => {
+      if (activeWidget) activeWidget.setPosition(position);
     },
     mouseOut: () => {
       hoverLabel = null;

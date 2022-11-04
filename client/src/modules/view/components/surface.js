@@ -5,6 +5,7 @@ import { FieldDataTypes } from '@kitware/vtk.js/Common/DataModel/DataSet/Constan
 
 import vtkCalculator from 'vtk/filters/calculator';
 import vtkDiscreteFlyingEdges3D from 'vtk/filters/discrete-flying-edges-3D';
+//import { printShaders } from 'utils/shader-utils';
 import { 
   SliceHighlightVP, SliceHighlightFP, 
   RegionHighlightVP, RegionHighlightFP,
@@ -15,20 +16,6 @@ const setTableColors = (table, highlight = null) => {
   for (let i = 0; i < table.getNumberOfTuples(); i++) {        
     table.setTuple(i, highlight?.label === i ? [255, 255, 255, 255] : [0, 0, 0, 255]);
   } 
-};
-
-const printShaders = mapper => {
-  // Print shader source
-  const properties = mapper.getViewSpecificProperties();
-  const print = {
-    callback: (userData, cellBO) => {
-      console.log(cellBO.getProgram().getVertexShader().getSource());
-      console.log(cellBO.getProgram().getFragmentShader().getSource());
-    }
-  }
-
-  if (properties.ShadersCallbacks) properties.ShadersCallbacks.push(print);
-  else properties.ShadersCallbacks = [print];
 };
 
 export function Surface() {

@@ -4,7 +4,7 @@ import { UserContext, SET_ACTIVE_REGION } from 'contexts';
 import { CommentHistory } from 'modules/comment/components/comment-history';
 import { RegionIcon } from 'modules/region/components/region-icon';
 
-const {  Content } = Modal;
+const { Content } = Modal;
 
 export const CommentContainer = () => {
   const [{ assignment, activeRegion }, userDispatch] = useContext(UserContext);
@@ -28,7 +28,7 @@ export const CommentContainer = () => {
     >
       <Header>Comments</Header>
       <Content>
-      <Header sub>Select region</Header>
+        <Header sub>Select region</Header>
         <Tab           
           activeIndex={ regions.findIndex(({ label }) => label === activeRegion?.label) }
           menu={{ secondary: true, pointing: true }}

@@ -259,6 +259,7 @@ export function VolumeView(painter) {
 
       background.setHighlightRegion(highlightRegion);
     },
+    setWidgetPosition: position => widgets.setPosition(position),
     setTool: (tool, cursor) => {      
       widgets.setTool(tool);
       renderWindow.setCursor(cursor);

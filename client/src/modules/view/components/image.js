@@ -16,9 +16,8 @@ export function Image() {
   return {
     getActor: () => actor,
     getMapper: () => mapper,
-    setInputData: data => {
-      mapper.setInputData(data);
-    },
+    setInputData: data => mapper.setInputData(data),
+    getInputData: () => mapper.getInputData(),
     toggleInterpolation: () => {
       const type = actor.getProperty().getInterpolationType();
       actor.getProperty().setInterpolationType(type === 0 ? 1 : 0);

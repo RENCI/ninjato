@@ -6,6 +6,7 @@ export const ANNOTATE_SET_BRUSH = 'annotate/ANNOTATE_SET_BRUSH';
 export const ANNOTATE_CHANGE_BRUSH_SIZE = 'annotate/ANNOTATE_CHANGE_BRUSH_SIZE';
 export const ANNOTATE_SET_CONTROL = 'annotate/SET_CONTROL';
 export const ANNOTATE_SET_ACTION = 'annotate/SET_ACTION';
+export const ANNOTATE_SET_OPTION = 'annotate/SET_OPTION';
 export const ANNOTATE_RESET = 'annotate/RESET';
 
 // Functions to determine disabled status
@@ -89,6 +90,9 @@ const initialState = {
   paintBrush: 0,
   eraseBrush: 0,
   createBrush: 3,
+  options: {
+    linkPaintSlice: true
+  },
   showBackground: true,
   showContours: true,
   action: null
@@ -135,6 +139,17 @@ const reducer = (state, action) => {
         ...state,
         action: action.action
       };
+
+    case ANNOTATE_SET_OPTION: {
+      const options = {...state.options};
+
+      options[action.option] = action.value;
+
+      return {
+        ...state,
+        options: options
+      }
+    };
 
     case ANNOTATE_RESET:
       return {
