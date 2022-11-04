@@ -18,6 +18,9 @@ export const AssignmentSelection = () => {
   const [{ user, assignments, availableReviews, volumes }] = useContext(UserContext);
   const getAssignments = useGetAssignments();
 
+  const validAssignments = assignments ? assignments.filter(({ status }) => 
+    status === 'active' || status === 'review' || status === 'waiting') : null;
+
   useEffect(() => {  
     if (user) getAssignments(user._id, user.reviewer);    
   }, [user, getAssignments]);
@@ -28,7 +31,7 @@ export const AssignmentSelection = () => {
 
   return (
     <div className={ styles.container }>
-      { (assignments && volumes) && (user.reviewer ?
+      { (validAssignments && volumes) && (user.reviewer ?
         <Tab
           menu={{ secondary: true, pointing: true, attached: 'top' }}
           panes={[
@@ -37,7 +40,7 @@ export const AssignmentSelection = () => {
               render: () => (
                 <Tab.Pane>
                   <ReviewSelection 
-                    review={ filterAssignments(assignments, 'review', user.login) } 
+                    review={ filterAssignments(validAssignments, 'review', user.login) } 
                     waiting={ availableReviews } 
                   />                      
                 </Tab.Pane>
@@ -48,7 +51,7 @@ export const AssignmentSelection = () => {
               render: () => (
                 <Tab.Pane>
                   <RefineSelection 
-                    assignments={ filterAssignments(assignments, 'refine', user.login) } 
+                    assignments={ filterAssignments(validAssignments, 'refine', user.login) } 
                   />
                 </Tab.Pane>
               )
@@ -58,7 +61,7 @@ export const AssignmentSelection = () => {
       :
         <div className={ styles.refine }>
           <RefineSelection 
-            assignments={ filterAssignments(assignments, 'refine', user.login) } 
+            assignments={ filterAssignments(validAssignments, 'refine', user.login) } 
           />
         </div>
       )}
