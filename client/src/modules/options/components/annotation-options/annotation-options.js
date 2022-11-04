@@ -26,9 +26,9 @@ export const AnnotationOptions = () => {
       <Content>
         <Checkbox 
           toggle
-          label='Link paint/erase widgets'
-          checked={ options.linkPaintWidget }
-          onClick={ () => onOptionChange('linkPaintWidget', !options.linkPaintWidget) }
+          label='Link paint/erase slice'
+          checked={ options.linkPaintSlice }
+          onClick={ () => onOptionChange('linkPaintSlice', !options.linkPaintSlice) }
         />
       </Content>
     </Modal>

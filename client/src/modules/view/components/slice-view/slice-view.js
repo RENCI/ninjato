@@ -86,14 +86,14 @@ export function SliceView() {
       widgets.setActiveRegion(region);
     },
     setHighlightRegion: region => mask.setHighlightRegion(region),
-    setWidgetPosition: position => {
+    setWidgetPosition: (position, linkSlice) => {
       if (position) {
         const spacing = image.getInputData().getSpacing();
         const extent = image.getInputData().getExtent();        
 
         const p = position.map((p, i) => Math.max(extent[i * 2], Math.min(p / spacing[i], extent[i * 2 + 1])));
 
-        image.getMapper().setSlice(Math.floor(p[2]));
+        if (linkSlice) image.getMapper().setSlice(Math.floor(p[2]));
         widgets.setPosition(p);
       }
     },

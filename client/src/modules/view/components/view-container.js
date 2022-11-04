@@ -111,12 +111,12 @@ export const ViewContainer = ({ review = false }) => {
   }, [sliceView, volumeView, userDispatch, annotateDispatch]);
 
   const onSliceWidgetMove = useCallback(position => {
-    if (options.linkPaintWidget) volumeView.setWidgetPosition(position);
-  }, [volumeView, options.linkPaintWidget]);
+    volumeView.setWidgetPosition(position);
+  }, [volumeView, options.linkPaintSlice]);
 
   const onVolumeWidgetMove = useCallback(position => {
-    if (options.linkPaintWidget) sliceView.setWidgetPosition(position);
-  }, [sliceView, options.linkPaintWidget]);
+    sliceView.setWidgetPosition(position, options.linkPaintSlice);
+  }, [sliceView, options.linkPaintSlice]);
 
   const onSliceHover = useCallback(region => {
     setSliceHoverRegion(region);

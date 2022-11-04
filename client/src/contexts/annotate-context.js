@@ -91,7 +91,7 @@ const initialState = {
   eraseBrush: 0,
   createBrush: 3,
   options: {
-    linkPaintWidget: true
+    linkPaintSlice: true
   },
   showBackground: true,
   showContours: true,
