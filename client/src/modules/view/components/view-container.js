@@ -112,7 +112,7 @@ export const ViewContainer = ({ review = false }) => {
 
   const onSliceWidgetMove = useCallback(position => {
     volumeView.setWidgetPosition(position);
-  }, [volumeView, options.linkPaintSlice]);
+  }, [volumeView]);
 
   const onVolumeWidgetMove = useCallback(position => {
     sliceView.setWidgetPosition(position, options.linkPaintSlice);
