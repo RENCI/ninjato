@@ -80,6 +80,7 @@ export function Surface() {
     getHighlight: () => highlight,
     setInputData: data => maskCalculator.setInputData(data),
     getInputData: () => maskCalculator.getInputData(),
+    setVisibility: visible => actor.setVisibility(visible),
     setOpaqueColor: color => {
       const property = actor.getProperty();
       property.setColor(color);

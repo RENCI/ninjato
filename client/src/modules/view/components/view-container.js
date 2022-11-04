@@ -76,6 +76,13 @@ export const ViewContainer = ({ review = false }) => {
         userDispatch({ type: SET_ACTIVE_REGION, region: region });
         break;
 
+      case 'visibility':
+        region.visible = !region.visible;
+console.log(region);
+
+        volumeView.updateVisibility(region);
+        break;
+
       case 'claim':
         annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'claim', region: region } });     
         break;

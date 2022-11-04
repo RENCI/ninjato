@@ -23,6 +23,9 @@ const tools = [
   { group: 'general', value: 'navigate', icon: 'location arrow', cursor: getCursor('location-arrow.png', 22, 8), tooltip: 'navigate', disabled: disabled('never'),
     info: 'Left-click and drag to pan, right-click and drag to zoom.' 
   },
+  { group: 'general', value: 'visibility', icon: 'eye', cursor: getCursor('location-arrow.png', 22, 8), tooltip: 'visibility', disabled: disabled('never'),
+    info: 'Click on a region to toggle visibility in the 3D view.' 
+  },
 
   { group: 'edit', value: 'paint', icon: 'paint brush', cursor: getCursor('paint-brush.png', 11, 23), tooltip: 'paint', disabled: disabled('no active'), volume: true,
     info: 'Click and drag to paint voxels with the active region label. A flood fill operation will fill any holes after painting. Change brush size by clicking the option button next to the icon.'  
@@ -33,6 +36,7 @@ const tools = [
   { group: 'edit', value: 'crop', icon: 'crop', cursor: getCursor('crop.png', 11, 21), tooltip: 'crop', disabled: disabled('no active'),
     info: 'Click and drag to erase all voxels containing the active region label within the specified rectangle – 2D only.'
   },
+
   { group: 'region', value: 'split', icon: 'share alternate', cursor: getCursor('split.png', 12, 16), tooltip: 'split', disabled: disabled('no active'), volume: true,
     info: 'Click on a region in the assignment to split it into two regions at the current z slice.'
   },
@@ -45,6 +49,7 @@ const tools = [
   { group: 'region', value: 'delete', icon: 'minus circle', cursor: getCursor('delete.png', 15, 16), tooltip: 'delete', disabled: disabled('no active'), volume: true,
     info: 'Click to delete a region in the assignment, erasing all of its voxels.'
   },
+  
   { group: 'claim', value: 'claim', icon: 'flag', cursor: getCursor('flag.png', 10, 23), tooltip: 'claim', disabled: disabled('never'), volume: true,
     info: 'Click an available region not in the assignment to add it to the assignment.'
   },

@@ -275,6 +275,13 @@ export function VolumeView(painter) {
     setShowBackground: show => {
       background.getActor().setVisibility(show);
     },
+    updateVisibility: region => {
+      const surface = getSurface(region);
+
+      if (!surface) return;
+
+      surface.setVisibility(region.visible);
+    },
     centerCamera: () => {
       const surface = getSurface(activeRegion);
 

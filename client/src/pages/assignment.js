@@ -14,8 +14,6 @@ export const Assignment = () => {
     else if (!assignment) navigate('/select');
   });
 
-  console.log(assignment);
-
   return (
     !user ? 
       <RedirectMessage message='No User' /> 

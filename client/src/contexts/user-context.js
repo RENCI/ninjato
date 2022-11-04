@@ -175,7 +175,7 @@ const reducer = (state, action) => {
       return { 
         ...state,
         activeRegion: action.region
-      }
+      };    
 
     case ADD_REGION: {
       const regions = createRegion(state.assignment.regions, action.label);     
