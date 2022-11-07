@@ -3,7 +3,6 @@ import vtkCellPicker from '@kitware/vtk.js/Rendering/Core/CellPicker';
 import vtkInteractorStyleNinjato3D from 'vtk/interaction/interactor-style-ninjato-3d';
 import { RenderWindow, Surface, BoundingBox } from 'modules/view/components';
 import { Widgets } from 'modules/view/components/volume-view/widgets';
-import { getUniqueLabels } from 'utils/data';
 import { backgroundColors } from 'utils/colors';
 import { interpolate, distance } from 'utils/math';
 
@@ -169,10 +168,6 @@ export function VolumeView(painter) {
     },
     setData: maskData => {
       if (maskData) {
-        const allLabels = getUniqueLabels(maskData);
-
-        background.setLabels(allLabels.filter(label => !regions.find(region => region.label === label)));
-
         surfaces.forEach(surface => surface.setInputData(maskData));
         background.setInputData(maskData);
         boundingBox.setData(maskData);
@@ -200,6 +195,7 @@ export function VolumeView(painter) {
       }
     },
     setRegions: (regionArray, backgroundRegions) => {
+      background.setRegions(backgroundRegions);
       widgets.setRegions(regionArray, backgroundRegions);
 
       // Clean up any old surfaces
@@ -215,7 +211,7 @@ export function VolumeView(painter) {
         const surface = Surface();
         surface.setOpaqueColor(region.colors.surface);
         surface.setSliceHighlight(true);
-        surface.setLabels([region.label]);
+        surface.setRegions([region]);
 
         return surface;
       });
@@ -278,9 +274,12 @@ export function VolumeView(painter) {
     updateVisibility: region => {
       const surface = getSurface(region);
 
-      if (!surface) return;
-
-      surface.setVisibility(region.visible);
+      if (surface) {
+        surface.setVisibility(region.visible);
+      }
+      else {
+        background.updateVisibility(region);
+      }
     },
     centerCamera: () => {
       const surface = getSurface(activeRegion);

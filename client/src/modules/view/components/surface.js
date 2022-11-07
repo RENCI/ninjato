@@ -12,13 +12,30 @@ import {
   BackgroundSurfaceFP 
 } from 'vtk/shaders';
 
-const setTableColors = (table, highlight = null) => {
+const normalValue = [0, 0, 0, 255];
+const highlightValue = [255, 255, 255, 255];
+
+const updateTableColors = (table, regions = null) => {       
+  console.log(regions);
+  //regions.forEach(({ label, visible }) => table.setTuple(label, visible ? highlightValue : normalValue));
+
   for (let i = 0; i < table.getNumberOfTuples(); i++) {        
-    table.setTuple(i, highlight?.label === i ? [255, 255, 255, 255] : [0, 0, 0, 255]);
+    table.setTuple(i, normalValue);
+
+
   } 
+  
+  if (regions.length > 0) {
+    
+    for (let i = 0; i < table.getNumberOfTuples(); i++) {        
+      table.setTuple(i, i % 2 === 0 ? highlightValue : normalValue);
+    } 
+    regions.forEach(({ label, visible }) => table.setTuple(label, visible ? highlightValue : normalValue));
+  }
 };
 
 export function Surface() {
+  let regions = [];
   const maskCalculator = vtkCalculator.newInstance();
 
   const flyingEdges = vtkDiscreteFlyingEdges3D.newInstance({
@@ -33,7 +50,7 @@ export function Surface() {
   const numberOfColors = 2048;
   const colorTable = vtkDataArray.newInstance({
     numberOfComponents: 4,
-    size: 4 * numberOfColors,
+    size: numberOfColors,
     dataType: 'Uint8Array',
   });
   
@@ -107,7 +124,7 @@ export function Surface() {
       };      
 
       const lut = mapper.getLookupTable();
-      setTableColors(colorTable);
+      updateTableColors(colorTable, regions);
       lut.setNumberOfColors(numberOfColors);
       lut.setRange(0, numberOfColors);
       lut.setTable(colorTable);
@@ -115,7 +132,11 @@ export function Surface() {
       //printShaders(mapper);
     },
     setHighlightRegion: region => {
-      setTableColors(colorTable, region)    ;
+      //updateTableColors(colorTable, region ? { label: region.label, visible: true } : null);
+      mapper.getLookupTable().setTable(colorTable);
+    },
+    updateVisibility: region => {
+      updateTableColors(colorTable, regions);
       mapper.getLookupTable().setTable(colorTable);
     },
     setSliceHighlight: highlight => {
@@ -143,7 +164,10 @@ export function Surface() {
         if (sliceCalculator) sliceCalculator.delete();
       }
     },
-    setLabels: labels => {
+    setRegions: (regionArray) => {
+      regions = regionArray;
+
+      const labels = regions.map(({ label }) => label);
       const formula = label => labels.includes(label) ? label : 0;
 
       // XXX: Shouldn't need mask calculator any more, but it is causing some issues with the slice highlighting
