@@ -101,7 +101,8 @@ const getAssignment = async (subvolumeId, itemId) => {
       label: +region.label,
       color: info.color[region.label],
       comments: comments[region.label],
-      index: i
+      index: i,
+      visible: true
     })),
     status: getStatus(info),
     imageId: imageInfo?._id,

@@ -78,7 +78,6 @@ export const ViewContainer = ({ review = false }) => {
 
       case 'visibility':
         region.visible = !region.visible;
-console.log(region);
 
         volumeView.updateVisibility(region);
         break;

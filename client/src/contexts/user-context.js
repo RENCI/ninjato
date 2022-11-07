@@ -42,7 +42,8 @@ const createRegion = (regions, label) => {
     ...regions,
     {
       label: label,
-      index: regions.length
+      index: regions.length,
+      visible: true
     }
   ];
 
