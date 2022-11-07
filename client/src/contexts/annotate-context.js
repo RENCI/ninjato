@@ -23,7 +23,7 @@ const tools = [
   { group: 'general', value: 'navigate', icon: 'location arrow', cursor: getCursor('location-arrow.png', 22, 8), tooltip: 'navigate', disabled: disabled('never'),
     info: 'Left-click and drag to pan, right-click and drag to zoom.' 
   },
-  { group: 'general', value: 'visibility', icon: 'eye', cursor: getCursor('location-arrow.png', 22, 8), tooltip: 'visibility', disabled: disabled('never'),
+  { group: 'general', value: 'visibility', icon: 'eye', cursor: getCursor('eye.png', 16, 16), tooltip: 'visibility', disabled: disabled('never'),
     info: 'Click on a region to toggle visibility in the 3D view.' 
   },
 
