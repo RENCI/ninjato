@@ -269,7 +269,7 @@ export function VolumeView(painter) {
       });
     },
     setShowBackground: show => {
-      background.setShow(show);
+      background.getActor().setVisibility(show);
     },
     updateVisibility: region => {
       const surface = getSurface(region);
@@ -280,7 +280,7 @@ export function VolumeView(painter) {
       else {
         background.updateVisibility(region);
       }
-      
+
       render();
     },
     centerCamera: () => {

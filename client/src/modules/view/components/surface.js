@@ -13,29 +13,23 @@ import {
 } from 'vtk/shaders';
 
 const hiddenValue = [0, 0, 0, 255];
-const transparentValue = [0.5 * 255, 0, 0, 255];
-const opaqueValue = [255, 0, 0, 255];
-const highlightValue = [255, 255, 0, 255];
+const visibleValue = [255, 0, 0, 255];
 
-const initializeTableColors = (table, visible) => {
-  const baseValue = visible ? transparentValue : hiddenValue;
-
+const initializeTableColors = (table) => {
   for (let i = 0; i < table.getNumberOfTuples(); i++) {
-    table.setTuple(i, baseValue);
+    table.setTuple(i, visibleValue);
   }
 }
 
-const updateTableColors = (table, visible, regions = [], highlight = null) => {            
-  const baseValue = visible ? transparentValue : hiddenValue;
-
-  regions.forEach(region => table.setTuple(region.label, region.visible ? opaqueValue : baseValue));
-  if (highlight) table.setTuple(highlight.label, highlightValue);
+// Hide visible/highlight regions, as they have their own surface
+const updateTableColors = (table, regions = [], highlight = null) => { 
+  regions.forEach(region => table.setTuple(region.label, region.visible ? hiddenValue : visibleValue));
+  if (highlight) table.setTuple(highlight.label, hiddenValue);
 };
 
 // XXX: May make sense to refactor at this point, as various things are different between single region and multi-region background
 export function Surface() {
   let regions = [];
-  let visible = true;
   const maskCalculator = vtkCalculator.newInstance();
 
   const flyingEdges = vtkDiscreteFlyingEdges3D.newInstance({
@@ -124,7 +118,7 @@ export function Surface() {
       };      
 
       const lut = mapper.getLookupTable();
-      initializeTableColors(colorTable, visible);
+      initializeTableColors(colorTable);
       lut.setNumberOfColors(numberOfColors);
       lut.setRange(0, numberOfColors);
       lut.setTable(colorTable);
@@ -132,16 +126,11 @@ export function Surface() {
       //printShaders(mapper);
     },
     setHighlightRegion: region => {
-      updateTableColors(colorTable, visible, regions, region);
+      updateTableColors(colorTable, regions, region);
       mapper.getLookupTable().setTable(colorTable);
     },
     updateVisibility: () => {
-      updateTableColors(colorTable, visible, regions);
-      mapper.getLookupTable().setTable(colorTable);
-    },
-    setShow: show => {
-      visible = show;
-      updateTableColors(colorTable, visible, regions);
+      updateTableColors(colorTable, regions);
       mapper.getLookupTable().setTable(colorTable);
     },
     setSliceHighlight: highlight => {

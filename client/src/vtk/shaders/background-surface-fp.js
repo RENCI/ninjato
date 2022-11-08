@@ -102,11 +102,7 @@ export const BackgroundSurfaceFP =
     vec3 specularL = sf * specularColor;
 
     float o = vertexColorVSOutput.r;
-    opacity = o == 0.0 ? 0.0 :
-      o <= 0.5 ? opacity * vertexColorVSOutput.a * (1.0 - 0.8 * df) :
-      1.0;
-
-    if (vertexColorVSOutput.g == 1.0) diffuseL *= 1.5;
+    opacity = o == 0.0 ? 0.0 : opacity * vertexColorVSOutput.a * (1.0 - 0.8 * df);
 
     fragOutput0 = vec4(ambientColor * ambient + diffuseL * diffuse + specularL * specular, opacity);
 
