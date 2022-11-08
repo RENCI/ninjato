@@ -143,7 +143,7 @@ export const ViewContainer = ({ review = false }) => {
   }, [sliceView, volumeView]);
 
   // For use in key callbacks to avoid needing tool as an argument to useCallback
-  const toolRef = useRef(tool);
+  const toolRef = useRef();
   const previousToolRef = useRef();
 
   useEffect(() => {
