@@ -28,10 +28,11 @@ const initializeTableColors = (table, visible) => {
 const updateTableColors = (table, visible, regions = [], highlight = null) => {            
   const baseValue = visible ? transparentValue : hiddenValue;
 
-  regions.forEach(({ label, visible }) => table.setTuple(label, visible ? opaqueValue : baseValue));
+  regions.forEach(region => table.setTuple(region.label, region.visible ? opaqueValue : baseValue));
   if (highlight) table.setTuple(highlight.label, highlightValue);
 };
 
+// XXX: May make sense to refactor at this point, as various things are different between single region and multi-region background
 export function Surface() {
   let regions = [];
   let visible = true;
@@ -135,6 +136,11 @@ export function Surface() {
       mapper.getLookupTable().setTable(colorTable);
     },
     updateVisibility: () => {
+      updateTableColors(colorTable, visible, regions);
+      mapper.getLookupTable().setTable(colorTable);
+    },
+    setShow: show => {
+      visible = show;
       updateTableColors(colorTable, visible, regions);
       mapper.getLookupTable().setTable(colorTable);
     },

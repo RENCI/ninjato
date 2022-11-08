@@ -251,10 +251,8 @@ export function Widgets(painter) {
 
       handles.visibility.onEndInteractionEvent(() => {
         const info = getWidgetInfo(widgets.visibility);
-console.log(info.region);
-        //if (notActiveValid(info, activeRegion)) {
-          onSelect(info.region, 'visibility');
-        //}
+
+        onSelect(info.region, 'visibility');
       });
 
       handles.claim.onEndInteractionEvent(() => {

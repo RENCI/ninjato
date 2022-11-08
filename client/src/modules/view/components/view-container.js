@@ -74,6 +74,7 @@ export const ViewContainer = ({ review = false }) => {
     switch (type) {
       case 'select':       
         userDispatch({ type: SET_ACTIVE_REGION, region: region });
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
         break;
 
       case 'visibility':
@@ -83,27 +84,33 @@ export const ViewContainer = ({ review = false }) => {
         break;
 
       case 'claim':
-        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'claim', region: region } });     
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'claim', region: region } });    
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' }); 
         break;
 
       case 'remove':
-        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'remove', region: region  } });     
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'remove', region: region  } }); 
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });    
         break;
 
       case 'split':
-        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'split', region: region  } });  
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'split', region: region  } });
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });  
         break;
 
       case 'merge':
         annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'merge', region: region  } });  
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
         break;
 
       case 'create':
         annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'create' } });  
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
         break;
 
       case 'delete':
-        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'delete', region: region  } });  
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'delete', region: region  } }); 
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' }); 
         break;
 
       default:
@@ -112,8 +119,6 @@ export const ViewContainer = ({ review = false }) => {
 
     sliceView.setHighlightRegion(null);
     volumeView.setHighlightRegion(null);
-
-    annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
   }, [sliceView, volumeView, userDispatch, annotateDispatch]);
 
   const onSliceWidgetMove = useCallback(position => {
