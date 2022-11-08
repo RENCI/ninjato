@@ -19,7 +19,7 @@ const { Column } = Grid;
 
 export const ViewContainer = ({ review = false }) => {
   const [{ imageData }, userDispatch] = useContext(UserContext);
-  const [{ options }, annotateDispatch] = useContext(AnnotateContext);
+  const [{ tool, options }, annotateDispatch] = useContext(AnnotateContext);
   const [volumeView, setVolumeView] = useState();
   const [sliceView, setSliceView] = useState();
   const [loading, setLoading] = useState(true);
@@ -143,36 +143,44 @@ export const ViewContainer = ({ review = false }) => {
   }, [sliceView, volumeView]);
 
   // For use in key callbacks to avoid needing tool as an argument to useCallback
-  const localTool = useRef();
+  const toolRef = useRef(tool);
+  const previousToolRef = useRef();
+
+  useEffect(() => {
+    toolRef.current = tool;
+  }, [tool]);
 
   const onKeyDown = useCallback(key => {
     const clearHighlight = () => { 
       sliceView.setHighlightRegion(null);
       volumeView.setHighlightRegion(null);
     };
-    
+
     switch (key) {
       case 'Control':
-        if (localTool.current !== 'erase') {
+        if (toolRef.current !== 'erase') {
           annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'erase' });
           clearHighlight();
-          localTool.current = 'erase';          
+          previousToolRef.current = toolRef.current;
+          toolRef.current = 'erase';          
         }
         break;
 
       case 'Shift':
-        if (localTool.current !== 'select') {
+        if (toolRef.current !== 'select') {
           annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'select' });
           clearHighlight();
-          localTool.current = 'select';
+          previousToolRef.current = toolRef.current;
+          toolRef.current = 'select';
         }
         break;
 
       case 'Alt':
-        if (localTool.current !== 'navigate') {
+        if (toolRef.current !== 'navigate') {
           annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'navigate' });
           clearHighlight();
-          localTool.current = 'navigate';
+          previousToolRef.current = toolRef.current;
+          toolRef.current = 'navigate';
         }
         break;
 
@@ -191,18 +199,18 @@ export const ViewContainer = ({ review = false }) => {
   const onKeyUp = useCallback(key => {
     switch (key) {
       case 'Control': 
-        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
-        localTool.current = 'paint';
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: previousToolRef.current });
+        toolRef.current = previousToolRef.current;
         break;
 
       case 'Shift': 
-        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
-        localTool.current = 'paint';
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: previousToolRef.current });
+        toolRef.current = previousToolRef.current;
         break;
 
       case 'Alt':
-        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
-        localTool.current = 'paint';
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: previousToolRef.current });
+        toolRef.current = previousToolRef.current;
         break;
 
       default:
