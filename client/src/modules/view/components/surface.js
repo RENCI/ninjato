@@ -12,30 +12,29 @@ import {
   BackgroundSurfaceFP 
 } from 'vtk/shaders';
 
-const normalValue = [0, 0, 0, 255];
-const highlightValue = [255, 255, 255, 255];
+const hiddenValue = [0, 0, 0, 255];
+const transparentValue = [0.5 * 255, 0, 0, 255];
+const opaqueValue = [255, 0, 0, 255];
+const highlightValue = [255, 255, 0, 255];
 
-const updateTableColors = (table, regions = null) => {       
-  console.log(regions);
-  //regions.forEach(({ label, visible }) => table.setTuple(label, visible ? highlightValue : normalValue));
+const initializeTableColors = (table, visible) => {
+  const baseValue = visible ? transparentValue : hiddenValue;
 
-  for (let i = 0; i < table.getNumberOfTuples(); i++) {        
-    table.setTuple(i, normalValue);
-
-
-  } 
-  
-  if (regions.length > 0) {
-    
-    for (let i = 0; i < table.getNumberOfTuples(); i++) {        
-      table.setTuple(i, i % 2 === 0 ? highlightValue : normalValue);
-    } 
-    regions.forEach(({ label, visible }) => table.setTuple(label, visible ? highlightValue : normalValue));
+  for (let i = 0; i < table.getNumberOfTuples(); i++) {
+    table.setTuple(i, baseValue);
   }
+}
+
+const updateTableColors = (table, visible, regions = [], highlight = null) => {            
+  const baseValue = visible ? transparentValue : hiddenValue;
+
+  regions.forEach(({ label, visible }) => table.setTuple(label, visible ? opaqueValue : baseValue));
+  if (highlight) table.setTuple(highlight.label, highlightValue);
 };
 
 export function Surface() {
   let regions = [];
+  let visible = true;
   const maskCalculator = vtkCalculator.newInstance();
 
   const flyingEdges = vtkDiscreteFlyingEdges3D.newInstance({
@@ -50,7 +49,7 @@ export function Surface() {
   const numberOfColors = 2048;
   const colorTable = vtkDataArray.newInstance({
     numberOfComponents: 4,
-    size: numberOfColors,
+    size: 4 * numberOfColors,
     dataType: 'Uint8Array',
   });
   
@@ -124,7 +123,7 @@ export function Surface() {
       };      
 
       const lut = mapper.getLookupTable();
-      updateTableColors(colorTable, regions);
+      initializeTableColors(colorTable, visible);
       lut.setNumberOfColors(numberOfColors);
       lut.setRange(0, numberOfColors);
       lut.setTable(colorTable);
@@ -132,11 +131,11 @@ export function Surface() {
       //printShaders(mapper);
     },
     setHighlightRegion: region => {
-      //updateTableColors(colorTable, region ? { label: region.label, visible: true } : null);
+      updateTableColors(colorTable, visible, regions, region);
       mapper.getLookupTable().setTable(colorTable);
     },
-    updateVisibility: region => {
-      updateTableColors(colorTable, regions);
+    updateVisibility: () => {
+      updateTableColors(colorTable, visible, regions);
       mapper.getLookupTable().setTable(colorTable);
     },
     setSliceHighlight: highlight => {
