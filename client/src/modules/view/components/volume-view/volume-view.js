@@ -93,6 +93,11 @@ const centerCamera = (renderWindow, surface, volume) => {
   }
 };
 
+const getSurface = (surfaces, region) => !region ? null : 
+  surfaces.find(surface => surface.getRegion().label === region.label);
+
+const getRegion = (regions, surface) => regions.find(({ label }) => surface.getRegion().label === label);
+
 export function VolumeView(painter) {  
   // Callbacks
   //let onSliceChange = () => {};
@@ -105,6 +110,8 @@ export function VolumeView(painter) {
   const background = BackgroundSurface();
   background.setColors(backgroundColors.surface1, backgroundColors.surface2);
 
+  let backgroundSurfaces = [];
+
   const boundingBox = BoundingBox();
 
   const render = renderWindow.render;
@@ -113,11 +120,6 @@ export function VolumeView(painter) {
   let activeRegion = null;
 
   let slice = -1;
-
-  const getSurface = region => !region ? null : 
-    surfaces.find(surface => surface.getRegion().label === region.label);
-  
-  const getRegion = surface => regions.find(({ label }) => surface.getRegion().label === label);
 
   return {
     initialize: rootNode => {
@@ -152,13 +154,15 @@ export function VolumeView(painter) {
       }
     },
     setData: maskData => {
+      const combined = [...surfaces, ...backgroundSurfaces];
+
       if (maskData) {
-        surfaces.forEach(surface => surface.setInputData(maskData));
+        combined.forEach(surface => surface.setInputData(maskData));
         background.setInputData(maskData);
         boundingBox.setData(maskData);
 
         const renderer = renderWindow.getRenderer();
-        surfaces.forEach(surface => {
+        combined.forEach(surface => {
           renderer.addActor(surface.getActor());
           renderer.addActor(surface.getHighlight().getActor());
         });
@@ -169,7 +173,7 @@ export function VolumeView(painter) {
       } 
       else {
         const renderer = renderWindow.getRenderer();
-        surfaces.forEach(surface => renderer.removeActor(surface.getActor()));
+        combined.forEach(surface => renderer.removeActor(surface.getActor()));
         renderer.removeActor(background.getActor());
         renderer.removeActor(boundingBox.getActor());
       }
@@ -179,7 +183,7 @@ export function VolumeView(painter) {
 
 //        applyActiveRegion(activeRegion, surfaces);
 
-        resetCamera(renderWindow.getRenderer(), getSurface(activeRegion).getOutput());
+        resetCamera(renderWindow.getRenderer(), getSurface(surfaces, activeRegion).getOutput());
       }
     },
     setRegions: (regionArray, backgroundRegions) => {
@@ -187,7 +191,7 @@ export function VolumeView(painter) {
       widgets.setRegions(regionArray, backgroundRegions);
 
       // Clean up any old surfaces
-      surfaces.forEach(surface => {
+      [...surfaces, ...backgroundSurfaces].forEach(surface => {
         renderWindow.getRenderer().removeActor(surface.getActor());
         surface.cleanUp();
       });
@@ -203,19 +207,40 @@ export function VolumeView(painter) {
         return surface;
       });
 
+      // Create surfaces for each background region
+      backgroundSurfaces = backgroundRegions.map(region => {
+        const surface = RegionSurface();
+        surface.setColor(backgroundColors.surface2);
+        surface.setRegion(region);
+        surface.setVisibility(false);
+
+        return surface;
+      });
+
       const data = background.getInputData();
 
       if (data) {
         const renderer = renderWindow.getRenderer();
 
-        surfaces.forEach((surface, i) => {
+        surfaces.forEach(surface => {
           surface.setInputData(data);     
           renderer.addActor(surface.getActor());
 
           if (slice >= 0) {
-            const region = getRegion(surface);
+            const region = getRegion(regions, surface);
 
             if (region) surface.setSlice(slice, region.colors.surfaceSlice);
+          }
+        });
+
+        backgroundSurfaces.forEach(surface => {
+          surface.setInputData(data);     
+          renderer.addActor(surface.getActor());
+
+          if (slice >= 0) {
+            const region = getRegion(regions, surface);
+
+            //if (region) surface.setSlice(slice, region.colors.surfaceSlice);
           }
         });
       }
@@ -223,7 +248,7 @@ export function VolumeView(painter) {
     setActiveRegion: region => {
       activeRegion = region;
 
-      const surface = getSurface(region);
+      const surface = getSurface(surfaces, region);
       
       if (!surface) return;
 
@@ -234,9 +259,17 @@ export function VolumeView(painter) {
       centerCamera(renderWindow, surface.getOutput(), background.getInputData());
     },
     setHighlightRegion: highlightRegion => {
-      regions.forEach(region => getSurface(region).getHighlight().setVisibility(region === highlightRegion && region.visible));
+      const inBackground = background.getRegions().includes(highlightRegion);
 
       background.setHighlightRegion(highlightRegion);
+
+      //if (inBackground) {
+      //  if (!backgroundSurfaces.map(({ surface })))
+     // }
+
+      regions.forEach(region => 
+        getSurface([...surfaces, ...backgroundSurfaces], region).getHighlight().setVisibility(region === highlightRegion && region.visible)
+      );
     },
     setWidgetPosition: position => widgets.setPosition(position),
     setTool: (tool, cursor) => {      
@@ -247,27 +280,32 @@ export function VolumeView(painter) {
     setSlice: sliceNumber => {
       slice = sliceNumber;
       surfaces.forEach(surface => {
-        const region = getRegion(surface);
+        const region = getRegion(regions, surface);
         if (region) surface.setSlice(slice, region.colors.surfaceSlice);
+      });
+
+      backgroundSurfaces.forEach(surface => {
+        surface.setSlice(-1, [[0, 0, 0], [0, 0, 0]]);
       });
     },
     setShowBackground: show => {
       background.getActor().setVisibility(show);
     },
     updateVisibility: region => {
-      const surface = getSurface(region);
+      const foreground = regions.includes(region);
 
-      if (surface) {
-        surface.setVisibility(region.visible);
+      if (foreground) {
+        getSurface(surfaces, region).setVisibility(region.visible);
       }
       else {
-        background.updateVisibility(region);
+        getSurface(backgroundSurfaces, region).setVisibility(region.visible);
+        background.updateVisibility();
       }
 
       render();
     },
     centerCamera: () => {
-      const surface = getSurface(activeRegion);
+      const surface = getSurface(surfaces, activeRegion);
 
       if (!surface) return;
 
@@ -283,7 +321,7 @@ export function VolumeView(painter) {
 
       // Clean up anything we instantiated
       renderWindow.cleanUp();      
-      surfaces.forEach(surface => surface.cleanUp());
+      [...surfaces, ...backgroundSurfaces].forEach(surface => surface.cleanUp());
       background.cleanUp();
       boundingBox.cleanUp();
     }
