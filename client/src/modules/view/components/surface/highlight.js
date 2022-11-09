@@ -1,10 +1,6 @@
 import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
-import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
-import { FieldDataTypes } from '@kitware/vtk.js/Common/DataModel/DataSet/Constants';
 
-import vtkCalculator from 'vtk/filters/calculator';
-//import { printShaders } from 'utils/shader-utils';
 import { RegionHighlightVP, RegionHighlightFP } from 'vtk/shaders';
 
 export function Highlight() {

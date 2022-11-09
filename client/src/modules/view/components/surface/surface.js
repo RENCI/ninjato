@@ -5,7 +5,6 @@ import { FieldDataTypes } from '@kitware/vtk.js/Common/DataModel/DataSet/Constan
 import vtkCalculator from 'vtk/filters/calculator';
 import vtkDiscreteFlyingEdges3D from 'vtk/filters/discrete-flying-edges-3D';
 import { SliceHighlightVP, SliceHighlightFP } from 'vtk/shaders';
-
 import { Highlight } from './highlight';
 
 export function Surface() {
@@ -119,7 +118,6 @@ export function Surface() {
       mapper.update();
       return mapper.getInputData();
     },
-    getOutputPort: () => flyingEdges.getOutputPort(),
     cleanUp: () => {
       console.log('Clean up surface');
 

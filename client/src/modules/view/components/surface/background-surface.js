@@ -1,8 +1,6 @@
 import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
 
-//import { printShaders } from 'utils/shader-utils';
 import { BackgroundSurfaceFP } from 'vtk/shaders';
-
 import { Surface } from './surface';
 
 const hiddenValue = [0, 0, 0, 255];
