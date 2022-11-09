@@ -259,17 +259,14 @@ export function VolumeView(painter) {
       centerCamera(renderWindow, surface.getOutput(), background.getInputData());
     },
     setHighlightRegion: highlightRegion => {
-      const inBackground = background.getRegions().includes(highlightRegion);
-
       background.setHighlightRegion(highlightRegion);
 
-      //if (inBackground) {
-      //  if (!backgroundSurfaces.map(({ surface })))
-     // }
-
-      regions.forEach(region => 
-        getSurface([...surfaces, ...backgroundSurfaces], region).getHighlight().setVisibility(region === highlightRegion && region.visible)
-      );
+      [...surfaces, ...backgroundSurfaces].forEach(surface => {
+        const region = surface.getRegion();
+        const highlight = region === highlightRegion;
+        surface.getActor().setVisibility(region.visible || highlight);
+        surface.getHighlight().setVisibility(highlight);
+      });
     },
     setWidgetPosition: position => widgets.setPosition(position),
     setTool: (tool, cursor) => {      
