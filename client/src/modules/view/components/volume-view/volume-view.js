@@ -115,10 +115,9 @@ export function VolumeView(painter) {
   let slice = -1;
 
   const getSurface = region => !region ? null : 
-    surfaces.find(surface => surface.getRegion ? surface.getRegion().label === region.label : false);
+    surfaces.find(surface => surface.getRegion().label === region.label);
   
-  const getRegion = surface => !surface.getRegion ? null :
-    regions.find(({ label }) => surface.getRegion().label === label);
+  const getRegion = surface => regions.find(({ label }) => surface.getRegion().label === label);
 
   return {
     initialize: rootNode => {

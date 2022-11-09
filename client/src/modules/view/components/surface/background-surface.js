@@ -19,8 +19,6 @@ const updateTableColors = (table, regions = [], highlight = null) => {
 };
 
 export function BackgroundSurface() {
-  let regions = [];
-
   const surface = Surface();
 
   const property = surface.getActor().getProperty();
@@ -65,11 +63,11 @@ export function BackgroundSurface() {
       property.setAmbientColor(color2);
     },
     setHighlightRegion: region => {
-      updateTableColors(colorTable, regions, region);
+      updateTableColors(colorTable, surface.getRegions(), region);
       surface.getMapper().getLookupTable().setTable(colorTable);
     },
     updateVisibility: () => {
-      updateTableColors(colorTable, regions);
+      updateTableColors(colorTable, surface.getRegions());
       surface.getMapper().getLookupTable().setTable(colorTable);
     },    
     getOutput: () => surface.getOutput(),
