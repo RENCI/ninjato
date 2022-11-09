@@ -40,6 +40,7 @@ export function Highlight() {
   return {
     getMapper: () => mapper,
     getActor: () => actor,
+    setVisibility: visible => actor.setVisibility(visible),
     cleanUp: () => {
       console.log('Clean up highlight');
 

@@ -89,7 +89,7 @@ const centerCamera = (renderWindow, surface, volume) => {
       }
     };
 
-    animate();    
+    animate();
   }
 };
 
@@ -159,7 +159,10 @@ export function VolumeView(painter) {
         boundingBox.setData(maskData);
 
         const renderer = renderWindow.getRenderer();
-        surfaces.forEach(surface => renderer.addActor(surface.getActor()));
+        surfaces.forEach(surface => {
+          renderer.addActor(surface.getActor());
+          renderer.addActor(surface.getHighlight().getActor());
+        });
         renderer.addActor(background.getActor());
         renderer.addActor(boundingBox.getActor());
 
@@ -232,11 +235,7 @@ export function VolumeView(painter) {
       centerCamera(renderWindow, surface.getOutput(), background.getInputData());
     },
     setHighlightRegion: highlightRegion => {
-      regions.forEach(region => 
-        region === highlightRegion ? 
-          renderWindow.getRenderer().addActor(getSurface(region).getHighlight()) :
-          renderWindow.getRenderer().removeActor(getSurface(region).getHighlight())
-      );
+      regions.forEach(region => getSurface(region).getHighlight().setVisibility(region === highlightRegion && region.visible));
 
       background.setHighlightRegion(highlightRegion);
     },

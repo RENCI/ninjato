@@ -26,6 +26,7 @@ export function Surface() {
   actor.setMapper(mapper);
 
   const highlight = Highlight();
+  highlight.setVisibility(false);
   highlight.getMapper().setInputConnection(flyingEdges.getOutputPort());
 
   let sliceCalculator = null;

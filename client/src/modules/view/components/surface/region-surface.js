@@ -6,10 +6,12 @@ export function RegionSurface() {
   surface.getMapper().setScalarVisibility(false);
 
   return {
-    getActor: () => surface.getActor(),
-    getHighlight: () => surface.getHighlight(),
+    setRegion: region => surface.setRegions([region]),
+    getRegion: () => surface.getRegions()[0],
     setInputData: data => surface.setInputData(data),
     getInputData: () => surface.getInputData(),
+    getActor: () => surface.getActor(),
+    getHighlight: () => surface.getHighlight(),
     setVisibility: visible => surface.getActor().setVisibility(visible),
     setColor: color => {
       const property = surface.getActor().getProperty();
@@ -20,8 +22,7 @@ export function RegionSurface() {
 
       surface.getHighlight().getActor().getProperty().setColor(color);
     },
-    setRegion: region => surface.setRegions([region]),
-    getRegion: () => surface.getRegions()[0],
+    setShowHighlight: highlight => surface.getHighlight().getActor().setVisibility(highlight),
     setSlice: (slice, colors) => surface.setSlice(slice, colors),
     getOutput: () => surface.getOutput(),
     cleanUp: () => {

@@ -55,10 +55,11 @@ export function BackgroundSurface() {
   //printShaders(mapper);
   
   return {
-    getActor: () => surface.getActor(),
-    getHighlight: () => surface.getHighlight(),
+    setRegions: regions => surface.setRegions(regions),
+    getRegions: () => surface.getRegions(),
     setInputData: data => surface.setInputData(data),
     getInputData: () => surface.getInputData(),
+    getActor: () => surface.getActor(),
     setVisibility: visible => surface.getActor.setVisibility(visible),
     setColors: (color1, color2) => {
       const property = surface.getActor().getProperty();
@@ -73,8 +74,6 @@ export function BackgroundSurface() {
       updateTableColors(colorTable, regions);
       surface.getMapper().getLookupTable().setTable(colorTable);
     },    
-    setRegions: regions => surface.setRegions(regions),
-    getRegions: () => surface.getRegions(),
     getOutput: () => surface.getOutput(),
     cleanUp: () => {
       console.log('Clean up background surface');
