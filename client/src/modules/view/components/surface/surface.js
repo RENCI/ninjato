@@ -28,17 +28,15 @@ export function Surface() {
   const highlight = Highlight();
   highlight.getMapper().setInputConnection(flyingEdges.getOutputPort());
 
+  let sliceCalculator = null;
+
   return {
     getMapper: () => mapper,
     getActor: () => actor,
-    getHighlight: () => highlight.getActor(),
+    getHighlight: () => highlight,
     setInputData: data => maskCalculator.setInputData(data),
     getInputData: () => maskCalculator.getInputData(),
     setVisibility: visible => actor.setVisibility(visible),
-    setHighlightRegion: region => {
-      updateTableColors(colorTable, regions, region);
-      mapper.getLookupTable().setTable(colorTable);
-    },
     setSliceHighlight: highlight => {
       if (highlight) {
         if (!sliceCalculator) sliceCalculator = vtkCalculator.newInstance();
@@ -49,7 +47,7 @@ export function Surface() {
           'slice',
           coordinate => coordinate[2]
         );
-        sliceCalculator.setInputConnection(surface.getOutputPort());
+        sliceCalculator.setInputConnection(flyingEdges.getOutputPort());
 
         mapper.setInputConnection(sliceCalculator.getOutputPort());
 
@@ -59,7 +57,7 @@ export function Surface() {
         };
       }
       else {
-        mapper.setInputConnection(surface.getOutputPort());
+        mapper.setInputConnection(flyingEdges.getOutputPort());
         
         if (sliceCalculator) sliceCalculator.delete();
       }
@@ -115,7 +113,7 @@ export function Surface() {
 
       flyingEdges.setValues(labels);
     },
-    getLabels: () => flyingEdges.getValues(),
+    getRegions: () => regions,
     getOutput: () => {
       mapper.update();
       return mapper.getInputData();

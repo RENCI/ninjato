@@ -32,7 +32,6 @@ export function Highlight() {
       }
     }
   ];
-  mapper.setInputConnection(flyingEdges.getOutputPort()); 
 
   const actor = vtkActor.newInstance();
   actor.getProperty().setFrontfaceCulling(true);

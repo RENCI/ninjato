@@ -93,12 +93,6 @@ const centerCamera = (renderWindow, surface, volume) => {
   }
 };
 
-const getSurface = region => !region ? null : 
-  surfaces.find(surface => surface.getRegion ? surface.getRegion().label === region.label : false);
-
-const getRegion = surface => !surface.getRegion ? null :
-  regions.find(({ label }) => surface.getRegion().label === label);
-
 export function VolumeView(painter) {  
   // Callbacks
   //let onSliceChange = () => {};
@@ -119,6 +113,12 @@ export function VolumeView(painter) {
   let activeRegion = null;
 
   let slice = -1;
+
+  const getSurface = region => !region ? null : 
+    surfaces.find(surface => surface.getRegion ? surface.getRegion().label === region.label : false);
+  
+  const getRegion = surface => !surface.getRegion ? null :
+    regions.find(({ label }) => surface.getRegion().label === label);
 
   return {
     initialize: rootNode => {
@@ -194,10 +194,9 @@ export function VolumeView(painter) {
 
       // Create surfaces for each region
       surfaces = regions.map(region => {
-        const surface = Surface();
-        surface.setOpaqueColor(region.colors.surface);
-        surface.setSliceHighlight(true);
-        surface.setRegions([region]);
+        const surface = RegionSurface();
+        surface.setColor(region.colors.surface);
+        surface.setRegion(region);
 
         return surface;
       });

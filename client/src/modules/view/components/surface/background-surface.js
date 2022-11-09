@@ -59,8 +59,8 @@ export function BackgroundSurface() {
     getHighlight: () => surface.getHighlight(),
     setInputData: data => surface.setInputData(data),
     getInputData: () => surface.getInputData(),
-    setVisibility: visible => actor.setVisibility(visible),
-    setNumberOfColors: (color1, color2) => {
+    setVisibility: visible => surface.getActor.setVisibility(visible),
+    setColors: (color1, color2) => {
       const property = surface.getActor().getProperty();
       property.setDiffuseColor(color1);
       property.setAmbientColor(color2);
