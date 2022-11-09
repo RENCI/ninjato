@@ -1,7 +1,8 @@
 import vtkCellPicker from '@kitware/vtk.js/Rendering/Core/CellPicker';
 
 import vtkInteractorStyleNinjato3D from 'vtk/interaction/interactor-style-ninjato-3d';
-import { RenderWindow, Surface, BoundingBox } from 'modules/view/components';
+import { RenderWindow, BoundingBox } from 'modules/view/components';
+import { RegionSurface, BackgroundSurface } from 'modules/view/components/surface';
 import { Widgets } from 'modules/view/components/volume-view/widgets';
 import { backgroundColors } from 'utils/colors';
 import { interpolate, distance } from 'utils/math';
@@ -92,16 +93,11 @@ const centerCamera = (renderWindow, surface, volume) => {
   }
 };
 
-/*
-const applyActiveRegion = (region, surfaces) => {
-  surfaces.forEach((surface, i) => {
-    const labels = region.getLabels();
-    region.setOpaqueColor(region.color[
-      labels.length === 1 && labels[0] === region.label ? 'surfaceActive' : region.colors[labels.length === 1 && labels[0] === label));
-    ];
-  });
-};
-*/
+const getSurface = region => !region ? null : 
+  surfaces.find(surface => surface.getRegion ? surface.getRegion().label === region.label : false);
+
+const getRegion = surface => !surface.getRegion ? null :
+  regions.find(({ label }) => surface.getRegion().label === label);
 
 export function VolumeView(painter) {  
   // Callbacks
@@ -112,13 +108,8 @@ export function VolumeView(painter) {
 
   let surfaces = [];
 
-  const getSurface = region => !region ? null : surfaces.find(surface => {
-    const labels = surface.getLabels();
-    return labels.length === 1 ? labels[0] === region.label : false;
-  });
-
-  const background = Surface();
-  background.setTranslucentColors(backgroundColors.surface1, backgroundColors.surface2);
+  const background = BackgroundSurface();
+  background.setColors(backgroundColors.surface1, backgroundColors.surface2);
 
   const boundingBox = BoundingBox();
 
@@ -126,11 +117,6 @@ export function VolumeView(painter) {
 
   let regions = [];
   let activeRegion = null;
-
-  const getRegion = surface => {
-    const labels = surface.getLabels();
-    return labels.length === 1 ? regions.find(({ label }) => label === labels[0]) : null;
-  };
 
   let slice = -1;
 
