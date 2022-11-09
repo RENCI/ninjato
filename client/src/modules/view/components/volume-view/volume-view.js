@@ -236,12 +236,6 @@ export function VolumeView(painter) {
         backgroundSurfaces.forEach(surface => {
           surface.setInputData(data);     
           renderer.addActor(surface.getActor());
-
-          if (slice >= 0) {
-            const region = getRegion(regions, surface);
-
-            //if (region) surface.setSlice(slice, region.colors.surfaceSlice);
-          }
         });
       }
     },

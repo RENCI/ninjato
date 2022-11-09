@@ -105,6 +105,9 @@ export function SliceView() {
     setBrush: (type, brush) => widgets.setBrush(type, brush),
     setSlice: slice => image.getMapper().setSlice(slice),
     setShowContours: show => mask.getActor().setVisibility(show),
+    updateVisibility: region => {
+      console.log('Implement!')
+    },
     splitRegion: async (splitLabel, newLabel, splitMode) => {
       const painter = mask.getPainter();
 

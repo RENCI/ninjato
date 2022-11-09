@@ -81,6 +81,7 @@ export const ViewContainer = ({ review = false }) => {
         region.visible = !region.visible;
 
         volumeView.updateVisibility(region);
+        sliceView.updateVisibility(region);
         break;
 
       case 'claim':
