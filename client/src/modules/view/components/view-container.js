@@ -70,6 +70,10 @@ export const ViewContainer = ({ review = false }) => {
     setSlice(slice);
   }, [volumeView, setSlice]);
 
+  const onImageMapperChange = useCallback(mapper => {
+    volumeView.setImageMapper(mapper);
+  }, [volumeView]);
+
   const onSelect = useCallback((region, type) => {
     switch (type) {
       case 'select':       
@@ -265,6 +269,7 @@ export const ViewContainer = ({ review = false }) => {
                   trigger={ 
                     <SliceViewWrapper 
                       sliceView={ sliceView } 
+                      onImageMapperChange={ onImageMapperChange }
                       onEdit={ onSliceEdit }
                       onSliceChange={ onSliceChange }
                       onSelect={ onSelect }

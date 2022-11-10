@@ -133,6 +133,7 @@ export function VolumeView(painter) {
 
       widgets.setRenderer(renderWindow.getRenderer());
     },
+    setImageMapper: mapper => renderWindow.getInteractor().getInteractorStyle().setImageMapper(mapper),
     setCallback: (type, callback) => {
       switch (type) { 
 /*        

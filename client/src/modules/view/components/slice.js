@@ -157,6 +157,7 @@ export function Slice() {
       imageMapper.setSlice(findFirstSlice(maskData, label));
       imageMapper.modified();
     },
+    getImageMapper: () => imageMapper,
     cleanUp: () => {
       console.log('Clean up slice');
 

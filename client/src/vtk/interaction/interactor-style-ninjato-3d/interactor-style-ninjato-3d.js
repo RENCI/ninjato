@@ -139,6 +139,7 @@ function vtkInteractorStyleNinjato3D(publicAPI, model) {
 
   //----------------------------------------------------------------------------
   publicAPI.handleStartMouseWheel = (callData) => {
+    publicAPI.handleMouseWheel(callData);
   };
 
   //--------------------------------------------------------------------------
@@ -398,8 +399,12 @@ function vtkInteractorStyleNinjato3D(publicAPI, model) {
 
   //----------------------------------------------------------------------------
   publicAPI.handleMouseWheel = (callData) => {
-    //const dyf = 1 - callData.spinY / model.zoomFactor;
-    //publicAPI.dollyByFactor(callData.pokedRenderer, dyf);
+    if (model.imageMapper) {
+      const extent = model.imageMapper.getInputData().getExtent();
+      const slice = model.imageMapper.getSlice() - Math.sign(callData.spinY);
+
+      model.imageMapper.setSlice(Math.max(extent[4], Math.min(slice, extent[5])));
+    }
   };
 
   //----------------------------------------------------------------------------
@@ -431,6 +436,7 @@ function vtkInteractorStyleNinjato3D(publicAPI, model) {
 const DEFAULT_VALUES = {
   motionFactor: 10.0,
   zoomFactor: 10.0,
+  imageMapper: null
 };
 
 // ----------------------------------------------------------------------------
@@ -442,7 +448,7 @@ export function extend(publicAPI, model, initialValues = {}) {
   vtkInteractorStyle.extend(publicAPI, model, initialValues);
 
   // Create get-set macros
-  macro.setGet(publicAPI, model, ['motionFactor', 'zoomFactor']);
+  macro.setGet(publicAPI, model, ['motionFactor', 'zoomFactor', 'imageMapper']);
 
   // For more macro methods, see "Sources/macros.js"
 
