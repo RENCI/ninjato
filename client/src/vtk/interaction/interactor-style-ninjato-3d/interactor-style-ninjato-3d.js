@@ -20,6 +20,10 @@ function vtkInteractorStyleNinjato3D(publicAPI, model) {
   model.classHierarchy.push('vtkInteractorStyleNinjato3D');
 
   // Public API methods
+  //----------------------------------------------------------------------------
+  publicAPI.handleKeyPress = () => {}
+
+  //----------------------------------------------------------------------------
   publicAPI.handleMouseMove = (callData) => {
     const pos = callData.position;
     const renderer = callData.pokedRenderer;

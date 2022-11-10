@@ -20,6 +20,10 @@ function vtkInteractorStyleNinjatoSlice(publicAPI, model) {
   model.classHierarchy.push('vtkInteractorStyleNinjatoSlice');
 
   // Public API methods
+  //----------------------------------------------------------------------------
+  publicAPI.handleKeyPress = () => {}
+
+  //----------------------------------------------------------------------------
   publicAPI.handleMouseMove = (callData) => {
     const pos = callData.position;
     const renderer = callData.pokedRenderer;
