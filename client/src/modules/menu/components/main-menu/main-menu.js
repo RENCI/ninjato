@@ -23,6 +23,14 @@ export const MainMenu = () => {
       </Item>
       <Item 
         as={ Link } 
+        to='/progress' 
+        content='Progress'
+        icon='chart line'
+        active={ location.pathname === '/progress' } 
+        disabled={ !user?.reviewer }
+      />
+      <Item 
+        as={ Link } 
         to='/select' 
         content='Select'
         icon='clipboard list'

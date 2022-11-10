@@ -8,7 +8,7 @@ import {
 import { MainMenu } from 'modules/menu/components/main-menu';
 import { LoadingMessage } from 'modules/common/components/loading-message';
 import { ErrorMessage } from 'modules/common/components/error-message';
-import { Home, Select, Assignment } from 'pages';
+import { Home, Select, Assignment, Progress } from 'pages';
 
 export const App = () => { 
   return (
@@ -22,6 +22,7 @@ export const App = () => {
           <Route exact path={'/'} element={ <Home /> } />
           <Route exact path={'/select'} element={ <Select /> } />
           <Route exact path={'/assignment'} element={ <Assignment /> } />
+          <Route exact path={'/progress'} element={ <Progress /> } />
           <Route path="*" element={ <Navigate replace to="/" /> } />
         </Routes>
         <LoadingMessage />
