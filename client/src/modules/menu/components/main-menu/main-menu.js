@@ -27,7 +27,7 @@ export const MainMenu = () => {
         content='Progress'
         icon='chart line'
         active={ location.pathname === '/progress' } 
-        disabled={ !user?.reviewer }
+        disabled={ !user }
       />
       <Item 
         as={ Link } 
