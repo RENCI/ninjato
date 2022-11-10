@@ -5,6 +5,7 @@ import { MaskPainter } from 'modules/view/components/slice-view/mask-painter';
 export function SliceView() {
   // Callbacks
   let onEdit = () => {};
+  let onImageMapperChange = () => {};
   let onSliceChange = () => {};
 
   const renderWindow = RenderWindow();
@@ -23,11 +24,16 @@ export function SliceView() {
       widgets.setRenderer(renderWindow.getRenderer());
     },
     getPainter: () => mask.getPainter(),
+    getImageMapper: () => slice.getImageMapper(),
     setCallback: (type, callback) => {
       switch (type) {
         case 'edit':
           onEdit = callback;
           widgets.setCallback(type, callback);
+          break;
+
+        case 'imageMapperChange':
+          onImageMapperChange = callback;
           break;
 
         case 'sliceChange':
@@ -69,6 +75,8 @@ export function SliceView() {
 
       slice.setImage(image.getActor(), renderWindow.getCamera(), sliceRanges, onUpdateSlice);
       if (mask.getActiveRegion()) slice.setSliceByLabel(image.getMapper(), maskData, mask.getActiveRegion().label);
+
+      onImageMapperChange(slice.getImageMapper());
     },
     setRegions: (regions, backgroundRegions) => {
       mask.setRegions(regions);

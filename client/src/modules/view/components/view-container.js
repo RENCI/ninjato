@@ -19,7 +19,7 @@ const { Column } = Grid;
 
 export const ViewContainer = ({ review = false }) => {
   const [{ imageData }, userDispatch] = useContext(UserContext);
-  const [{ options }, annotateDispatch] = useContext(AnnotateContext);
+  const [{ tool, options }, annotateDispatch] = useContext(AnnotateContext);
   const [volumeView, setVolumeView] = useState();
   const [sliceView, setSliceView] = useState();
   const [loading, setLoading] = useState(true);
@@ -70,34 +70,51 @@ export const ViewContainer = ({ review = false }) => {
     setSlice(slice);
   }, [volumeView, setSlice]);
 
+  const onImageMapperChange = useCallback(mapper => {
+    volumeView.setImageMapper(mapper);
+  }, [volumeView]);
+
   const onSelect = useCallback((region, type) => {
     switch (type) {
       case 'select':       
         userDispatch({ type: SET_ACTIVE_REGION, region: region });
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
+        break;
+
+      case 'visibility':
+        region.visible = !region.visible;
+
+        volumeView.updateVisibility(region);
         break;
 
       case 'claim':
-        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'claim', region: region } });     
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'claim', region: region } });    
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' }); 
         break;
 
       case 'remove':
-        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'remove', region: region  } });     
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'remove', region: region  } }); 
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });    
         break;
 
       case 'split':
-        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'split', region: region  } });  
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'split', region: region  } });
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });  
         break;
 
       case 'merge':
         annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'merge', region: region  } });  
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
         break;
 
       case 'create':
         annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'create' } });  
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
         break;
 
       case 'delete':
-        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'delete', region: region  } });  
+        annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'delete', region: region  } }); 
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' }); 
         break;
 
       default:
@@ -106,8 +123,6 @@ export const ViewContainer = ({ review = false }) => {
 
     sliceView.setHighlightRegion(null);
     volumeView.setHighlightRegion(null);
-
-    annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
   }, [sliceView, volumeView, userDispatch, annotateDispatch]);
 
   const onSliceWidgetMove = useCallback(position => {
@@ -132,36 +147,44 @@ export const ViewContainer = ({ review = false }) => {
   }, [sliceView, volumeView]);
 
   // For use in key callbacks to avoid needing tool as an argument to useCallback
-  const localTool = useRef();
+  const toolRef = useRef();
+  const previousToolRef = useRef();
+
+  useEffect(() => {
+    toolRef.current = tool;
+  }, [tool]);
 
   const onKeyDown = useCallback(key => {
     const clearHighlight = () => { 
       sliceView.setHighlightRegion(null);
       volumeView.setHighlightRegion(null);
     };
-    
+
     switch (key) {
       case 'Control':
-        if (localTool.current !== 'erase') {
+        if (toolRef.current !== 'erase') {
           annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'erase' });
           clearHighlight();
-          localTool.current = 'erase';          
+          previousToolRef.current = toolRef.current;
+          toolRef.current = 'erase';          
         }
         break;
 
       case 'Shift':
-        if (localTool.current !== 'select') {
+        if (toolRef.current !== 'select') {
           annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'select' });
           clearHighlight();
-          localTool.current = 'select';
+          previousToolRef.current = toolRef.current;
+          toolRef.current = 'select';
         }
         break;
 
       case 'Alt':
-        if (localTool.current !== 'navigate') {
+        if (toolRef.current !== 'navigate') {
           annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'navigate' });
           clearHighlight();
-          localTool.current = 'navigate';
+          previousToolRef.current = toolRef.current;
+          toolRef.current = 'navigate';
         }
         break;
 
@@ -180,18 +203,18 @@ export const ViewContainer = ({ review = false }) => {
   const onKeyUp = useCallback(key => {
     switch (key) {
       case 'Control': 
-        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
-        localTool.current = 'paint';
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: previousToolRef.current });
+        toolRef.current = previousToolRef.current;
         break;
 
       case 'Shift': 
-        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
-        localTool.current = 'paint';
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: previousToolRef.current });
+        toolRef.current = previousToolRef.current;
         break;
 
       case 'Alt':
-        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint' });
-        localTool.current = 'paint';
+        annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: previousToolRef.current });
+        toolRef.current = previousToolRef.current;
         break;
 
       default:
@@ -245,6 +268,7 @@ export const ViewContainer = ({ review = false }) => {
                   trigger={ 
                     <SliceViewWrapper 
                       sliceView={ sliceView } 
+                      onImageMapperChange={ onImageMapperChange }
                       onEdit={ onSliceEdit }
                       onSliceChange={ onSliceChange }
                       onSelect={ onSelect }

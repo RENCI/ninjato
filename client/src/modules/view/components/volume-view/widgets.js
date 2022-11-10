@@ -35,7 +35,8 @@ export function Widgets(painter) {
     merge: createWidget(vtkRegionSelect3DWidget),
     delete: createWidget(vtkRegionSelect3DWidget),
     claim: createWidget(vtkRegionSelect3DWidget),
-    remove: createWidget(vtkRegionSelect3DWidget)
+    remove: createWidget(vtkRegionSelect3DWidget),
+    visibility: createWidget(vtkRegionSelect3DWidget)
   }; 
 
   widgets.erase.setMode('erase');
@@ -125,6 +126,16 @@ export function Widgets(painter) {
         }
       });
 
+      handles.visibility.onInteractionEvent(() => {
+        const info = getWidgetInfo(widgets.visibility);
+
+        if (info.label !== highlightLabel) {
+          highlightLabel = info.label;
+
+          onHighlight(info.region);
+        }
+      });
+
       handles.claim.onInteractionEvent(() => {
         const info = getWidgetInfo(widgets.claim);
 
@@ -205,6 +216,12 @@ export function Widgets(painter) {
         if (notActiveValid(info, activeRegion)) {
           onSelect(info.region, 'select');
         }
+      });
+
+      handles.visibility.onEndInteractionEvent(() => {
+        const info = getWidgetInfo(widgets.visibility);
+
+        onSelect(info.region, 'visibility');
       });
 
       handles.split.onEndInteractionEvent(() => {

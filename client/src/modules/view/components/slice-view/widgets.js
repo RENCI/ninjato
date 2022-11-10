@@ -44,7 +44,8 @@ export function Widgets(painter) {
     split: createWidget(vtkRegionSelectWidget),
     merge: createWidget(vtkRegionSelectWidget),
     create: createWidget(vtkBrushWidget),
-    delete: createWidget(vtkRegionSelectWidget)
+    delete: createWidget(vtkRegionSelectWidget),
+    visibility: createWidget(vtkRegionSelectWidget)
   }; 
 
   widgets.create.setShowTrail(false);
@@ -136,6 +137,16 @@ export function Widgets(painter) {
           highlightLabel = info.label;
 
           onHighlight(notActiveValid(info, activeRegion) ? info.region : null);
+        }
+      });
+
+      handles.visibility.onInteractionEvent(() => {
+        const info = getWidgetInfo(widgets.visibility);
+
+        if (info.label !== highlightLabel) {
+          highlightLabel = info.label;
+
+          onHighlight(info.region);
         }
       });
 
@@ -236,6 +247,12 @@ export function Widgets(painter) {
         if (notActiveValid(info, activeRegion)) {
           onSelect(info.region, 'select');
         }
+      });
+
+      handles.visibility.onEndInteractionEvent(() => {
+        const info = getWidgetInfo(widgets.visibility);
+
+        onSelect(info.region, 'visibility');
       });
 
       handles.claim.onEndInteractionEvent(() => {
