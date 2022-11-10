@@ -21,16 +21,9 @@ export const ControlsInfo = ({ tools }) => {
 
   const getIcon = name => <Icon name={ tools.find(({ value }) => value === name).icon } />;
 
-  const holdShortcutInfo = (hold, release) => (
+  const holdShortcutInfo = hold => (
     <div className={ styles.controlsInfoShortCut }>
-      <div>
-        <div>Hold</div>
-        <div>Release</div>
-      </div>
-      <div>
-        <div>{ getIcon(hold) } { hold }</div>
-        <div> { getIcon(release) } { release }</div>
-      </div>
+      { getIcon(hold) } { hold }
     </div>
   );
 
@@ -97,19 +90,23 @@ export const ControlsInfo = ({ tools }) => {
           ))}
           <div>
             <Header as='h4'>Shortcuts</Header>
+            Releasing <b>Hold</b> keys will return to previous tool.
             <List relaxed>
               <List.Item>
-                <List.Header>Ctrl (PC) / Command (Mac)</List.Header> 
-                <List.Content>{ holdShortcutInfo('erase', 'paint') }</List.Content>
+                <List.Content>
+                  <List.Header>Hold – Ctrl (PC) / Command (Mac)</List.Header> 
+                  <List.Description>{ holdShortcutInfo('erase') }</List.Description>
+                </List.Content>
               </List.Item>
               <List.Item>
-                <List.Header>Shift</List.Header> 
-                <List.Content>{ holdShortcutInfo('select', 'paint') }</List.Content>
+                <List.Header>Hold – Shift</List.Header> 
+                <List.Content>{ holdShortcutInfo('select') }</List.Content>
               </List.Item>
               <List.Item>
-                <List.Header>Alt</List.Header> 
-                <List.Content>{ holdShortcutInfo('navigate', 'paint') }</List.Content>
+                <List.Header>Hold – Alt</List.Header> 
+                <List.Content>{ holdShortcutInfo('navigate') }</List.Content>
               </List.Item>
+              <List.Item />
               <List.Item>
                 <List.Header>Arrow <Icon name='arrow up' /><Icon name='arrow down' /></List.Header> 
                 <List.Content>Move slice up and down</List.Content>
