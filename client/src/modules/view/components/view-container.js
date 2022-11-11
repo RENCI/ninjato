@@ -82,12 +82,10 @@ export const ViewContainer = ({ review = false }) => {
         break;
 
       case 'visibility':
-        if (region) {
-          region.visible = !region.visible;
+        region.visible = !region.visible;
 
-          volumeView.updateVisibility(region);
-          break;
-        }
+        volumeView.updateVisibility(region);
+        break;
 
       case 'claim':
         annotateDispatch({ type: ANNOTATE_SET_ACTION, action: { type: 'claim', region: region } });    
