@@ -194,6 +194,7 @@ export function VolumeView(painter) {
       // Clean up any old surfaces
       [...surfaces, ...backgroundSurfaces].forEach(surface => {
         renderWindow.getRenderer().removeActor(surface.getActor());
+        renderWindow.getRenderer().removeActor(surface.getHighlight().getActor());
         surface.cleanUp();
       });
 
@@ -202,8 +203,9 @@ export function VolumeView(painter) {
       // Create surfaces for each region
       surfaces = regions.map(region => {
         const surface = RegionSurface();
-        surface.setColor(region.colors.surface);
         surface.setRegion(region);
+        surface.setColor(region.colors.surface);
+        surface.setSliceHighlight(true);
 
         return surface;
       });
@@ -211,8 +213,8 @@ export function VolumeView(painter) {
       // Create surfaces for each background region
       backgroundSurfaces = backgroundRegions.map(region => {
         const surface = RegionSurface();
-        surface.setColor(backgroundColors.surface2);
         surface.setRegion(region);
+        surface.setColor(backgroundColors.surface2);
         surface.setVisibility(false);
 
         return surface;
@@ -226,6 +228,7 @@ export function VolumeView(painter) {
         surfaces.forEach(surface => {
           surface.setInputData(data);     
           renderer.addActor(surface.getActor());
+          renderer.addActor(surface.getHighlight().getActor());
 
           if (slice >= 0) {
             const region = getRegion(regions, surface);
@@ -237,6 +240,7 @@ export function VolumeView(painter) {
         backgroundSurfaces.forEach(surface => {
           surface.setInputData(data);     
           renderer.addActor(surface.getActor());
+          renderer.addActor(surface.getHighlight().getActor());
         });
       }
     },

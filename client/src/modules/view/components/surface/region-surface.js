@@ -2,7 +2,6 @@ import { Surface } from './surface';
 
 export function RegionSurface() {
   const surface = Surface();
-  surface.setSliceHighlight(true);
   surface.getMapper().setScalarVisibility(false);
 
   return {
@@ -10,6 +9,7 @@ export function RegionSurface() {
     getRegion: () => surface.getRegions()[0],
     setInputData: data => surface.setInputData(data),
     getInputData: () => surface.getInputData(),
+    setSliceHighlight: () => surface.setSliceHighlight(true),
     getActor: () => surface.getActor(),
     getHighlight: () => surface.getHighlight(),
     setVisibility: visible => surface.getActor().setVisibility(visible),

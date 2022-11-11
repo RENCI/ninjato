@@ -23,6 +23,7 @@ export function Surface() {
   
   const actor = vtkActor.newInstance();
   actor.setMapper(mapper);
+  actor.getProperty().setInterpolationToFlat();
 
   const highlight = Highlight();
   highlight.setVisibility(false);
@@ -55,11 +56,15 @@ export function Surface() {
           VertexShaderCode: SliceHighlightVP,
           FragmentShaderCode: SliceHighlightFP
         };
+
+        actor.getProperty().setInterpolationToFlat();
       }
       else {
         mapper.setInputConnection(flyingEdges.getOutputPort());
         
         if (sliceCalculator) sliceCalculator.delete();
+
+        actor.getProperty().setInterpolationToPhong();
       }
     },
     setSlice: (slice, colors) => {      
