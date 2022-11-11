@@ -4,12 +4,26 @@ import { UserContext } from 'contexts';
 import { RedirectMessage } from 'modules/common/components/redirect-message';
 import { api } from 'utils/api';
 
+const getUserTimelines = (user, volumes) => {
+  return volumes.map(volume => 
+    Object.entries(volume.history).reduce((timeline, [assignmentId, assignmentHistory]) => {
+      return [
+        ...timeline,
+        ...assignmentHistory
+          .filter(action => action.user === user.login)
+          .map(action => ({ assignmentId: assignmentId, action: action }))          
+      ]
+    }, []).sort((a, b) => b.action.time - a.action.time)
+  );
+};
+
 export const Progress = () => {
-  const [{ user }] = useContext(UserContext);
+  const [{ user, volumes }] = useContext(UserContext);
   const navigate = useNavigate();
 
-  useEffect(() => {
+  console.log(volumes);
 
+  useEffect(() => {
     if (!user) {
       navigate('/');
     }
@@ -17,11 +31,20 @@ export const Progress = () => {
 
   useEffect(() => {
     const getUsers = async () => {
-      await api.getUsers();
+      const users = await api.getUsers();
+
+      const timelines = users.map(user => 
+        ({ 
+          user: user,
+          timelines: getUserTimelines(user, volumes)
+        })
+      );
+
+      console.log(timelines);
     }
      
     getUsers();
-  }, []);
+  }, [volumes]);
 
   return (
     !user ?

@@ -492,8 +492,6 @@ export const api = {
   getUsers: async () => {
     const response = await axios.get(`/user`);
 
-    console.log(response.data);
-
     return response.data;
   }
 };
