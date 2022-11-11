@@ -252,7 +252,7 @@ export function Widgets(painter) {
       handles.visibility.onEndInteractionEvent(() => {
         const info = getWidgetInfo(widgets.visibility);
 
-        onSelect(info.region, 'visibility');
+        if (info.region) onSelect(info.region, 'visibility');
       });
 
       handles.claim.onEndInteractionEvent(() => {
