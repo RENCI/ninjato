@@ -4,17 +4,24 @@ import { UserContext } from 'contexts';
 import { RedirectMessage } from 'modules/common/components/redirect-message';
 import { api } from 'utils/api';
 
+const sortActions = (a, b) => b.time - a.time;
+
 const getUserTimelines = (user, volumes) => {
-  return volumes.map(volume => 
+  const timelines = volumes.map(volume => 
     Object.entries(volume.history).reduce((timeline, [assignmentId, assignmentHistory]) => {
       return [
         ...timeline,
         ...assignmentHistory
           .filter(action => action.user === user.login)
-          .map(action => ({ assignmentId: assignmentId, action: action }))          
+          .map(action => ({ ...action, assignmentId: assignmentId }))          
       ]
-    }, []).sort((a, b) => b.action.time - a.action.time)
+    }, []).sort(sortActions)
   );
+
+  return {
+    volumes: timelines,
+    combined: timelines.flat().sort(sortActions)
+  }
 };
 
 export const Progress = () => {
@@ -43,7 +50,7 @@ export const Progress = () => {
       console.log(timelines);
     }
      
-    getUsers();
+    if (volumes) getUsers();
   }, [volumes]);
 
   return (
