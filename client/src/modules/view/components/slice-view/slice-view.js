@@ -14,6 +14,8 @@ export function SliceView() {
   const mask = MaskPainter();
   const widgets = Widgets(mask.getPainter());
 
+  const render = renderWindow.render;
+
   return {
     initialize: rootNode => {
       if (renderWindow.initialized()) return;
@@ -108,7 +110,7 @@ export function SliceView() {
     setTool: (tool, cursor) => {
       widgets.setTool(tool);
       renderWindow.setCursor(cursor);
-      renderWindow.render();
+      render();
     },
     setBrush: (type, brush) => widgets.setBrush(type, brush),
     setSlice: slice => image.getMapper().setSlice(slice),
@@ -175,6 +177,7 @@ export function SliceView() {
     },
     canUndo: () => mask.getPainter().canUndo(),
     canRedo: () => mask.getPainter().canRedo(),
+    render: () => render(),
     mouseOut: () => {
       widgets.mouseOut();
       mask.setHighlightRegion(null);
