@@ -8,7 +8,7 @@ export const Administration = () => {
   const navigate = useNavigate();
 
   //const valid = user?.reviewer;
-  const valid = !user;
+  const valid = user;
 
   useEffect(() => {
     if (!valid) {
