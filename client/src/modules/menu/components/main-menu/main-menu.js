@@ -21,6 +21,16 @@ export const MainMenu = () => {
         <img alt="logo" src='logo192.png' />
         ninjatō
       </Item>
+      { user?.reviewer &&
+        <Item 
+          as={ Link } 
+          to='/administration' 
+          content='Administration'
+          icon='users'
+          active={ location.pathname === '/administration' } 
+          disabled={ !user?.reviewer }
+        />
+      }
       <Item 
         as={ Link } 
         to='/select' 
