@@ -110,7 +110,7 @@ export const SliceViewWrapper = ({ sliceView, onEdit, onImageMapperChange, onSli
   useEffect(() => {
     if (initialized) {
       sliceView.setShowContours(showContours);
-      //sliceView.render();
+      sliceView.render();
     }
   }, [initialized, sliceView, showContours]);
 
