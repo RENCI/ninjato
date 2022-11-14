@@ -4,7 +4,7 @@ import { UserContext } from 'contexts';
 import { RedirectMessage } from 'modules/common/components/redirect-message';
 import { api } from 'utils/api';
 
-const sortActions = (a, b) => b.time - a.time;
+const sortActions = (a, b) => a.time - b.time;
 
 const getUserTimelines = (user, volumes) => {
   const timelines = volumes.map(volume => 
@@ -13,7 +13,7 @@ const getUserTimelines = (user, volumes) => {
         ...timeline,
         ...assignmentHistory
           .filter(action => action.user === user.login)
-          .map(action => ({ ...action, assignmentId: assignmentId }))          
+          .map(action => ({ ...action, time: new Date(action.time), assignmentId: assignmentId }))          
       ]
     }, []).sort(sortActions)
   );
@@ -23,6 +23,28 @@ const getUserTimelines = (user, volumes) => {
     combined: timelines.flat().sort(sortActions)
   }
 };
+
+const getTimelineCounts = timeline => 
+  timeline.reduce((counts, action) => {
+    const count = counts.length === 0 ? 
+      { active: 0, completed: 0, declined: 0} :
+      {}...counts[counts.length - 1]};
+
+    const current = 
+
+    if (counts.length === 0) {
+      counts.push({ 
+        time: action.time,
+        active: 0,
+        completed: 0,
+        declined: 0
+      });
+    }
+    else {
+      const previous = c
+      counts.push
+    }
+  }, []);
 
 export const Progress = () => {
   const [{ user, volumes }] = useContext(UserContext);
