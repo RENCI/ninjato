@@ -271,7 +271,7 @@ export function VolumeView(painter) {
     setTool: (tool, cursor) => {      
       widgets.setTool(tool);
       renderWindow.setCursor(cursor);
-      renderWindow.render();
+      render();
     },
     setSlice: sliceNumber => {
       slice = sliceNumber;
