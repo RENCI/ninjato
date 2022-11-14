@@ -26,9 +26,10 @@ const getUserTimelines = (user, volumes) => {
 
 const getTimelineCounts = timeline => 
   timeline.reduce((counts, action) => {
+    /*
     const count = counts.length === 0 ? 
       { active: 0, completed: 0, declined: 0} :
-      {}...counts[counts.length - 1]};
+      {...counts[counts.length - 1]};
 
     const current = 
 
@@ -44,7 +45,33 @@ const getTimelineCounts = timeline =>
       const previous = c
       counts.push
     }
+    */
+   return counts;
   }, []);
+
+const getUserAssignments = (users, volumes) => {
+  const assignments = users.map(user => ({ user: user }));
+
+  volumes.forEach(volume => Object.entries(volume.history)
+    .forEach(([assignmentId, assignmentHistory]) => {            
+      let currentUser = null;
+      assignmentHistory.forEach(action => {
+        if (action.type === 'annotation_assigned_to') {
+          currentUser = users.find(user => user.login === action.user);
+
+          if (!currentUser) {
+            console.warn(`Unknown user: ${ action.user }`);
+          }
+        }
+
+        
+
+        
+        
+      });
+    })
+  );
+};
 
 export const Progress = () => {
   const [{ user, volumes }] = useContext(UserContext);
@@ -62,14 +89,19 @@ export const Progress = () => {
     const getUsers = async () => {
       const users = await api.getUsers();
 
+      /*
       const timelines = users.map(user => 
         ({ 
           user: user,
           timelines: getUserTimelines(user, volumes)
         })
       );
+      */
 
-      console.log(timelines);
+      const userAssignments = getUserAssignments(users, volumes);
+
+      //console.log(timelines);
+      console.log(userAssignments);
     }
      
     if (volumes) getUsers();
