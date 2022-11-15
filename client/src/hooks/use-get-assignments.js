@@ -16,6 +16,8 @@ export const useGetAssignments = () => {
       try {
         loadingDispatch({ type: SET_LOADING }); 
 
+        console.log("HERE")
+
         const { assignments, availableReviews } = await api.getAssignments(id, reviewer);
 
         const volumes = await api.getVolumes();

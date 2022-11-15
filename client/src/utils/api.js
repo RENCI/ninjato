@@ -64,7 +64,7 @@ const getAssignment = async (subvolumeId, itemId) => {
   }); 
 
   const info = infoResponse.data;
-
+/*
   // Get files
   const filesResponse = await axios.get(`/item/${ itemId }/files`);
 
@@ -87,7 +87,7 @@ const getAssignment = async (subvolumeId, itemId) => {
 
   // Get region comments
   const comments = await getComments(subvolumeId, info.regions);
-
+*/
   // Copy info and rename to be more concise
   return {
     id: itemId,
@@ -100,13 +100,13 @@ const getAssignment = async (subvolumeId, itemId) => {
       ...region,
       label: +region.label,
       color: info.color[region.label],
-      comments: comments[region.label],
+      //comments: comments[region.label],
       index: i,
       visible: true
     })),
     status: getStatus(info),
-    imageId: imageInfo?._id,
-    maskId: maskInfo?._id,
+    //imageId: imageInfo?._id,
+    //maskId: maskInfo?._id,
     annotator: info.annotator ? info.annotator : null,
     reviewer: info.reviewer ? info.reviewer : null
   };
@@ -223,16 +223,36 @@ export const api = {
     return volumes;
   },
   getAssignments: async (userId, reviewer) => {
+
+    // XXX: Find a user with a lot of assignments for testing
+/*
+    const users = await axios.get('/user');
+
+    console.log(users);
+
+    for (let user of users.data) {
+      const a = await axios.get(`/user/${ user._id }/assignment`);
+
+
+      console.log(user._id, a);
+    }
+*/
+    userId = '62aa56f8a986b620312dd620';
+
     const assignments = [];
 
     // Get user's assignments
     const assignmentResponse = await axios.get(`/user/${ userId }/assignment`);
 
-    // Filter out duplicates
+    console.log(assignmentResponse);
+
+    // Filter out duplicates and by status
     const filtered = Object.values(assignmentResponse.data.reduce((assignments, assignment) => {
       assignments[assignment.item_id] = assignment;
       return assignments;
-    }, {})).filter(({ type }) => type !== 'annotation_rejected_by');
+    }, {})).filter(({ status }) => 
+      status === 'awaiting review' || status === 'active' || status === 'under review'
+    );
 
     // Get assignment details
     for (const item of filtered) {
