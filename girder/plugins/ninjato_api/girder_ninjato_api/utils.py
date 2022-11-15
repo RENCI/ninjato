@@ -642,7 +642,7 @@ def _update_user_mask(item_id, old_content, old_extent, new_extent=None):
 
 
 def remove_region_from_active_assignment(whole_item, assign_item_id, region_id,
-                                         active_region_ids=[], active_content_data=[]):
+                                         active_region_ids, active_content_data):
     """
     remove a region from a user's active assignment
     :param whole_item: whole subvolume item
