@@ -50,6 +50,8 @@ const getTimelineCounts = timeline =>
   }, []);
 
 const getUserAssignments = (users, volumes) => {
+  console.log(volumes);
+
   const assignments = users.map(user => ({ user: user }));
 
   volumes.forEach(volume => Object.entries(volume.history)
@@ -63,7 +65,7 @@ const getUserAssignments = (users, volumes) => {
             console.warn(`Unknown user: ${ action.user }`);
           }
         }
-
+ 
         
 
         
