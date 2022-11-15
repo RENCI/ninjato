@@ -223,23 +223,38 @@ export const api = {
     return volumes;
   },
   getAssignments: async (userId, reviewer) => {
+
+    // XXX: Find a user with a lot of assignments for testing
+/*
+    const users = await axios.get('/user');
+
+    console.log(users);
+
+    for (let user of users.data) {
+      const a = await axios.get(`/user/${ user._id }/assignment`);
+
+
+      console.log(user._id, a);
+    }
+*/
+//    userId = '62aa56f8a986b620312dd620';
+
     const assignments = [];
 
     // Get user's assignments
     const assignmentResponse = await axios.get(`/user/${ userId }/assignment`);
 
-    // Filter out duplicates
+    // Filter out duplicates and by status
     const filtered = Object.values(assignmentResponse.data.reduce((assignments, assignment) => {
       assignments[assignment.item_id] = assignment;
       return assignments;
-    }, {})).filter(({ type }) => type !== 'annotation_rejected_by');
+    }, {})).filter(({ status }) => 
+      status === 'awaiting review' || status === 'active' || status === 'under review'
+    );
 
     // Get assignment details
     for (const item of filtered) {
       const assignment = await getAssignment(item.subvolume_id, item.item_id);
-
-      // XXX: Don't think we need this after annotator and reviewer are provided
-      //assignment.type = item.type.includes('review') ? 'review' : 'refine';
 
       assignments.push(assignment); 
     }
