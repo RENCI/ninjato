@@ -203,19 +203,6 @@ def _create_region(region_key, whole_item, extent_dict):
 
     return region_item
 
-
-def _remove_assignment_from_history(item, assign_item_id, assign_key):
-    assign_item_id = str(assign_item_id)
-    for meta_dict in item['meta']['history'][assign_item_id]:
-        if meta_dict['type'] == assign_key:
-            item['meta']['history'][assign_item_id].remove(meta_dict)
-            if not item['meta']['history'][assign_item_id]:
-                del item['meta']['history'][assign_item_id]
-            Item().save(item)
-            return
-    return
-
-
 def update_assignment_in_whole_item(whole_item, assign_item_id, mask_file_name=None):
     """
     update subvolume whole item mask with updated verified assignment mask
@@ -376,8 +363,6 @@ def reject_assignment(user, item, whole_item, has_files, comment, task='annotati
         whole_item['meta'][uid].remove(str(item['_id']))
         Item().save(whole_item)
     assign_item_id = item['_id']
-    # remove the user's assignment
-    _remove_assignment_from_history(whole_item, assign_item_id, f"{task}_assigned_to")
     uname = user["login"]
     if task == 'annotation' and has_files:
         files = File().find({'itemId': item['_id']})
@@ -492,9 +477,20 @@ def assign_region_to_user(whole_item, user, region_key):
 
 def get_history_info(whole_item, assign_item_id, in_type):
     return_info = []
+    # in_type has to be not empty and contain _ to indicate the task type: annotation or review
+    if not in_type or '_' not in in_type:
+        return return_info
     assign_item_id = str(assign_item_id)
     if 'history' in whole_item['meta'] and assign_item_id in whole_item['meta']['history']:
-        for info in whole_item['meta']['history'][assign_item_id]:
+        task = in_type.split('_')[0]
+        # need to loop through history list in reverse order to check newer actions first
+        for info in reversed(whole_item['meta']['history'][assign_item_id]):
+            rejected_by_key = f'{task}_rejected_by'
+            if info['type'] == rejected_by_key:
+                if in_type == rejected_by_key:
+                    return_info.append(info)
+                # the assignment is rejected which will invalid previous actions
+                return return_info
             if info['type'] == in_type:
                 return_info.append(info)
 
