@@ -30,17 +30,18 @@ export const StatsContainer = ({ trigger }) => {
   const [{ user, assignments }] = useContext(UserContext);
   const getAssignments = useGetAssignments();
 
-  useEffect(() => {  
-    if (user && !assignments) getAssignments(user._id, user.reviewer);    
-  }, [user, assignments, getAssignments]);
+  const onOpen = () => {
+    getAssignments(user._id, user.reviewer); 
+  }
 
   const regular = assignments ? assignments.filter(({ annotator }) => annotator.login === user.login) : [];
   const review = assignments ? assignments.filter(({ reviewer }) => reviewer.login === user.login) : [];
 
-  return assignments && (
+  return user && (
     <Modal
       dimmer='blurring'
       trigger={ trigger }
+      onOpen={ onOpen }
     >
       <Modal.Header>Statistics for { user.login }</Modal.Header>
       <Modal.Content>

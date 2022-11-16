@@ -65,29 +65,6 @@ const getAssignment = async (subvolumeId, itemId) => {
 
   const info = infoResponse.data;
 
-  // Get files
-  const filesResponse = await axios.get(`/item/${ itemId }/files`);
-
-  const { imageInfo, maskInfo } = filesResponse.data.reduce((info, item) => {
-    // XXX: Depending on file naming conventions here. 
-    if (item.name.includes('_masks_regions_user.tif')) {
-      info.maskInfo = item;
-    }
-    else if (item.name.includes('_masks_regions.tif')) {
-      if (!info.maskInfo) {
-        info.maskInfo = item;
-      }
-    }
-    else if (item.name.includes('_regions.tif')) {
-      info.imageInfo = item;
-    }
-
-    return info;
-  }, {});
-
-  // Get region comments
-  const comments = await getComments(subvolumeId, info.regions);
-
   // Copy info and rename to be more concise
   return {
     id: itemId,
@@ -100,13 +77,10 @@ const getAssignment = async (subvolumeId, itemId) => {
       ...region,
       label: +region.label,
       color: info.color[region.label],
-      comments: comments[region.label],
       index: i,
       visible: true
     })),
     status: getStatus(info),
-    imageId: imageInfo?._id,
-    maskId: maskInfo?._id,
     annotator: info.annotator ? info.annotator : null,
     reviewer: info.reviewer ? info.reviewer : null
   };
@@ -228,18 +202,17 @@ export const api = {
     // Get user's assignments
     const assignmentResponse = await axios.get(`/user/${ userId }/assignment`);
 
-    // Filter out duplicates
+    // Filter out duplicates and by status
     const filtered = Object.values(assignmentResponse.data.reduce((assignments, assignment) => {
       assignments[assignment.item_id] = assignment;
       return assignments;
-    }, {})).filter(({ type }) => type !== 'annotation_rejected_by');
+    }, {})).filter(({ status }) => 
+      status === 'awaiting review' || status === 'active' || status === 'under review'
+    );
 
     // Get assignment details
     for (const item of filtered) {
       const assignment = await getAssignment(item.subvolume_id, item.item_id);
-
-      // XXX: Don't think we need this after annotator and reviewer are provided
-      //assignment.type = item.type.includes('review') ? 'review' : 'refine';
 
       assignments.push(assignment); 
     }
@@ -346,16 +319,55 @@ export const api = {
 
     return assignment;
   },
-  getData: async (imageId, maskId) => {
+  getData: async assignment => {
+    const getFiles = async ({ id }) => {
+      const response = await axios.get(`/item/${ id }/files`);
+
+      // Get file info
+      const { imageInfo, maskInfo } = response.data.reduce((info, item) => {
+        // XXX: Depending on file naming conventions here. 
+        if (item.name.includes('_masks_regions_user.tif')) {
+          info.maskInfo = item;
+        }
+        else if (item.name.includes('_masks_regions.tif')) {
+          if (!info.maskInfo) {
+            info.maskInfo = item;
+          }
+        }
+        else if (item.name.includes('_regions.tif')) {
+          info.imageInfo = item;
+        }
+
+        return info;
+      }, {});
+
+      // Get files
+      const fileResponses = await Promise.all([
+        axios.get(fileUrl(imageInfo._id), { responseType: 'arraybuffer' }), 
+        axios.get(fileUrl(maskInfo._id), { responseType: 'arraybuffer' })      
+      ]);
+
+      return {
+        imageBuffer: fileResponses[0].data,
+        maskBuffer: fileResponses[1].data
+      }; 
+    };
+
+    // Adding directly to assignment without dispatching because 
+    // assignment isn't loaded yet
+    const addComments = async ({ subvolumeId, regions }) => {
+      const comments = await getComments(subvolumeId, regions);
+
+      regions.forEach(region => region.comments = comments[region.label])
+    };
+
+    // Get file names and region comments
     const responses = await Promise.all([
-      axios.get(fileUrl(imageId), { responseType: 'arraybuffer' }), 
-      axios.get(fileUrl(maskId), { responseType: 'arraybuffer' })      
+      getFiles(assignment),
+      addComments(assignment)
     ]);
 
-    return {
-      imageBuffer: responses[0].data,
-      maskBuffer: responses[1].data
-    };     
+    return responses[0];     
   },
   getPracticeData: async () => {
     const responses = await Promise.all([

@@ -320,6 +320,7 @@ def get_item_assignment(user, subvolume_id):
                     ret_type = REVIEW_ASSIGN_KEY
                 ret_data.append({
                     'type': ret_type,
+                    'status': 'active',
                     'item_id': assign_item_id,
                     'subvolume_id': whole_item['_id'],
                     'region_ids': assign_item['meta']['region_ids']
@@ -335,6 +336,7 @@ def get_item_assignment(user, subvolume_id):
                         assign_item = Item().findOne({'_id': ObjectId(assign_item_id)})
                         ret_data.append({
                             'type': info['type'],
+                            'status': get_assignment_status(whole_item, assign_item_id),
                             'item_id': assign_item_id,
                             'subvolume_id': whole_item['_id'],
                             'region_ids': assign_item['meta']['region_ids']
@@ -393,6 +395,7 @@ def get_item_assignment(user, subvolume_id):
         if assigned_region_id:
             item_dict = {
                 'type': ANNOT_ASSIGN_KEY,
+                'status': 'active',
                 'item_id': assigned_region_id,
                 'subvolume_id': subvolume_id,
                 'regions': assign_regions

@@ -24,6 +24,6 @@ export const Assignment = () => {
     : assignment.status === 'review' ?
       <ViewContainer review={ true } />
     :
-      <Message>Unknown assignment type { assignment.type }</Message>
+      <Message>Invalid assignment status { assignment.status }</Message>
   );
 };

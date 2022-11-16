@@ -21,7 +21,7 @@ export const AssignmentSelection = () => {
   const validAssignments = assignments ? assignments.filter(({ status }) => 
     status === 'active' || status === 'review' || status === 'waiting') : null;
 
-  useEffect(() => {  
+  useEffect(() => {
     if (user) getAssignments(user._id, user.reviewer);    
   }, [user, getAssignments]);
 
