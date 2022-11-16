@@ -775,7 +775,7 @@ def remove_region_from_active_assignment(whole_item, assign_item_id, region_id,
 
 
 def merge_region_to_active_assignment(whole_item, active_assign_id, region_id,
-                                      active_region_ids=[], active_content_data=[]):
+                                      active_region_ids, active_content_data):
     """
     merge a region into a user's active assignment
     :param whole_item: whole subvolume item
