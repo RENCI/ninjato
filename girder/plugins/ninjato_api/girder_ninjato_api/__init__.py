@@ -14,17 +14,22 @@ from .endpoint_utils import get_item_assignment, save_user_annotation_as_item, g
     .modelParam('id', 'The user ID', model='user', level=AccessType.READ)
     .param('subvolume_id', 'subvolume id from which to get assignment. If it is not set, all '
                            'active assignment for the user across all subvolumes will be '
-                           'returned along with all assignments the user has a rol with, '
+                           'returned along with all assignments the user has a role with, '
                            'and an empty list will be returned if the user does not have a role '
-                           'in any assignment. If the subvolume_id is set, the active assignment '
-                           'for the user in the specified subvolume or a new available assignment '
-                           'if the user does not have any active assignment will be returned',
+                           'in any assignment. If the subvolume_id is set, if request_new is '
+                           'False, the active assignments for the user in the specified subvolume '
+                           'will be returned; otherwise, if the user does not currently have '
+                           'active refine assignment, a new available assignment will be created '
+                           'and returned and an exception will be raised if the user already '
+                           'have active refine assignment.',
            default='', required=False)
+    .param('request_new', 'whether to request new assignment for refine action. Default is False.',
+           dataType='boolean', default=False, required=False)
     .errorResponse()
     .errorResponse('Read access was denied on the user.', 403)
 )
-def get_user_assign_info(user, subvolume_id):
-    return get_item_assignment(user, subvolume_id)
+def get_user_assign_info(user, subvolume_id, request_new):
+    return get_item_assignment(user, subvolume_id, request_new)
 
 
 @access.public

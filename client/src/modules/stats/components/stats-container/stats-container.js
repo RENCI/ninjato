@@ -1,4 +1,4 @@
-import { useContext, useEffect } from 'react';
+import { useContext } from 'react';
 import { Modal, Label, Header } from 'semantic-ui-react';
 import { UserContext } from 'contexts';
 import { statusColor, statusDisplay } from 'utils/assignment-utils';

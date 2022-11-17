@@ -275,7 +275,7 @@ def get_subvolume_item_ids():
     return ret_data
 
 
-def get_item_assignment(user, subvolume_id):
+def get_item_assignment(user, subvolume_id, request_new):
     """
     get region assignment in a subvolume for annotation task. If user has multiple active
     assignments, all active assignments will be returned along with all other assignments the user
@@ -286,11 +286,11 @@ def get_item_assignment(user, subvolume_id):
     :param user: requesting user to get assignment for
     :param subvolume_id: requesting subvolume id if not empty; otherwise, all subvolumes will be
     considered
+    :param request_new: whether to request new assignment for refine action. Default is False
     :return: list of assigned item id, subvolume_id, and assignment key or empty
     if no assignment is available
     """
     ret_data = []
-
     if user['login'] == 'admin':
         return ret_data
 
@@ -305,6 +305,7 @@ def get_item_assignment(user, subvolume_id):
 
     uid = str(user['_id'])
     annot_done_key = 'annotation_done'
+
     for sub_id in id_list:
         whole_item = Item().findOne({'_id': ObjectId(sub_id)})
         if subvolume_id and REVIEW_APPROVE_KEY in whole_item['meta'] and \
@@ -318,15 +319,22 @@ def get_item_assignment(user, subvolume_id):
                 if annot_done_key in assign_item['meta'] and \
                         assign_item['meta'][annot_done_key] == 'true':
                     ret_type = REVIEW_ASSIGN_KEY
-                ret_data.append({
-                    'type': ret_type,
-                    'status': 'active',
-                    'item_id': assign_item_id,
-                    'subvolume_id': whole_item['_id'],
-                    'region_ids': assign_item['meta']['region_ids']
-                })
-            # only return the user's active assignment
-            continue
+                if ret_type == ANNOT_ASSIGN_KEY and request_new:
+                    # user already has active refine assignment, cannot request new assignment
+                    raise RestException(
+                        'The request user already has active refine assignment, so cannot request '
+                        'a new assignment', code=400)
+                if not request_new:
+                    ret_data.append({
+                        'type': ret_type,
+                        'status': 'active',
+                        'item_id': assign_item_id,
+                        'subvolume_id': whole_item['_id'],
+                        'region_ids': assign_item['meta']['region_ids']
+                    })
+            if not request_new:
+                # only return the user's active assignment
+                continue
 
         if not subvolume_id and 'history' in whole_item['meta']:
             # check other potential assignment the user is involved with
@@ -343,8 +351,7 @@ def get_item_assignment(user, subvolume_id):
                         })
 
         filtered_id_list.append(sub_id)
-
-    if ret_data or not subvolume_id:
+    if not request_new or not subvolume_id:
         # return the user's assignments
         return ret_data
 

@@ -254,7 +254,8 @@ export const api = {
     const response = await axios.get(`/user/${ userId }/assignment`,
       {
         params: {
-          subvolume_id: subvolumeId
+          subvolume_id: subvolumeId,
+          request_new: true
         }
       }
     );
@@ -381,11 +382,18 @@ export const api = {
     };   
   },
   getRegionInfo: async (subvolumeId, regionId) => {
-    const infoResponse = await axios.get(`/item/${ subvolumeId }/subvolume_assignment_info`, {
-      params: { region_id: regionId }    
-    });
+    try {
+      const infoResponse = await axios.get(`/item/${ subvolumeId }/subvolume_assignment_info`, {
+        params: { region_id: regionId }    
+      });
 
-    return infoResponse.data;
+      return infoResponse.data;
+    }
+    catch (error) {
+      console.warn(`Error getting subvolume assignment info for region ${ regionId } in subvolume ${ subvolumeId }`);
+
+      return { status: 'unknown' };
+    }
   },
   saveAnnotations: async (userId, itemId, buffer, regions, done = false) => {
     const blob = new Blob([buffer], { type: 'application/octet' });
