@@ -254,7 +254,8 @@ export const api = {
     const response = await axios.get(`/user/${ userId }/assignment`,
       {
         params: {
-          subvolume_id: subvolumeId
+          subvolume_id: subvolumeId,
+          request_new: true
         }
       }
     );
