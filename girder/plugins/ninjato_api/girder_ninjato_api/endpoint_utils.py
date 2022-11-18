@@ -761,8 +761,8 @@ def get_all_avail_items_for_review(item):
     for key, val in region_dict.items():
         if 'item_id' in val:
             complete_info = get_history_info(item, val['item_id'], ANNOT_COMPLETE_KEY)
-            review_complete_info = get_history_info(item, val['item_id'], REVIEW_COMPLETE_KEY)
-            if complete_info and not review_complete_info:
+            review_assign_info = get_history_info(item, val['item_id'], REVIEW_ASSIGN_KEY)
+            if complete_info and not review_assign_info:
                 avail_item_list.append({
                     'id': val['item_id'],
                     'annotation_completed_by': complete_info,

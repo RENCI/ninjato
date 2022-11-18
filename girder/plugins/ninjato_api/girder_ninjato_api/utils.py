@@ -406,7 +406,7 @@ def get_assignment_status(whole_item, assign_item_id):
         return "active"
     elif len(complete_info) > len(review_complete_info):
         # reannotated assignment is ready to be reviewed
-        return 'awaiting review'
+        return 'under review'
     else:
         # should not happen
         raise RestException(f'More review_completed_by actions than annotation_completed_by actions '
