@@ -393,9 +393,6 @@ def get_assignment_status(whole_item, assign_item_id):
         return 'inactive'
     if not complete_info:
         return 'active'
-    if len(assign_info) == len(complete_info)+1:
-        # assignment is reassigned to user after reviewer disapproved the annotation
-        return 'active'
 
     review_assign_info = get_history_info(whole_item, assign_item_id, REVIEW_ASSIGN_KEY)
     review_complete_info = get_history_info(whole_item, assign_item_id, REVIEW_COMPLETE_KEY)
@@ -404,11 +401,17 @@ def get_assignment_status(whole_item, assign_item_id):
 
     if not review_complete_info:
         return 'under review'
-    if len(review_assign_info) == len(review_complete_info):
+    if len(complete_info) == len(review_complete_info):
+        # assignment is reassigned to user after reviewer disapproved the annotation
+        return "active"
+    elif len(complete_info) > len(review_complete_info):
         # reannotated assignment is ready to be reviewed
         return 'awaiting review'
-
-    return 'under review'
+    else:
+        # should not happen
+        raise RestException(f'More review_completed_by actions than annotation_completed_by actions '
+                            f'in the history for assignment item {assign_item_id} '
+                            f'in whole volume {whole_item["_id"]}')
 
 
 def save_file(as_id, item, path, user, file_name):
@@ -854,6 +857,19 @@ def merge_region_to_active_assignment(whole_item, active_assign_id, region_id,
     return get_history_info(whole_item, assign_item['_id'], ANNOT_ASSIGN_KEY)
 
 
+def add_user_active_assignment_metadata(user_id, whole_item, region_item_id):
+    # since a user can claim another region, user id metadata on whole_item is a list
+    if user_id in whole_item['meta']:
+        item_list = whole_item['meta'][user_id]
+        if region_item_id not in item_list:
+            item_list.append(region_item_id)
+        add_meta = {user_id: item_list}
+    else:
+        add_meta = {user_id: [region_item_id]}
+    Item().setMetadata(whole_item, add_meta)
+    Item().save(whole_item)
+
+
 def set_assignment_meta(whole_item, user, region_item_id, assign_type):
     region_item_id = str(region_item_id)
     assign_info = {
@@ -862,17 +878,8 @@ def set_assignment_meta(whole_item, user, region_item_id, assign_type):
         'time': datetime.now().strftime("%m/%d/%Y %H:%M")
     }
     add_meta_to_history(whole_item, region_item_id, assign_info)
-    # since a user can claim another region, user id metadata on whole_item is a list
     user_id = str(user['_id'])
-    if user_id in whole_item['meta']:
-        item_list = whole_item['meta'][str(user['_id'])]
-        if region_item_id not in item_list:
-            item_list.append(region_item_id)
-        add_meta = {user_id: item_list}
-    else:
-        add_meta = {user_id: [region_item_id]}
-    Item().setMetadata(whole_item, add_meta)
-
+    add_user_active_assignment_metadata(user_id, whole_item, region_item_id)
     return assign_info
 
 
