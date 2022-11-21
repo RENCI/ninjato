@@ -196,17 +196,18 @@ export const api = {
 
     return volumes;
   },
-  getAssignments: async (userId, reviewer) => {
+  getAssignments: async (userId, reviewer, getAll = false) => {
     const assignments = [];
 
     // Get user's assignments
     const assignmentResponse = await axios.get(`/user/${ userId }/assignment`);
 
     // Filter out duplicates and by status
-    const filtered = Object.values(assignmentResponse.data.reduce((assignments, assignment) => {
+    const filtered = Object.values(assignmentResponse.data.reduce((assignments, assignment, getAll) => {
       assignments[assignment.item_id] = assignment;
       return assignments;
     }, {})).filter(({ status }) => 
+      getAll ? true : 
       status === 'awaiting review' || status === 'active' || status === 'under review'
     );
 

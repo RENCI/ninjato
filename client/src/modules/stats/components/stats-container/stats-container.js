@@ -1,8 +1,8 @@
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { Modal, Label, Header } from 'semantic-ui-react';
 import { UserContext } from 'contexts';
+import { api } from 'utils/api';
 import { statusColor, statusDisplay } from 'utils/assignment-utils';
-import { useGetAssignments } from 'hooks';
 
 const statuses = [
   'active',
@@ -27,12 +27,23 @@ const reviewDisplay = {
 
 
 export const StatsContainer = ({ trigger }) => {
-  const [{ user, assignments }] = useContext(UserContext);
-  const getAssignments = useGetAssignments();
+  const [{ user }] = useContext(UserContext);
+  const [assignments, setAssignments] = useState([]);
 
   const onOpen = () => {
-    getAssignments(user._id, user.reviewer); 
-  }
+    const getAssignments = async () => {
+      try {
+        const { assignments } = await api.getAssignments(user._id, false, true);
+
+        setAssignments(assignments);
+      }
+      catch (error) {
+        console.warn(error);
+      }
+    };
+
+    getAssignments();
+  };
 
   const regular = assignments ? assignments.filter(({ annotator }) => annotator.login === user.login) : [];
   const review = assignments ? assignments.filter(({ reviewer }) => reviewer.login === user.login) : [];
