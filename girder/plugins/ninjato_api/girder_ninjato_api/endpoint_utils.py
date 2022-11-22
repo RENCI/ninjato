@@ -12,7 +12,8 @@ from .utils import COLLECTION_NAME, ANNOT_ASSIGN_KEY, ANNOT_COMPLETE_KEY, \
     merge_region_to_active_assignment, set_assignment_meta, get_history_info, \
     assign_region_to_user, add_meta_to_history, check_subvolume_done, \
     reject_assignment, update_assignment_in_whole_item, get_assignment_status, \
-    save_content_data, save_added_and_removed_regions, update_all_assignment_masks_async
+    add_user_active_assignment_metadata, save_content_data, save_added_and_removed_regions, \
+    update_all_assignment_masks_async
 
 
 def get_available_region_ids(whole_item, count=1):
@@ -521,7 +522,7 @@ def save_user_review_result_as_item(user, item_id, done, reject, comment, approv
             complete_info = get_history_info(whole_item, item_id, ANNOT_COMPLETE_KEY)
             annot_uname = complete_info[0]['user']
             annot_user = User().findOne({'login': annot_uname})
-            set_assignment_meta(whole_item, annot_user, item_id, ANNOT_ASSIGN_KEY)
+            add_user_active_assignment_metadata(str(annot_user['_id']), whole_item, str(item_id))
             add_meta['annotation_done'] = 'false'
             add_meta['review_done'] = 'false'
         else:
@@ -541,10 +542,8 @@ def save_user_review_result_as_item(user, item_id, done, reject, comment, approv
                               'user': uname,
                               'time': datetime.now().strftime("%m/%d/%Y %H:%M")},
                              key='comment_history')
-
     whole_item = save_added_and_removed_regions(whole_item, item, current_region_ids,
                                                 done, uid, add_meta)
-
     if done:
         info = {
             'type': 'review_completed_by',
@@ -762,8 +761,8 @@ def get_all_avail_items_for_review(item):
     for key, val in region_dict.items():
         if 'item_id' in val:
             complete_info = get_history_info(item, val['item_id'], ANNOT_COMPLETE_KEY)
-            review_complete_info = get_history_info(item, val['item_id'], REVIEW_COMPLETE_KEY)
-            if complete_info and not review_complete_info:
+            review_assign_info = get_history_info(item, val['item_id'], REVIEW_ASSIGN_KEY)
+            if complete_info and not review_assign_info:
                 avail_item_list.append({
                     'id': val['item_id'],
                     'annotation_completed_by': complete_info,
