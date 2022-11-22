@@ -1,10 +1,12 @@
 import { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Tab, Menu } from 'semantic-ui-react';
 import { ResponsiveStream } from '@nivo/stream';
 import { ResponsiveLine } from '@nivo/line';
 import { UserContext } from 'contexts';
 import { RedirectMessage } from 'modules/common/components/redirect-message';
 import { api } from 'utils/api';
+import { render } from 'react-dom';
 
 // XXX: Necessary to fix issues in assignment history. 
 // Can probably be removed after first volume (purple_box) is completed.
@@ -159,9 +161,23 @@ export const Progress = () => {
     !user ?
       <RedirectMessage message='No User' />
     :
+      <Tab
+        menu={{ secondary: true, pointing: true, attached: 'top' }}
+        panes={[
+          {
+            menuItem: <Menu.Item>Volumes</Menu.Item>,
+            render: () => 'volumes'
+          },
+          {
+            menuItem: <Menu.Item>Users</Menu.Item>,
+            render: () => 'users'
+          }
+        ]}
+      />
+/*
       <div style={{ height: 500 }}>
-        { timelines &&
-          /*
+        { timelines && <>yo</>
+          
           <ResponsiveLine 
             data={ keys.map(key => ({
               id: key,
@@ -174,15 +190,16 @@ export const Progress = () => {
             xFormat={ 'time:YYYY-MM-DDTHH:mm:ss.sssZ' }
             axisBottom={ null }
           />
-          */          
           <ResponsiveStream 
             data={ timelines[index].counts }
             keys={ ['active', 'review', 'completed', 'declined'] }
             offsetType='diverging'
             order='reverse'
             curve='monotoneY'
-          />          
+          />
+                   
         }
       </div>
+*/      
   );
 };
