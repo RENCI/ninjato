@@ -33,6 +33,7 @@ const initialState = {
   assignment: null,
   imageData: null,
   maskData: null,
+  backgroundMaskData: null,
   activeRegion: null,
   regionHistory: history()
 };
@@ -58,10 +59,20 @@ const removeRegions = (regions, remove) => {
 };
 
 const updateAssignment = (a1, a2) => {
+
+  // XXX: This does not work for removing a region from an assignment.
+  // Think more about similarities/differences between claiming, removing, and refreshing.
+  // May need to refactor some code.
+
   const assignment = {
     ...a1,
-    ...a2
+    ...a2,
+    regions: a1.regions.concat(a2.regions).filter(({ label }, i, a) => a.findIndex(region => region.label === label) === i)
   };
+
+  console.log("**************************************************")
+  console.log(a1.regions.concat(a2.regions));
+  console.log(assignment.regions);
 
   updateColors(assignment.regions);
 
@@ -161,7 +172,8 @@ const reducer = (state, action) => {
       return {
         ...state,
         imageData: action.imageData,
-        maskData: action.maskData
+        maskData: action.maskData,
+        backgroundMaskData: action.backgroundMaskData ? action.backgroundMaskData : action.maskData
       };
 
     case CLEAR_DATA:

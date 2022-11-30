@@ -3,7 +3,7 @@ import { UserContext, AnnotateContext } from 'contexts';
 import { useResize } from 'hooks';
 
 export const SliceViewWrapper = ({ sliceView, onEdit, onImageMapperChange, onSliceChange, onSelect, onWidgetMove, onHover, onHighlight, onKeyDown, onKeyUp }) => {
-  const [{ imageData, maskData, assignment, volumes, activeRegion }] = useContext(UserContext);
+  const [{ imageData, maskData, backgroundMaskData, assignment, volumes, activeRegion }] = useContext(UserContext);
   const [{ tool, tools, brushes, paintBrush, eraseBrush, createBrush, showContours }] = useContext(AnnotateContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);
@@ -67,10 +67,10 @@ export const SliceViewWrapper = ({ sliceView, onEdit, onImageMapperChange, onSli
 
   // Data
   useEffect(() => {
-    if (initialized && imageData && maskData) {
-      sliceView.setData(imageData, maskData, sliceRanges.current);
+    if (initialized && imageData && maskData && backgroundMaskData) {
+      sliceView.setData(imageData, maskData, backgroundMaskData, sliceRanges.current);
     }
-  }, [initialized, sliceView, imageData, maskData, volumes]);   
+  }, [initialized, sliceView, imageData, maskData, backgroundMaskData, volumes]);   
 
   // Active region
   useEffect(() => {

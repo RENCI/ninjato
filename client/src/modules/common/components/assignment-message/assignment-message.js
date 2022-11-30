@@ -23,7 +23,7 @@ export const AssignmentMessage = () => {
       assignment: update
     });
 
-    loadData(update, assignment);   
+    loadData(update, assignment, true);
   };
 
   return (
