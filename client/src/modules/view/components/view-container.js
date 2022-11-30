@@ -217,9 +217,14 @@ export const ViewContainer = ({ review = false }) => {
         toolRef.current = previousToolRef.current;
         break;
 
+      case 'z':
+        console.log("z")
+        volumeView.setCamera(sliceView.getCamera());
+        break;
+
       default:
     }
-  }, [annotateDispatch]);
+  }, [annotateDispatch, sliceView, volumeView]);
 
   // Other callbacks
   const onLoaded = useCallback(() => {

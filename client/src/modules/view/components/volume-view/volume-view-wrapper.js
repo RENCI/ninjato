@@ -63,16 +63,13 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded, onEdit, onSelect, onWi
     if (initialized) {
       const toolObject = tools.find(({ value }) => value === tool);
 
-      if (toolObject.volume) {
+      if (toolObject?.volume) {
         volumeView.setTool(tool, toolObject.cursor);
       }
       else {
         // Default to navigate
         const toolObject = tools.find(({ value }) => value === 'navigate');
         volumeView.setTool(null, toolObject.cursor);
-        
-        //const toolObject = tools.find(({ value }) => value === 'select');
-        //volumeView.setTool('select', toolObject.cursor);
       }
     }
   }, [initialized, volumeView, tool, tools]);

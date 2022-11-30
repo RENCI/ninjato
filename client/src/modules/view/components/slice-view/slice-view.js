@@ -178,6 +178,7 @@ export function SliceView() {
     canUndo: () => mask.getPainter().canUndo(),
     canRedo: () => mask.getPainter().canRedo(),
     render: () => render(),
+    getCamera: () => renderWindow.getRenderer().getActiveCamera(),
     mouseOut: () => {
       widgets.mouseOut();
       mask.setHighlightRegion(null);
