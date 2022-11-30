@@ -32,6 +32,51 @@ const resetCamera = (renderer, surface) => {
   renderer.resetCameraClippingRange();
 };
 
+const animateCamera = (renderWindow, focalPoint, position, up, duration) => {
+  const renderer = renderWindow.getRenderer();
+  const camera = renderer.getActiveCamera();
+  const startFocalPoint = camera.getFocalPoint();
+  const startUp = camera.getViewUp();
+
+  const startTime = new Date();
+
+  function animate() {
+    const now = new Date();
+    const elapsed = now - startTime;
+    const t = Math.min(elapsed / duration, 1);
+
+    const [tx, ty, tz] = interpolate(startFocalPoint, focalPoint, t);
+    const [fx, fy, fz] = camera.getFocalPoint();
+    const [dx, dy, dz] = [tx - fx, ty - fy, tz - fz];
+    const [ux, uy, uz] = interpolate(startUp, up, t);
+
+    // XXX: Translate doesn't work for z snap
+
+    camera.translate(dx, dy, dz);
+    camera.setViewUp(ux, uy, uz);
+
+    // XXX: Next two calls are causing flying edges to be recalculated
+    renderer.resetCameraClippingRange();
+    renderWindow.render();
+
+    if (elapsed < duration) {
+      // Keep going
+      setTimeout(animate, 0);
+    }
+    else {
+      // Make sure we are at the right spot
+      camera.setFocalPoint(...focalPoint);
+      camera.setPosition(...position);  
+      camera.setViewUp(...up);
+
+      renderer.resetCameraClippingRange();
+      renderWindow.render();      
+    }
+  };
+
+  animate();
+};
+
 const centerCamera = (renderWindow, surface, volume) => {
   if (surface.getPoints().getNumberOfPoints() > 0) {
     const renderer = renderWindow.getRenderer();
@@ -57,40 +102,21 @@ const centerCamera = (renderWindow, surface, volume) => {
 
     const maxDuration = 2000;
     const duration = interpolate(0, maxDuration, d / diagonal);
-    
-    const startTime = new Date();
 
-    function animate() {
-      const now = new Date();
-      const elapsed = now - startTime;
-      const t = Math.min(elapsed / duration, 1);
-
-      const [tx, ty, tz] = interpolate(start, end, t);
-      const [fx, fy, fz] = camera.getFocalPoint();
-      const [dx, dy, dz] = [tx - fx, ty - fy, tz - fz];
-
-      camera.translate(dx, dy, dz);
-
-      // XXX: Next two calls are causing flying edges to be recalculated
-      renderer.resetCameraClippingRange();
-      renderWindow.render();
-
-      if (elapsed < duration) {
-        // Keep going
-        setTimeout(animate, 0);
-      }
-      else {
-        // Make sure we are at the right spot
-        camera.setFocalPoint(...end);
-        camera.setPosition(...endPos);  
-
-        renderer.resetCameraClippingRange();
-        renderWindow.render();      
-      }
-    };
-
-    animate();
+    animateCamera(renderWindow, end, endPos, camera.getViewUp(), duration);
   }
+};
+
+const setCamera = (renderWindow, camera) => {
+  const renderer = renderWindow.getRenderer();
+  const cam = renderer.getActiveCamera();
+
+  const distance = cam.getDistance();
+  const focalPoint = cam.getFocalPoint();
+  const direction = camera.getDirectionOfProjection();
+  const position = focalPoint.map((d, i) => d - direction[i] * distance);
+
+  animateCamera(renderWindow, focalPoint, position, camera.getViewUp(), 1000);
 };
 
 const getSurface = (surfaces, region) => !region ? null : 
@@ -306,6 +332,9 @@ export function VolumeView(painter) {
       if (!surface) return;
 
       centerCamera(renderWindow, surface.getOutput(), background.getInputData());
+    },
+    setCamera: camera => {
+      setCamera(renderWindow, camera);
     },
     render: onRendered => {
       render();

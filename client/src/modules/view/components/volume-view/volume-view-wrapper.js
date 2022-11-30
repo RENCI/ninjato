@@ -63,6 +63,8 @@ export const VolumeViewWrapper = ({ volumeView, onLoaded, onEdit, onSelect, onWi
     if (initialized) {
       const toolObject = tools.find(({ value }) => value === tool);
 
+      console.log(toolObject);
+
       if (toolObject.volume) {
         volumeView.setTool(tool, toolObject.cursor);
       }
