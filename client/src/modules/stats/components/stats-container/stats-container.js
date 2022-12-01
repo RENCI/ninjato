@@ -33,7 +33,7 @@ export const StatsContainer = ({ trigger }) => {
   const onOpen = () => {
     const getAssignments = async () => {
       try {
-        const { assignments } = await api.getAssignments(user._id, false, true);
+        const { assignments } = await api.getAssignments(user._id, false, user.trainee, true);
 
         setAssignments(assignments);
       }
