@@ -6,9 +6,9 @@ from bson.objectid import ObjectId
 from girder.models.collection import Collection
 from girder.models.folder import Folder
 from girder.exceptions import RestException
-from .utils import COLLECTION_NAME, ANNOT_ASSIGN_KEY, ANNOT_COMPLETE_KEY, \
-    REVIEW_ASSIGN_KEY, REVIEW_COMPLETE_KEY, REVIEW_APPROVE_KEY, get_max_region_id, \
-    set_max_region_id, remove_region_from_active_assignment, \
+from .utils import TRAINING_COLLECTION_NAME, COLLECTION_NAME, ANNOT_ASSIGN_KEY, \
+    ANNOT_COMPLETE_KEY, REVIEW_ASSIGN_KEY, REVIEW_COMPLETE_KEY, REVIEW_APPROVE_KEY, \
+    get_max_region_id, set_max_region_id, remove_region_from_active_assignment, \
     merge_region_to_active_assignment, set_assignment_meta, get_history_info, \
     assign_region_to_user, add_meta_to_history, check_subvolume_done, \
     reject_assignment, update_assignment_in_whole_item, get_assignment_status, \
@@ -243,13 +243,17 @@ def get_region_comment_info(item, region_label):
         return []
 
 
-def get_subvolume_item_ids():
+def get_subvolume_item_ids(training):
     """
-    get all subvolume item ids
+    get all subvolume item ids from training data collection if training parameter is True;
+    otherwise, get all subvolume item ids from annotation data collection
     :return: array of dicts with 'id' key indicate subvolume item id and 'parent_id' key indicates
      folder id so that subvolumes can be grouped into a hierachy if needed
     """
-    coll = Collection().findOne({'name': COLLECTION_NAME})
+    if training:
+        coll = Collection().findOne({'name': TRAINING_COLLECTION_NAME})
+    else:
+        coll = Collection().findOne({'name': COLLECTION_NAME})
     vol_folders = Folder().find({
         'parentId': coll['_id'],
         'parentCollection': 'collection'
@@ -276,7 +280,7 @@ def get_subvolume_item_ids():
     return ret_data
 
 
-def get_item_assignment(user, subvolume_id, request_new):
+def get_item_assignment(user, subvolume_id, request_new, training):
     """
     get region assignment in a subvolume for annotation task. If user has multiple active
     assignments, all active assignments will be returned along with all other assignments the user
@@ -288,6 +292,7 @@ def get_item_assignment(user, subvolume_id, request_new):
     :param subvolume_id: requesting subvolume id if not empty; otherwise, all subvolumes will be
     considered
     :param request_new: whether to request new assignment for refine action. Default is False
+    :param training: whether to get assignment from training volumes or not
     :return: list of assigned item id, subvolume_id, and assignment key or empty
     if no assignment is available
     """
@@ -298,7 +303,7 @@ def get_item_assignment(user, subvolume_id, request_new):
     id_list = []
     filtered_id_list = []
     if not subvolume_id:
-        subvolume_ids = get_subvolume_item_ids()
+        subvolume_ids = get_subvolume_item_ids(training)
         for id_item in subvolume_ids:
             id_list.append(id_item['id'])
     else:
@@ -578,6 +583,7 @@ def get_subvolume_item_info(item):
         'location': item['meta']['coordinates'],
         'total_regions': total_regions,
         'intensity_ranges': item['meta']['intensity_range_per_slice'],
+        'training_user': item['meta']['training_user'] if 'training_user' in item['meta'] else '',
         'history': item['meta']['history'] if 'history' in item['meta'] else {}
     }
     annot_done_key = 'annotation_done'
