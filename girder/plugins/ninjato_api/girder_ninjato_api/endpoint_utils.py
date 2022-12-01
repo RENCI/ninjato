@@ -280,7 +280,7 @@ def get_subvolume_item_ids(training):
     return ret_data
 
 
-def get_item_assignment(user, subvolume_id, request_new):
+def get_item_assignment(user, subvolume_id, request_new, training):
     """
     get region assignment in a subvolume for annotation task. If user has multiple active
     assignments, all active assignments will be returned along with all other assignments the user
@@ -292,6 +292,7 @@ def get_item_assignment(user, subvolume_id, request_new):
     :param subvolume_id: requesting subvolume id if not empty; otherwise, all subvolumes will be
     considered
     :param request_new: whether to request new assignment for refine action. Default is False
+    :param training: whether to get assignment from training volumes or not
     :return: list of assigned item id, subvolume_id, and assignment key or empty
     if no assignment is available
     """
@@ -302,7 +303,7 @@ def get_item_assignment(user, subvolume_id, request_new):
     id_list = []
     filtered_id_list = []
     if not subvolume_id:
-        subvolume_ids = get_subvolume_item_ids()
+        subvolume_ids = get_subvolume_item_ids(training)
         for id_item in subvolume_ids:
             id_list.append(id_item['id'])
     else:
