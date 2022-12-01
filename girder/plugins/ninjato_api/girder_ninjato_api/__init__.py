@@ -198,12 +198,15 @@ def get_avail_items_for_review(item):
 @access.public
 @autoDescribeRoute(
     Description('Get subvolume item ids.')
+    .param('training', 'A boolean True or False to indicate whether to get subvolume ids '
+                       'from training data collection or not. Default is False',
+           dataType='boolean', default=False, required=False)
     .errorResponse()
     .errorResponse('Get action was denied on the user.', 403)
     .errorResponse('Failed to get subvolume ids', 500)
 )
-def get_subvolume_ids():
-    return get_subvolume_item_ids()
+def get_subvolume_ids(training):
+    return get_subvolume_item_ids(training)
 
 
 @access.public
