@@ -155,7 +155,7 @@ export const api = {
   getVolumes: async () => {
     const response = await axios.get('/system/subvolume_ids', {
       params: {
-        training: false
+        training: true
       }
     });
 
@@ -192,13 +192,16 @@ export const api = {
             completed: data.total_review_completed_regions
           },
           sliceRanges: data.intensity_ranges.map(({ min, max }) => [min, max]),
-          history: data.history
+          history: data.history,
+          trainingUser: data.training_user ? data.training_user : null
         });      
       }      
       catch (error) {
         console.log(error);
       }
     }
+
+    console.log(volumes);
 
     return volumes;
   },
