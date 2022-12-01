@@ -153,7 +153,11 @@ export const api = {
     }
   },
   getVolumes: async () => {
-    const response = await axios.get('/system/subvolume_ids');
+    const response = await axios.get('/system/subvolume_ids', {
+      params: {
+        training: true
+      }
+    });
 
     const volumes = [];
 
