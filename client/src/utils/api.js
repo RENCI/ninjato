@@ -155,9 +155,11 @@ export const api = {
   getVolumes: async () => {
     const response = await axios.get('/system/subvolume_ids', {
       params: {
-        training: true
+        training: false
       }
     });
+
+    console.log(response);
 
     const volumes = [];
 
