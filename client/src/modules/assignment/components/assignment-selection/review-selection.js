@@ -1,6 +1,4 @@
-import { useContext } from 'react';
 import { Grid, Header, Icon } from 'semantic-ui-react';
-import { UserContext } from 'contexts';
 import { Assignments } from 'modules/assignment/components/assignments';
 import { Volumes } from 'modules/assignment/components/volumes';
 

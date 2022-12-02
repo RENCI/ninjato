@@ -19,7 +19,7 @@ const filterTraining = (assignments, volumes, training) =>
 
 // For refine, want anything where this user is the annotator
 // For review, want anything where this user is the reviewer
-const filterAssignments = (assignments, volumes, type, login, training) => {
+const filterAssignments = (assignments, volumes, type, login, training = null) => {
   const filtered = type === 'review' ? assignments.filter(({ reviewer }) => reviewer?.login === login) :
     assignments.filter(({ annotator }) => annotator?.login === login);
 
@@ -32,6 +32,12 @@ const filterTrainingVolumes = (volumes, training) => (
 );
 
 export const AssignmentSelection = () => {
+
+
+
+  // XXX: Add some text indicating training vs. regular assignments?
+
+
   const [{ user, assignments, availableReviews, volumes }] = useContext(UserContext);
   const [training, setTraining] = useState(user.reviewer ? false : null);
   const getAssignments = useGetAssignments();
@@ -92,7 +98,7 @@ export const AssignmentSelection = () => {
       :
         <div className={ styles.refine }>
           <RefineSelection 
-            assignments={ filterAssignments(validAssignments, 'refine', user.login) } 
+            assignments={ filterAssignments(validAssignments, volumes, 'refine', user.login) } 
           />
         </div>
       )}

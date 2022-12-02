@@ -299,9 +299,6 @@ export const api = {
       }
     }
 
-    console.log(assignments);
-    console.log(availableReviews);
-
     return {
       assignments: assignments,
       availableReviews: availableReviews
