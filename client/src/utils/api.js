@@ -242,19 +242,10 @@ export const api = {
 
       responses = [...response.data, ...trainingResponse.data];
     }
-    else if (trainee) {
-      const trainingResponse = await axios.get(`/user/${ userId }/assignment`, {
-        params: {
-          training: true
-        }
-      });
-
-      responses = trainingResponse.data;
-    }
     else {
       const response = await axios.get(`/user/${ userId }/assignment`, {
         params: {
-          training: true
+          training: trainee
         }
       });
 
@@ -333,7 +324,7 @@ export const api = {
 
     const item = response.data[0];
 
-    const assignment = await getAssignment(item.subvolume_id, item.item_id, training);
+    const assignment = await getAssignment(item.subvolume_id, item.item_id);
 
     return assignment;
   },

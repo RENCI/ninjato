@@ -7,9 +7,7 @@ import { Volumes } from 'modules/assignment/components/volumes';
 const { Row, Column } = Grid;
 const { Subheader } = Header;
 
-export const ReviewSelection = ({ review, waiting }) => {
-  const [{ volumes }] = useContext(UserContext);
-  
+export const ReviewSelection = ({ review, waiting, volumes }) => {  
   const hasReview = review.length > 0;
   const hasWaiting = waiting.reduce((n, { assignments }) => {
     return n + assignments.length;
