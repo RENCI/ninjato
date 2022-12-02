@@ -64,7 +64,7 @@ const getComments = async (subvolumeId, regions) => {
   return comments;
 };
 
-const getAssignment = async (subvolumeId, itemId, training) => {
+const getAssignment = async (subvolumeId, itemId) => {
   // Get assignment info
   const infoResponse = await axios.get(`/item/${ subvolumeId }/subvolume_assignment_info`, {
     params: { assign_item_id: itemId }
@@ -89,8 +89,7 @@ const getAssignment = async (subvolumeId, itemId, training) => {
     })),
     status: getStatus(info),
     annotator: info.annotator ? info.annotator : null,
-    reviewer: info.reviewer ? info.reviewer : null,
-    training: training
+    reviewer: info.reviewer ? info.reviewer : null
   };
 };
 
@@ -160,22 +159,38 @@ export const api = {
       return null;
     }
   },
-  getVolumes: async user => {
-    const response = await axios.get('/system/subvolume_ids', {
-      params: {
-        training: true
-      }
-    });
+  getVolumes: async (login, reviewer, trainee) => {
+    // Get volumes based on user type
+    let responses = [];
+    if (reviewer) {
+      const response = await axios.get('/system/subvolume_ids');
+      const trainingResponse = await axios.get('/system/subvolume_ids', {
+        params: {
+          training: true
+        }
+      });
 
-    console.log(response);
+      responses = [...response.data, ...trainingResponse.data];
+    }
+    else {     
+      const response = await axios.get('/system/subvolume_ids', {
+        params: {
+          training: trainee
+        }
+      });
+
+      responses = response.data;
+    }
 
     const volumes = [];
 
-    for (const volume of response.data) {
+    for (const volume of responses) {
       try {
         const infoResponse = await axios.get(`/item/${ volume.id }/subvolume_info`);
 
         const { data } = infoResponse;
+
+        if (trainee && data.training_user !== login) continue;
 
         // Get parent volume info
         const pathResponse = await axios.get(`/item/${ volume.id }/rootpath`);
@@ -209,17 +224,15 @@ export const api = {
       }
     }
 
-    console.log(volumes);
-
     return volumes;
   },
   getAssignments: async (userId, reviewer, trainee, getAll = false) => {
     const assignments = [];
 
     // Get user's assignments based on user type
-    const responses = [];
+    let responses = [];
     if (reviewer) {  
-      const assignmentResponse = await axios.get(`/user/${ userId }/assignment`);
+      const response = await axios.get(`/user/${ userId }/assignment`);
       const trainingResponse = await axios.get(`/user/${ userId }/assignment`, {
         params: {
           training: true
@@ -227,7 +240,7 @@ export const api = {
       });
       trainingResponse.data.forEach(assignment => assignment.training = true);
 
-      responses = [...assignmentResponse.data, ...trainingResponse.data];
+      responses = [...response.data, ...trainingResponse.data];
     }
     else if (trainee) {
       const trainingResponse = await axios.get(`/user/${ userId }/assignment`, {
@@ -235,14 +248,17 @@ export const api = {
           training: true
         }
       });
-      trainingResponse.data.forEach(assignment => assignment.training = true);
 
       responses = trainingResponse.data;
     }
     else {
-      const trainingResponse = await axios.get(`/user/${ userId }/assignment`);
+      const response = await axios.get(`/user/${ userId }/assignment`, {
+        params: {
+          training: true
+        }
+      });
 
-      responses = trainingResponse.data;
+      responses = response.data;
     }
 
     // Filter out duplicates and by status
@@ -256,7 +272,7 @@ export const api = {
 
     // Get assignment details
     for (const item of filtered) {
-      const assignment = await getAssignment(item.subvolume_id, item.item_id, item.training);
+      const assignment = await getAssignment(item.subvolume_id, item.item_id);
 
       assignments.push(assignment); 
     }
@@ -265,8 +281,13 @@ export const api = {
     let availableReviews = [];
     if (reviewer) {
       const volumeResponse = await axios.get('/system/subvolume_ids');
+      const trainingResponse = await axios.get('/system/subvolume_ids', {
+        params: {
+          training: true
+        }
+      });
 
-      for (const { id } of volumeResponse.data) {
+      for (const { id, training_user } of [...volumeResponse.data, ...trainingResponse.data]) {
         const n = availableReviews.push({
           volumeId: id,
           assignments: []
@@ -279,12 +300,16 @@ export const api = {
           if (!assignments.find(({ id }) => id === review.id)) {
             availableReviews[n - 1].assignments.push({
               id: review.id,
-              needToLoad: true
+              needToLoad: true,
+              training: Boolean(training_user)
             });
           }
         }
       }
     }
+
+    console.log(assignments);
+    console.log(availableReviews);
 
     return {
       assignments: assignments,
@@ -294,7 +319,7 @@ export const api = {
   getAssignment: async (subvolumeId, itemId, training) => {
     return await getAssignment(subvolumeId, itemId, training);
   },
-  getNewAssignment: async (userId, subvolumeId) => {
+  getNewAssignment: async (userId, subvolumeId, training) => {
     const response = await axios.get(`/user/${ userId }/assignment`,
       {
         params: {
@@ -308,7 +333,7 @@ export const api = {
 
     const item = response.data[0];
 
-    const assignment = await getAssignment(item.subvolume_id, item.item_id);
+    const assignment = await getAssignment(item.subvolume_id, item.item_id, training);
 
     return assignment;
   },

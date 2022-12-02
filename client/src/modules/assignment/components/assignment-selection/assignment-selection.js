@@ -22,11 +22,11 @@ export const AssignmentSelection = () => {
     status === 'active' || status === 'review' || status === 'waiting') : null;
 
   useEffect(() => {
-    if (user) getAssignments(user._id, user.reviewer);    
+    if (user) getAssignments(user);    
   }, [user, getAssignments]);
 
   const onRefreshClick = () => {
-    getAssignments(user._id, user.reviewer);
+    getAssignments(user);
   };
 
   return (

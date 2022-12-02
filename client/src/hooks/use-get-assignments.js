@@ -12,15 +12,15 @@ export const useGetAssignments = () => {
   const [{ error }, errorDispatch] = useContext(ErrorContext);
 
   return useCallback(async user => {
-    const { id, reviewer, trainee } = user;
+    const { _id, login, reviewer, trainee } = user;
 
     if (!error) {
       try {
-        loadingDispatch({ type: SET_LOADING }); 
+        loadingDispatch({ type: SET_LOADING });
 
-        const { assignments, availableReviews } = await api.getAssignments(id, reviewer, trainee);
+        const { assignments, availableReviews } = await api.getAssignments(_id, reviewer, trainee);
 
-        const volumes = await api.getVolumes(reviewer, trainee);
+        const volumes = await api.getVolumes(login, reviewer, trainee);
 
         userDispatch({
           type: SET_ASSIGNMENTS,
