@@ -30,13 +30,20 @@ const regionObject = (regions, key) => regions.reduce((object, region) => {
 
 const addUserInfo = async user => {
   user.reviewer = false;
+  user.trainee = false;
   for (const group of user.groups) {
     const response = await axios.get(`/group/${ group }`);
 
     if (response.data.name === 'reviewers') {
       user.reviewer = true;
-      break;
     }
+    else if (response.data.name === 'trainees') {
+      user.trainee = true;
+    }
+  }
+
+  if (user.reviewer && user.trainee) {
+    throw new Error(`User ${ user.login } is both a reviewer and a trainee`);
   }
 
   return user;
@@ -152,16 +159,38 @@ export const api = {
       return null;
     }
   },
-  getVolumes: async () => {
-    const response = await axios.get('/system/subvolume_ids');
+  getVolumes: async (login, reviewer, trainee) => {
+    // Get volumes based on user type
+    let responses = [];
+    if (reviewer) {
+      const response = await axios.get('/system/subvolume_ids');
+      const trainingResponse = await axios.get('/system/subvolume_ids', {
+        params: {
+          training: true
+        }
+      });
+
+      responses = [...response.data, ...trainingResponse.data];
+    }
+    else {     
+      const response = await axios.get('/system/subvolume_ids', {
+        params: {
+          training: trainee
+        }
+      });
+
+      responses = response.data;
+    }
 
     const volumes = [];
 
-    for (const volume of response.data) {
+    for (const volume of responses) {
       try {
         const infoResponse = await axios.get(`/item/${ volume.id }/subvolume_info`);
 
         const { data } = infoResponse;
+
+        if (trainee && data.training_user !== login) continue;
 
         // Get parent volume info
         const pathResponse = await axios.get(`/item/${ volume.id }/rootpath`);
@@ -186,7 +215,8 @@ export const api = {
             completed: data.total_review_completed_regions
           },
           sliceRanges: data.intensity_ranges.map(({ min, max }) => [min, max]),
-          history: data.history
+          history: data.history,
+          trainingUser: data.training_user ? data.training_user : null
         });      
       }      
       catch (error) {
@@ -196,14 +226,34 @@ export const api = {
 
     return volumes;
   },
-  getAssignments: async (userId, reviewer, getAll = false) => {
+  getAssignments: async (userId, reviewer, trainee, getAll = false) => {
     const assignments = [];
 
-    // Get user's assignments
-    const assignmentResponse = await axios.get(`/user/${ userId }/assignment`);
+    // Get user's assignments based on user type
+    let responses = [];
+    if (reviewer) {  
+      const response = await axios.get(`/user/${ userId }/assignment`);
+      const trainingResponse = await axios.get(`/user/${ userId }/assignment`, {
+        params: {
+          training: true
+        }
+      });
+      trainingResponse.data.forEach(assignment => assignment.training = true);
+
+      responses = [...response.data, ...trainingResponse.data];
+    }
+    else {
+      const response = await axios.get(`/user/${ userId }/assignment`, {
+        params: {
+          training: trainee
+        }
+      });
+
+      responses = response.data;
+    }
 
     // Filter out duplicates and by status
-    const filtered = Object.values(assignmentResponse.data.reduce((assignments, assignment, getAll) => {
+    const filtered = Object.values(responses.reduce((assignments, assignment) => {
       assignments[assignment.item_id] = assignment;
       return assignments;
     }, {})).filter(({ status }) => 
@@ -222,8 +272,13 @@ export const api = {
     let availableReviews = [];
     if (reviewer) {
       const volumeResponse = await axios.get('/system/subvolume_ids');
+      const trainingResponse = await axios.get('/system/subvolume_ids', {
+        params: {
+          training: true
+        }
+      });
 
-      for (const { id } of volumeResponse.data) {
+      for (const { id, training_user } of [...volumeResponse.data, ...trainingResponse.data]) {
         const n = availableReviews.push({
           volumeId: id,
           assignments: []
@@ -236,7 +291,8 @@ export const api = {
           if (!assignments.find(({ id }) => id === review.id)) {
             availableReviews[n - 1].assignments.push({
               id: review.id,
-              needToLoad: true
+              needToLoad: true,
+              training: Boolean(training_user)
             });
           }
         }
@@ -248,10 +304,10 @@ export const api = {
       availableReviews: availableReviews
     };
   },
-  getAssignment: async (subvolumeId, itemId) => {
-    return await getAssignment(subvolumeId, itemId);
+  getAssignment: async (subvolumeId, itemId, training) => {
+    return await getAssignment(subvolumeId, itemId, training);
   },
-  getNewAssignment: async (userId, subvolumeId) => {
+  getNewAssignment: async (userId, subvolumeId, training) => {
     const response = await axios.get(`/user/${ userId }/assignment`,
       {
         params: {
