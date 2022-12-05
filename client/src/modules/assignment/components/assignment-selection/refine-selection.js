@@ -8,13 +8,13 @@ import { hasActive } from 'utils/assignment-utils';
 const { Row, Column } = Grid;
 const { Subheader } = Header;
 
-export const RefineSelection = ({ assignments }) => {
+export const RefineSelection = ({ assignments, training = false }) => {
   const [{ volumes }] = useContext(UserContext);
 
   const active = hasActive(assignments);
   const available = volumes && volumes.filter(({ annotations }) => annotations.available > 0).length > 0;
 
-  const assignmentSubheader = active ? 'Select an active assignment to continue' :
+  const assignmentSubheader = active ? `Select an active assignment to continue` :
     available ? <>No active assignments, select an available volume to request a new assignment <Icon name='arrow right' /></> :
     'No active assignments';
 
@@ -28,7 +28,7 @@ export const RefineSelection = ({ assignments }) => {
       <Row>
         <Column>
           <Header as='h4'>
-            Your assignments
+            Your { training && 'training' } assignments
             <Subheader>
               { assignmentSubheader }
             </Subheader>
@@ -51,7 +51,7 @@ export const RefineSelection = ({ assignments }) => {
         </Column>
         <Column>
           <Header as='h4'>
-            Volumes
+            { training ? 'Your training volume' : 'Volumes' }
             <Subheader>
               { volumesSubheader }
             </Subheader>      

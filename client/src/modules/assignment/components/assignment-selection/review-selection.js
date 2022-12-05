@@ -5,7 +5,7 @@ import { Volumes } from 'modules/assignment/components/volumes';
 const { Row, Column } = Grid;
 const { Subheader } = Header;
 
-export const ReviewSelection = ({ review, waiting, volumes }) => {  
+export const ReviewSelection = ({ review, waiting, volumes, training }) => {  
   const hasReview = review.length > 0;
   const hasWaiting = waiting.reduce((n, { assignments }) => {
     return n + assignments.length;
@@ -23,7 +23,7 @@ export const ReviewSelection = ({ review, waiting, volumes }) => {
       <Row>
         <Column>
           <Header as='h4'>
-            Your active reviews
+            Your active { training && 'training' } reviews
             <Subheader>
               { reviewSubheader }
             </Subheader>
@@ -41,7 +41,7 @@ export const ReviewSelection = ({ review, waiting, volumes }) => {
         </Column>
         <Column>
           <Header as='h4'>
-            Awaiting review
+            { training ? 'Training assignments awaiting review': 'Awaiting review' }
             <Subheader>
               { waitingSubheader }
             </Subheader>

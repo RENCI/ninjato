@@ -79,6 +79,7 @@ export const AssignmentSelection = () => {
                     review={ filterAssignments(validAssignments, volumes, 'review', user.login, training) } 
                     waiting={ availableReviews } 
                     volumes={ filterTrainingVolumes(volumes, training) }
+                    training={ training }
                   />                     
                 </Tab.Pane>
               )
@@ -99,6 +100,7 @@ export const AssignmentSelection = () => {
         <div className={ styles.refine }>
           <RefineSelection 
             assignments={ filterAssignments(validAssignments, volumes, 'refine', user.login) } 
+            training={ training || user.trainee === true }
           />
         </div>
       )}
