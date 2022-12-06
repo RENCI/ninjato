@@ -2,6 +2,7 @@ import girder_client
 import json
 import argparse
 import os
+import sys
 import numpy as np
 from libtiff import TIFF
 
@@ -77,10 +78,19 @@ if __name__ == '__main__':
             levels = imarray[np.nonzero(imarray)]
             min_level = min(levels)
             max_level = max(levels)
+            print(f'min_level: {min_level}, max_level: {max_level}')
             meta_dict = {'regions': {},
                          'max_region_id': int(max_level)}
+            whole_z_min = sys.maxsize
+            whole_y_min = sys.maxsize
+            whole_x_min = sys.maxsize
+            whole_z_max = 0
+            whole_y_max = 0
+            whole_x_max = 0
             for lev in range(min_level, max_level+1):
                 level_indices = np.where(imarray == lev)
+                if (level_indices[0].size == 0) or (level_indices[1].size == 0) or (level_indices[2].size == 0):
+                    continue
                 z_min = min(level_indices[0])
                 z_max = max(level_indices[0])
                 y_min = min(level_indices[1])
@@ -97,11 +107,30 @@ if __name__ == '__main__':
                     "z_max": int(z_max),
                     "z_min": int(z_min)
                 }
+                if z_min < whole_z_min:
+                    whole_z_min = z_min
+                if y_min < whole_y_min:
+                    whole_y_min = y_min
+                if x_min < whole_x_min:
+                    whole_x_min = x_min
+                if z_max > whole_z_max:
+                    whole_z_max = z_max
+                if y_max > whole_y_max:
+                    whole_y_max = y_max
+                if x_max > whole_x_max:
+                    whole_x_max = x_max
             if len(verified_regions) > 0 and str(file_to_item_id[file_name]) == whole_subvolume_item_id:
                 # add verified metadata data
                 for reg_id in verified_regions:
                     meta_dict['regions'][str(reg_id)]['review_approved'] = 'true'
-
+            meta_dict['coordinates'] = {
+                "x_max": int(whole_x_max),
+                "x_min": int(whole_x_min),
+                "y_max": int(whole_y_max),
+                "y_min": int(whole_y_min),
+                "z_max": int(whole_z_max),
+                "z_min": int(whole_z_min)
+            }
             file_name = os.path.basename(file_name_with_path)
             if file_name in file_to_item_id:
                 gc.addMetadataToItem(file_to_item_id[file_name], meta_dict)

@@ -79,7 +79,16 @@ export const Volume = ({ volume, availableReviews, enabled }) => {
           raised={ isEnabled }
           className={ styles.volume }
         >
-          <div>
+          <div>         
+            { volume.trainingUser &&    
+              <div> 
+                <Header 
+                  as='h5'
+                  content={ 'trainee' }
+                  subheader={ volume.trainingUser }
+                />
+              </div>
+            }
             <div> 
               <Header 
                 as='h5'
