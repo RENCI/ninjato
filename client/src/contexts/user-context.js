@@ -58,21 +58,20 @@ const removeRegions = (regions, remove) => {
   return regions.filter(region => !labels.includes(region.label));
 };
 
-const updateAssignment = (a1, a2) => {
+const updateAssignment = (a1, a2, keepRegions = 'new') => {
+  // Regions to keep
+  const regions = keepRegions === 'old' ? a1.regions : a2.regions;
 
-  // XXX: This does not work for removing a region from an assignment.
-  // Think more about similarities/differences between claiming, removing, and refreshing.
-  // May need to refactor some code.
+  // Keep current colors if necessary
+  if (keepRegions !== 'old') {
+    regions.forEach(region => region.color = a1.regions.find(r => r.label === region.label)?.color);
+  }
 
   const assignment = {
     ...a1,
     ...a2,
-    regions: a1.regions.concat(a2.regions).filter(({ label }, i, a) => a.findIndex(region => region.label === label) === i)
+    regions: regions
   };
-
-  console.log("**************************************************")
-  console.log(a1.regions.concat(a2.regions));
-  console.log(assignment.regions);
 
   updateColors(assignment.regions);
 
@@ -153,7 +152,7 @@ const reducer = (state, action) => {
         console.warn(`Current assignment id ${ state.assignment.id } different from update id ${ action.assignment.id }`);
       }
 
-      const assignment = updateAssignment(state.assignment, action.assignment);
+      const assignment = updateAssignment(state.assignment, action.assignment, action.keepRegions);
 
       const { regions } = assignment;
       

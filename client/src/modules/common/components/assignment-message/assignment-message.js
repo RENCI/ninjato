@@ -20,7 +20,8 @@ export const AssignmentMessage = () => {
 
     userDispatch({
       type: UPDATE_ASSIGNMENT,
-      assignment: update
+      assignment: update,
+      keepRegions: 'old'
     });
 
     loadData(update, assignment, true);

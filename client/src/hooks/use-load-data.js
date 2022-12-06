@@ -62,10 +62,7 @@ export const useLoadData = ()  => {
       }
 
       const backgroundRegions = await getBackgroundRegions(subvolumeId, newMaskData, regions);
-
-      console.log(assignment, assignmentToUpdate, mergeMasks);
-      console.log(newMaskData, maskData);
-
+      
       userDispatch({
         type: SET_DATA,
         imageData: newImageData,
