@@ -62,6 +62,8 @@ export const useLoadData = ()  => {
       }
 
       const backgroundRegions = await getBackgroundRegions(subvolumeId, newMaskData, regions);
+
+      // XXX: combine masks needs to return a new vtkimage, currently changing new mask in place
       
       userDispatch({
         type: SET_DATA,
