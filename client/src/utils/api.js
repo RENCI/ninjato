@@ -278,7 +278,7 @@ export const api = {
         }
       });
 
-      for (const { id, training_user } of [...volumeResponse.data, ...trainingResponse.data]) {
+      for (const { id } of [...volumeResponse.data, ...trainingResponse.data]) {
         const n = availableReviews.push({
           volumeId: id,
           assignments: []
@@ -291,8 +291,7 @@ export const api = {
           if (!assignments.find(({ id }) => id === review.id)) {
             availableReviews[n - 1].assignments.push({
               id: review.id,
-              needToLoad: true,
-              training: Boolean(training_user)
+              needToLoad: true
             });
           }
         }
