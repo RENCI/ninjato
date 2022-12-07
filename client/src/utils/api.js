@@ -264,8 +264,6 @@ export const api = {
       status === 'awaiting review' || status === 'active' || status === 'under review'
     );
 
-    console.log(filtered);
-
     // Get assignment details
     for (const item of filtered) {
       const assignment = await getAssignment(item.subvolume_id, item.item_id);
@@ -291,10 +289,8 @@ export const api = {
  
         const reviewResponse = await axios.get(`/item/${ id }/available_items_for_review`);
 
-        console.log(reviewResponse);
-
         for (const review of reviewResponse.data) {
-          const index = assignments.find(({ id }) => id === review.id);
+          const index = assignments.findIndex(({ id }) => id === review.id);
 
           if (index !== -1) {
             console.warn(`Assignment ${ review.id } in reviewer assignments and available for review`);
