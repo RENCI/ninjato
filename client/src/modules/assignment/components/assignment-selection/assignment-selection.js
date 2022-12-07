@@ -32,12 +32,6 @@ const filterTrainingVolumes = (volumes, training) => (
 );
 
 export const AssignmentSelection = () => {
-
-
-
-  // XXX: Add some text indicating training vs. regular assignments?
-
-
   const [{ user, assignments, availableReviews, volumes }] = useContext(UserContext);
   const [training, setTraining] = useState(user.reviewer ? false : null);
   const getAssignments = useGetAssignments();

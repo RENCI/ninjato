@@ -8,7 +8,7 @@ import {
 } from 'contexts';
 import { api } from 'utils/api';
 import { decodeTIFF } from 'utils/data-conversion';
-import { getUniqueLabels } from 'utils/data';
+import { getUniqueLabels, copyImage, combineMasks } from 'utils/data';
 
 const getBackgroundRegions = async (subvolumeId, mask, regions) => {
   const allLabels = getUniqueLabels(mask).filter(label => label !== 0);
@@ -30,15 +30,16 @@ const getBackgroundRegions = async (subvolumeId, mask, regions) => {
 };
 
 export const useLoadData = ()  => {
-  const [, userDispatch] = useContext(UserContext);
+  const [{ maskData }, userDispatch] = useContext(UserContext);
   const [, annotateDispatch] = useContext(AnnotateContext);
   const [, loadingDispatch] = useContext(LoadingContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const navigate = useNavigate();
 
-  return async (assignment, assignmentToUpdate = null) => {
+  return async (assignment, assignmentToUpdate = null, mergeMasks = false) => {
     try {
-      const { subvolumeId, regions } = assignment;
+      const { subvolumeId, } = assignment;
+      const regions = assignmentToUpdate ? assignmentToUpdate.regions : assignment.regions;
 
       loadingDispatch({ type: SET_LOADING });
 
@@ -61,11 +62,12 @@ export const useLoadData = ()  => {
       }
 
       const backgroundRegions = await getBackgroundRegions(subvolumeId, newMaskData, regions);
-
+      
       userDispatch({
         type: SET_DATA,
         imageData: newImageData,
-        maskData: newMaskData
+        backgroundMaskData: mergeMasks ? copyImage(newMaskData) : newMaskData,
+        maskData: mergeMasks ? combineMasks(newMaskData, assignment.location, maskData, assignmentToUpdate.location) : newMaskData
       });
 
       userDispatch({ 
