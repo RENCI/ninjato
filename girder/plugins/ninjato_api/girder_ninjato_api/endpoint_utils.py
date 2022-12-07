@@ -457,7 +457,7 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
                             str(comment_key),
                             {'comment': comment_val,
                              'user': uname,
-                             'time': datetime.now().strftime("%m/%d/%Y %H:%M")},
+                             'time': datetime.now().strftime("%m/%d/%Y %H:%M:%S")},
                             key='comment_history')
 
     if color:
@@ -470,7 +470,7 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
         info = {
             'type': 'annotation_completed_by',
             'user': uname,
-            'time': datetime.now().strftime("%m/%d/%Y %H:%M")
+            'time': datetime.now().strftime("%m/%d/%Y %H:%M:%S")
         }
         add_meta_to_history(whole_item, str(item['_id']), info)
         # check if all regions for the partition is done, and if so add done metadata to whole item
@@ -522,15 +522,7 @@ def save_user_review_result_as_item(user, item_id, done, reject, comment, approv
     if not done:
         add_meta['review_done'] = 'false'
     else:
-        if not approve:
-            # update user key with annotation user to get disapproved assignment back to the user
-            complete_info = get_history_info(whole_item, item_id, ANNOT_COMPLETE_KEY)
-            annot_uname = complete_info[0]['user']
-            annot_user = User().findOne({'login': annot_uname})
-            add_user_active_assignment_metadata(str(annot_user['_id']), whole_item, str(item_id))
-            add_meta['annotation_done'] = 'false'
-            add_meta['review_done'] = 'false'
-        else:
+        if approve:
             # update whole volume masks with approved annotations
             if annot_file_name:
                 update_assignment_in_whole_item(whole_item, item_id, mask_file_name=annot_file_name)
@@ -545,7 +537,7 @@ def save_user_review_result_as_item(user, item_id, done, reject, comment, approv
                              str(comment_key),
                              {'comment': comment_val,
                               'user': uname,
-                              'time': datetime.now().strftime("%m/%d/%Y %H:%M")},
+                              'time': datetime.now().strftime("%m/%d/%Y %H:%M:%S")},
                              key='comment_history')
     whole_item = save_added_and_removed_regions(whole_item, item, current_region_ids,
                                                 done, uid, add_meta)
@@ -553,9 +545,17 @@ def save_user_review_result_as_item(user, item_id, done, reject, comment, approv
         info = {
             'type': 'review_completed_by',
             'user': uname,
-            'time': datetime.now().strftime("%m/%d/%Y %H:%M")
+            'time': datetime.now().strftime("%m/%d/%Y %H:%M:%S")
         }
         add_meta_to_history(whole_item, item_id, info)
+        if not approve:
+            # update user key with annotation user to get disapproved assignment back to the user
+            complete_info = get_history_info(whole_item, item_id, ANNOT_COMPLETE_KEY)
+            annot_uname = complete_info[0]['user']
+            annot_user = User().findOne({'login': annot_uname})
+            set_assignment_meta(whole_item, annot_user, item_id, ANNOT_ASSIGN_KEY)
+            add_meta['annotation_done'] = 'false'
+            add_meta['review_done'] = 'false'
         # check if all regions for the partition is done, and if so add done metadata to whole item
         check_subvolume_done(whole_item, task='review')
 
@@ -779,9 +779,10 @@ def get_all_avail_items_for_review(item):
             add_metadata = {
                 'id': val['item_id'],
                 'annotation_completed_by': complete_info,
-                'annotation_rejected_by': get_history_info(item, key, 'annotation_rejected_by'),
-                'review_rejected_by': get_history_info(item, key, 'review_rejected_by'),
-                'annotation_assigned_to': get_history_info(item, key, ANNOT_ASSIGN_KEY)
+                'annotation_rejected_by': get_history_info(item, val['item_id'],
+                                                           'annotation_rejected_by'),
+                'review_rejected_by': get_history_info(item, val['item_id'], 'review_rejected_by'),
+                'annotation_assigned_to': get_history_info(item, val['item_id'], ANNOT_ASSIGN_KEY)
             }
             if not review_assign_info:
                 avail_item_list.append(add_metadata)
