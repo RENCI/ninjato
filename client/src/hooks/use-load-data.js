@@ -8,7 +8,7 @@ import {
 } from 'contexts';
 import { api } from 'utils/api';
 import { decodeTIFF } from 'utils/data-conversion';
-import { combineMasks, getUniqueLabels } from 'utils/data';
+import { getUniqueLabels, copyImage, combineMasks } from 'utils/data';
 
 const getBackgroundRegions = async (subvolumeId, mask, regions) => {
   const allLabels = getUniqueLabels(mask).filter(label => label !== 0);
@@ -62,14 +62,12 @@ export const useLoadData = ()  => {
       }
 
       const backgroundRegions = await getBackgroundRegions(subvolumeId, newMaskData, regions);
-
-      // XXX: combine masks needs to return a new vtkimage, currently changing new mask in place
       
       userDispatch({
         type: SET_DATA,
         imageData: newImageData,
-        maskData: mergeMasks ? combineMasks(newMaskData, assignment.location, maskData, assignmentToUpdate.location) : newMaskData,
-        backgroundMaskData: newMaskData
+        backgroundMaskData: mergeMasks ? copyImage(newMaskData) : newMaskData,
+        maskData: mergeMasks ? combineMasks(newMaskData, assignment.location, maskData, assignmentToUpdate.location) : newMaskData
       });
 
       userDispatch({ 

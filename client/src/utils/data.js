@@ -1,5 +1,28 @@
+import vtkImageData from '@kitware/vtk.js/Common/DataModel/ImageData';
+import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
+
 export const getUniqueLabels = maskData =>
   [...new Set(maskData.getPointData().getScalars().getData().filter(d => d !== 0))].sort((a, b) => a - b);
+
+export const copyImage = image => {
+  const copy = vtkImageData.newInstance({
+    origin: image.getOrigin(),
+    spacing: image.getSpacing(),
+    extent: image.getExtent()
+  });
+
+  const pd = image.getPointData().getArrayByIndex(0);
+
+  const data = vtkDataArray.newInstance({
+    name: pd.getName(),
+    numberOfComponents: pd.getNumberOfComponents(),
+    values: [...pd.getData()]
+  });
+
+  copy.getPointData().setScalars(data);
+
+  return copy;
+};
 
 export const combineMasks = (newMask, newExtent, oldMask, oldExtent) => {
   // Keep any edits from old mask
