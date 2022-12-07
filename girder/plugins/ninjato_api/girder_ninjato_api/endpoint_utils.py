@@ -635,15 +635,20 @@ def get_subvolume_item_info(item):
             review_complete_info = None
         if not annot_done:
             if complete_info:
-                total_regions_done += 1
+                if complete_info[0]['time'] < assign_info[0]['time']:
+                    # region is sent back from the reviewer
+                    total_regions_at_work += 1
+                else:
+                    total_regions_done += 1
             elif assign_info:
                 total_regions_at_work += 1
         if not review_done:
             if review_complete_info:
                 total_reviewed_regions_done += 1
             elif complete_info and review_assign_info:
-                # annotation is done but review is not done and a user is reviewing currently
-                total_reviewed_regions_at_work += 1
+                if complete_info[0]['time'] < review_assign_info[0]['time']:
+                    # annotation is done but review is not done and a user is reviewing currently
+                    total_reviewed_regions_at_work += 1
         if not review_approved and review_complete_info:
             total_regions_review_approved += 1
 
@@ -658,8 +663,9 @@ def get_subvolume_item_info(item):
         ret_dict['total_review_completed_regions'] = total_reviewed_regions_done
         ret_dict['total_review_active_regions'] = total_reviewed_regions_at_work
         ret_dict['total_review_approved_regions'] = total_regions_review_approved
-        ret_dict['total_review_available_regions'] = total_regions - total_reviewed_regions_done - \
-            total_reviewed_regions_at_work
+        ret_dict['total_review_available_regions'] = total_regions_done - \
+                                                     total_regions_review_approved - \
+                                                     total_reviewed_regions_at_work
         return ret_dict
 
     # both annotation and review are not done
@@ -768,13 +774,24 @@ def get_all_avail_items_for_review(item):
         if 'item_id' in val:
             complete_info = get_history_info(item, val['item_id'], ANNOT_COMPLETE_KEY)
             review_assign_info = get_history_info(item, val['item_id'], REVIEW_ASSIGN_KEY)
-            if complete_info and not review_assign_info:
-                avail_item_list.append({
-                    'id': val['item_id'],
-                    'annotation_completed_by': complete_info,
-                    'annotation_rejected_by': get_history_info(item, key, 'annotation_rejected_by'),
-                    'review_rejected_by': get_history_info(item, key, 'review_rejected_by'),
-                    'annotation_assigned_to': get_history_info(item, key, ANNOT_ASSIGN_KEY)
-                })
+            if not complete_info:
+                continue
+            add_metadata = {
+                'id': val['item_id'],
+                'annotation_completed_by': complete_info,
+                'annotation_rejected_by': get_history_info(item, key, 'annotation_rejected_by'),
+                'review_rejected_by': get_history_info(item, key, 'review_rejected_by'),
+                'annotation_assigned_to': get_history_info(item, key, ANNOT_ASSIGN_KEY)
+            }
+            if not review_assign_info:
+                avail_item_list.append(add_metadata)
+                continue
+            # assignment completed and review assigned, need to check time stamp to see if
+            # assignment is completed after initial review assignment
+            complete_time = complete_info[0]['time']
+            review_assign_time = review_assign_info[0]['time']
+            if complete_time > review_assign_time:
+                # assignment is completed after initial review assignment, so ready for review again
+                avail_item_list.append(add_metadata)
 
     return avail_item_list
