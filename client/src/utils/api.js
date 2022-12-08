@@ -354,13 +354,14 @@ export const api = {
 
     return comments;
   },
-  requestAssignment: async (userId, subvolumeId, itemId) => {
+  requestAssignment: async (userId, subvolumeId, itemId, review = false) => {
     await axios.post(`/user/${ userId }/request_assignment`,
       null,
       {
         params: {
           subvolume_id: subvolumeId,
-          assign_item_id: itemId
+          assign_item_id: itemId,
+          request_review_assignment: review
         }
       }
     );

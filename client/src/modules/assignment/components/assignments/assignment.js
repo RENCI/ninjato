@@ -23,7 +23,7 @@ export const Assignment = ({ assignment, enabled }) => {
   const onLoadClick = async () => {
     if (assignment.status === 'waiting') {
       try {
-        await api.requestAssignment(user._id, assignment.subvolumeId, assignment.id);
+        await api.requestAssignment(user._id, assignment.subvolumeId, assignment.id, true);
 
         const newAssignment = {
           ...assignment,
