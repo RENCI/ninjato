@@ -72,6 +72,8 @@ const getAssignment = async (subvolumeId, itemId) => {
 
   const info = infoResponse.data;
 
+  console.log(info);
+
   // Copy info and rename to be more concise
   return {
     id: itemId,
@@ -251,8 +253,6 @@ export const api = {
 
       responses = response.data;
     }
-
-    console.log(responses);
 
     // Filter out duplicates and by status
     const filtered = Object.values(responses.reduce((assignments, assignment) => {
