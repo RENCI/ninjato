@@ -111,12 +111,17 @@ def remove_region_from_assignment(user, subvolume_id, active_assignment_id, regi
                              'request_region_id has to be set.', required=False)
     .param('request_region_id', 'region id to request the assignment containing the region',
            required=False)
+    .param('request_review_assignment',
+           'Whether to request review assignment or annotation assignment',
+           dataType='boolean', default=False, required=False)
     .errorResponse()
     .errorResponse('Request action was denied on the user.', 403)
     .errorResponse('Failed to request the requested region', 500)
 )
-def request_region_assignment(user, subvolume_id, assign_item_id, request_region_id):
-    return request_assignment(user, subvolume_id, assign_item_id, request_region_id)
+def request_region_assignment(user, subvolume_id, assign_item_id, request_region_id,
+                              request_review_assignment):
+    return request_assignment(user, subvolume_id, assign_item_id, request_region_id,
+                              request_review_assignment)
 
 
 @access.public
