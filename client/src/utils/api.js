@@ -72,8 +72,6 @@ const getAssignment = async (subvolumeId, itemId) => {
 
   const info = infoResponse.data;
 
-  console.log(info);
-
   // Copy info and rename to be more concise
   return {
     id: itemId,

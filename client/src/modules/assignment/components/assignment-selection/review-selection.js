@@ -23,7 +23,7 @@ export const ReviewSelection = ({ review, waiting, volumes, training }) => {
       <Row>
         <Column>
           <Header as='h4'>
-            Your active { training && 'training' } reviews
+            Your { training && 'training' } reviews
             <Subheader>
               { reviewSubheader }
             </Subheader>

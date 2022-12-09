@@ -18,8 +18,6 @@ export const Assignment = ({ assignment, enabled }) => {
   const { updated, regions, annotator, reviewer } = assignment;
   const selected = currentAssignment?.id === assignment.id;
 
-  console.log(assignment);
-
   const onLoadClick = async () => {
     if (assignment.status === 'waiting') {
       try {
