@@ -39,6 +39,52 @@ const sanitizeHistory = volumes =>
     })
   );
 
+const getVolumeTimelines = volumes => {
+  return volumes.map(({ history }) => {
+    const timeline = [];
+
+    Object.values(history).forEach(assignment => {
+      assignment.forEach((action, i, a) => {
+        // XXX: Don't need this for volume if simulatinng completed status below is moved to sanitizeHistory
+
+        const time = new Date(action.time);
+
+        // Only add the first annotation_assigned_to
+        if (action.type === 'annotation_assigned_to') {
+          if (!currentUser) {
+            currentUser = timelines.find(({ user }) => user.login === action.user);
+  
+            if (currentUser) {
+              currentUser.timeline.push(action);
+            }
+            else {
+              console.warn(`Unknown user: ${ action.user }`);
+            }
+          }
+        }
+        else {        
+          if (!currentUser) {
+            console.warn('No current user', assignmentHistory, action);
+            return;
+          }
+        
+          // XXX: Hack to simulate completed status until that is fixed on the server
+          // XXX: Move to sanitizeHistory
+          if (action.type === 'review_completed_by' && i === a.length - 1) {
+            currentUser.timeline.push({...action, type: 'review_verified_by' });
+          }
+          else {
+            currentUser.timeline.push(action);
+          }
+          
+          if (action.type === 'annotation_rejected_by') {
+            currentUser = null;  
+          }       
+      });
+    }); 
+  });
+};
+
 const getUserTimelines = (users, volumes) => {
   const timelines = users.map(user => ({ user: user, timeline: [] }));
 
@@ -136,6 +182,8 @@ export const Progress = () => {
 
       sanitizeHistory(volumes);
 
+      const volumeTimelines = getVolumeTimelines(volumes);
+
       const timelines = getUserTimelines(users, volumes);
       console.log(timelines);
 
@@ -149,6 +197,7 @@ export const Progress = () => {
   const keys = ['active', 'review', 'completed', 'declined'];
 
   console.log(timelines);
+  console.log(volumes);
 
   const data = timelines ? keys.map(key => ({
     id: key,
