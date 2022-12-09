@@ -281,15 +281,17 @@ def get_subvolume_item_ids(training):
     :return: array of dicts with 'id' key indicate subvolume item id and 'parent_id' key indicates
      folder id so that subvolumes can be grouped into a hierachy if needed
     """
+    ret_data = []
     if training:
         coll = Collection().findOne({'name': TRAINING_COLLECTION_NAME})
     else:
         coll = Collection().findOne({'name': COLLECTION_NAME})
+    if not coll:
+        return ret_data
     vol_folders = Folder().find({
         'parentId': coll['_id'],
         'parentCollection': 'collection'
     })
-    ret_data = []
     for vol_folder in vol_folders:
         sub_vol_folders = Folder().find({
             'parentId': vol_folder['_id'],
