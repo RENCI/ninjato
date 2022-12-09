@@ -258,6 +258,7 @@ export const api = {
       return assignments;
     }, {})).filter(({ status }) => 
       getAll ? true : 
+      reviewer ? status === 'active' || status === 'under review' :
       status === 'awaiting review' || status === 'active' || status === 'under review'
     );
 
@@ -287,13 +288,17 @@ export const api = {
         const reviewResponse = await axios.get(`/item/${ id }/available_items_for_review`);
 
         for (const review of reviewResponse.data) {
-          // Check we don't already have it
-          if (!assignments.find(({ id }) => id === review.id)) {
-            availableReviews[n - 1].assignments.push({
-              id: review.id,
-              needToLoad: true
-            });
+          const index = assignments.findIndex(({ id }) => id === review.id);
+
+          if (index !== -1) {
+            console.warn(`Assignment ${ review.id } in reviewer assignments and available for review`);
+            assignments.splice(index, 1);
           }
+          
+          availableReviews[n - 1].assignments.push({
+            id: review.id,
+            needToLoad: true
+          });          
         }
       }
     }
@@ -347,13 +352,14 @@ export const api = {
 
     return comments;
   },
-  requestAssignment: async (userId, subvolumeId, itemId) => {
+  requestAssignment: async (userId, subvolumeId, itemId, review = false) => {
     await axios.post(`/user/${ userId }/request_assignment`,
       null,
       {
         params: {
           subvolume_id: subvolumeId,
-          assign_item_id: itemId
+          assign_item_id: itemId,
+          request_review_assignment: review
         }
       }
     );

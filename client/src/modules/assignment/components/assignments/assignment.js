@@ -21,7 +21,7 @@ export const Assignment = ({ assignment, enabled }) => {
   const onLoadClick = async () => {
     if (assignment.status === 'waiting') {
       try {
-        await api.requestAssignment(user._id, assignment.subvolumeId, assignment.id);
+        await api.requestAssignment(user._id, assignment.subvolumeId, assignment.id, true);
 
         const newAssignment = {
           ...assignment,
@@ -72,7 +72,7 @@ export const Assignment = ({ assignment, enabled }) => {
               <Label 
                 basic 
                 circular 
-                content='Reviewer' 
+                content={ assignment.status === 'review' ? 'Reviewer' : 'Latest reviewer' }
                 detail={ reviewer.login } 
               />
             </div>
