@@ -16,6 +16,7 @@ from girder_jobs.models.job import Job
 
 
 COLLECTION_NAME = 'nuclei_image_collection'
+TRAINING_COLLECTION_NAME = 'nuclei_image_training_collection'
 BUFFER_FACTOR = 3
 DATA_PATH = '/girder/data'
 ANNOT_ASSIGN_KEY = 'annotation_assigned_to'
@@ -374,7 +375,7 @@ def reject_assignment(user, item, whole_item, has_files, comment, task='annotati
     reject_info = {
         "type": f'{task}_rejected_by',
         'user': uname,
-        'time': datetime.now().strftime("%m/%d/%Y %H:%M")
+        'time': datetime.now().strftime("%m/%d/%Y %H:%M:%S")
     }
     if comment:
         reject_info['comment'] = comment
@@ -401,17 +402,15 @@ def get_assignment_status(whole_item, assign_item_id):
 
     if not review_complete_info:
         return 'under review'
-    if len(complete_info) == len(review_complete_info):
+    if complete_info[0]['time'] < review_complete_info[0]['time']:
         # assignment is reassigned to user after reviewer disapproved the annotation
         return "active"
-    elif len(complete_info) > len(review_complete_info):
-        # reannotated assignment is ready to be reviewed
-        return 'under review'
+    elif complete_info[0]['time'] > review_assign_info[0]['time']:
+        # assignment is annotated again, not assigned for reivew yet
+        return 'awaiting review'
     else:
-        # should not happen
-        raise RestException(f'More review_completed_by actions than annotation_completed_by actions '
-                            f'in the history for assignment item {assign_item_id} '
-                            f'in whole volume {whole_item["_id"]}')
+        # assignment is being reviewed again
+        return 'under review'
 
 
 def save_file(as_id, item, path, user, file_name):
@@ -875,7 +874,7 @@ def set_assignment_meta(whole_item, user, region_item_id, assign_type):
     assign_info = {
         "type": assign_type,
         'user': user["login"],
-        'time': datetime.now().strftime("%m/%d/%Y %H:%M")
+        'time': datetime.now().strftime("%m/%d/%Y %H:%M:%S")
     }
     add_meta_to_history(whole_item, region_item_id, assign_info)
     user_id = str(user['_id'])

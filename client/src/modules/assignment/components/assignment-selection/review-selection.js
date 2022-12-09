@@ -1,15 +1,11 @@
-import { useContext } from 'react';
 import { Grid, Header, Icon } from 'semantic-ui-react';
-import { UserContext } from 'contexts';
 import { Assignments } from 'modules/assignment/components/assignments';
 import { Volumes } from 'modules/assignment/components/volumes';
 
 const { Row, Column } = Grid;
 const { Subheader } = Header;
 
-export const ReviewSelection = ({ review, waiting }) => {
-  const [{ volumes }] = useContext(UserContext);
-  
+export const ReviewSelection = ({ review, waiting, volumes, training }) => {  
   const hasReview = review.length > 0;
   const hasWaiting = waiting.reduce((n, { assignments }) => {
     return n + assignments.length;
@@ -27,7 +23,7 @@ export const ReviewSelection = ({ review, waiting }) => {
       <Row>
         <Column>
           <Header as='h4'>
-            Your active reviews
+            Your { training && 'training' } reviews
             <Subheader>
               { reviewSubheader }
             </Subheader>
@@ -45,7 +41,7 @@ export const ReviewSelection = ({ review, waiting }) => {
         </Column>
         <Column>
           <Header as='h4'>
-            Awaiting review
+            { training ? 'Training assignments awaiting review': 'Awaiting review' }
             <Subheader>
               { waitingSubheader }
             </Subheader>

@@ -25,11 +25,14 @@ from .endpoint_utils import get_item_assignment, save_user_annotation_as_item, g
            default='', required=False)
     .param('request_new', 'whether to request new assignment for refine action. Default is False.',
            dataType='boolean', default=False, required=False)
+    .param('training', 'A boolean True or False to indicate whether to get assignment from traing '
+                       'subvolume or not. Default is False',
+           dataType='boolean', default=False, required=False)
     .errorResponse()
     .errorResponse('Read access was denied on the user.', 403)
 )
-def get_user_assign_info(user, subvolume_id, request_new):
-    return get_item_assignment(user, subvolume_id, request_new)
+def get_user_assign_info(user, subvolume_id, request_new, training):
+    return get_item_assignment(user, subvolume_id, request_new, training)
 
 
 @access.public
@@ -108,12 +111,17 @@ def remove_region_from_assignment(user, subvolume_id, active_assignment_id, regi
                              'request_region_id has to be set.', required=False)
     .param('request_region_id', 'region id to request the assignment containing the region',
            required=False)
+    .param('request_review_assignment',
+           'Whether to request review assignment or annotation assignment',
+           dataType='boolean', default=False, required=False)
     .errorResponse()
     .errorResponse('Request action was denied on the user.', 403)
     .errorResponse('Failed to request the requested region', 500)
 )
-def request_region_assignment(user, subvolume_id, assign_item_id, request_region_id):
-    return request_assignment(user, subvolume_id, assign_item_id, request_region_id)
+def request_region_assignment(user, subvolume_id, assign_item_id, request_region_id,
+                              request_review_assignment):
+    return request_assignment(user, subvolume_id, assign_item_id, request_region_id,
+                              request_review_assignment)
 
 
 @access.public
@@ -198,12 +206,15 @@ def get_avail_items_for_review(item):
 @access.public
 @autoDescribeRoute(
     Description('Get subvolume item ids.')
+    .param('training', 'A boolean True or False to indicate whether to get subvolume ids '
+                       'from training data collection or not. Default is False',
+           dataType='boolean', default=False, required=False)
     .errorResponse()
     .errorResponse('Get action was denied on the user.', 403)
     .errorResponse('Failed to get subvolume ids', 500)
 )
-def get_subvolume_ids():
-    return get_subvolume_item_ids()
+def get_subvolume_ids(training):
+    return get_subvolume_item_ids(training)
 
 
 @access.public

@@ -6,9 +6,9 @@ from bson.objectid import ObjectId
 from girder.models.collection import Collection
 from girder.models.folder import Folder
 from girder.exceptions import RestException
-from .utils import COLLECTION_NAME, ANNOT_ASSIGN_KEY, ANNOT_COMPLETE_KEY, \
-    REVIEW_ASSIGN_KEY, REVIEW_COMPLETE_KEY, REVIEW_APPROVE_KEY, get_max_region_id, \
-    set_max_region_id, remove_region_from_active_assignment, \
+from .utils import TRAINING_COLLECTION_NAME, COLLECTION_NAME, ANNOT_ASSIGN_KEY, \
+    ANNOT_COMPLETE_KEY, REVIEW_ASSIGN_KEY, REVIEW_COMPLETE_KEY, REVIEW_APPROVE_KEY, \
+    get_max_region_id, set_max_region_id, remove_region_from_active_assignment, \
     merge_region_to_active_assignment, set_assignment_meta, get_history_info, \
     assign_region_to_user, add_meta_to_history, check_subvolume_done, \
     reject_assignment, update_assignment_in_whole_item, get_assignment_status, \
@@ -140,13 +140,16 @@ def claim_assignment(user, subvolume_id, active_assignment_id, claim_region_id,
         return ret_dict
 
 
-def request_assignment(user, subvolume_id, assign_item_id, request_region_id):
+def request_assignment(user, subvolume_id, assign_item_id, request_region_id,
+                       request_review_assignment):
     """
     allow a user to request an assignment for annotation or review
     :param user: requesting user
     :param subvolume_id: subvolume id that contains the requested region
     :param assign_item_id: assign_item_id to request assignment for
     :param request_region_id: region id to request assignment for
+    :param request_review_assignment: True means requesting review assignment; False means
+    requesting annotation assignment
     :return: a dict indicating success or failure
     """
     if not assign_item_id and not request_region_id:
@@ -157,11 +160,15 @@ def request_assignment(user, subvolume_id, assign_item_id, request_region_id):
     # check if the requesting user already has active assignment, and if yes, this user cannot
     # request other assignment
     uid = user['_id']
-    if uid in whole_item['meta']:
-        for item_id in whole_item['meta'][uid]:
-            if get_history_info(whole_item, item_id, ANNOT_ASSIGN_KEY):
-                raise RestException('Requesting user already has active assignment '
-                                    'so cannot request a new assignment', code=400)
+    if not request_review_assignment:
+        if uid in whole_item['meta']:
+            for item_id in whole_item['meta'][uid]:
+                annot_info = get_history_info(whole_item, item_id, ANNOT_ASSIGN_KEY)
+                review_assign_info = get_history_info(whole_item, item_id, REVIEW_ASSIGN_KEY)
+                if annot_info and annot_info[0]['user'] == user['login'] and \
+                    (not review_assign_info or review_assign_info[0]['user'] != user['login']):
+                    raise RestException('Requesting user already has active annotation assignment '
+                                        'so cannot request a new annotation assignment', code=400)
 
     ret_dict = {}
     if not assign_item_id:
@@ -177,31 +184,45 @@ def request_assignment(user, subvolume_id, assign_item_id, request_region_id):
         assign_item = Item().findOne({'_id': ObjectId(assign_item_id)})
         complete_info = get_history_info(whole_item, assign_item_id, ANNOT_COMPLETE_KEY)
         review_complete_info = get_history_info(whole_item, assign_item_id, REVIEW_COMPLETE_KEY)
-        if review_complete_info:
+        if review_complete_info and complete_info[0]['time'] < review_complete_info[0]['time']:
+            # assignment is reassigned to user after reviewer disapproved the annotation, not
+            # ready for review again yet
+            if request_review_assignment:
+                raise RestException('The requested assignment was sent back for re-annotation that '
+                                    'has not yet completed, so it cannot be requested for review')
+            # request annotation assignment
             ret_dict['status'] = 'failure'
             if 'review_approved' in assign_item['meta'] and \
                 assign_item['meta']['review_approved'] == 'false' and \
-                user['login'] == review_complete_info[0]['user']:
+                user['login'] == complete_info[0]['user']:
                 ret_dict['status'] = 'success'
 
-            ret_dict['annotation_user_info'] = complete_info
-            ret_dict['review_user_info'] = review_complete_info[0]
+            ret_dict['assigned_user_info'] = complete_info[0]
             ret_dict['assigned_item_id'] = assign_item_id
             return ret_dict
+
+        # annotation is complete and ready for review again or under review already
         review_assign_info = get_history_info(whole_item, assign_item_id, REVIEW_ASSIGN_KEY)
-        if review_assign_info:
+        if review_assign_info and complete_info[0]['time'] < review_assign_info[0]['time']:
+            # it is under review already
+            if not request_review_assignment:
+                raise RestException('The requested item is currently under review, '
+                                    'so it cannot be requested for annotation')
+
             if user['login'] == review_assign_info[0]['user']:
                 ret_dict['status'] = 'success'
             else:
                 ret_dict['status'] = 'failure'
 
-            ret_dict['annotation_user_info'] = complete_info
-            ret_dict['review_user_info'] = review_assign_info[0]
+            ret_dict['assigned_user_info'] = complete_info[0]
             ret_dict['assigned_item_id'] = assign_item_id
             return ret_dict
         if complete_info:
             # annotation is done, ready for review
             # assign this item for review
+            if not request_review_assignment:
+                raise RestException('The requested item is done with annotation and awaiting '
+                                    'review, so it cannot be requested for annotation')
             assign_info = set_assignment_meta(whole_item, user, assign_item_id,
                                               REVIEW_ASSIGN_KEY)
             ret_dict['status'] = 'success'
@@ -211,6 +232,9 @@ def request_assignment(user, subvolume_id, assign_item_id, request_region_id):
             return ret_dict
         assign_info = get_history_info(whole_item, assign_item_id, ANNOT_ASSIGN_KEY)
         if assign_info:
+            if request_review_assignment:
+                raise RestException('The requested item is under annotation, so not yet ready '
+                                    'for review')
             if assign_info[0]['user'] == user['login']:
                 ret_dict['status'] = 'success'
             else:
@@ -219,6 +243,9 @@ def request_assignment(user, subvolume_id, assign_item_id, request_region_id):
             ret_dict['assigned_item_id'] = assign_item_id
             return ret_dict
         # available to be assigned
+        if request_review_assignment:
+            raise RestException('The requested assignment is not annotated yet, so it cannot be '
+                                'requested for review assignment')
         set_assignment_meta(whole_item, user, assign_item_id, ANNOT_ASSIGN_KEY)
         assign_info = get_history_info(whole_item, assign_item_id, ANNOT_ASSIGN_KEY)
         ret_dict['status'] = 'success'
@@ -226,14 +253,18 @@ def request_assignment(user, subvolume_id, assign_item_id, request_region_id):
         ret_dict['assigned_item_id'] = str(assign_item['_id'])
         return ret_dict
 
-    # assign_item_id does not exist, assign this region to this user
-    assign_item = assign_region_to_user(whole_item, user, request_region_id)
-    assign_item_id = assign_item['_id']
-    assign_info = get_history_info(whole_item, assign_item_id, ANNOT_ASSIGN_KEY)
-    ret_dict['status'] = 'success'
-    ret_dict['assigned_user_info'] = assign_info[0] if assign_info else {}
-    ret_dict['assigned_item_id'] = str(assign_item['_id'])
-    return ret_dict
+    if not request_review_assignment:
+        # assign_item_id does not exist, assign this region to this user
+        assign_item = assign_region_to_user(whole_item, user, request_region_id)
+        assign_item_id = assign_item['_id']
+        assign_info = get_history_info(whole_item, assign_item_id, ANNOT_ASSIGN_KEY)
+        ret_dict['status'] = 'success'
+        ret_dict['assigned_user_info'] = assign_info[0] if assign_info else {}
+        ret_dict['assigned_item_id'] = str(assign_item['_id'])
+        return ret_dict
+    else:
+        raise RestException('The requested assignment is not annotated yet, so it cannot be '
+                            'requested for review assignment')
 
 
 def get_region_comment_info(item, region_label):
@@ -243,13 +274,17 @@ def get_region_comment_info(item, region_label):
         return []
 
 
-def get_subvolume_item_ids():
+def get_subvolume_item_ids(training):
     """
-    get all subvolume item ids
+    get all subvolume item ids from training data collection if training parameter is True;
+    otherwise, get all subvolume item ids from annotation data collection
     :return: array of dicts with 'id' key indicate subvolume item id and 'parent_id' key indicates
      folder id so that subvolumes can be grouped into a hierachy if needed
     """
-    coll = Collection().findOne({'name': COLLECTION_NAME})
+    if training:
+        coll = Collection().findOne({'name': TRAINING_COLLECTION_NAME})
+    else:
+        coll = Collection().findOne({'name': COLLECTION_NAME})
     vol_folders = Folder().find({
         'parentId': coll['_id'],
         'parentCollection': 'collection'
@@ -276,7 +311,7 @@ def get_subvolume_item_ids():
     return ret_data
 
 
-def get_item_assignment(user, subvolume_id, request_new):
+def get_item_assignment(user, subvolume_id, request_new, training):
     """
     get region assignment in a subvolume for annotation task. If user has multiple active
     assignments, all active assignments will be returned along with all other assignments the user
@@ -288,6 +323,7 @@ def get_item_assignment(user, subvolume_id, request_new):
     :param subvolume_id: requesting subvolume id if not empty; otherwise, all subvolumes will be
     considered
     :param request_new: whether to request new assignment for refine action. Default is False
+    :param training: whether to get assignment from training volumes or not
     :return: list of assigned item id, subvolume_id, and assignment key or empty
     if no assignment is available
     """
@@ -298,7 +334,7 @@ def get_item_assignment(user, subvolume_id, request_new):
     id_list = []
     filtered_id_list = []
     if not subvolume_id:
-        subvolume_ids = get_subvolume_item_ids()
+        subvolume_ids = get_subvolume_item_ids(training)
         for id_item in subvolume_ids:
             id_list.append(id_item['id'])
     else:
@@ -452,7 +488,7 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
                             str(comment_key),
                             {'comment': comment_val,
                              'user': uname,
-                             'time': datetime.now().strftime("%m/%d/%Y %H:%M")},
+                             'time': datetime.now().strftime("%m/%d/%Y %H:%M:%S")},
                             key='comment_history')
 
     if color:
@@ -465,7 +501,7 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
         info = {
             'type': 'annotation_completed_by',
             'user': uname,
-            'time': datetime.now().strftime("%m/%d/%Y %H:%M")
+            'time': datetime.now().strftime("%m/%d/%Y %H:%M:%S")
         }
         add_meta_to_history(whole_item, str(item['_id']), info)
         # check if all regions for the partition is done, and if so add done metadata to whole item
@@ -517,15 +553,7 @@ def save_user_review_result_as_item(user, item_id, done, reject, comment, approv
     if not done:
         add_meta['review_done'] = 'false'
     else:
-        if not approve:
-            # update user key with annotation user to get disapproved assignment back to the user
-            complete_info = get_history_info(whole_item, item_id, ANNOT_COMPLETE_KEY)
-            annot_uname = complete_info[0]['user']
-            annot_user = User().findOne({'login': annot_uname})
-            add_user_active_assignment_metadata(str(annot_user['_id']), whole_item, str(item_id))
-            add_meta['annotation_done'] = 'false'
-            add_meta['review_done'] = 'false'
-        else:
+        if approve:
             # update whole volume masks with approved annotations
             if annot_file_name:
                 update_assignment_in_whole_item(whole_item, item_id, mask_file_name=annot_file_name)
@@ -540,7 +568,7 @@ def save_user_review_result_as_item(user, item_id, done, reject, comment, approv
                              str(comment_key),
                              {'comment': comment_val,
                               'user': uname,
-                              'time': datetime.now().strftime("%m/%d/%Y %H:%M")},
+                              'time': datetime.now().strftime("%m/%d/%Y %H:%M:%S")},
                              key='comment_history')
     whole_item = save_added_and_removed_regions(whole_item, item, current_region_ids,
                                                 done, uid, add_meta)
@@ -548,9 +576,17 @@ def save_user_review_result_as_item(user, item_id, done, reject, comment, approv
         info = {
             'type': 'review_completed_by',
             'user': uname,
-            'time': datetime.now().strftime("%m/%d/%Y %H:%M")
+            'time': datetime.now().strftime("%m/%d/%Y %H:%M:%S")
         }
         add_meta_to_history(whole_item, item_id, info)
+        if not approve:
+            # update user key with annotation user to get disapproved assignment back to the user
+            complete_info = get_history_info(whole_item, item_id, ANNOT_COMPLETE_KEY)
+            annot_uname = complete_info[0]['user']
+            annot_user = User().findOne({'login': annot_uname})
+            set_assignment_meta(whole_item, annot_user, item_id, ANNOT_ASSIGN_KEY)
+            add_meta['annotation_done'] = 'false'
+            add_meta['review_done'] = 'false'
         # check if all regions for the partition is done, and if so add done metadata to whole item
         check_subvolume_done(whole_item, task='review')
 
@@ -578,6 +614,7 @@ def get_subvolume_item_info(item):
         'location': item['meta']['coordinates'],
         'total_regions': total_regions,
         'intensity_ranges': item['meta']['intensity_range_per_slice'],
+        'training_user': item['meta']['training_user'] if 'training_user' in item['meta'] else '',
         'history': item['meta']['history'] if 'history' in item['meta'] else {}
     }
     annot_done_key = 'annotation_done'
@@ -629,15 +666,20 @@ def get_subvolume_item_info(item):
             review_complete_info = None
         if not annot_done:
             if complete_info:
-                total_regions_done += 1
+                if complete_info[0]['time'] < assign_info[0]['time']:
+                    # region is sent back from the reviewer
+                    total_regions_at_work += 1
+                else:
+                    total_regions_done += 1
             elif assign_info:
                 total_regions_at_work += 1
         if not review_done:
             if review_complete_info:
                 total_reviewed_regions_done += 1
             elif complete_info and review_assign_info:
-                # annotation is done but review is not done and a user is reviewing currently
-                total_reviewed_regions_at_work += 1
+                if complete_info[0]['time'] < review_assign_info[0]['time']:
+                    # annotation is done but review is not done and a user is reviewing currently
+                    total_reviewed_regions_at_work += 1
         if not review_approved and review_complete_info:
             total_regions_review_approved += 1
 
@@ -652,8 +694,9 @@ def get_subvolume_item_info(item):
         ret_dict['total_review_completed_regions'] = total_reviewed_regions_done
         ret_dict['total_review_active_regions'] = total_reviewed_regions_at_work
         ret_dict['total_review_approved_regions'] = total_regions_review_approved
-        ret_dict['total_review_available_regions'] = total_regions - total_reviewed_regions_done - \
-            total_reviewed_regions_at_work
+        ret_dict['total_review_available_regions'] = total_regions_done - \
+                                                     total_regions_review_approved - \
+                                                     total_reviewed_regions_at_work
         return ret_dict
 
     # both annotation and review are not done
@@ -762,13 +805,25 @@ def get_all_avail_items_for_review(item):
         if 'item_id' in val:
             complete_info = get_history_info(item, val['item_id'], ANNOT_COMPLETE_KEY)
             review_assign_info = get_history_info(item, val['item_id'], REVIEW_ASSIGN_KEY)
-            if complete_info and not review_assign_info:
-                avail_item_list.append({
-                    'id': val['item_id'],
-                    'annotation_completed_by': complete_info,
-                    'annotation_rejected_by': get_history_info(item, key, 'annotation_rejected_by'),
-                    'review_rejected_by': get_history_info(item, key, 'review_rejected_by'),
-                    'annotation_assigned_to': get_history_info(item, key, ANNOT_ASSIGN_KEY)
-                })
+            if not complete_info:
+                continue
+            add_metadata = {
+                'id': val['item_id'],
+                'annotation_completed_by': complete_info,
+                'annotation_rejected_by': get_history_info(item, val['item_id'],
+                                                           'annotation_rejected_by'),
+                'review_rejected_by': get_history_info(item, val['item_id'], 'review_rejected_by'),
+                'annotation_assigned_to': get_history_info(item, val['item_id'], ANNOT_ASSIGN_KEY)
+            }
+            if not review_assign_info:
+                avail_item_list.append(add_metadata)
+                continue
+            # assignment completed and review assigned, need to check time stamp to see if
+            # assignment is completed after initial review assignment
+            complete_time = complete_info[0]['time']
+            review_assign_time = review_assign_info[0]['time']
+            if complete_time > review_assign_time:
+                # assignment is completed after initial review assignment, so ready for review again
+                avail_item_list.append(add_metadata)
 
     return avail_item_list

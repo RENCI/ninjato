@@ -33,6 +33,7 @@ const initialState = {
   assignment: null,
   imageData: null,
   maskData: null,
+  backgroundMaskData: null,
   activeRegion: null,
   regionHistory: history()
 };
@@ -57,10 +58,19 @@ const removeRegions = (regions, remove) => {
   return regions.filter(region => !labels.includes(region.label));
 };
 
-const updateAssignment = (a1, a2) => {
+const updateAssignment = (a1, a2, keepRegions = 'new') => {
+  // Regions to keep
+  const regions = keepRegions === 'old' ? a1.regions : a2.regions;
+
+  // Keep current colors if necessary
+  if (keepRegions !== 'old') {
+    regions.forEach(region => region.color = a1.regions.find(r => r.label === region.label)?.color);
+  }
+
   const assignment = {
     ...a1,
-    ...a2
+    ...a2,
+    regions: regions
   };
 
   updateColors(assignment.regions);
@@ -142,7 +152,7 @@ const reducer = (state, action) => {
         console.warn(`Current assignment id ${ state.assignment.id } different from update id ${ action.assignment.id }`);
       }
 
-      const assignment = updateAssignment(state.assignment, action.assignment);
+      const assignment = updateAssignment(state.assignment, action.assignment, action.keepRegions);
 
       const { regions } = assignment;
       
@@ -161,7 +171,8 @@ const reducer = (state, action) => {
       return {
         ...state,
         imageData: action.imageData,
-        maskData: action.maskData
+        maskData: action.maskData,
+        backgroundMaskData: action.backgroundMaskData ? action.backgroundMaskData : action.maskData
       };
 
     case CLEAR_DATA:

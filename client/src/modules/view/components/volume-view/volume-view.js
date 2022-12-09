@@ -93,6 +93,22 @@ const centerCamera = (renderWindow, surface, volume) => {
   }
 };
 
+const setCamera = (renderWindow, camera) => {
+  const renderer = renderWindow.getRenderer();
+  const cam = renderer.getActiveCamera();
+
+  const distance = cam.getDistance();
+  const focalPoint = cam.getFocalPoint();
+  const direction = camera.getDirectionOfProjection();
+  const position = focalPoint.map((d, i) => d - direction[i] * distance);
+
+  cam.setViewUp(...camera.getViewUp());
+  cam.setPosition(...position);
+
+  renderer.resetCameraClippingRange();
+  renderWindow.render(); 
+};
+
 const getSurface = (surfaces, region) => !region ? null : 
   surfaces.find(surface => surface.getRegion().label === region.label);
 
@@ -306,6 +322,9 @@ export function VolumeView(painter) {
       if (!surface) return;
 
       centerCamera(renderWindow, surface.getOutput(), background.getInputData());
+    },
+    setCamera: camera => {
+      setCamera(renderWindow, camera);
     },
     render: onRendered => {
       render();

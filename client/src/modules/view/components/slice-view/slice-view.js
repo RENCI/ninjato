@@ -54,9 +54,9 @@ export function SliceView() {
           widgets.setCallback(type, callback);
       }
     },
-    setData: (imageData, maskData, sliceRanges) => {
+    setData: (imageData, maskData, backgroundMaskData, sliceRanges) => {
       image.setInputData(imageData);    
-      mask.setInputData(maskData);
+      mask.setInputData(maskData, backgroundMaskData);
 
       const renderer = renderWindow.getRenderer();
       renderer.addViewProp(image.getActor());
@@ -178,6 +178,7 @@ export function SliceView() {
     canUndo: () => mask.getPainter().canUndo(),
     canRedo: () => mask.getPainter().canRedo(),
     render: () => render(),
+    getCamera: () => renderWindow.getRenderer().getActiveCamera(),
     mouseOut: () => {
       widgets.mouseOut();
       mask.setHighlightRegion(null);
