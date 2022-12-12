@@ -805,6 +805,10 @@ def get_all_avail_items_for_review(item):
     avail_item_list = []
     for key, val in region_dict.items():
         if 'item_id' in val:
+            assign_item = Item().findOne({'_id': ObjectId(val['item_id'])})
+            if 'review_approved' in assign_item['meta'] and \
+                assign_item['meta']['review_approved'] == 'true':
+                continue
             complete_info = get_history_info(item, val['item_id'], ANNOT_COMPLETE_KEY)
             review_assign_info = get_history_info(item, val['item_id'], REVIEW_ASSIGN_KEY)
             if not complete_info:
