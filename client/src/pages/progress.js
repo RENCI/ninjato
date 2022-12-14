@@ -16,6 +16,8 @@ const sanitizeHistory = volumes =>
       for (let i = 0; i < assignment.length; i++) {
         const action = assignment[i];
 
+        action.time = new Date(action.time);
+
         if (
           i === 0 && 
           action.type !== 'annotation_assigned_to'
@@ -35,105 +37,36 @@ const sanitizeHistory = volumes =>
             type: 'annotation_assigned_to'
           });
         }
+        else if (action.type === 'review_completed_by' && i === assignment.length - 1) {
+          action.type = 'review_verified_by';
+        }
       }
     })
   );
 
 const getVolumeTimelines = volumes => {
-  return volumes.map(({ history }) => {
-    const timeline = [];
+  const timelines = volumes.map(volume => ({ volume: volume, timeline: [] }));
+
+  volumes.forEach(({ history }, i) => {
+    const timeline = timelines[i].timeline;
 
     Object.values(history).forEach(assignment => {
-      assignment.forEach((action, i, a) => {
-        // XXX: Don't need this for volume if simulatinng completed status below is moved to sanitizeHistory
-
-        const time = new Date(action.time);
-
+      assignment.forEach((action, i) => {
         // Only add the first annotation_assigned_to
-        if (action.type === 'annotation_assigned_to') {
-          if (!currentUser) {
-            currentUser = timelines.find(({ user }) => user.login === action.user);
-  
-            if (currentUser) {
-              currentUser.timeline.push(action);
-            }
-            else {
-              console.warn(`Unknown user: ${ action.user }`);
-            }
-          }
+        if (i === 0 && action.type !== 'annotation_assigned_to') {
+          console.warn('Assigned to not first action: ', assignment);
         }
-        else {        
-          if (!currentUser) {
-            console.warn('No current user', assignmentHistory, action);
-            return;
-          }
-        
-          // XXX: Hack to simulate completed status until that is fixed on the server
-          // XXX: Move to sanitizeHistory
-          if (action.type === 'review_completed_by' && i === a.length - 1) {
-            currentUser.timeline.push({...action, type: 'review_verified_by' });
-          }
-          else {
-            currentUser.timeline.push(action);
-          }
-          
-          if (action.type === 'annotation_rejected_by') {
-            currentUser = null;  
-          }       
+        else {     
+          timeline.push(action);  
+        }
       });
     }); 
   });
-};
-
-const getUserTimelines = (users, volumes) => {
-  const timelines = users.map(user => ({ user: user, timeline: [] }));
-
-  volumes.forEach(({ history }) => Object.values(history)
-    .forEach(assignmentHistory => {            
-      let currentUser = null;
-      assignmentHistory.forEach((action, i, a) => {
-        action.time = new Date(action.time);
-
-        // Only add the first annotation_assigned_to
-        if (action.type === 'annotation_assigned_to') {
-          if (!currentUser) {
-            currentUser = timelines.find(({ user }) => user.login === action.user);
-  
-            if (currentUser) {
-              currentUser.timeline.push(action);
-            }
-            else {
-              console.warn(`Unknown user: ${ action.user }`);
-            }
-          }
-        }
-        else {        
-          if (!currentUser) {
-            console.warn('No current user', assignmentHistory, action);
-            return;
-          }
-        
-          // XXX: Hack to simulate completed status until that is fixed on the server
-          // XXX: Move to sanitizeHistory
-          if (action.type === 'review_completed_by' && i === a.length - 1) {
-            currentUser.timeline.push({...action, type: 'review_verified_by' });
-          }
-          else {
-            currentUser.timeline.push(action);
-          }
-          
-          if (action.type === 'annotation_rejected_by') {
-            currentUser = null;  
-          }       
-        }
-      });
-    })
-  );
 
   timelines.forEach(({ timeline }) => timeline.sort((a, b) => a.time - b.time));
 
-  timelines.forEach(user => {
-    user.counts = user.timeline.reduce((counts, action, i, a) => {
+  timelines.forEach(volume => {
+    volume.counts = volume.timeline.reduce((counts, action, i, a) => {
       const count = i === 0 ? {
         active: 0,
         review: 0,
@@ -164,9 +97,80 @@ const getUserTimelines = (users, volumes) => {
   return timelines;
 };
 
+const getUserTimelines = (users, volumes) => {
+  const timelines = users.map(user => ({ user: user, timeline: [] }));
+
+  volumes.forEach(({ history }) => Object.values(history)
+    .forEach(assignmentHistory => {            
+      let currentUser = null;
+      assignmentHistory.forEach((action,) => {
+        // Only add the first annotation_assigned_to
+        if (action.type === 'annotation_assigned_to') {
+          if (!currentUser) {
+            currentUser = timelines.find(({ user }) => user.login === action.user);
+  
+            if (currentUser) {
+              currentUser.timeline.push(action);
+            }
+            else {
+              console.warn(`Unknown user: ${ action.user }`);
+            }
+          }
+        }
+        else {        
+          if (!currentUser) {
+            console.warn('No current user', assignmentHistory, action);
+            return;
+          }
+
+          currentUser.timeline.push(action);
+          
+          if (action.type === 'annotation_rejected_by') {
+            currentUser = null;  
+          }       
+        }
+      });
+    })
+  );
+
+  timelines.forEach(({ timeline }) => timeline.sort((a, b) => a.time - b.time));
+
+  timelines.forEach(user => {
+    user.counts = user.timeline.reduce((counts, action, i, a) => {
+      const count = i === 0 ? {
+        active: 0,
+        review: 0,
+        completed: 0,
+        declined: 0
+      } : {...counts[i - 1]};
+
+      count.time = new Date(action.time);
+
+      switch (action.type) {
+        case 'annotation_assigned_to': if (i === 0) count.active++; break;
+        case 'annotation_completed_by': count.active--; count.review++; break;
+        case 'annotation_rejected_by': count.active--; count.declined++; break;
+        case 'review_assigned_to': break;
+        case 'review_completed_by': count.review--; count.active++; break;
+        case 'review_verified_by': count.review--; count.completed++; break;
+        case 'review_rejected_by': break;
+        default: 
+          console.warn(`Unknown action type ${ action.type }`);
+      }
+
+      counts.push(count);
+
+      return counts;
+    }, []);
+  });
+
+  return timelines;
+};
+
 export const Progress = () => {
   const [{ user, volumes }] = useContext(UserContext);
-  const [timelines, setTimelines] = useState();
+  const [volumeTimelines, setVolumeTimelines] = useState();
+  const [userTimelines, setUserTimelines] = useState();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -181,30 +185,29 @@ export const Progress = () => {
       const volumes = await api.getVolumes();
 
       sanitizeHistory(volumes);
-
-      const volumeTimelines = getVolumeTimelines(volumes);
-
-      const timelines = getUserTimelines(users, volumes);
-      console.log(timelines);
-
-      setTimelines(timelines);
+      setVolumeTimelines(getVolumeTimelines(volumes));
+      setUserTimelines(getUserTimelines(users, volumes));
     }
     
     getData();
   }, [volumes]);
 
-  const index = 10;
-  const keys = ['active', 'review', 'completed', 'declined'];
+  const index = 0;
+  const keys = ['active', 'review', 'completed', /*'declined'*/];
 
-  console.log(timelines);
-  console.log(volumes);
+  //console.log(timelines);
+  //console.log(volumes);
 
-  const data = timelines ? keys.map(key => ({
+  const lineData = volumeTimelines ? keys.map(key => ({
     id: key,
-    data: timelines[index].counts.map((count, i) => ({ x: count.time.toISOString(), y: count[key] }))
+    data: volumeTimelines[index].counts.map((count, i) => ({ x: i, y: count[key] }))
   })) : null;
 
-  console.log(data)
+  console.log(lineData)
+
+  console.log(volumeTimelines);
+
+  const streamData = volumeTimelines ? volumeTimelines[0].counts : [];
 
   return (
     !user ?
@@ -215,40 +218,31 @@ export const Progress = () => {
         panes={[
           {
             menuItem: <Menu.Item>Volumes</Menu.Item>,
-            render: () => 'volumes'
+            render: () => 
+              <div style={{ height: 500 }}>
+              { lineData && streamData &&     
+                <>
+                  <ResponsiveLine 
+                    data={ lineData }
+                    xFormat={ 'time:YYYY-MM-DDTHH:mm:ss.sssZ' }
+                    axisBottom={ null }
+                  />                  
+                  <ResponsiveStream 
+                    data={ streamData }
+                    keys={ keys }
+                    offsetType='diverging'
+                    order='reverse'
+                    curve='monotoneY'
+                  />     
+                </>
+              }
+            </div>
           },
           {
             menuItem: <Menu.Item>Users</Menu.Item>,
             render: () => 'users'
           }
         ]}
-      />
-/*
-      <div style={{ height: 500 }}>
-        { timelines && <>yo</>
-          
-          <ResponsiveLine 
-            data={ keys.map(key => ({
-              id: key,
-              data: timelines[index].counts.map(count => ({ x: count.time.toISOString(), y: count[key] }))
-            }))}
-            xScale={{ 
-              type: 'time',
-              format: 'YYYY-MM-DDTHH:mm:ss.sssZ'
-            }}
-            xFormat={ 'time:YYYY-MM-DDTHH:mm:ss.sssZ' }
-            axisBottom={ null }
-          />
-          <ResponsiveStream 
-            data={ timelines[index].counts }
-            keys={ ['active', 'review', 'completed', 'declined'] }
-            offsetType='diverging'
-            order='reverse'
-            curve='monotoneY'
-          />
-                   
-        }
-      </div>
-*/      
+      />     
   );
 };
