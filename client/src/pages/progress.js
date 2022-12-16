@@ -1,12 +1,11 @@
 import { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tab, Menu } from 'semantic-ui-react';
-import { ResponsiveStream } from '@nivo/stream';
-import { ResponsiveLine } from '@nivo/line';
 import { UserContext } from 'contexts';
 import { RedirectMessage } from 'modules/common/components/redirect-message';
+import { VegaWrapper } from 'modules/vega/components/vega-wrapper';
 import { api } from 'utils/api';
-import { render } from 'react-dom';
+import { lineChart } from 'vega-specs';
 
 // XXX: Necessary to fix issues in assignment history. 
 // Can probably be removed after first volume (purple_box) is completed.
@@ -198,10 +197,12 @@ export const Progress = () => {
   //console.log(timelines);
   //console.log(volumes);
 
-  const lineData = volumeTimelines ? keys.map(key => ({
-    id: key,
-    data: volumeTimelines[index].counts.map((count, i) => ({ x: i, y: count[key] }))
-  })) : null;
+  const lineData = volumeTimelines ? volumeTimelines[index].counts.reduce((data, count) => {
+    return [
+      ...data,
+      ...keys.map(key => ({ count: count[key], time: count.time, status: key }))
+    ]
+  }, []) : null;
 
   console.log(lineData)
 
@@ -219,24 +220,7 @@ export const Progress = () => {
           {
             menuItem: <Menu.Item>Volumes</Menu.Item>,
             render: () => 
-              <div style={{ height: 500 }}>
-              { lineData && streamData &&     
-                <>
-                  <ResponsiveLine 
-                    data={ lineData }
-                    xFormat={ 'time:YYYY-MM-DDTHH:mm:ss.sssZ' }
-                    axisBottom={ null }
-                  />                  
-                  <ResponsiveStream 
-                    data={ streamData }
-                    keys={ keys }
-                    offsetType='diverging'
-                    order='reverse'
-                    curve='monotoneY'
-                  />     
-                </>
-              }
-            </div>
+              <VegaWrapper spec={ lineChart } data={ lineData } />
           },
           {
             menuItem: <Menu.Item>Users</Menu.Item>,
