@@ -5,7 +5,7 @@ import { UserContext } from 'contexts';
 import { RedirectMessage } from 'modules/common/components/redirect-message';
 import { VegaWrapper } from 'modules/vega/components/vega-wrapper';
 import { api } from 'utils/api';
-import { lineChart } from 'vega-specs';
+import { lineChart, stackedArea } from 'vega-specs';
 
 // XXX: Necessary to fix issues in assignment history. 
 // Can probably be removed after first volume (purple_box) is completed.
@@ -192,7 +192,7 @@ export const Progress = () => {
   }, [volumes]);
 
   const index = 0;
-  const keys = ['active', 'review', 'completed', /*'declined'*/];
+  const keys = ['active', 'review', 'completed', 'declined'];
 
   //console.log(timelines);
   //console.log(volumes);
@@ -210,6 +210,9 @@ export const Progress = () => {
 
   const streamData = volumeTimelines ? volumeTimelines[0].counts : [];
 
+  // XXX: To show rejected below stacked area, use negative values for declined
+  // XXX: Look into issue with dips in stacked area chart: shouldn't happen...
+
   return (
     !user ?
       <RedirectMessage message='No User' />
@@ -220,7 +223,10 @@ export const Progress = () => {
           {
             menuItem: <Menu.Item>Volumes</Menu.Item>,
             render: () => 
-              <VegaWrapper spec={ lineChart } data={ lineData } />
+              <>
+                <VegaWrapper spec={ lineChart } data={ lineData } />
+                <VegaWrapper spec={ stackedArea } data={ lineData } />
+              </>
           },
           {
             menuItem: <Menu.Item>Users</Menu.Item>,

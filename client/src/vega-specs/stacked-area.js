@@ -1,25 +1,29 @@
-export const lineChart = {
+export const stackedArea = {
   $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
-  width: "container",
+  width: 'container',
   height: 400,
   autosize: {
-    type: "fit",
+    type: 'fit',
     resize: true
   },
   data: {
-    name: "data"
+    name: 'data'
   },
-  mark: { type: 'line', tooltip: true },
+  mark: { 
+    type: 'area', 
+    line: true, 
+    tooltip: true 
+  },
   encoding: {
-    x: { 
-      field: 'time', 
+    x: {
+      field: 'time',
       timeUnit: 'yearmonthdate',
-      type: 'temporal' 
+      type: 'temporal'
     },
-    y: { 
+    y: {
       aggregate: 'max',
-      field: 'count', 
-      type: 'quantitative' 
+      field: 'count',
+      type: 'quantitative'
     },
     color: {
       field: 'status',
