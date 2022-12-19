@@ -27,7 +27,11 @@ export const stackedArea = {
     },
     color: {
       field: 'status',
-      type: 'nominal'
+      type: 'nominal',
+      sort: ['declined', 'completed', 'review', 'active']
+    },
+    order: {
+      field: 'order'
     }
   }
 };

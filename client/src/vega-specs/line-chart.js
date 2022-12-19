@@ -23,7 +23,8 @@ export const lineChart = {
     },
     color: {
       field: 'status',
-      type: 'nominal'
+      type: 'nominal',
+      sort: ['declined', 'completed', 'review', 'active']
     }
   }
 };

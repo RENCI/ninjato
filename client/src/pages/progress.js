@@ -152,7 +152,7 @@ const getUserTimelines = (users, volumes) => {
         case 'review_assigned_to': break;
         case 'review_completed_by': count.review--; count.active++; break;
         case 'review_verified_by': count.review--; count.completed++; break;
-        case 'review_rejected_by': break;
+        case 'review_rejected_by': count.review--; break;
         default: 
           console.warn(`Unknown action type ${ action.type }`);
       }
@@ -192,7 +192,11 @@ export const Progress = () => {
   }, [volumes]);
 
   const index = 0;
-  const keys = ['active', 'review', 'completed', 'declined'];
+  const keys = ['declined', 'completed', 'review', 'active'];
+  const keyIndex = keys.reduce((keyIndex, key, i) => {
+    keyIndex[key] = i;
+    return keyIndex;
+  }, {});
 
   //console.log(timelines);
   //console.log(volumes);
@@ -200,17 +204,17 @@ export const Progress = () => {
   const lineData = volumeTimelines ? volumeTimelines[index].counts.reduce((data, count) => {
     return [
       ...data,
-      ...keys.map(key => ({ count: count[key], time: count.time, status: key }))
+      ...keys.map(key => ({ count: count[key], time: count.time, status: key, order: keyIndex[key] }))
     ]
   }, []) : null;
 
-  console.log(lineData)
+  const areaData = volumeTimelines ? volumeTimelines[index].counts.reduce((data, count) => {
+    return [
+      ...data,
+      ...keys.map(key => ({ count: key === 'declined' ? -count[key] : count[key], time: count.time, status: key, order: keyIndex[key] }))
+    ]
+  }, []) : null;
 
-  console.log(volumeTimelines);
-
-  const streamData = volumeTimelines ? volumeTimelines[0].counts : [];
-
-  // XXX: To show rejected below stacked area, use negative values for declined
   // XXX: Look into issue with dips in stacked area chart: shouldn't happen...
 
   return (
@@ -225,7 +229,7 @@ export const Progress = () => {
             render: () => 
               <>
                 <VegaWrapper spec={ lineChart } data={ lineData } />
-                <VegaWrapper spec={ stackedArea } data={ lineData } />
+                <VegaWrapper spec={ stackedArea } data={ areaData } />
               </>
           },
           {
