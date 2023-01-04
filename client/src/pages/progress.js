@@ -70,7 +70,8 @@ const getVolumeTimelines = volumes => {
         active: 0,
         review: 0,
         completed: 0,
-        declined: 0
+        declined: 0,
+        reviewDeclined: 0
       } : {...counts[i - 1]};
 
       count.time = new Date(action.time);
@@ -82,7 +83,7 @@ const getVolumeTimelines = volumes => {
         case 'review_assigned_to': break;
         case 'review_completed_by': count.review--; count.active++; break;
         case 'review_verified_by': count.review--; count.completed++; break;
-        case 'review_rejected_by': break;
+        case 'review_rejected_by': count.review--; count.reviewDeclined++; break;
         default: 
           console.warn(`Unknown action type ${ action.type }`);
       }
@@ -140,7 +141,8 @@ const getUserTimelines = (users, volumes) => {
         active: 0,
         review: 0,
         completed: 0,
-        declined: 0
+        declined: 0,
+        reviewDeclined: 0
       } : {...counts[i - 1]};
 
       count.time = new Date(action.time);
@@ -152,7 +154,7 @@ const getUserTimelines = (users, volumes) => {
         case 'review_assigned_to': break;
         case 'review_completed_by': count.review--; count.active++; break;
         case 'review_verified_by': count.review--; count.completed++; break;
-        case 'review_rejected_by': count.review--; break;
+        case 'review_rejected_by': count.review--; count.reviewDeclined++; break;
         default: 
           console.warn(`Unknown action type ${ action.type }`);
       }
@@ -192,7 +194,7 @@ export const Progress = () => {
   }, [volumes]);
 
   const index = 0;
-  const keys = ['declined', 'completed', 'review', 'active'];
+  const keys = ['declined', 'reviewDeclined', 'completed', 'review', 'active'];
   const keyIndex = keys.reduce((keyIndex, key, i) => {
     keyIndex[key] = i;
     return keyIndex;
@@ -211,7 +213,7 @@ export const Progress = () => {
   const areaData = volumeTimelines ? volumeTimelines[index].counts.reduce((data, count) => {
     return [
       ...data,
-      ...keys.map(key => ({ count: key === 'declined' ? -count[key] : count[key], time: count.time, status: key, order: keyIndex[key] }))
+      ...keys.map(key => ({ count: key.includes('declined') ? -count[key] : count[key], time: count.time, status: key, order: keyIndex[key] }))
     ]
   }, []) : null;
 
