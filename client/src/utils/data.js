@@ -83,9 +83,10 @@ export const diceScore = (image1, image2) => {
   const s1 = image1.getPointData().getScalars().getData();
   const s2 = image2.getPointData().getScalars().getData();
 
-  const ix = s1.reduce((ix, v, i) => {
-    return ix + Math.min(v, 1) * Math.min(s2[i], 1);
-  }, 0);
+  const binary = v => Math.min(v, 1);
+  const ix = s1.reduce((ix, v, i) => ix + binary(v) * binary(s2[i]), 0);
 
-  return 2 * ix / (s1.length + s2.length); 
+  const count = a => a.reduce((count, v) => count + binary(v), 0);
+
+  return 2 * ix / (count(s1) + count(s2)); 
 };
