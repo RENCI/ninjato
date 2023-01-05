@@ -70,3 +70,23 @@ export const getMissingRegions = (maskData, regions) => {
     return missing;
   }, []);
 };
+
+export const diceScore = (image1, image2) => {  
+  const d1 = image1.getDimensions();
+  const d2 = image2.getDimensions();
+
+  if (d1[0] !== d2[0] || d1[1] !== d2[1] || d1[2] !== d2[2]) {
+    console.warn(`Images have different dimensions: [${ d1 }], [${ d2 }]`);
+    return null;
+  }
+
+  const s1 = image1.getPointData().getScalars().getData();
+  const s2 = image2.getPointData().getScalars().getData();
+
+  const binary = v => Math.min(v, 1);
+  const ix = s1.reduce((ix, v, i) => ix + binary(v) * binary(s2[i]), 0);
+
+  const count = a => a.reduce((count, v) => count + binary(v), 0);
+
+  return 2 * ix / (count(s1) + count(s2)); 
+};
