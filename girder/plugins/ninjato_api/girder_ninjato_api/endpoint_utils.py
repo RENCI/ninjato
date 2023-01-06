@@ -12,7 +12,7 @@ from .utils import TRAINING_COLLECTION_NAME, COLLECTION_NAME, ANNOT_ASSIGN_KEY, 
     merge_region_to_active_assignment, set_assignment_meta, get_history_info, \
     assign_region_to_user, add_meta_to_history, check_subvolume_done, \
     reject_assignment, update_assignment_in_whole_item, get_assignment_status, \
-    add_user_active_assignment_metadata, save_content_data, save_added_and_removed_regions, \
+    WHOLE_ITEM_NAME, save_content_data, save_added_and_removed_regions, \
     update_all_assignment_masks_async
 
 
@@ -304,7 +304,7 @@ def get_subvolume_item_ids(training):
             })
             for folder in folders:
                 whole_item = Item().findOne({'folderId': ObjectId(folder['_id']),
-                                             'name': 'whole'})
+                                             'name': WHOLE_ITEM_NAME})
                 ret_data.append({
                     'id': whole_item['_id'],
                     'parent_id': folder['_id']
@@ -469,7 +469,7 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
     uname = user['login']
     item = Item().findOne({'_id': ObjectId(item_id)})
     whole_item = Item().findOne({'folderId': ObjectId(item['folderId']),
-                                 'name': 'whole'})
+                                 'name': WHOLE_ITEM_NAME})
     if reject:
         # reject the annotation
         reject_assignment(user, item, whole_item, True, comment)
@@ -533,7 +533,7 @@ def save_user_review_result_as_item(user, item_id, done, reject, comment, approv
     uname = user['login']
     item = Item().findOne({'_id': ObjectId(item_id)})
     whole_item = Item().findOne({'folderId': ObjectId(item['folderId']),
-                                 'name': 'whole'})
+                                 'name': WHOLE_ITEM_NAME})
     if reject:
         # reject the review assignment
         reject_assignment(user, item, whole_item, False, comment, task='review')
