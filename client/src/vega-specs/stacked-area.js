@@ -21,7 +21,7 @@ export const stackedArea = {
       type: 'temporal'
     },
     y: {
-      aggregate: 'max',
+      aggregate: 'median',
       field: 'count',
       type: 'quantitative'
     },

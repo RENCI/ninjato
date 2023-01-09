@@ -17,7 +17,7 @@ export const lineChart = {
       type: 'temporal' 
     },
     y: { 
-      aggregate: 'max',
+      aggregate: 'median',
       field: 'count', 
       type: 'quantitative' 
     },

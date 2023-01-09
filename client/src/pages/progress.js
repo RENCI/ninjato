@@ -217,8 +217,6 @@ export const Progress = () => {
     ]
   }, []) : null;
 
-  // XXX: Look into issue with dips in stacked area chart: shouldn't happen...
-
   return (
     !user ?
       <RedirectMessage message='No User' />
