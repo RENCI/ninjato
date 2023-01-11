@@ -17,6 +17,7 @@ from girder_jobs.models.job import Job
 
 COLLECTION_NAME = 'nuclei_image_collection'
 TRAINING_COLLECTION_NAME = 'nuclei_image_training_collection'
+WHOLE_ITEM_NAME = '_whole'
 BUFFER_FACTOR = 3
 DATA_PATH = '/girder/data'
 ANNOT_ASSIGN_KEY = 'annotation_assigned_to'
@@ -280,7 +281,7 @@ def find_region_item_from_label(whole_item, region_label):
 
 def get_region_extent(item, region_id, user_extent=True):
     is_whole_item = False
-    if item['name'] == 'whole':
+    if item['name'] == WHOLE_ITEM_NAME:
         is_whole_item = True
     item_files = File().find({'itemId': item['_id']})
     if user_extent:
