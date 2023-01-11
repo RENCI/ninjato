@@ -28,7 +28,10 @@ export const stackedArea = {
     color: {
       field: 'status',
       type: 'nominal',
-      sort: ['declined', 'reviewDeclined', 'completed', 'review', 'active'],
+      scale: { 
+        scheme: 'status' 
+      },
+      sort: ['active', 'review', 'completed', 'declined', 'reviewDeclined'],
       legend: {
         labelExpr: 'lower(replace(datum.label, /([A-Z])/g, " $1"))'
       }

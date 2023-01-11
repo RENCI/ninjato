@@ -1,8 +1,12 @@
 import React, { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import * as vega from 'vega';
 import vegaEmbed from 'vega-embed';
 //import { LoadingSpinner } from 'components/loading-spinner';
 import styles from './styles.module.css';
+
+// Colors based on semantic ui colors
+vega.scheme('status', ['#21ba45', '#00b5ad', '#767676', '#db2828', '#6435c9']);
 
 export const VegaWrapper = ({ 
   width, height, options, spec, data, signals, eventListeners, tooltip, spinner 
