@@ -403,15 +403,21 @@ def get_assignment_status(whole_item, assign_item_id):
 
     if not review_complete_info:
         return 'under review'
-    if complete_info[0]['time'] < review_complete_info[0]['time']:
+    if len(complete_info[0]['time']) > 16:
+        complete_time = datetime.strptime(complete_info[0]['time'], "%m/%d/%Y %H:%M:%S")
+    else:
+        complete_time = datetime.strptime(complete_info[0]['time'], "%m/%d/%Y %H:%M")
+    if len(review_complete_info[0]['time']) > 16:
+        review_compl_time = datetime.strptime(review_complete_info[0]['time'], "%m/%d/%Y %H:%M:%S")
+    else:
+        review_compl_time = datetime.strptime(review_complete_info[0]['time'], "%m/%d/%Y %H:%M")
+
+    if complete_time < review_compl_time:
         # assignment is reassigned to user after reviewer disapproved the annotation
         return "active"
-    elif complete_info[0]['time'] > review_assign_info[0]['time']:
+    else:
         # assignment is annotated again, not assigned for reivew yet
         return 'awaiting review'
-    else:
-        # assignment is being reviewed again
-        return 'under review'
 
 
 def save_file(as_id, item, path, user, file_name):
