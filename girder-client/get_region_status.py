@@ -25,18 +25,18 @@ if __name__ == '__main__':
         for key, val in whole_item['meta']['regions'].items():
             if 'item_id' not in val:
                 regions.append({
-                    "label": key,
+                    "label": int(key),
                     "done": False,
                     "verified": False
                 })
                 continue
             assign_item = gc.getItem(val['item_id'])
             regions.append({
-                "label": key,
+                "label": int(key),
                 "done": True if 'annotation_done' in assign_item['meta'] and
                                 assign_item['meta']['annotation_done'] == 'true' else False,
                 "verified": True if 'review_approved' in assign_item['meta'] and
                                     assign_item['meta']['review_approved'] == 'true' else False
             })
     with open(output_file_name, "w") as fp:
-        json.dump(regions, fp, indent=4)
+        json.dump({"regions": regions}, fp, indent=4)
