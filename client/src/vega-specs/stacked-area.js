@@ -17,7 +17,7 @@ export const stackedArea = {
   encoding: {
     x: {
       field: 'time',
-      timeUnit: 'yearmonthdate',
+      timeUnit: 'yearweek',
       type: 'temporal'
     },
     y: {

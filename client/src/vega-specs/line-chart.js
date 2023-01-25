@@ -13,7 +13,7 @@ export const lineChart = {
   encoding: {
     x: { 
       field: 'time', 
-      timeUnit: 'yearmonthdate',
+      timeUnit: 'yearweek',
       type: 'temporal' 
     },
     y: { 

@@ -181,13 +181,24 @@ export const Progress = () => {
   }, [user, navigate]);
 
   useEffect(() => {
+    console.log('getting data')
+
     const getData = async () => {
       const users = await api.getUsers();
       const volumes = await api.getVolumes();
 
+      console.log('got data');
+
       sanitizeHistory(volumes);
+
+      console.log('sanitized')
+
       setVolumeTimelines(getVolumeTimelines(volumes));
+
+      console.log ('got volume timelines')
       setUserTimelines(getUserTimelines(users, volumes));
+
+      console.log('got user timeines')
     }
     
     getData();
@@ -216,21 +227,28 @@ export const Progress = () => {
       ...keys.map(key => ({ count: key.includes('declined') ? -count[key] : count[key], time: count.time, status: key, order: keyIndex[key] }))
     ]
   }, []) : null;
-
+console.log(volumes);
   return (
     !user ?
       <RedirectMessage message='No User' />
-    :
+    : volumes &&
       <Tab
         menu={{ secondary: true, pointing: true, attached: 'top' }}
         panes={[
           {
             menuItem: <Menu.Item>Volumes</Menu.Item>,
             render: () => 
-              <>
-                <VegaWrapper spec={ lineChart } data={ lineData } />
-                <VegaWrapper spec={ stackedArea } data={ areaData } />
-              </>
+              <Tab
+                menu={{ secondary: true, pointing: true, attached: 'top '}}
+                panes={ volumes.map(volume => ({    
+                  menuItem: <Menu.Item>{ volume.name }</Menu.Item>,
+                  render: () =>
+                    <>
+                      <VegaWrapper spec={ lineChart } data={ lineData } />
+                      <VegaWrapper spec={ stackedArea } data={ areaData } />
+                    </>
+                }))}
+              />
           },
           {
             menuItem: <Menu.Item>Users</Menu.Item>,
