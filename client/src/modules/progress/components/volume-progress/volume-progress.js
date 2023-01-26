@@ -10,7 +10,6 @@ import { lineChart, stackedArea } from 'vega-specs';
 // XXX: Necessary to fix issues in assignment history. 
 // Can probably be removed after first volume (purple_box) is completed.
 const sanitizeHistory = volume => {
-  console.log(volume);
   Object.values(volume.history).forEach(assignment => {
     for (let i = 0; i < assignment.length; i++) {
       const action = assignment[i];
@@ -43,21 +42,7 @@ const sanitizeHistory = volume => {
   });
 };
 
-const getVolumeTimeline = volume => {
-  const timeline = [];
-
-  Object.values(volume.history).forEach(assignment => {
-    assignment.forEach((action, i) => {
-      // Only add the first annotation_assigned_to
-      if (i === 0 && action.type !== 'annotation_assigned_to') {
-        console.warn('Assigned to not first action: ', assignment);
-      }
-      else {     
-        timeline.push(action);  
-      }
-    });
-  });
-
+const processTimeline = timeline => {
   timeline.sort((a, b) => a.time - b.time);
 
   timeline.counts = timeline.reduce((counts, action, i) => {
@@ -87,19 +72,76 @@ const getVolumeTimeline = volume => {
 
     return counts;
   }, []);
+};
+
+const getVolumeTimeline = volume => {
+  const timeline = [];
+
+  Object.values(volume.history).forEach(assignment => {
+    assignment.forEach((action, i) => {
+      // Only add the first annotation_assigned_to
+      if (i === 0 && action.type !== 'annotation_assigned_to') {
+        console.warn('Assigned to not first action: ', assignment);
+      }
+      else {     
+        timeline.push(action);  
+      }
+    });
+  });
+
+  processTimeline(timeline);
 
   return timeline;
 };  
 
+const getUserTimelines = (volume, users) => {
+  const timelines = users.map(user => ({ user: user, timeline: [] }));
+
+  Object.values(volume.history).forEach(assignmentHistory => {            
+    let currentUser = null;
+    assignmentHistory.forEach((action,) => {
+      // Only add the first annotation_assigned_to
+      if (action.type === 'annotation_assigned_to') {
+        if (!currentUser) {
+          currentUser = timelines.find(({ user }) => user.login === action.user);
+
+          if (currentUser) {
+            currentUser.timeline.push(action);
+          }
+          else {
+            console.warn(`Unknown user: ${ action.user }`);
+          }
+        }
+      }
+      else {        
+        if (!currentUser) {
+          console.warn('No current user', assignmentHistory, action);
+          return;
+        }
+
+        currentUser.timeline.push(action);
+        
+        if (action.type === 'annotation_rejected_by') {
+          currentUser = null;  
+        }       
+      }
+    });
+  });
+
+  timelines.forEach(({ timeline }) => processTimeline(timeline));
+
+  return timelines;
+};
+
 export const VolumeProgress = ({ volume, users }) => {
   const [volumeTimeline, setVolumeTimeline] = useState();
-  //const [userTimelines, setUserTimelines] = useState();
+  const [userTimelines, setUserTimelines] = useState();
 
   useEffect(() => {
     if (volume && users) {
       sanitizeHistory(volume);    
       setVolumeTimeline(getVolumeTimeline(volume));
-    // setUserTimelines(getUserTimelines(users, volume));
+      setUserTimelines(getUserTimelines(volume, users));
     }
   }, [volume, users]);
 
@@ -122,6 +164,8 @@ export const VolumeProgress = ({ volume, users }) => {
       ...keys.map(key => ({ count: key.includes('declined') ? -count[key] : count[key], time: count.time, status: key, order: keyIndex[key] }))
     ]
   }, []) : null;
+
+  console.log(userTimelines);
 
   return (
     lineData && areaData && 
