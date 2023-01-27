@@ -509,18 +509,25 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
         add_meta_to_history(whole_item, str(item['_id']), info)
         # check if all regions for the partition is done, and if so add done metadata to whole item
         check_subvolume_done(whole_item)
-        # check how many assignments the user has done to determine whether to set the
-        # assignment for review or not
-        annot_complete_list = get_completed_assignment_items(uname, whole_item)
-        if len(annot_complete_list) % ASSIGN_COUNT_FOR_REVIEW != 0:
-            # no need to review this completed annotation assignment
-            add_meta = {
-                REVIEW_APPROVE_KEY: 'true',
-                REVIEW_DONE_KEY: 'false'
-            }
-            Item().setMetadata(item, add_meta)
+        review_info = get_history_info(whole_item, item['_id'], REVIEW_COMPLETE_KEY)
+        if not review_info:
+            # the first time the annotation assignment is submitted,
+            # check how many assignments the user has done to determine whether to set the
+            # assignment for review or not
+            annot_complete_list = get_completed_assignment_items(uname, whole_item)
+            if len(annot_complete_list) % ASSIGN_COUNT_FOR_REVIEW != 0:
+                # no need to review this completed annotation assignment
+                add_meta = {
+                    REVIEW_APPROVE_KEY: 'true',
+                    REVIEW_DONE_KEY: 'false'
+                }
+                Item().setMetadata(item, add_meta)
+            else:
+                selected_for_review = True
         else:
+            # the assignment is already reviewed and sent back from reviewers for reannotation
             selected_for_review = True
+
     return {
         'annotation_file_name': annot_file_name,
         'selected_for_review': selected_for_review,
@@ -653,49 +660,33 @@ def get_subvolume_item_info(item):
     total_regions_done = 0
     total_regions_at_work = 0
     total_regions_review_approved = 0
-    regions_rejected = []
-    if ret_dict['history']:
-        for reg_lbl, history_info_ary in ret_dict['history'].items():
-            for history_info in history_info_ary:
-                if history_info['type'] == 'annotation_rejected_by':
-                    regions_rejected.append(history_info)
-    ret_dict['rejected_regions'] = regions_rejected
     total_reviewed_regions_done = 0
     total_reviewed_regions_at_work = 0
 
     for key, val in region_dict.items():
         if 'item_id' in val:
-            assign_info = get_history_info(item, val['item_id'], ANNOT_ASSIGN_KEY)
-            review_assign_info = get_history_info(item, val['item_id'], REVIEW_ASSIGN_KEY)
-            complete_info = get_history_info(item, val['item_id'], ANNOT_COMPLETE_KEY)
+            assign_status = get_assignment_status(item, val['item_id'])
             review_complete_info = get_history_info(item, val['item_id'], REVIEW_COMPLETE_KEY)
         else:
-            assign_info = None
-            review_assign_info = None
-            complete_info = None
             if REVIEW_APPROVE_KEY in val and val[REVIEW_APPROVE_KEY] == 'true':
                 total_regions_review_approved += 1
                 total_regions_done += 1
-                continue
-            review_complete_info = None
-        if not annot_done:
-            if complete_info:
-                if complete_info[0]['time'] < assign_info[0]['time']:
-                    # region is sent back from the reviewer
-                    total_regions_at_work += 1
-                else:
-                    total_regions_done += 1
-            elif assign_info:
-                total_regions_at_work += 1
-        if not review_done:
-            if review_complete_info:
-                total_reviewed_regions_done += 1
-            elif complete_info and review_assign_info:
-                if complete_info[0]['time'] < review_assign_info[0]['time']:
-                    # annotation is done but review is not done and a user is reviewing currently
-                    total_reviewed_regions_at_work += 1
-        if not review_approved and review_complete_info:
+            continue
+
+        if assign_status == 'completed':
             total_regions_review_approved += 1
+            total_reviewed_regions_done += 1
+            total_regions_done += 1
+        if not annot_done:
+            if assign_status == 'active':
+                total_regions_at_work += 1
+            elif assign_status == 'awaiting review':
+                total_regions_done += 1
+        if not review_done:
+            if assign_status == 'under review':
+                total_reviewed_regions_at_work += 1
+            elif assign_status == 'active' and review_complete_info:
+                total_reviewed_regions_done += 1
 
     if annot_done and review_done and review_approved:
         return ret_dict
