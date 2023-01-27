@@ -6,7 +6,7 @@ import { useModal, useSaveAnnotations, useSaveReview } from 'hooks';
 const { Header, Content, Actions } = Modal;
 
 export const SubmitButton = ({ disabled, review = false }) => {
-  const [, userDispatch] = useContext(UserContext);
+  const [{ assignment }, userDispatch] = useContext(UserContext);
   const [open, openModal, closeModal] = useModal();
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -19,13 +19,17 @@ export const SubmitButton = ({ disabled, review = false }) => {
 
     let response = null;
 
+    const selected = false;
+
     if (review) {
       await saveReview(true);
     }
     else {
-      response = await saveAnnotations(true);
+      const response = await saveAnnotations(true);
 
-      setSelectedForReview(response.selected_for_review);
+      selected = response.selected_for_review && !assignment.reviewer.login;
+
+      setSelectedForReview(selected);
     }
 
     setSubmitting(false);
@@ -36,7 +40,7 @@ export const SubmitButton = ({ disabled, review = false }) => {
       closeModal();
 
       userDispatch({ type: CLEAR_DATA });
-    }, response?.selected_for_review ? 2000 : 1000);   
+    }, selected ? 2000 : 1000);   
   };
 
   return (
