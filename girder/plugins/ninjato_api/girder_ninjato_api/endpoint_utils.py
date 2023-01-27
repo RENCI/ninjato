@@ -499,6 +499,7 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
     whole_item = save_added_and_removed_regions(whole_item, item, current_region_ids,
                                                 done, uid, add_meta)
 
+    selected_for_review = False
     if done:
         info = {
             'type': ANNOT_COMPLETE_KEY,
@@ -518,9 +519,11 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
                 REVIEW_DONE_KEY: 'false'
             }
             Item().setMetadata(item, add_meta)
-
+        else:
+            selected_for_review = True
     return {
         'annotation_file_name': annot_file_name,
+        'selected_for_review': selected_for_review,
         'status': 'success'
     }
 
