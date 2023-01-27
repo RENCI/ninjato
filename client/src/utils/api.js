@@ -321,7 +321,7 @@ export const api = {
       }
     );
 
-    if (response.data.length === 0) throw new Error('No new assignment');
+    if (response.data.length === 0) return null;
 
     const item = response.data[0];
 
