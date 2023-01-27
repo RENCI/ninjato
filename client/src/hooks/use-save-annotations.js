@@ -30,13 +30,15 @@ export const useSaveAnnotations = () => {
         //return;
       }
 
-      await api.saveAnnotations(user._id, assignment.id, buffer, regions, done);    
+      const result = await api.saveAnnotations(user._id, assignment.id, buffer, regions, done);    
       
       if (!done) {
         const comments = await api.updateComments(assignment.subvolumeId, regions);
 
         userDispatch({ type: SET_COMMENTS, comments: comments });
       }
+
+      return result;
     }
     catch (error) {
       console.log(error);

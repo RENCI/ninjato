@@ -1,5 +1,5 @@
 import { useContext, useState } from 'react';
-import { Button, Modal, Icon } from 'semantic-ui-react';
+import { Button, Modal, Icon, Message } from 'semantic-ui-react';
 import { UserContext, CLEAR_DATA } from 'contexts';
 import { useModal, useSaveAnnotations, useSaveReview } from 'hooks';
 
@@ -10,17 +10,22 @@ export const SubmitButton = ({ disabled, review = false }) => {
   const [open, openModal, closeModal] = useModal();
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [selectedForReview, setSelectedForReview] = useState(false);
   const saveAnnotations = useSaveAnnotations();
   const saveReview = useSaveReview();
 
   const onConfirm = async () => {
     setSubmitting(true);
 
+    let response = null;
+
     if (review) {
       await saveReview(true);
     }
     else {
-      await saveAnnotations(true);
+      response = await saveAnnotations(true);
+
+      setSelectedForReview(response.selected_for_review);
     }
 
     setSubmitting(false);
@@ -31,7 +36,7 @@ export const SubmitButton = ({ disabled, review = false }) => {
       closeModal();
 
       userDispatch({ type: CLEAR_DATA });
-    }, 1000);   
+    }, response?.selected_for_review ? 2000 : 1000);   
   };
 
   return (
@@ -54,7 +59,16 @@ export const SubmitButton = ({ disabled, review = false }) => {
           :  success ?
             <>
               <Icon name='check circle outline' color='green' />
-              Submitted successfully!
+              Submitted successfully! 
+              { selectedForReview && 
+                <Message 
+                  icon
+                  color='yellow'                  
+                >
+                  <Icon name='info circle' />
+                  <Message.Content>Assignment was randomly selected for review</Message.Content>
+                </Message>
+              }
             </>
           : 
             <>Submit { review ? 'review' : 'assignment for review' }?</>
