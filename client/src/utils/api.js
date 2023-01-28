@@ -467,7 +467,7 @@ export const api = {
     formData.append('color', JSON.stringify(regionObject(regions, 'color')));
     formData.append('content_data', blob);    
 
-    await axios.post(`/user/${ userId }/annotation`, 
+    const response = await axios.post(`/user/${ userId }/annotation`, 
       formData,
       {
         params: { 
@@ -479,6 +479,8 @@ export const api = {
         }
       }
     );
+
+    return response.data;
   },
   claimRegion: async (userId, subvolumeId, assignmentId, label, buffer, regions) => {
     const blob = new Blob([buffer], { type: 'application/octet' });

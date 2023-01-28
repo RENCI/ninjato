@@ -24,7 +24,9 @@ ANNOT_ASSIGN_KEY = 'annotation_assigned_to'
 ANNOT_COMPLETE_KEY = 'annotation_completed_by'
 REVIEW_ASSIGN_KEY = 'review_assigned_to'
 REVIEW_COMPLETE_KEY = 'review_completed_by'
+REVIEW_DONE_KEY = 'review_done'
 REVIEW_APPROVE_KEY = 'review_approved'
+ASSIGN_COUNT_FOR_REVIEW = 10
 
 
 def _get_tif_file_content_and_path(item_file):
@@ -502,6 +504,19 @@ def get_history_info(whole_item, assign_item_id, in_type):
                 return return_info
             if info['type'] == in_type:
                 return_info.append(info)
+
+    return return_info
+
+
+def get_completed_assignment_items(username, whole_item, in_type=ANNOT_COMPLETE_KEY):
+    return_info = []
+    if 'history' in whole_item['meta']:
+        for assign_item_id in whole_item['meta']['history']:
+            # need to loop through history list in reverse order to check newer actions first
+            for info in whole_item['meta']['history'][assign_item_id]:
+                if info['type'] == in_type and info['user'] == username:
+                    return_info.append(assign_item_id)
+                    continue
 
     return return_info
 
