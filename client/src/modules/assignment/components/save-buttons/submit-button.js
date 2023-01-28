@@ -17,9 +17,7 @@ export const SubmitButton = ({ disabled, review = false }) => {
   const onConfirm = async () => {
     setSubmitting(true);
 
-    let response = null;
-
-    const selected = false;
+    let selected = false;
 
     if (review) {
       await saveReview(true);
