@@ -37,7 +37,7 @@ if __name__ == '__main__':
             for sub_vol_folder in sub_vol_folders:
                 folders = gc.listFolder(sub_vol_folder['_id'], parentFolderType='folder')
                 for folder in folders:
-                    items = gc.listItem(folder['_id'], name='whole')
+                    items = gc.listItem(folder['_id'], name='_whole')
                     found = False
                     for item in items:
                         files = gc.listFile(item['_id'])
