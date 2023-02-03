@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { decodeTIFF } from 'utils/data-conversion';
 
 // API helper functions
 
@@ -92,6 +93,73 @@ const getAssignment = async (subvolumeId, itemId) => {
     reviewer: info.reviewer ? info.reviewer : null
   };
 };
+
+const getDiceScore = async volume => {
+  const goldId = volume.gold_standard_mask_item_id;
+
+  if (!goldId) return null;
+  
+  const goldFiles =  await axios.get(`/item/${ goldId }/files`);
+  const goldFile = goldFiles.data[0];
+
+  const volumeFiles = await axios.get(`/item/${ volume.id }/files`);
+  const maskFile = volumeFiles.data.find(({ name }) => name.includes('_masks.tif'));
+
+  // Get files
+  const fileResponses = await Promise.all([
+    axios.get(fileUrl(goldFile._id), { responseType: 'arraybuffer' }), 
+    axios.get(fileUrl(maskFile._id), { responseType: 'arraybuffer' })      
+  ]);
+
+  console.log(fileResponses);
+
+
+  // XXX: Just need to call tiff.decode, below creates vtk image 
+
+  const goldData = decodeTIFF(fileResponses[0].data);
+  const maskData = decodeTIFF(fileResponses[1].data);
+
+  console.log(goldData, maskData);
+};
+
+
+
+
+const getFiles = async ({ id }) => {
+  const response = await axios.get(`/item/${ id }/files`);
+
+  // Get file info
+  const { imageInfo, maskInfo } = response.data.reduce((info, item) => {
+    // XXX: Depending on file naming conventions here. 
+    if (item.name.includes('_masks_regions_user.tif')) {
+      info.maskInfo = item;
+    }
+    else if (item.name.includes('_masks_regions.tif')) {
+      if (!info.maskInfo) {
+        info.maskInfo = item;
+      }
+    }
+    else if (item.name.includes('_regions.tif')) {
+      info.imageInfo = item;
+    }
+
+    return info;
+  }, {});
+
+  // Get files
+  const fileResponses = await Promise.all([
+    axios.get(fileUrl(imageInfo._id), { responseType: 'arraybuffer' }), 
+    axios.get(fileUrl(maskInfo._id), { responseType: 'arraybuffer' })      
+  ]);
+
+  return {
+    imageBuffer: fileResponses[0].data,
+    maskBuffer: fileResponses[1].data
+  }; 
+};
+
+
+
 
 // API
 
@@ -195,6 +263,9 @@ export const api = {
         // Get parent volume info
         const pathResponse = await axios.get(`/item/${ volume.id }/rootpath`);
 
+        // Get dice score for training volumes
+        const diceScore = trainee ? await getDiceScore(data) : null;
+
         // Copy info and rename to be more concise
         volumes.push({
           id: data.id,
@@ -216,7 +287,8 @@ export const api = {
           },
           sliceRanges: data.intensity_ranges.map(({ min, max }) => [min, max]),
           history: data.history,
-          trainingUser: data.training_user ? data.training_user : null
+          trainingUser: data.training_user ? data.training_user : null,
+          dicerScore: diceScore
         });      
       }      
       catch (error) {
