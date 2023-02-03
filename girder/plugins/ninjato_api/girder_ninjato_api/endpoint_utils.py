@@ -637,6 +637,8 @@ def get_subvolume_item_info(item):
         'total_regions': total_regions,
         'intensity_ranges': item['meta']['intensity_range_per_slice'],
         'training_user': item['meta']['training_user'] if 'training_user' in item['meta'] else '',
+        'gold_standard_mask_item_id': item['meta']['gold_standard_mask_item_id']
+        if 'gold_standard_mask_item_id' in item['meta'] else '',
         'history': item['meta']['history'] if 'history' in item['meta'] else {}
     }
     annot_done_key = 'annotation_done'
@@ -659,18 +661,25 @@ def get_subvolume_item_info(item):
 
     total_regions_done = 0
     total_regions_at_work = 0
+    total_regions_available = 0
     total_regions_review_approved = 0
     total_reviewed_regions_done = 0
     total_reviewed_regions_at_work = 0
-
+    total_unassigned_item_ids = []
     for key, val in region_dict.items():
         if 'item_id' in val:
             assign_status = get_assignment_status(item, val['item_id'])
+            if assign_status == 'inactive':
+                if val['item_id'] not in total_unassigned_item_ids:
+                    total_unassigned_item_ids.append(val['item_id'])
+                    total_regions_available += 1
+                continue
             review_complete_info = get_history_info(item, val['item_id'], REVIEW_COMPLETE_KEY)
         else:
             if REVIEW_APPROVE_KEY in val and val[REVIEW_APPROVE_KEY] == 'true':
                 total_regions_review_approved += 1
                 total_regions_done += 1
+            total_regions_available += 1
             continue
 
         if assign_status == 'completed':
@@ -707,8 +716,7 @@ def get_subvolume_item_info(item):
     # both annotation and review are not done
     ret_dict['total_annotation_completed_regions'] = total_regions_done
     ret_dict['total_annotation_active_regions'] = total_regions_at_work
-    ret_dict['total_annotation_available_regions'] = total_regions - total_regions_done - \
-        total_regions_at_work
+    ret_dict['total_annotation_available_regions'] = total_regions_available
     ret_dict['total_review_completed_regions'] = total_reviewed_regions_done
     ret_dict['total_review_approved_regions'] = total_regions_review_approved
     ret_dict['total_review_active_regions'] = total_reviewed_regions_at_work
