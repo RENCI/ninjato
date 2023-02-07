@@ -140,12 +140,21 @@ export const Volume = ({ volume, availableReviews, enabled }) => {
               <>
                 <Divider />
                 <div>
-                  <Header 
-                    as='h5'
-                    content={ 'Training progress' }
-                  />
-                  <div>Dice score: { trainingInfo.diceScore.toFixed(4) }</div>
-                  <div>Region difference: { (trainingInfo.regionDifference > 0 ? '+' : '') + trainingInfo.regionDifference }</div>
+                  <Header as='h5'>
+                    Training progress
+                    <Header.Subheader>
+                      <div className={ styles.trainingInfo }>
+                        Dice score: <span>
+                          { trainingInfo.diceScore.toFixed(4) }
+                        </span>
+                      </div>
+                      <div className={ styles.trainingInfo }>
+                        Region difference: <span>
+                          { (trainingInfo.regionDifference > 0 ? '+' : '') + trainingInfo.regionDifference }
+                        </span>
+                      </div>
+                    </Header.Subheader>
+                  </Header>
                 </div>
               </>
             }
