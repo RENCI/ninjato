@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { decodeTIFF } from 'utils/data-conversion';
+import { computeDiceScore, getUniqueLabels } from './data';
 
 // API helper functions
 
@@ -90,6 +92,32 @@ const getAssignment = async (subvolumeId, itemId) => {
     status: getStatus(info),
     annotator: info.annotator ? info.annotator : null,
     reviewer: info.reviewer ? info.reviewer : null
+  };
+};
+
+const getTrainingInfo = async volume => {
+  const goldId = volume.gold_standard_mask_item_id;
+
+  if (!goldId) return null;
+  
+  const goldFiles =  await axios.get(`/item/${ goldId }/files`);
+  const goldFile = goldFiles.data[0];
+
+  const volumeFiles = await axios.get(`/item/${ volume.id }/files`);
+  const maskFile = volumeFiles.data.find(({ name }) => name.includes('_masks.tif'));
+
+  // Get files
+  const fileResponses = await Promise.all([
+    axios.get(fileUrl(goldFile._id), { responseType: 'arraybuffer' }), 
+    axios.get(fileUrl(maskFile._id), { responseType: 'arraybuffer' })      
+  ]);
+
+  const goldData = decodeTIFF(fileResponses[0].data);
+  const maskData = decodeTIFF(fileResponses[1].data);
+
+  return {
+    diceScore: computeDiceScore(goldData, maskData),
+    regionDifference: getUniqueLabels(maskData).length - getUniqueLabels(goldData).length
   };
 };
 
@@ -195,6 +223,9 @@ export const api = {
         // Get parent volume info
         const pathResponse = await axios.get(`/item/${ volume.id }/rootpath`);
 
+        // Get info for training volumes
+        const trainingInfo = data.training_user ? await getTrainingInfo(data) : null;
+
         // Copy info and rename to be more concise
         volumes.push({
           id: data.id,
@@ -216,7 +247,8 @@ export const api = {
           },
           sliceRanges: data.intensity_ranges.map(({ min, max }) => [min, max]),
           history: data.history,
-          trainingUser: data.training_user ? data.training_user : null
+          trainingUser: data.training_user ? data.training_user : null,
+          trainingInfo: trainingInfo
         });      
       }      
       catch (error) {

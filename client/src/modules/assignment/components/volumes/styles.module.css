@@ -47,3 +47,11 @@
 .chooseButton {
   margin-top: .8em;
 }
+
+.trainingInfo {
+  margin-top: 5px;
+}
+
+.trainingInfo span {
+  color: #000;
+}
