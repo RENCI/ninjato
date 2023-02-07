@@ -4,4 +4,3 @@
 coverage==6.5.0
 pytest>=3.6
 pytest-cov>=2.6
-libtiff==0.4.2
