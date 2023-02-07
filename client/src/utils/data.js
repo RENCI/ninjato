@@ -71,7 +71,7 @@ export const getMissingRegions = (maskData, regions) => {
   }, []);
 };
 
-export const diceScore = (image1, image2) => {  
+export const computeDiceScore = (image1, image2) => {  
   const d1 = image1.getDimensions();
   const d2 = image2.getDimensions();
 

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { decodeTIFF } from 'utils/data-conversion';
+import { computeDiceScore } from './data';
 
 // API helper functions
 
@@ -113,13 +114,10 @@ const getDiceScore = async volume => {
 
   console.log(fileResponses);
 
-
-  // XXX: Just need to call tiff.decode, below creates vtk image 
-
   const goldData = decodeTIFF(fileResponses[0].data);
   const maskData = decodeTIFF(fileResponses[1].data);
 
-  console.log(goldData, maskData);
+  return computeDiceScore(goldData, maskData);
 };
 
 // API
@@ -249,7 +247,7 @@ export const api = {
           sliceRanges: data.intensity_ranges.map(({ min, max }) => [min, max]),
           history: data.history,
           trainingUser: data.training_user ? data.training_user : null,
-          dicerScore: diceScore
+          diceScore: diceScore
         });      
       }      
       catch (error) {
