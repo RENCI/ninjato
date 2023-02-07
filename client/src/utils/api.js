@@ -216,8 +216,6 @@ export const api = {
       try {
         const infoResponse = await axios.get(`/item/${ volume.id }/subvolume_info`);
 
-        console.log(infoResponse);
-
         const { data } = infoResponse;
 
         if (trainee && data.training_user !== login) continue;
