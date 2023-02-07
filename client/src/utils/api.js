@@ -122,45 +122,6 @@ const getDiceScore = async volume => {
   console.log(goldData, maskData);
 };
 
-
-
-
-const getFiles = async ({ id }) => {
-  const response = await axios.get(`/item/${ id }/files`);
-
-  // Get file info
-  const { imageInfo, maskInfo } = response.data.reduce((info, item) => {
-    // XXX: Depending on file naming conventions here. 
-    if (item.name.includes('_masks_regions_user.tif')) {
-      info.maskInfo = item;
-    }
-    else if (item.name.includes('_masks_regions.tif')) {
-      if (!info.maskInfo) {
-        info.maskInfo = item;
-      }
-    }
-    else if (item.name.includes('_regions.tif')) {
-      info.imageInfo = item;
-    }
-
-    return info;
-  }, {});
-
-  // Get files
-  const fileResponses = await Promise.all([
-    axios.get(fileUrl(imageInfo._id), { responseType: 'arraybuffer' }), 
-    axios.get(fileUrl(maskInfo._id), { responseType: 'arraybuffer' })      
-  ]);
-
-  return {
-    imageBuffer: fileResponses[0].data,
-    maskBuffer: fileResponses[1].data
-  }; 
-};
-
-
-
-
 // API
 
 export const api = {
