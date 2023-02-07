@@ -1,5 +1,5 @@
 import { useContext, useState } from 'react';
-import { Segment, Header, Progress, Label } from 'semantic-ui-react';
+import { Segment, Header, Progress, Label, Divider } from 'semantic-ui-react';
 import { 
   UserContext, SET_ASSIGNMENT, ADD_REVIEWS,
   ErrorContext, SET_ERROR 
@@ -25,7 +25,7 @@ export const Volume = ({ volume, availableReviews, enabled }) => {
   const [message, setMessage] = useState(emptyMessage);
   const loadData = useLoadData();
 
-  const { name, description, numRegions, annotations } = volume;
+  const { name, description, numRegions, annotations, trainingInfo } = volume;
   const { active, available, completed } = annotations;
 
   const review = Boolean(availableReviews);
@@ -136,6 +136,19 @@ export const Volume = ({ volume, availableReviews, enabled }) => {
                 <Label basic color='grey' content='completed' detail={ completed } />
               </div>
             </div>
+            { trainingInfo && 
+              <>
+                <Divider />
+                <div>
+                  <Header 
+                    as='h5'
+                    content={ 'Training progress' }
+                  />
+                  <div>Dice score: { trainingInfo.diceScore.toFixed(4) }</div>
+                  <div>Region difference: { (trainingInfo.regionDifference > 0 ? '+' : '') + trainingInfo.regionDifference }</div>
+                </div>
+              </>
+            }
           </div>
           { process.env.NODE_ENV === 'development' && 
             <div className={ styles.chooseButton }>

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { decodeTIFF } from 'utils/data-conversion';
-import { computeDiceScore } from './data';
+import { computeDiceScore, getUniqueLabels } from './data';
 
 // API helper functions
 
@@ -95,7 +95,7 @@ const getAssignment = async (subvolumeId, itemId) => {
   };
 };
 
-const getDiceScore = async volume => {
+const getTrainingInfo = async volume => {
   const goldId = volume.gold_standard_mask_item_id;
 
   if (!goldId) return null;
@@ -112,12 +112,13 @@ const getDiceScore = async volume => {
     axios.get(fileUrl(maskFile._id), { responseType: 'arraybuffer' })      
   ]);
 
-  console.log(fileResponses);
-
   const goldData = decodeTIFF(fileResponses[0].data);
   const maskData = decodeTIFF(fileResponses[1].data);
 
-  return computeDiceScore(goldData, maskData);
+  return {
+    diceScore: computeDiceScore(goldData, maskData),
+    regionDifference: getUniqueLabels(maskData).length - getUniqueLabels(goldData).length
+  };
 };
 
 // API
@@ -222,8 +223,8 @@ export const api = {
         // Get parent volume info
         const pathResponse = await axios.get(`/item/${ volume.id }/rootpath`);
 
-        // Get dice score for training volumes
-        const diceScore = trainee ? await getDiceScore(data) : null;
+        // Get info for training volumes
+        const trainingInfo = trainee ? await getTrainingInfo(data) : null;
 
         // Copy info and rename to be more concise
         volumes.push({
@@ -247,7 +248,7 @@ export const api = {
           sliceRanges: data.intensity_ranges.map(({ min, max }) => [min, max]),
           history: data.history,
           trainingUser: data.training_user ? data.training_user : null,
-          diceScore: diceScore
+          trainingInfo: trainingInfo
         });      
       }      
       catch (error) {
