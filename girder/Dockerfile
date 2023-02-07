@@ -7,7 +7,7 @@ RUN mkdir data log
 COPY data /girder/data
 COPY $GIRDER_CFG_FILE /etc/girder.cfg
 
-RUN pip install girder-ninjato-api==0.1.0 \
+RUN pip install -r requirements.txt \
   && girder build 
 
 ENTRYPOINT ["girder", "serve"]

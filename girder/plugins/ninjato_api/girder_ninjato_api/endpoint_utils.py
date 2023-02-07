@@ -522,6 +522,14 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
                     REVIEW_DONE_KEY: 'false'
                 }
                 Item().setMetadata(item, add_meta)
+                # update whole volume masks with annotations
+                if annot_file_name:
+                    update_assignment_in_whole_item(whole_item, item_id,
+                                                    mask_file_name=annot_file_name)
+                else:
+                    update_assignment_in_whole_item(whole_item, item_id)
+                # update all assignments of the subvolume asyncly as a job
+                update_all_assignment_masks_async(whole_item, item_id)
             else:
                 selected_for_review = True
         else:
