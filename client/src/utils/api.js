@@ -216,6 +216,8 @@ export const api = {
       try {
         const infoResponse = await axios.get(`/item/${ volume.id }/subvolume_info`);
 
+        console.log(infoResponse);
+
         const { data } = infoResponse;
 
         if (trainee && data.training_user !== login) continue;
@@ -224,7 +226,7 @@ export const api = {
         const pathResponse = await axios.get(`/item/${ volume.id }/rootpath`);
 
         // Get info for training volumes
-        const trainingInfo = trainee ? await getTrainingInfo(data) : null;
+        const trainingInfo = data.training_user ? await getTrainingInfo(data) : null;
 
         // Copy info and rename to be more concise
         volumes.push({
