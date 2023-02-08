@@ -74,6 +74,29 @@ const processTimeline = timeline => {
   }, []);
 };
 
+const binCounts = (timeline, binDay = 0, numWeeks = 1) => {
+  if (!timeline || timeline?.counts.length === 0) return;
+
+  // Initialize bin date
+  const first = timeline.counts[0].time;
+  const binDate = new Date(first.getFullYear(), first.getMonth(), first.getDate());
+  binDate.setDate(first.getDate() + (7 + binDay - first.getDay()) % 7);
+
+  console.log(timeline.counts);
+
+  // XXX: counts are not sorted? Look into this...
+
+  const binCounts = timeline.counts.reduce((bins, counts) => {
+
+    console.log(counts.time);
+
+    if (counts.time > binDate) {
+      binDate.setTime(binDate.getTime() + (numWeeks * 7 * 24 * 60 * 60 * 1000));
+      console.log(binDate);
+    }
+  }, []);
+};
+
 const getVolumeTimeline = volume => {
   const timeline = [];
 
@@ -90,6 +113,7 @@ const getVolumeTimeline = volume => {
   });
 
   processTimeline(timeline);
+  binCounts(timeline, 0, 7);
 
   return timeline;
 };  
