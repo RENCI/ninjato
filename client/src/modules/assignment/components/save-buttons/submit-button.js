@@ -1,26 +1,33 @@
 import { useContext, useState } from 'react';
-import { Button, Modal, Icon } from 'semantic-ui-react';
+import { Button, Modal, Icon, Message } from 'semantic-ui-react';
 import { UserContext, CLEAR_DATA } from 'contexts';
 import { useModal, useSaveAnnotations, useSaveReview } from 'hooks';
 
 const { Header, Content, Actions } = Modal;
 
 export const SubmitButton = ({ disabled, review = false }) => {
-  const [, userDispatch] = useContext(UserContext);
+  const [{ assignment }, userDispatch] = useContext(UserContext);
   const [open, openModal, closeModal] = useModal();
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [selectedForReview, setSelectedForReview] = useState(false);
   const saveAnnotations = useSaveAnnotations();
   const saveReview = useSaveReview();
 
   const onConfirm = async () => {
     setSubmitting(true);
 
+    let selected = false;
+
     if (review) {
       await saveReview(true);
     }
     else {
-      await saveAnnotations(true);
+      const response = await saveAnnotations(true);
+
+      selected = response.selected_for_review && !assignment.reviewer.login;
+
+      setSelectedForReview(selected);
     }
 
     setSubmitting(false);
@@ -31,7 +38,7 @@ export const SubmitButton = ({ disabled, review = false }) => {
       closeModal();
 
       userDispatch({ type: CLEAR_DATA });
-    }, 1000);   
+    }, selected ? 2000 : 1000);   
   };
 
   return (
@@ -54,7 +61,16 @@ export const SubmitButton = ({ disabled, review = false }) => {
           :  success ?
             <>
               <Icon name='check circle outline' color='green' />
-              Submitted successfully!
+              Submitted successfully! 
+              { selectedForReview && 
+                <Message 
+                  icon
+                  color='yellow'                  
+                >
+                  <Icon name='info circle' />
+                  <Message.Content>Assignment was randomly selected for review</Message.Content>
+                </Message>
+              }
             </>
           : 
             <>Submit { review ? 'review' : 'assignment for review' }?</>

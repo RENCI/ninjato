@@ -1,5 +1,5 @@
-import { useContext } from 'react';
-import { Segment, Header, Progress, Label } from 'semantic-ui-react';
+import { useContext, useState } from 'react';
+import { Segment, Header, Progress, Label, Divider } from 'semantic-ui-react';
 import { 
   UserContext, SET_ASSIGNMENT, ADD_REVIEWS,
   ErrorContext, SET_ERROR 
@@ -7,18 +7,25 @@ import {
 import { Assignments } from 'modules/assignment/components/assignments';
 import { ButtonWrapper } from 'modules/common/components/button-wrapper';
 import { ChooseButton } from './choose-button';
+import { VolumeMessage } from './volume-message';
 import { useLoadData } from 'hooks';
 import { api } from 'utils/api';
 import styles from './styles.module.css';
 
 const numLoad = 5;
 
+const emptyMessage = {
+  header: null,
+  message: null
+};
+
 export const Volume = ({ volume, availableReviews, enabled }) => {
   const [{ user }, userDispatch] = useContext(UserContext);
   const [, errorDispatch] = useContext(ErrorContext);
+  const [message, setMessage] = useState(emptyMessage);
   const loadData = useLoadData();
 
-  const { name, description, numRegions, annotations } = volume;
+  const { name, description, numRegions, annotations, trainingInfo } = volume;
   const { active, available, completed } = annotations;
 
   const review = Boolean(availableReviews);
@@ -54,14 +61,26 @@ export const Volume = ({ volume, availableReviews, enabled }) => {
       try {
         const assignment = await api.getNewAssignment(user._id, volume.id);
 
-        userDispatch({ type: SET_ASSIGNMENT, assignment: assignment });
+        if (assignment) {
+          userDispatch({ type: SET_ASSIGNMENT, assignment: assignment });
 
-        loadData(assignment);
+          loadData(assignment);
+        }
+        else {
+          setMessage({ 
+            header: 'No assignment available',
+            message: 'No assignments are available for the selected volume'
+          });
+        }
       }
       catch (error) {
         errorDispatch({ type: SET_ERROR, error: error });
       }
     }
+  };
+
+  const onMessageDismiss = () => {
+    setMessage(emptyMessage);
   };
 
   const isEnabled = review ? 
@@ -117,6 +136,28 @@ export const Volume = ({ volume, availableReviews, enabled }) => {
                 <Label basic color='grey' content='completed' detail={ completed } />
               </div>
             </div>
+            { trainingInfo && 
+              <>
+                <Divider />
+                <div>
+                  <Header as='h5'>
+                    Training progress
+                    <Header.Subheader>
+                      <div className={ styles.trainingInfo }>
+                        Dice score: <span>
+                          { trainingInfo.diceScore.toFixed(4) }
+                        </span>
+                      </div>
+                      <div className={ styles.trainingInfo }>
+                        Region difference: <span>
+                          { (trainingInfo.regionDifference > 0 ? '+' : '') + trainingInfo.regionDifference }
+                        </span>
+                      </div>
+                    </Header.Subheader>
+                  </Header>
+                </div>
+              </>
+            }
           </div>
           { process.env.NODE_ENV === 'development' && 
             <div className={ styles.chooseButton }>
@@ -149,6 +190,11 @@ export const Volume = ({ volume, availableReviews, enabled }) => {
           />
         </>
       }
+      <VolumeMessage 
+        header={ message.header } 
+        message={ message.message } 
+        onDismiss={ onMessageDismiss }
+      />
     </>
   );  
 };

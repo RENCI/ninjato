@@ -4,5 +4,3 @@
 coverage==6.5.0
 pytest>=3.6
 pytest-cov>=2.6
-python-dateutil==2.8.1
-libtiff==0.4.2
