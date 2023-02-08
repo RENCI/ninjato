@@ -9,7 +9,10 @@ export const lineChart = {
   data: {
     name: "data"
   },
-  mark: { type: 'line', tooltip: true },
+  mark: { 
+    type: 'line', 
+    tooltip: true 
+  },
   encoding: {
     x: { 
       field: 'time', 

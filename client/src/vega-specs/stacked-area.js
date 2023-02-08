@@ -9,26 +9,6 @@ export const stackedArea = {
   data: {
     name: 'data'
   },
-  transform: [
-    {timeUnit: "yearmonthdate", field: "time", as: "date"},
-    {
-      aggregate: [{op: "median", field: "count", as: "count"}],
-      groupby: ["date"]
-    },
-    {calculate: "day(datum.date) == 0", as: "sundays"},
-    {
-      window: [{op: "sum", field: "sundays", as: "week"}],
-      sort: "date"
-    },
-    {
-      aggregate: [{
-       op: "mean",
-       field: "count",
-       as: "temp"
-      }],
-      groupby: ["week"]
-    }
-  ],
   mark: { 
     type: 'area', 
     line: true, 
@@ -36,10 +16,12 @@ export const stackedArea = {
   },
   encoding: {
     x: {
-      field: 'week',
+      field: 'time',
+      timeUnit: 'yearweek',
       type: 'temporal'
     },
     y: {
+      aggregate: 'median',
       field: 'count',
       type: 'quantitative'
     },
