@@ -45,14 +45,14 @@ const sanitizeHistory = volume => {
 const processTimeline = timeline => {
   timeline.sort((a, b) => a.time - b.time);
 
-  timeline.counts = timeline.reduce((counts, action, i) => {
+  timeline.counts = timeline.map((action, i, a) => {
     const count = i === 0 ? {
       active: 0,
       review: 0,
       completed: 0,
       declined: 0,
       reviewDeclined: 0
-    } : {...counts[i - 1]};
+    } : {...a[i - 1]};
 
     count.time = new Date(action.time);
 
@@ -68,32 +68,29 @@ const processTimeline = timeline => {
         console.warn(`Unknown action type ${ action.type }`);
     }
 
-    counts.push(count);
-
-    return counts;
-  }, []);
+    return count;
+  });
 };
 
 const binCounts = (timeline, binDay = 0, numWeeks = 1) => {
   if (!timeline || timeline?.counts.length === 0) return;
+
+  const addDays = (date, days) => {
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+  };
 
   // Initialize bin date
   const first = timeline.counts[0].time;
   const binDate = new Date(first.getFullYear(), first.getMonth(), first.getDate());
   binDate.setDate(first.getDate() + (7 + binDay - first.getDay()) % 7);
 
-  console.log(timeline.counts);
+  const binCounts = timeline.counts.reduce((bins, counts, i) => {
 
-  // XXX: counts are not sorted? Look into this...
+    if (counts.time > binDate) {         
+      addDays(binDate, numWeeks * 7);
 
-  const binCounts = timeline.counts.reduce((bins, counts) => {
-
-    console.log(counts.time);
-
-    if (counts.time > binDate) {
-      binDate.setTime(binDate.getTime() + (numWeeks * 7 * 24 * 60 * 60 * 1000));
-      console.log(binDate);
-    }
+      // XXX: Create a new bin for this date
+    }   
   }, []);
 };
 
@@ -113,7 +110,7 @@ const getVolumeTimeline = volume => {
   });
 
   processTimeline(timeline);
-  binCounts(timeline, 0, 7);
+  binCounts(timeline, 0, 1);
 
   return timeline;
 };  
