@@ -172,7 +172,8 @@ const getUserTimelines = (volume, users) => {
 export const VolumeProgress = ({ volume, users }) => {
   const [volumeTimeline, setVolumeTimeline] = useState();
   const [userTimelines, setUserTimelines] = useState();
-  const [binnedCounts, setBinnedCounts] = useState();
+  const [binnedVolumeCounts, setBinnedVolumeCounts] = useState();
+  const [binnedUserCounts, setBinnedUserCounts] = useState();
 
   useEffect(() => {
     if (volume && users) {
@@ -180,9 +181,17 @@ export const VolumeProgress = ({ volume, users }) => {
 
       const volumeTimeline = getVolumeTimeline(volume);
       setVolumeTimeline(volumeTimeline);
-      setBinnedCounts(binCounts(volumeTimeline));
+      setBinnedVolumeCounts(binCounts(volumeTimeline, 0, 1));
 
-      //setUserTimelines(getUserTimelines(volume, users));
+      const userTimelines = getUserTimelines(volume, users);
+
+      console.log(userTimelines)
+
+      setUserTimelines(getUserTimelines(volume, users));
+      setBinnedUserCounts(userTimelines.map(user => ({
+        user: user.user,
+        counts: binCounts(user.timeline)
+      })));
     }
   }, [volume, users]);
 
@@ -192,21 +201,21 @@ export const VolumeProgress = ({ volume, users }) => {
     return keyIndex;
   }, {});
 
-  const lineData = binnedCounts ? binnedCounts.reduce((data, count) => {
+  const lineData = binnedVolumeCounts ? binnedVolumeCounts.reduce((data, count) => {
     return [
       ...data,
       ...keys.map(key => ({ count: count[key], time: count.time, status: key, order: keyIndex[key] }))
     ]
   }, []) : null;
   
-  const areaData = binnedCounts ? binnedCounts.reduce((data, count) => {
+  const areaData = binnedVolumeCounts ? binnedVolumeCounts.reduce((data, count) => {
     return [
       ...data,
       ...keys.map(key => ({ count: key.includes('declined') ? -count[key] : count[key], time: count.time, status: key, order: keyIndex[key] }))
     ]
-  }, []) : null
+  }, []) : null;
 
-  console.log(binnedCounts);
+  console.log(binnedUserCounts);
 
   return (
     lineData && areaData && 
