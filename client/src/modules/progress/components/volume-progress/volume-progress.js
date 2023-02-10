@@ -45,14 +45,14 @@ const sanitizeHistory = volume => {
 const processTimeline = timeline => {
   timeline.sort((a, b) => a.time - b.time);
 
-  timeline.counts = timeline.map((action, i, a) => {
+  timeline.counts = timeline.reduce((counts, action, i) => {
     const count = i === 0 ? {
       active: 0,
       review: 0,
       completed: 0,
       declined: 0,
       reviewDeclined: 0
-    } : {...a[i - 1]};
+    } : {...counts[i - 1]};
 
     count.time = new Date(action.time);
 
@@ -68,8 +68,10 @@ const processTimeline = timeline => {
         console.warn(`Unknown action type ${ action.type }`);
     }
 
-    return count;
-  });
+    counts.push(count);
+
+    return counts;
+  }, []);
 };
 
 const binCounts = (timeline, binDay = 0, numWeeks = 1) => {
@@ -79,19 +81,32 @@ const binCounts = (timeline, binDay = 0, numWeeks = 1) => {
     date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
   };
 
-  // Initialize bin date
-  const first = timeline.counts[0].time;
-  const binDate = new Date(first.getFullYear(), first.getMonth(), first.getDate());
-  binDate.setDate(first.getDate() + (7 + binDay - first.getDay()) % 7);
+  // Get end date for first bin
+  const first = timeline.counts[0];
+  const binDate = new Date(first.time.getFullYear(), first.time.getMonth(), first.time.getDate());
+  binDate.setDate(first.time.getDate() + (7 + binDay - first.time.getDay()) % 7);
 
-  const binCounts = timeline.counts.reduce((bins, counts, i) => {
+  // Create first bin
+  const keys = Object.keys(first).filter(key => key !== 'time');
+  const startBin = {};
+  keys.forEach(key => startBin[key] = 0);
+  startBin.time = binDate;  
 
-    if (counts.time > binDate) {         
-      addDays(binDate, numWeeks * 7);
-
-      // XXX: Create a new bin for this date
+  const binCounts = timeline.counts.reduce((bins, counts) => {
+    if (counts.time > bins[bins.length - 1].time) {   
+      // Create a new bin for this date
+      const newBin = {...bins[bins.length - 1]};
+      newBin.time = new Date(newBin.time);
+      addDays(newBin.time, numWeeks * 7);
+      bins.push(newBin);
     }   
-  }, []);
+
+    keys.forEach(key => bins[bins.length - 1][key] = counts[key]);
+
+    return bins;    
+  }, [startBin]);
+
+  return binCounts;
 };
 
 const getVolumeTimeline = volume => {
@@ -157,12 +172,17 @@ const getUserTimelines = (volume, users) => {
 export const VolumeProgress = ({ volume, users }) => {
   const [volumeTimeline, setVolumeTimeline] = useState();
   const [userTimelines, setUserTimelines] = useState();
+  const [binnedCounts, setBinnedCounts] = useState();
 
   useEffect(() => {
     if (volume && users) {
       sanitizeHistory(volume);    
-      setVolumeTimeline(getVolumeTimeline(volume));
-      setUserTimelines(getUserTimelines(volume, users));
+
+      const volumeTimeline = getVolumeTimeline(volume);
+      setVolumeTimeline(volumeTimeline);
+      setBinnedCounts(binCounts(volumeTimeline));
+
+      //setUserTimelines(getUserTimelines(volume, users));
     }
   }, [volume, users]);
 
@@ -171,22 +191,22 @@ export const VolumeProgress = ({ volume, users }) => {
     keyIndex[key] = i;
     return keyIndex;
   }, {});
-  
-  const lineData = volumeTimeline ? volumeTimeline.counts.reduce((data, count) => {
+
+  const lineData = binnedCounts ? binnedCounts.reduce((data, count) => {
     return [
       ...data,
       ...keys.map(key => ({ count: count[key], time: count.time, status: key, order: keyIndex[key] }))
     ]
   }, []) : null;
   
-  const areaData = volumeTimeline ? volumeTimeline.counts.reduce((data, count) => {
+  const areaData = binnedCounts ? binnedCounts.reduce((data, count) => {
     return [
       ...data,
       ...keys.map(key => ({ count: key.includes('declined') ? -count[key] : count[key], time: count.time, status: key, order: keyIndex[key] }))
     ]
-  }, []) : null;
+  }, []) : null
 
-  console.log(userTimelines);
+  console.log(binnedCounts);
 
   return (
     lineData && areaData && 
