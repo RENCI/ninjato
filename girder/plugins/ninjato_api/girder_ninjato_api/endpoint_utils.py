@@ -510,7 +510,7 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
         # check if all regions for the partition is done, and if so add done metadata to whole item
         check_subvolume_done(whole_item)
         review_info = get_history_info(whole_item, item['_id'], REVIEW_COMPLETE_KEY)
-        if not review_info:
+        if not review_info and 'training_user' not in whole_item['meta']:
             # the first time the annotation assignment is submitted,
             # check how many assignments the user has done to determine whether to set the
             # assignment for review or not
