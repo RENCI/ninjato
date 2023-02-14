@@ -149,7 +149,7 @@ export const Volume = ({ volume, availableReviews, enabled }) => {
                         </span>
                       </div>
                       <div className={ styles.trainingInfo }>
-                        Region difference: <span>
+                        Region count difference: <span>
                           { (trainingInfo.regionDifference > 0 ? '+' : '') + trainingInfo.regionDifference }
                         </span>
                       </div>

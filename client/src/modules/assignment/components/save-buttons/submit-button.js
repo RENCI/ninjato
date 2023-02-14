@@ -6,7 +6,7 @@ import { useModal, useSaveAnnotations, useSaveReview } from 'hooks';
 const { Header, Content, Actions } = Modal;
 
 export const SubmitButton = ({ disabled, review = false }) => {
-  const [{ assignment }, userDispatch] = useContext(UserContext);
+  const [{ user, assignment }, userDispatch] = useContext(UserContext);
   const [open, openModal, closeModal] = useModal();
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -25,7 +25,7 @@ export const SubmitButton = ({ disabled, review = false }) => {
     else {
       const response = await saveAnnotations(true);
 
-      selected = response.selected_for_review && !assignment.reviewer.login;
+      selected = response.selected_for_review && !assignment.reviewer.login && user.trainee === false;
 
       setSelectedForReview(selected);
     }
@@ -62,7 +62,7 @@ export const SubmitButton = ({ disabled, review = false }) => {
             <>
               <Icon name='check circle outline' color='green' />
               Submitted successfully! 
-              { selectedForReview && 
+              { selectedForReview && !
                 <Message 
                   icon
                   color='yellow'                  
