@@ -1,11 +1,9 @@
-import { useContext, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Tab, Menu } from 'semantic-ui-react';
-import { UserContext } from 'contexts';
-import { RedirectMessage } from 'modules/common/components/redirect-message';
+import { useEffect, useState } from 'react';
 import { VegaWrapper } from 'modules/vega/components/vega-wrapper';
-import { api } from 'utils/api';
+import { VolumeControls } from './volume-controls';
 import { lineChart, stackedArea } from 'vega-specs';
+
+const chartTypes = ['line', 'area'];
 
 // XXX: Necessary to fix issues in assignment history. 
 // Can probably be removed after first volume (purple_box) is completed.
@@ -174,6 +172,8 @@ export const VolumeProgress = ({ volume, users }) => {
   const [userTimelines, setUserTimelines] = useState();
   const [binnedVolumeCounts, setBinnedVolumeCounts] = useState();
   const [binnedUserCounts, setBinnedUserCounts] = useState();
+  const [chartType, setChartType] = useState(chartTypes[0]);
+  const [day, setDay] = useState(0);
 
   useEffect(() => {
     if (volume && users) {
@@ -195,33 +195,60 @@ export const VolumeProgress = ({ volume, users }) => {
     }
   }, [volume, users]);
 
+  const onChartTypeChange = (evt, data) => {
+    setChartType(data.value);
+  };
+
+  const onDayChange = (evt, data) => {
+    const day = +data.value;
+
+    setBinnedVolumeCounts(binCounts(volumeTimeline, day, 1));
+    setDay(day);
+  };
+
   const keys = ['declined', 'reviewDeclined', 'completed', 'review', 'active'];
   const keyIndex = keys.reduce((keyIndex, key, i) => {
     keyIndex[key] = i;
     return keyIndex;
   }, {});
 
-  const lineData = binnedVolumeCounts ? binnedVolumeCounts.reduce((data, count) => {
+  const getLineData = () => binnedVolumeCounts ? binnedVolumeCounts.reduce((data, count) => {
     return [
       ...data,
       ...keys.map(key => ({ count: count[key], time: count.time, status: key, order: keyIndex[key] }))
     ]
   }, []) : null;
   
-  const areaData = binnedVolumeCounts ? binnedVolumeCounts.reduce((data, count) => {
+  const getAreaData = () => binnedVolumeCounts ? binnedVolumeCounts.reduce((data, count) => {
     return [
       ...data,
       ...keys.map(key => ({ count: key.includes('declined') ? -count[key] : count[key], time: count.time, status: key, order: keyIndex[key] }))
     ]
   }, []) : null;
 
-  console.log(binnedUserCounts);
-
   return (
-    lineData && areaData && 
-    <>
-      <VegaWrapper spec={ lineChart } data={ lineData } />
-      <VegaWrapper spec={ stackedArea } data={ areaData } />
-    </>
+    !binnedVolumeCounts ? null : 
+    <div style={{ margin: '20px' }}>
+      <VolumeControls 
+        chartType={ chartType }
+        chartTypes={ chartTypes }
+        day={ day }
+        onChartTypeChange={ onChartTypeChange }
+        onDayChange={ onDayChange }
+      />
+      { chartType === 'area' ?
+        <VegaWrapper 
+          key={ 'area' }
+          spec={ stackedArea } 
+          data={ getAreaData() } 
+        />
+      :
+        <VegaWrapper 
+          key={ 'line' }
+          spec={ lineChart } 
+          data={ getLineData() } 
+        />
+      }
+    </div>
   );
 };
