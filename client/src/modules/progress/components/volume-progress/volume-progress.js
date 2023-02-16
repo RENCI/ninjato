@@ -170,25 +170,14 @@ const getUserTimelines = (volume, users) => {
 export const VolumeProgress = ({ volume, users }) => {
   const [{ chartType, reportingDay }] = useContext(ProgressContext);
   const [volumeTimeline, setVolumeTimeline] = useState();
-  const [userTimelines, setUserTimelines] = useState();
-  const [binnedUserCounts, setBinnedUserCounts] = useState();
+  const [userTimelines, setUserTimelines] = useState([]);
 
   useEffect(() => {
     if (volume && users) {
       sanitizeHistory(volume);    
 
-      const volumeTimeline = getVolumeTimeline(volume);
-      setVolumeTimeline(volumeTimeline);
-
-      const userTimelines = getUserTimelines(volume, users);
-
-      console.log(userTimelines)
-
+      setVolumeTimeline(getVolumeTimeline(volume));
       setUserTimelines(getUserTimelines(volume, users));
-      setBinnedUserCounts(userTimelines.map(user => ({
-        user: user.user,
-        counts: binCounts(user.timeline)
-      })));
     }
   }, [volume, users, reportingDay]);
 
@@ -199,6 +188,12 @@ export const VolumeProgress = ({ volume, users }) => {
   }, {});
 
   const binnedVolumeCounts = useMemo(() => binCounts(volumeTimeline, reportingDay, 1), [volumeTimeline, reportingDay]);
+  const binnedUserCounts = useMemo(() => userTimelines.map(user => ({
+    user: user.user,
+    counts: binCounts(user.timeline)
+  })), [userTimelines, reportingDay]);
+
+  console.log(binnedUserCounts);
 
   const getLineData = () => binnedVolumeCounts ? binnedVolumeCounts.reduce((data, count) => {
     return [
@@ -231,7 +226,7 @@ export const VolumeProgress = ({ volume, users }) => {
           data={ getLineData() } 
         />
       }
-      <UserTable users={ userTimelines } />
+      <UserTable users={ binnedUserCounts } />
     </div>
   );
 };

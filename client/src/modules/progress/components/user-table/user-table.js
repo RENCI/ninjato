@@ -12,19 +12,48 @@ const columns = [
 export const UserTable = ({ users }) => {
   console.log(users);
 
+  const times = users.reduce((times, user) => {
+    user.counts?.forEach(count => {
+      const time = count.time.getTime();
+
+      if (!times.includes(time)) {
+        times.push(time);
+      }
+    });
+
+    return times;
+  }, []).sort((a, b) => b - a);
+
+  console.log(times);
+
+  const allColumns = [
+    ...columns,
+    ...times.map(time => ({
+      header: new Date(time).toDateString(),
+      value: d => {
+        const count = d.counts?.find(count => count.time.getTime() === time);
+        return count ? count.completed : '';
+      }
+    }))
+  ];
+
+  console.log(allColumns);
+
   return (
     <Table>
       <Header>
         <Row>
-          { columns.map(column => 
-            <HeaderCell>{ column.header }</HeaderCell>
+          { allColumns.map((column, i) => 
+            <HeaderCell key={ i }>
+              { column.header }
+            </HeaderCell>
           )}
         </Row>        
       </Header>
       <Body>
         { users.map((user, i) =>
           <Row key={ i }>
-            { columns.map((column, i) => 
+            { allColumns.map((column, i) => 
               <Cell key={ i }>
                 { column.value(user) }
               </Cell>
