@@ -81,6 +81,10 @@ const binCounts = (timeline, binDay = 0, numWeeks = 1) => {
 
   // Get end date for first bin
   const first = timeline.counts[0];
+
+  console.log("first:", first.time);
+  console.log(binDay);
+
   const binDate = new Date(first.time.getFullYear(), first.time.getMonth(), first.time.getDate());
   binDate.setDate(first.time.getDate() + (7 + binDay - first.time.getDay()) % 7);
 
@@ -90,12 +94,21 @@ const binCounts = (timeline, binDay = 0, numWeeks = 1) => {
   keys.forEach(key => startBin[key] = 0);
   startBin.time = binDate;  
 
+
+console.log(startBin.time);
   const binCounts = timeline.counts.reduce((bins, counts) => {
     if (counts.time > bins[bins.length - 1].time) {   
       // Create a new bin for this date
       const newBin = {...bins[bins.length - 1]};
       newBin.time = new Date(newBin.time);
       addDays(newBin.time, numWeeks * 7);
+
+
+
+
+      console.log(newBin.time);
+
+
       bins.push(newBin);
     }   
 
@@ -103,6 +116,8 @@ const binCounts = (timeline, binDay = 0, numWeeks = 1) => {
 
     return bins;    
   }, [startBin]);
+
+console.log("--------------------------")
 
   return binCounts;
 };
@@ -123,7 +138,6 @@ const getVolumeTimeline = volume => {
   });
 
   processTimeline(timeline);
-  binCounts(timeline, 0, 1);
 
   return timeline;
 };  
@@ -187,10 +201,12 @@ export const VolumeProgress = ({ volume, users }) => {
     return keyIndex;
   }, {});
 
+  console.log(reportingDay);
+
   const binnedVolumeCounts = useMemo(() => binCounts(volumeTimeline, reportingDay, 1), [volumeTimeline, reportingDay]);
   const binnedUserCounts = useMemo(() => userTimelines.map(user => ({
     user: user.user,
-    counts: binCounts(user.timeline)
+    counts: binCounts(user.timeline, reportingDay, 1)
   })), [userTimelines, reportingDay]);
 
   console.log(binnedUserCounts);
