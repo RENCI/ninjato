@@ -72,6 +72,8 @@ const processTimeline = timeline => {
   }, []);
 };
 
+// XXX: Refactor to separate finding bin dates, and pass those in so all timelines have same bins
+
 const binCounts = (timeline, binDay = 0, numWeeks = 1) => {
   if (!timeline || timeline?.counts.length === 0) return;
 
@@ -185,15 +187,11 @@ export const VolumeProgress = ({ volume, users }) => {
     return keyIndex;
   }, {});
 
-  console.log(reportingDay);
-
   const binnedVolumeCounts = useMemo(() => binCounts(volumeTimeline, reportingDay, 1), [volumeTimeline, reportingDay]);
   const binnedUserCounts = useMemo(() => userTimelines.map(user => ({
     user: user.user,
     counts: binCounts(user.timeline, reportingDay, 1)
   })), [userTimelines, reportingDay]);
-
-  console.log(binnedUserCounts);
 
   const getLineData = () => binnedVolumeCounts ? binnedVolumeCounts.reduce((data, count) => {
     return [

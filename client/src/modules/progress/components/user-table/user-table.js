@@ -10,8 +10,6 @@ const columns = [
 ];
 
 export const UserTable = ({ users }) => {
-  console.log(users);
-
   const times = users.reduce((times, user) => {
     user.counts?.forEach(count => {
       const time = count.time.getTime();
@@ -24,8 +22,6 @@ export const UserTable = ({ users }) => {
     return times;
   }, []).sort((a, b) => b - a);
 
-  console.log(times);
-
   const allColumns = [
     ...columns,
     ...times.map(time => ({
@@ -36,8 +32,6 @@ export const UserTable = ({ users }) => {
       }
     }))
   ];
-
-  console.log(allColumns);
 
   return (
     <Table>
