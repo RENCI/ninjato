@@ -3,7 +3,8 @@ import {
   UserProvider, 
   AnnotateProvider, 
   LoadingProvider,
-  ErrorProvider 
+  ErrorProvider,
+  ProgressProvider
 } from "contexts"; 
 import { MainMenu } from 'modules/menu/components/main-menu';
 import { LoadingMessage } from 'modules/common/components/loading-message';
@@ -16,6 +17,7 @@ export const App = () => {
     <AnnotateProvider>
     <LoadingProvider>
     <ErrorProvider>
+    <ProgressProvider>
       <Router>        
         <MainMenu />
         <Routes>
@@ -28,6 +30,7 @@ export const App = () => {
         <LoadingMessage />
         <ErrorMessage />
       </Router>
+    </ProgressProvider>
     </ErrorProvider>
     </LoadingProvider>
     </AnnotateProvider>

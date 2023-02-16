@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
-import { VegaWrapper } from 'modules/vega/components/vega-wrapper';
+import { useContext, useEffect, useState, useMemo } from 'react';
+import { ProgressContext } from 'contexts';
 import { VolumeControls } from './volume-controls';
+import { VegaWrapper } from 'modules/vega/components/vega-wrapper';
 import { lineChart, stackedArea } from 'vega-specs';
-
-const chartTypes = ['line', 'area'];
 
 // XXX: Necessary to fix issues in assignment history. 
 // Can probably be removed after first volume (purple_box) is completed.
@@ -168,12 +167,10 @@ const getUserTimelines = (volume, users) => {
 };
 
 export const VolumeProgress = ({ volume, users }) => {
+  const [{ chartType, reportingDay }] = useContext(ProgressContext);
   const [volumeTimeline, setVolumeTimeline] = useState();
   const [userTimelines, setUserTimelines] = useState();
-  const [binnedVolumeCounts, setBinnedVolumeCounts] = useState();
   const [binnedUserCounts, setBinnedUserCounts] = useState();
-  const [chartType, setChartType] = useState(chartTypes[0]);
-  const [day, setDay] = useState(0);
 
   useEffect(() => {
     if (volume && users) {
@@ -181,7 +178,6 @@ export const VolumeProgress = ({ volume, users }) => {
 
       const volumeTimeline = getVolumeTimeline(volume);
       setVolumeTimeline(volumeTimeline);
-      setBinnedVolumeCounts(binCounts(volumeTimeline, 0, 1));
 
       const userTimelines = getUserTimelines(volume, users);
 
@@ -193,24 +189,15 @@ export const VolumeProgress = ({ volume, users }) => {
         counts: binCounts(user.timeline)
       })));
     }
-  }, [volume, users]);
-
-  const onChartTypeChange = (evt, data) => {
-    setChartType(data.value);
-  };
-
-  const onDayChange = (evt, data) => {
-    const day = +data.value;
-
-    setBinnedVolumeCounts(binCounts(volumeTimeline, day, 1));
-    setDay(day);
-  };
+  }, [volume, users, reportingDay]);
 
   const keys = ['declined', 'reviewDeclined', 'completed', 'review', 'active'];
   const keyIndex = keys.reduce((keyIndex, key, i) => {
     keyIndex[key] = i;
     return keyIndex;
   }, {});
+
+  const binnedVolumeCounts = useMemo(() => binCounts(volumeTimeline, reportingDay, 1), [volumeTimeline, reportingDay]);
 
   const getLineData = () => binnedVolumeCounts ? binnedVolumeCounts.reduce((data, count) => {
     return [
@@ -229,13 +216,7 @@ export const VolumeProgress = ({ volume, users }) => {
   return (
     !binnedVolumeCounts ? null : 
     <div style={{ margin: '20px' }}>
-      <VolumeControls 
-        chartType={ chartType }
-        chartTypes={ chartTypes }
-        day={ day }
-        onChartTypeChange={ onChartTypeChange }
-        onDayChange={ onDayChange }
-      />
+      <VolumeControls />
       { chartType === 'area' ?
         <VegaWrapper 
           key={ 'area' }
