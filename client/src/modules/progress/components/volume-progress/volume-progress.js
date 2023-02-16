@@ -2,6 +2,7 @@ import { useContext, useEffect, useState, useMemo } from 'react';
 import { ProgressContext } from 'contexts';
 import { VolumeControls } from './volume-controls';
 import { VegaWrapper } from 'modules/vega/components/vega-wrapper';
+import { UserTable } from 'modules/progress/components/user-table';
 import { lineChart, stackedArea } from 'vega-specs';
 
 // XXX: Necessary to fix issues in assignment history. 
@@ -230,6 +231,7 @@ export const VolumeProgress = ({ volume, users }) => {
           data={ getLineData() } 
         />
       }
+      <UserTable users={ userTimelines } />
     </div>
   );
 };
