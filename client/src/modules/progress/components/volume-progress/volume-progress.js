@@ -76,15 +76,11 @@ const binCounts = (timeline, binDay = 0, numWeeks = 1) => {
   if (!timeline || timeline?.counts.length === 0) return;
 
   const addDays = (date, days) => {
-    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    date.setDate(date.getDate() + days);
   };
 
   // Get end date for first bin
   const first = timeline.counts[0];
-
-  console.log("first:", first.time);
-  console.log(binDay);
-
   const binDate = new Date(first.time.getFullYear(), first.time.getMonth(), first.time.getDate());
   binDate.setDate(first.time.getDate() + (7 + binDay - first.time.getDay()) % 7);
 
@@ -94,21 +90,12 @@ const binCounts = (timeline, binDay = 0, numWeeks = 1) => {
   keys.forEach(key => startBin[key] = 0);
   startBin.time = binDate;  
 
-
-console.log(startBin.time);
   const binCounts = timeline.counts.reduce((bins, counts) => {
     if (counts.time > bins[bins.length - 1].time) {   
       // Create a new bin for this date
       const newBin = {...bins[bins.length - 1]};
       newBin.time = new Date(newBin.time);
       addDays(newBin.time, numWeeks * 7);
-
-
-
-
-      console.log(newBin.time);
-
-
       bins.push(newBin);
     }   
 
@@ -116,8 +103,6 @@ console.log(startBin.time);
 
     return bins;    
   }, [startBin]);
-
-console.log("--------------------------")
 
   return binCounts;
 };
@@ -189,7 +174,6 @@ export const VolumeProgress = ({ volume, users }) => {
   useEffect(() => {
     if (volume && users) {
       sanitizeHistory(volume);    
-
       setVolumeTimeline(getVolumeTimeline(volume));
       setUserTimelines(getUserTimelines(volume, users));
     }
