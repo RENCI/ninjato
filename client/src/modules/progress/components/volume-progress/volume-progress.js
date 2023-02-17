@@ -4,6 +4,7 @@ import { VolumeControls } from './volume-controls';
 import { VegaWrapper } from 'modules/vega/components/vega-wrapper';
 import { UserTable } from 'modules/progress/components/user-table';
 import { lineChart, stackedArea } from 'vega-specs';
+import { BrushOptions } from 'modules/common/components/brush-options';
 
 // XXX: Necessary to fix issues in assignment history. 
 // Can probably be removed after first volume (purple_box) is completed.
@@ -72,41 +73,74 @@ const processTimeline = timeline => {
   }, []);
 };
 
-// XXX: Refactor to separate finding bin dates, and pass those in so all timelines have same bins
+const binCounts = (timeline, binDates) => {
+  if (!timeline || timeline?.counts.length === 0 || !binDates || binDates.length === 0) return;
 
-const binCounts = (timeline, binDay = 0, numWeeks = 1) => {
-  if (!timeline || timeline?.counts.length === 0) return;
+  console.log(timeline);
 
-  const addDays = (date, days) => {
-    date.setDate(date.getDate() + days);
+  const copyCounts = (a, b, keys) => keys.forEach(key => a[key] = b[key]);
+
+  // Create bins
+  const first = timeline.counts[0];
+  const keys = Object.keys(first).filter(key => key !== 'time');
+  const bins = binDates.map(date => {
+    const bin = {};
+    keys.forEach(key => bin[key] = 0);
+    bin.time = date;
+    return bin;
+  });
+
+  let countIndex = 0;
+  bins.forEach(bin => {
+    if (countIndex > timeline.counts.length) {
+      copyCounts(bin, timeline.counts[countIndex - 1], keys);
+    }
+    else {
+      for (; countIndex < timeline.counts.length; countIndex++) {
+        if (countIndex > 0 && timeline.counts[countIndex].time > bin.time) {
+          copyCounts(bin, timeline.counts[countIndex - 1], keys);
+          return;
+        }
+      }
+    }
+  });
+
+  console.log(bins);
+/*
+  const copyCounts = (a, b, keys) => keys.forEach(key => a[key] = b[key]);
+
+  const findNextBinIndex = (bins, binIndex, time, keys) => {
+    for (let i = binIndex; i < bins.length; i++) {
+      if (i > binIndex) copyCounts(bins[i], bins[i - 1], keys);
+      if (time < bins[i].time) return i;
+    }
+
+    return bins.length - 1;
   };
 
-  // Get end date for first bin
   const first = timeline.counts[0];
-  const binDate = new Date(first.time.getFullYear(), first.time.getMonth(), first.time.getDate());
-  binDate.setDate(first.time.getDate() + (7 + binDay - first.time.getDay()) % 7);
 
-  // Create first bin
+  // Create bins
   const keys = Object.keys(first).filter(key => key !== 'time');
-  const startBin = {};
-  keys.forEach(key => startBin[key] = 0);
-  startBin.time = binDate;  
+  const bins = binDates.map(date => {
+    const bin = {};
+    keys.forEach(key => bin[key] = 0);
+    bin.time = date;
+    return bin;
+  });
 
-  const binCounts = timeline.counts.reduce((bins, counts) => {
-    if (counts.time > bins[bins.length - 1].time) {   
-      // Create a new bin for this date
-      const newBin = {...bins[bins.length - 1]};
-      newBin.time = new Date(newBin.time);
-      addDays(newBin.time, numWeeks * 7);
-      bins.push(newBin);
+  // Find first bin
+  let binIndex = findNextBinIndex(bins, 0, first.time, keys);
+  
+  timeline.counts.forEach(counts => {
+    if (counts.time > bins[binIndex].time) {   
+      binIndex = findNextBinIndex(bins, binIndex, counts.time, keys);
     }   
 
-    keys.forEach(key => bins[bins.length - 1][key] = counts[key]);
-
-    return bins;    
-  }, [startBin]);
-
-  return binCounts;
+    keys.forEach(key => bins[binIndex][key] = counts[key]);  
+  }, [bins[binIndex]]);
+*/
+  return bins;
 };
 
 const getVolumeTimeline = volume => {
@@ -187,11 +221,39 @@ export const VolumeProgress = ({ volume, users }) => {
     return keyIndex;
   }, {});
 
-  const binnedVolumeCounts = useMemo(() => binCounts(volumeTimeline, reportingDay, 1), [volumeTimeline, reportingDay]);
+  const bins = useMemo(() => {
+    const numDays = 1;
+
+    if (!volumeTimeline || volumeTimeline?.counts.length === 0) return null;
+
+    const addDays = (date, days) => {
+      date.setDate(date.getDate() + days);
+    };
+
+    // Get end date for first bin
+    const first = volumeTimeline.counts[0].time;
+    const binDate = new Date(first.getFullYear(), first.getMonth(), first.getDate());
+    binDate.setDate(first.getDate() + (7 + reportingDay - first.getDay()) % 7);
+
+    // Get last date
+    const last = volumeTimeline.counts[volumeTimeline.counts.length - 1].time;
+
+    // Create bins
+    const bins = [];
+    while (binDate < last) {
+      const newDate = new Date();
+      newDate.setTime(binDate.getTime());
+      bins.push(newDate);
+      addDays(binDate, numDays * 7);
+    }
+
+    return bins;
+  }, [volumeTimeline, reportingDay]);
+  const binnedVolumeCounts = useMemo(() => binCounts(volumeTimeline, bins), [volumeTimeline, bins]);
   const binnedUserCounts = useMemo(() => userTimelines.map(user => ({
     user: user.user,
-    counts: binCounts(user.timeline, reportingDay, 1)
-  })), [userTimelines, reportingDay]);
+    counts: binCounts(user.timeline, bins)
+  })), [userTimelines, bins]);
 
   const getLineData = () => binnedVolumeCounts ? binnedVolumeCounts.reduce((data, count) => {
     return [
