@@ -36,7 +36,8 @@ export const UserTable = ({ users }) => {
   ];
 
   return (
-    <Table>
+    <div style={{ width: '100%', overflowX: 'auto' }}>
+    <Table basic='very' compact>
       <Header>
         <Row>
           { allColumns.map((column, i) => 
@@ -58,5 +59,6 @@ export const UserTable = ({ users }) => {
         )}
       </Body>
     </Table>
+    </div>
   );
 };

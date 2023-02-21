@@ -76,8 +76,6 @@ const processTimeline = timeline => {
 const binCounts = (timeline, binDates) => {
   if (!timeline || timeline?.counts.length === 0 || !binDates || binDates.length === 0) return;
 
-  console.log(timeline);
-
   const copyCounts = (a, b, keys) => keys.forEach(key => a[key] = b[key]);
 
   // Create bins
@@ -92,54 +90,16 @@ const binCounts = (timeline, binDates) => {
 
   let countIndex = 0;
   bins.forEach(bin => {
-    if (countIndex > timeline.counts.length) {
-      copyCounts(bin, timeline.counts[countIndex - 1], keys);
-    }
-    else {
-      for (; countIndex < timeline.counts.length; countIndex++) {
-        if (countIndex > 0 && timeline.counts[countIndex].time > bin.time) {
-          copyCounts(bin, timeline.counts[countIndex - 1], keys);
-          return;
-        }
+    for (; countIndex < timeline.counts.length; countIndex++) {
+      if (countIndex > 0 && timeline.counts[countIndex].time > bin.time) {
+        copyCounts(bin, timeline.counts[countIndex - 1], keys);
+        return;
       }
     }
+
+    copyCounts(bin, timeline.counts[countIndex - 1], keys);
   });
 
-  console.log(bins);
-/*
-  const copyCounts = (a, b, keys) => keys.forEach(key => a[key] = b[key]);
-
-  const findNextBinIndex = (bins, binIndex, time, keys) => {
-    for (let i = binIndex; i < bins.length; i++) {
-      if (i > binIndex) copyCounts(bins[i], bins[i - 1], keys);
-      if (time < bins[i].time) return i;
-    }
-
-    return bins.length - 1;
-  };
-
-  const first = timeline.counts[0];
-
-  // Create bins
-  const keys = Object.keys(first).filter(key => key !== 'time');
-  const bins = binDates.map(date => {
-    const bin = {};
-    keys.forEach(key => bin[key] = 0);
-    bin.time = date;
-    return bin;
-  });
-
-  // Find first bin
-  let binIndex = findNextBinIndex(bins, 0, first.time, keys);
-  
-  timeline.counts.forEach(counts => {
-    if (counts.time > bins[binIndex].time) {   
-      binIndex = findNextBinIndex(bins, binIndex, counts.time, keys);
-    }   
-
-    keys.forEach(key => bins[binIndex][key] = counts[key]);  
-  }, [bins[binIndex]]);
-*/
   return bins;
 };
 
