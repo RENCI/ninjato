@@ -207,6 +207,7 @@ def _create_region(region_key, whole_item, extent_dict):
 
     return region_item
 
+
 def update_assignment_in_whole_item(whole_item, assign_item_id, mask_file_name=None):
     """
     update subvolume whole item mask with updated verified assignment mask

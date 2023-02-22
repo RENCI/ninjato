@@ -2,6 +2,7 @@ from girder.plugin import getPlugin, GirderPlugin
 from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.constants import AccessType
+from .utils import update_assignment_in_whole_item
 from .endpoint_utils import get_item_assignment, save_user_annotation_as_item, get_subvolume_item_ids, \
     get_subvolume_item_info, get_region_or_assignment_info, get_available_region_ids, \
     claim_assignment, request_assignment, get_all_avail_items_for_review, \
@@ -274,6 +275,23 @@ def get_new_region_ids(item, split_region_count):
     return get_available_region_ids(item, split_region_count)
 
 
+@access.admin
+@autoDescribeRoute(
+    Description('Update the whole subvolume mask with updated assignment mask as an admin only '
+                'endpoint to be triggered only by admin as needed')
+    .modelParam('id', 'The whole subvolume item ID', model='item', level=AccessType.READ)
+    .param('assign_item_id', 'assignment item ID to update whole subvolume mask with',
+           required=True)
+    .param('mask_file_name', 'assignment user edited mask file name to update whole subvolume '
+                             'mask with', required=True)
+)
+def update_whole_subvolume(item, assign_item_id, mask_file_name):
+    update_assignment_in_whole_item(item, assign_item_id, mask_file_name=mask_file_name)
+    return {
+        'status': 'success'
+    }
+
+
 class NinjatoPlugin(GirderPlugin):
     DISPLAY_NAME = 'Girder Ninjato API'
     CLIENT_SOURCE_PATH = 'web_client'
@@ -299,3 +317,6 @@ class NinjatoPlugin(GirderPlugin):
         info['apiRoot'].item.route('GET', (':id', 'region_comments'), get_region_comments)
         info['apiRoot'].item.route('GET', (':id', 'available_items_for_review'),
                                    get_avail_items_for_review)
+        # attach admin only API route to Girder for admin task on an as-needed basis
+        info['apiRoot'].item.route('POST', (':id', 'update_whole_subvolume_mask'),
+                                   update_whole_subvolume)
