@@ -16,6 +16,7 @@ services:
       dockerfile: Dockerfile      
       args:
         GIRDER_CFG_FILE: girder.prod.cfg
+        ASSET_STORE_DATA_DIR: data
     container_name: girder
     restart: always
     ports:
