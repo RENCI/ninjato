@@ -4,7 +4,6 @@ import { VolumeControls } from './volume-controls';
 import { VegaWrapper } from 'modules/vega/components/vega-wrapper';
 import { UserTable } from 'modules/progress/components/user-table';
 import { lineChart, stackedArea } from 'vega-specs';
-import { BrushOptions } from 'modules/common/components/brush-options';
 
 // XXX: Necessary to fix issues in assignment history. 
 // Can probably be removed after first volume (purple_box) is completed.

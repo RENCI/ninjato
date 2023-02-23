@@ -7,6 +7,7 @@ const columns = [
   {
     header: 'User',
     value: 'user',
+    type: 'text',
     cellValue: d => d.user.login
   }
 ];
@@ -34,6 +35,7 @@ export const UserTable = ({ users }) => {
     ...times.map(time => ({
       header: new Date(time).toDateString(),
       value: time,
+      type: 'numeric',
       cellValue: d => {
         const count = d.counts?.find(count => count.time.getTime() === time);
         return count ? count.completed : null;
@@ -54,7 +56,7 @@ export const UserTable = ({ users }) => {
       setSortDirection(sortDirection === 'ascending' ? 'descending' : 'ascending');
     }
     else {
-      setSortDirection('ascending');
+      setSortDirection(column.type === 'text' ? 'ascending' : 'descending');
     }
 
     setSortColumn(column);
@@ -84,7 +86,7 @@ export const UserTable = ({ users }) => {
           }).map((user, i) =>
             <Row key={ i }>
               { allColumns.map((column, i) => 
-                <Cell key={ i }>
+                <Cell key={ i } style={{ background: 'black'}}>
                   { user[column.value] }
                 </Cell>
               )}
