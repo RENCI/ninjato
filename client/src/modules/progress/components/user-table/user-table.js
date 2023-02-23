@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Table } from 'semantic-ui-react';
+import { scaleLinear } from 'd3-scale';
+import * as chromatic from 'd3-scale-chromatic';
 
 const { Header, Body, Row, HeaderCell, Cell } = Table;
 
@@ -51,6 +53,23 @@ export const UserTable = ({ users }) => {
     })
   ), [users, allColumns]);
 
+  console.log(data);
+  console.log(times);
+
+  const maxValue = useMemo(() => (
+    data.reduce((maxValue, user) => Math.max(maxValue, user[times[0]]), 0)
+  ), [data]);
+
+  const countScale = scaleLinear()
+    .domain([0, maxValue])
+    .range([0, 1]);
+
+  //const colorScale = scaleSequential(schemeGreen);
+
+  //chromatic.interpolateGreen(countScale(0.5))
+
+  console.log(chromatic);
+
   const onColumnClick = column => {
     if (column === sortColumn) {
       setSortDirection(sortDirection === 'ascending' ? 'descending' : 'ascending');
@@ -86,7 +105,7 @@ export const UserTable = ({ users }) => {
           }).map((user, i) =>
             <Row key={ i }>
               { allColumns.map((column, i) => 
-                <Cell key={ i } style={{ background: 'black'}}>
+                <Cell key={ i } style={{ background: chromatic.interpolateGreens(countScale(user[column.value])) }}>
                   { user[column.value] }
                 </Cell>
               )}
