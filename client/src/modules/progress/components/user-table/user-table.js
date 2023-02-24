@@ -49,26 +49,27 @@ export const UserTable = ({ users }) => {
     users.filter(user => user.counts).map(user => {
       const u = {};
       allColumns.forEach(column => u[column.value] = column.cellValue(user));
+      
+allColumns.forEach((column, i, a) => {
+  if (i < a.length - 1 && column.type === 'numeric' && a[i + 1].type === 'numeric') {
+    u[column.value] = u[column.value] - u[a[i + 1].value];
+  }
+});
+
       return u;
     })
   ), [users, allColumns]);
 
-  console.log(data);
-  console.log(times);
-
   const maxValue = useMemo(() => (
-    data.reduce((maxValue, user) => Math.max(maxValue, user[times[0]]), 0)
+    Math.max(...data.map(user => times.reduce((maxValue, time) => Math.max(maxValue, user[time]), 0)))
   ), [data]);
+
+  console.log(data);
+  console.log(maxValue);
 
   const countScale = scaleLinear()
     .domain([0, maxValue])
     .range([0, 1]);
-
-  //const colorScale = scaleSequential(schemeGreen);
-
-  //chromatic.interpolateGreen(countScale(0.5))
-
-  console.log(chromatic);
 
   const onColumnClick = column => {
     if (column === sortColumn) {
@@ -104,11 +105,36 @@ export const UserTable = ({ users }) => {
             return sortDirection === 'ascending' ? (va > vb ? 1 : -1) : (va > vb ? -1 : 1);
           }).map((user, i) =>
             <Row key={ i }>
-              { allColumns.map((column, i) => 
-                <Cell key={ i } style={{ background: chromatic.interpolateGreens(countScale(user[column.value])) }}>
-                  { user[column.value] }
-                </Cell>
-              )}
+              { allColumns.map((column, i) => {
+                switch (column.type) {
+                  case 'text':
+                    return (
+                      <Cell key={ i }>
+                        { user[column.value] }
+                      </Cell>
+                    );
+                
+                  case 'numeric': {                
+                    const value = user[column.value];
+    
+                    return (
+                      <Cell 
+                        key={ i } 
+                        style={{ 
+                          background: column.type === 'numeric' ? chromatic.interpolateGreens(countScale(value)) : null,
+                          color: column.type === 'numeric' ? (countScale(value) > 0.5 ? 'white' : null) : null
+                        }}
+                      >
+                        { value }
+                      </Cell>
+                    );
+                  }
+
+                  default: {
+                    console.warn(`Unknown column type: ${ column.type }`);
+                  }
+                }
+              })}
             </Row>
           )}
         </Body>
