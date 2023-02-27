@@ -1,7 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useContext, useState, useMemo } from 'react';
 import { Table } from 'semantic-ui-react';
 import { scaleLinear } from 'd3-scale';
 import * as chromatic from 'd3-scale-chromatic';
+import { ProgressContext } from 'contexts';
+import { TableControls } from './table-controls';
 
 const { Header, Body, Row, HeaderCell, Cell } = Table;
 
@@ -15,6 +17,7 @@ const columns = [
 ];
 
 export const UserTable = ({ users }) => {
+  const [{ tableDisplay }] = useContext(ProgressContext);
   const [sortColumn, setSortColumn] = useState(columns[0].value);
   const [sortDirection, setSortDirection] = useState('ascending');
 
@@ -50,22 +53,21 @@ export const UserTable = ({ users }) => {
       const u = {};
       allColumns.forEach(column => u[column.value] = column.cellValue(user));
       
-allColumns.forEach((column, i, a) => {
-  if (i < a.length - 1 && column.type === 'numeric' && a[i + 1].type === 'numeric') {
-    u[column.value] = u[column.value] - u[a[i + 1].value];
-  }
-});
+      if (tableDisplay === 'change') {
+        allColumns.forEach((column, i, a) => {
+          if (i < a.length - 1 && column.type === 'numeric' && a[i + 1].type === 'numeric') {
+            u[column.value] = u[column.value] - u[a[i + 1].value];
+          }
+        });
+      }
 
       return u;
     })
-  ), [users, allColumns]);
+  ), [users, allColumns, tableDisplay]);
 
   const maxValue = useMemo(() => (
     Math.max(...data.map(user => times.reduce((maxValue, time) => Math.max(maxValue, user[time]), 0)))
-  ), [data]);
-
-  console.log(data);
-  console.log(maxValue);
+  ), [data, times]);
 
   const countScale = scaleLinear()
     .domain([0, maxValue])
@@ -83,62 +85,66 @@ allColumns.forEach((column, i, a) => {
   };
 
   return (
-    <div style={{ width: '100%', overflowX: 'auto' }}>
-      <Table basic='very' compact sortable>
-        <Header>
-          <Row>
-            { allColumns.map((column, i) => 
-              <HeaderCell 
-                key={ i }
-                sorted={ column.value === sortColumn ? sortDirection : null } 
-                onClick={ () => onColumnClick(column.value) }
-              >
-                { column.header }
-              </HeaderCell>
-            )}
-          </Row>        
-        </Header>
-        <Body>
-          { data.sort((a, b) => {
-            const va = a[sortColumn];
-            const vb = b[sortColumn];
-            return sortDirection === 'ascending' ? (va > vb ? 1 : -1) : (va > vb ? -1 : 1);
-          }).map((user, i) =>
-            <Row key={ i }>
-              { allColumns.map((column, i) => {
-                switch (column.type) {
-                  case 'text':
-                    return (
-                      <Cell key={ i }>
-                        { user[column.value] }
-                      </Cell>
-                    );
-                
-                  case 'numeric': {                
-                    const value = user[column.value];
-    
-                    return (
-                      <Cell 
-                        key={ i } 
-                        style={{ 
-                          background: column.type === 'numeric' ? chromatic.interpolateGreens(countScale(value)) : null,
-                          color: column.type === 'numeric' ? (countScale(value) > 0.5 ? 'white' : null) : null
-                        }}
-                      >
-                        { value }
-                      </Cell>
-                    );
-                  }
+    <>
+      <TableControls />
+      <div style={{ width: '100%', overflowX: 'auto', marginTop: 10 }}>      
+        <Table basic='very' compact sortable>
+          <Header>
+            <Row>
+              { allColumns.map((column, i) => 
+                <HeaderCell 
+                  key={ i }
+                  sorted={ column.value === sortColumn ? sortDirection : null } 
+                  onClick={ () => onColumnClick(column.value) }
+                >
+                  { column.header }
+                </HeaderCell>
+              )}
+            </Row>        
+          </Header>
+          <Body>
+            { data.sort((a, b) => {
+              const va = a[sortColumn];
+              const vb = b[sortColumn];
+              return sortDirection === 'ascending' ? (va > vb ? 1 : -1) : (va > vb ? -1 : 1);
+            }).map((user, i) =>
+              <Row key={ i }>
+                { allColumns.map((column, i) => {
+                  switch (column.type) {
+                    case 'text':
+                      return (
+                        <Cell key={ i }>
+                          { user[column.value] }
+                        </Cell>
+                      );
+                  
+                    case 'numeric': {                
+                      const value = user[column.value];
+      
+                      return (
+                        <Cell 
+                          key={ i } 
+                          style={{ 
+                            background: column.type === 'numeric' ? chromatic.interpolateGreens(countScale(value)) : null,
+                            color: column.type === 'numeric' ? (countScale(value) > 0.5 ? 'white' : null) : null
+                          }}
+                        >
+                          { value }
+                        </Cell>
+                      );
+                    }
 
-                  default: {
-                    console.warn(`Unknown column type: ${ column.type }`);
+                    default: {
+                      console.warn(`Unknown column type: ${ column.type }`);
+                      return null;
+                    }
                   }
-                }
-              })}
-            </Row>
-          )}
-        </Body>
-      </Table>
-    </div>
+                })}
+              </Row>
+            )}
+          </Body>
+        </Table>
+      </div>
+    </>
   );
 };

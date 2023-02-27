@@ -12,8 +12,6 @@ export const VolumeControls = () => {
   };
 
   const onDayChange = (evt, data) => {
-    console.log(data);
-
     progressDispatch({ type: PROGRESS_SET_REPORTING_DAY, reportingDay: data.value });
   };
 
