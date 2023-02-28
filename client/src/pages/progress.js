@@ -38,6 +38,23 @@ export const Progress = () => {
     :
       <Tab
         menu={{ secondary: true, pointing: true, attached: true }}
+        panes={ volumes.map(volume => ({    
+          menuItem: <Menu.Item key={ volume.id }>{ volume.name }</Menu.Item>,
+          render: () =>
+            <VolumeProgress volume={ volume } users={ users } />
+        }))}
+      />   
+  );
+/*
+  // Include separate user tab here
+  return (
+    !user ?
+      <RedirectMessage message='No User' />
+    : !volumes ? 
+      <Loader active />
+    :
+      <Tab
+        menu={{ secondary: true, pointing: true, attached: true }}
         panes={[
           {
             menuItem: <Menu.Item key='volumes'>Volumes</Menu.Item>,
@@ -58,4 +75,5 @@ export const Progress = () => {
         ]}
       />     
   );
+*/  
 };
