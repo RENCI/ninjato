@@ -41,7 +41,11 @@ export const Progress = () => {
         panes={ volumes.map(volume => ({    
           menuItem: <Menu.Item key={ volume.id }>{ volume.name }</Menu.Item>,
           render: () =>
-            <VolumeProgress volume={ volume } users={ users } />
+            <VolumeProgress 
+              volume={ volume } 
+              users={ users } 
+              reviewer={ user.reviewer } 
+            />
         }))}
       />   
   );

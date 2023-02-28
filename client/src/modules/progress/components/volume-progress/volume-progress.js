@@ -161,18 +161,18 @@ const getUserTimelines = (volume, users) => {
   return timelines;
 };
 
-export const VolumeProgress = ({ volume, users }) => {
+export const VolumeProgress = ({ volume, users, reviewer }) => {
   const [{ chartType, reportingDay }] = useContext(ProgressContext);
   const [volumeTimeline, setVolumeTimeline] = useState();
   const [userTimelines, setUserTimelines] = useState([]);
 
   useEffect(() => {
-    if (volume && users) {
+    if (volume && users) {      
       sanitizeHistory(volume);    
       setVolumeTimeline(getVolumeTimeline(volume));
       setUserTimelines(getUserTimelines(volume, users));
     }
-  }, [volume, users, reportingDay]);
+  }, [volume, users, reviewer, reportingDay]);
 
   const keys = ['declined', 'reviewDeclined', 'completed', 'review', 'active'];
   const keyIndex = keys.reduce((keyIndex, key, i) => {

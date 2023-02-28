@@ -47,7 +47,7 @@ export const UserTable = ({ users }) => {
     }))
   ), [times]);
 
-  const allColumns = [...columns, ...timeColumns];
+  const allColumns = useMemo(() => [...columns, ...timeColumns], [timeColumns]);
 
   const data = useMemo(() => (
     users.filter(user => user.counts).map(user => {
