@@ -35,9 +35,8 @@ export const UserTable = ({ users }) => {
     }, []).sort((a, b) => b - a)
   ), [users]);
 
-  const allColumns = useMemo(() => ([
-    ...columns,
-    ...times.map(time => ({
+  const timeColumns = useMemo(() => (
+    times.map(time => ({
       header: new Date(time).toDateString(),
       value: time,
       type: 'numeric',
@@ -46,7 +45,9 @@ export const UserTable = ({ users }) => {
         return count ? count.completed : null;
       }
     }))
-  ]), [times]);
+  ), [times]);
+
+  const allColumns = [...columns, ...timeColumns];
 
   const data = useMemo(() => (
     users.filter(user => user.counts).map(user => {
@@ -84,66 +85,75 @@ export const UserTable = ({ users }) => {
     setSortColumn(column);
   };
 
+  const table = columns => (
+    <Table basic='very' compact sortable>
+      <Header>
+        <Row>
+          { columns.map((column, i) => 
+            <HeaderCell 
+              key={ i }
+              sorted={ column.value === sortColumn ? sortDirection : null } 
+              onClick={ () => onColumnClick(column.value) }
+            >
+              { column.header }
+            </HeaderCell>
+          )}
+        </Row>        
+      </Header>
+      <Body>
+        { data.sort((a, b) => {
+          const va = a[sortColumn];
+          const vb = b[sortColumn];
+          return sortDirection === 'ascending' ? (va > vb ? 1 : -1) : (va > vb ? -1 : 1);
+        }).map((user, i) =>
+          <Row key={ i }>
+            { columns.map((column, i) => {
+              switch (column.type) {
+                case 'text':
+                  return (
+                    <Cell key={ i }>
+                      { user[column.value] }
+                    </Cell>
+                  );
+              
+                case 'numeric': {                
+                  const value = user[column.value];
+
+                  return (
+                    <Cell 
+                      key={ i } 
+                      style={{ 
+                        background: column.type === 'numeric' ? chromatic.interpolateGreens(countScale(value)) : null,
+                        color: column.type === 'numeric' ? (countScale(value) > 0.5 ? 'white' : null) : null
+                      }}
+                    >
+                      { value }
+                    </Cell>
+                  );
+                }
+
+                default: {
+                  console.warn(`Unknown column type: ${ column.type }`);
+                  return null;
+                }
+              }
+            })}
+          </Row>
+        )}
+      </Body>
+    </Table>
+  );
+
   return (
     <>
       <TableControls />
-      <div style={{ width: '100%', overflowX: 'auto', marginTop: 10 }}>      
-        <Table basic='very' compact sortable>
-          <Header>
-            <Row>
-              { allColumns.map((column, i) => 
-                <HeaderCell 
-                  key={ i }
-                  sorted={ column.value === sortColumn ? sortDirection : null } 
-                  onClick={ () => onColumnClick(column.value) }
-                >
-                  { column.header }
-                </HeaderCell>
-              )}
-            </Row>        
-          </Header>
-          <Body>
-            { data.sort((a, b) => {
-              const va = a[sortColumn];
-              const vb = b[sortColumn];
-              return sortDirection === 'ascending' ? (va > vb ? 1 : -1) : (va > vb ? -1 : 1);
-            }).map((user, i) =>
-              <Row key={ i }>
-                { allColumns.map((column, i) => {
-                  switch (column.type) {
-                    case 'text':
-                      return (
-                        <Cell key={ i }>
-                          { user[column.value] }
-                        </Cell>
-                      );
-                  
-                    case 'numeric': {                
-                      const value = user[column.value];
-      
-                      return (
-                        <Cell 
-                          key={ i } 
-                          style={{ 
-                            background: column.type === 'numeric' ? chromatic.interpolateGreens(countScale(value)) : null,
-                            color: column.type === 'numeric' ? (countScale(value) > 0.5 ? 'white' : null) : null
-                          }}
-                        >
-                          { value }
-                        </Cell>
-                      );
-                    }
-
-                    default: {
-                      console.warn(`Unknown column type: ${ column.type }`);
-                      return null;
-                    }
-                  }
-                })}
-              </Row>
-            )}
-          </Body>
-        </Table>
+      <div style={{ display: 'flex', marginTop: 10 }}>
+        <div>
+          { table(columns) }
+        </div>
+        <div style={{ width: '100%', overflowX: 'auto' }}>      
+          { table(timeColumns) }
+        </div>
       </div>
     </>
   );

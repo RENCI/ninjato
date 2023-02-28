@@ -209,8 +209,6 @@ export const VolumeProgress = ({ volume, users }) => {
       addDays(binDate, numWeeks * 7);
     }
 
-    console.log(bins);
-
     return bins;
   }, [volumeTimeline, reportingDay]);
   const binnedVolumeCounts = useMemo(() => binCounts(volumeTimeline, bins), [volumeTimeline, bins]);
