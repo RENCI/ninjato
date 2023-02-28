@@ -12,6 +12,7 @@ export const stackedArea = {
   mark: { 
     type: 'area', 
     line: true, 
+    point: true,
     tooltip: true 
   },
   encoding: {

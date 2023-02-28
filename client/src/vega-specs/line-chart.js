@@ -11,6 +11,7 @@ export const lineChart = {
   },
   mark: { 
     type: 'line', 
+    point: true,
     tooltip: true 
   },
   encoding: {
