@@ -181,7 +181,7 @@ export const VolumeProgress = ({ volume, users }) => {
   }, {});
 
   const bins = useMemo(() => {
-    const numDays = 1;
+    const numWeeks = 1;
 
     if (!volumeTimeline || volumeTimeline?.counts.length === 0) return null;
 
@@ -194,6 +194,9 @@ export const VolumeProgress = ({ volume, users }) => {
     const binDate = new Date(first.getFullYear(), first.getMonth(), first.getDate());
     binDate.setDate(first.getDate() + (7 + reportingDay - first.getDay()) % 7);
 
+    // Set to just before midnight on that day
+    binDate.setHours(23, 59, 59, 999);
+
     // Get last date
     const last = volumeTimeline.counts[volumeTimeline.counts.length - 1].time;
 
@@ -203,8 +206,10 @@ export const VolumeProgress = ({ volume, users }) => {
       const newDate = new Date();
       newDate.setTime(binDate.getTime());
       bins.push(newDate);
-      addDays(binDate, numDays * 7);
+      addDays(binDate, numWeeks * 7);
     }
+
+    console.log(bins);
 
     return bins;
   }, [volumeTimeline, reportingDay]);
