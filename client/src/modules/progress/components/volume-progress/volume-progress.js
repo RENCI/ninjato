@@ -224,13 +224,10 @@ export const VolumeProgress = ({ volume, users, reviewer }) => {
     ]
   }, []) : null;
   
-  const getAreaData = () => binnedVolumeCounts ? binnedVolumeCounts.reduce((data, count) => {
-    console.log(keys)
-    return [
-      ...data,
-      ...keys.map(key => ({ count: key.toLowerCase().includes('declined') ? -count[key] : count[key], time: count.time, status: key, order: keyIndex[key] }))
-    ]
-  }, []) : null;
+  const getAreaData = () => binnedVolumeCounts ? binnedVolumeCounts.reduce((data, count) => ([
+    ...data,
+    ...keys.map(key => ({ count: key.toLowerCase().includes('declined') ? -count[key] : count[key], time: count.time, status: key, order: keyIndex[key] }))
+  ]), []) : null;
 
   return (
     !binnedVolumeCounts ? null : 
