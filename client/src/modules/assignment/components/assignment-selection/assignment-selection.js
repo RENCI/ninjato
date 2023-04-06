@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from 'react';
 import { Tab, Menu, Checkbox } from 'semantic-ui-react';
-import { UserContext } from 'contexts';
+import { UserContext, SET_REVIEW_TRAINING } from 'contexts';
 import { RefineSelection } from './refine-selection';
 import { ReviewSelection } from './review-selection';
 import { RefreshButton } from 'modules/common/components/refresh-button';
@@ -32,8 +32,7 @@ const filterTrainingVolumes = (volumes, training) => (
 );
 
 export const AssignmentSelection = () => {
-  const [{ user, assignments, availableReviews, volumes }] = useContext(UserContext);
-  const [training, setTraining] = useState(user.reviewer ? false : null);
+  const [{ user, assignments, availableReviews, volumes, reviewTraining }, userDispatch] = useContext(UserContext);
   const getAssignments = useGetAssignments();
 
   const validAssignments = assignments ? assignments.filter(({ status }) => 
@@ -48,7 +47,7 @@ export const AssignmentSelection = () => {
   };
 
   const onTrainingToggle = () => {
-    setTraining(!training);
+    userDispatch({ type: SET_REVIEW_TRAINING, reviewTraining: !reviewTraining });
   };
 
   return (
@@ -65,15 +64,15 @@ export const AssignmentSelection = () => {
                     <Checkbox 
                       toggle
                       label='Training'
-                      checked={ training }
+                      checked={ reviewTraining }
                       onChange={ onTrainingToggle }
                     /> 
                   </div>
                   <ReviewSelection 
-                    review={ filterAssignments(validAssignments, volumes, 'review', user.login, training) } 
+                    review={ filterAssignments(validAssignments, volumes, 'review', user.login, reviewTraining) } 
                     waiting={ availableReviews } 
-                    volumes={ filterTrainingVolumes(volumes, training) }
-                    training={ training }
+                    volumes={ filterTrainingVolumes(volumes, reviewTraining) }
+                    training={ reviewTraining }
                   />                     
                 </Tab.Pane>
               )
@@ -94,7 +93,7 @@ export const AssignmentSelection = () => {
         <div className={ styles.refine }>
           <RefineSelection 
             assignments={ filterAssignments(validAssignments, volumes, 'refine', user.login) } 
-            training={ training || user.trainee === true }
+            training={ reviewTraining || user.trainee === true }
           />
         </div>
       )}
