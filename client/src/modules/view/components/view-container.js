@@ -14,14 +14,19 @@ import { SliceSlider, SliceLabel } from 'modules/common/components/slice-slider'
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
 import { RegionPopup } from 'modules/region/components/region-popup';
 import { ClaimDialog, RemoveDialog, SplitDialog, MergeDialog, CreateDialog, DeleteDialog } from 'modules/view/components/dialogs';
+import styles from './styles.module.css';
 
 const { Column } = Grid;
+
+// XXX: Temporary standin for trainee user
+const useGold = true;
 
 export const ViewContainer = ({ review = false }) => {
   const [{ imageData }, userDispatch] = useContext(UserContext);
   const [{ tool, options }, annotateDispatch] = useContext(AnnotateContext);
   const [volumeView, setVolumeView] = useState();
   const [sliceView, setSliceView] = useState();
+  const [goldView, setGoldView] = useState();
   const [loading, setLoading] = useState(true);
   const [slice, setSlice] = useState(0);
   const [canUndo, setCanUndo] = useState(false);
@@ -34,6 +39,8 @@ export const ViewContainer = ({ review = false }) => {
     const sliceView = SliceView();
     setSliceView(sliceView);
     setVolumeView(VolumeView(sliceView.getPainter()));
+
+    if (useGold) setGoldView(SliceView());
   }, []);
 
   useEffect(() => {
@@ -267,6 +274,20 @@ export const ViewContainer = ({ review = false }) => {
                   }
                   region={ volumeHoverRegion }
                 />
+                <div className={ styles.goldDiv }>
+                  <SliceViewWrapper 
+                    sliceView={ goldView } 
+                    onImageMapperChange={ onImageMapperChange }
+                    onEdit={ () => {} }
+                    onSliceChange={ onSliceChange }
+                    onSelect={ () => {} }
+                    onWidgetMove={ onSliceWidgetMove }
+                    onHover={ onSliceHover }
+                    onHighlight={ onHighlight }
+                    onKeyDown={ onKeyDown }
+                    onKeyUp={ onKeyUp }
+                  />  
+                </div>
               </Column>
               <Column>
                 <RegionPopup 
@@ -286,26 +307,7 @@ export const ViewContainer = ({ review = false }) => {
                   }
                   region={ sliceHoverRegion }
                 /> 
-              </Column>  
-              <Column>
-                <RegionPopup 
-                  trigger={ 
-                    <SliceViewWrapper 
-                      sliceView={ sliceView } 
-                      onImageMapperChange={ onImageMapperChange }
-                      onEdit={ onSliceEdit }
-                      onSliceChange={ onSliceChange }
-                      onSelect={ onSelect }
-                      onWidgetMove={ onSliceWidgetMove }
-                      onHover={ onSliceHover }
-                      onHighlight={ onHighlight }
-                      onKeyDown={ onKeyDown }
-                      onKeyUp={ onKeyUp }
-                    /> 
-                  }
-                  region={ sliceHoverRegion }
-                /> 
-              </Column>                 
+              </Column>                  
                 { !loading &&
                   <SliceSlider 
                     value={ slice } 
