@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect } from 'react';
 import { Tab, Menu, Checkbox } from 'semantic-ui-react';
 import { UserContext, SET_REVIEW_TRAINING } from 'contexts';
 import { RefineSelection } from './refine-selection';

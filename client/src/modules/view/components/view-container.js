@@ -286,7 +286,26 @@ export const ViewContainer = ({ review = false }) => {
                   }
                   region={ sliceHoverRegion }
                 /> 
-              </Column>                  
+              </Column>  
+              <Column>
+                <RegionPopup 
+                  trigger={ 
+                    <SliceViewWrapper 
+                      sliceView={ sliceView } 
+                      onImageMapperChange={ onImageMapperChange }
+                      onEdit={ onSliceEdit }
+                      onSliceChange={ onSliceChange }
+                      onSelect={ onSelect }
+                      onWidgetMove={ onSliceWidgetMove }
+                      onHover={ onSliceHover }
+                      onHighlight={ onHighlight }
+                      onKeyDown={ onKeyDown }
+                      onKeyUp={ onKeyUp }
+                    /> 
+                  }
+                  region={ sliceHoverRegion }
+                /> 
+              </Column>                 
                 { !loading &&
                   <SliceSlider 
                     value={ slice } 
