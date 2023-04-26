@@ -277,6 +277,7 @@ export const ViewContainer = ({ review = false }) => {
                 <div className={ styles.goldDiv }>
                   <SliceViewWrapper 
                     sliceView={ goldView } 
+                    useGold={ true }
                     onImageMapperChange={ onImageMapperChange }
                     onEdit={ () => {} }
                     onSliceChange={ onSliceChange }

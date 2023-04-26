@@ -101,7 +101,7 @@ const getVolumeMask = async volume => {
 
   const response = await axios.get(fileUrl(maskFile._id), { responseType: 'arraybuffer' });
 
-  return decodeTIFF(response.data);;
+  return decodeTIFF(response.data);
 };
 
 const getGoldStandard = async volume => {
@@ -118,7 +118,7 @@ const getGoldStandard = async volume => {
 };
 
 const getTrainingInfo = async volume => {
-  const [goldData, maskData] = await Promise.all([
+  const [maskData, goldData] = await Promise.all([
     getVolumeMask(volume),
     getGoldStandard(volume)
   ]);

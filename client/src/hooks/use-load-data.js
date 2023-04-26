@@ -8,6 +8,7 @@ import {
 } from 'contexts';
 import { api } from 'utils/api';
 import { decodeTIFF } from 'utils/data-conversion';
+import { cropImage } from 'utils/data';
 import { getUniqueLabels, copyImage, combineMasks } from 'utils/data';
 
 const getBackgroundRegions = async (subvolumeId, mask, regions) => {
@@ -62,7 +63,7 @@ export const useLoadData = ()  => {
       }
 
       // Gold standard for trainees
-      const goldData = user.trainee ? volumes.find(({ id }) => id === assignment.subvolumeId).trainingInfo.goldStandard : null;
+      const goldData = user.trainee ? cropImage(volumes.find(({ id }) => id === assignment.subvolumeId).trainingInfo.goldStandard, assignment.location) : null;
 
       // Background regions
       const backgroundRegions = await getBackgroundRegions(subvolumeId, newMaskData, regions);
