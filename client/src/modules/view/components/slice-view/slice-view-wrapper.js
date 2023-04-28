@@ -89,7 +89,7 @@ export const SliceViewWrapper = ({ sliceView, useGold = false, onEdit, onImageMa
         sliceView.setTool(tool, toolObject.cursor);
       }
     }
-  }, [initialized, sliceView, tool, tools]);
+  }, [initialized, useGold, sliceView, tool, tools]);
 
   // Paint brush
   useEffect(() => {

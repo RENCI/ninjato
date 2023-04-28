@@ -38,7 +38,7 @@ export const ViewContainer = ({ review = false }) => {
     setVolumeView(VolumeView(sliceView.getPainter()));
 
     if (user.trainee) setGoldView(SliceView());
-  }, []);
+  }, [user.trainee]);
 
   useEffect(() => {
     if (!sliceView) return;
@@ -76,7 +76,7 @@ export const ViewContainer = ({ review = false }) => {
     }
 
     setSlice(slice);
-  }, [volumeView, setSlice]);
+  }, [sliceView, goldView, volumeView, setSlice]);
 
   const onImageMapperChange = useCallback(mapper => {
     volumeView.setImageMapper(mapper);
