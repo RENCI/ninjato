@@ -23,7 +23,7 @@ const useGold = true;
 
 export const ViewContainer = ({ review = false }) => {
   const [{ imageData }, userDispatch] = useContext(UserContext);
-  const [{ tool, options }, annotateDispatch] = useContext(AnnotateContext);
+  const [{ tool, options, showGoldStandard }, annotateDispatch] = useContext(AnnotateContext);
   const [volumeView, setVolumeView] = useState();
   const [sliceView, setSliceView] = useState();
   const [goldView, setGoldView] = useState();
@@ -274,7 +274,10 @@ export const ViewContainer = ({ review = false }) => {
                   }
                   region={ volumeHoverRegion }
                 />
-                <div className={ styles.goldDiv }>
+                <div 
+                  className={ styles.goldDiv } 
+                  style={{ visibility: showGoldStandard ? 'visible' : 'hidden' }}
+                >
                   <SliceViewWrapper 
                     sliceView={ goldView } 
                     useGold={ true }

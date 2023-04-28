@@ -79,8 +79,8 @@ export const SliceViewWrapper = ({ sliceView, useGold = false, onEdit, onImageMa
 
   // Tool
   useEffect(() => {
-    if (initialized) {
-      const toolObject = tools.find(({ value }) => value === tool);
+    if (initialized && !useGold) {
+      const toolObject = tools.find(({ value }) => value === tool); 
 
       if (tool === 'navigate') {
         sliceView.setTool(null, toolObject.cursor);
