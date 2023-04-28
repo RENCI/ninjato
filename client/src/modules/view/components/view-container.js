@@ -18,11 +18,8 @@ import styles from './styles.module.css';
 
 const { Column } = Grid;
 
-// XXX: Temporary standin for trainee user
-const useGold = true;
-
 export const ViewContainer = ({ review = false }) => {
-  const [{ imageData }, userDispatch] = useContext(UserContext);
+  const [{ imageData, user }, userDispatch] = useContext(UserContext);
   const [{ tool, options, showGoldStandard }, annotateDispatch] = useContext(AnnotateContext);
   const [volumeView, setVolumeView] = useState();
   const [sliceView, setSliceView] = useState();
@@ -40,7 +37,7 @@ export const ViewContainer = ({ review = false }) => {
     setSliceView(sliceView);
     setVolumeView(VolumeView(sliceView.getPainter()));
 
-    if (useGold) setGoldView(SliceView());
+    if (user.trainee) setGoldView(SliceView());
   }, []);
 
   useEffect(() => {
@@ -286,24 +283,26 @@ export const ViewContainer = ({ review = false }) => {
                   }
                   region={ volumeHoverRegion }
                 />
-                <div 
-                  className={ styles.goldDiv } 
-                  style={{ visibility: showGoldStandard ? 'visible' : 'hidden' }}
-                >
-                  <SliceViewWrapper 
-                    sliceView={ goldView } 
-                    useGold={ true }
-                    onImageMapperChange={ onImageMapperChange }
-                    onEdit={ () => {} }
-                    onSliceChange={ onSliceChange }
-                    onSelect={ () => {} }
-                    onWidgetMove={ onSliceWidgetMove }
-                    onHover={ onSliceHover }
-                    onHighlight={ onHighlight }
-                    onKeyDown={ onKeyDown }
-                    onKeyUp={ onKeyUp }
-                  />  
-                </div>
+                { goldView &&
+                  <div 
+                    className={ styles.goldDiv } 
+                    style={{ visibility: showGoldStandard ? 'visible' : 'hidden' }}
+                  >
+                    <SliceViewWrapper 
+                      sliceView={ goldView } 
+                      useGold={ true }
+                      onImageMapperChange={ onImageMapperChange }
+                      onEdit={ () => {} }
+                      onSliceChange={ onSliceChange }
+                      onSelect={ () => {} }
+                      onWidgetMove={ onSliceWidgetMove }
+                      onHover={ onSliceHover }
+                      onHighlight={ onHighlight }
+                      onKeyDown={ onKeyDown }
+                      onKeyUp={ onKeyUp }
+                    />  
+                  </div>
+                }
               </Column>
               <Column>
                 <RegionPopup 
