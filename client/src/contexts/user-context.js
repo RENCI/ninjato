@@ -35,6 +35,7 @@ const initialState = {
   imageData: null,
   maskData: null,
   backgroundMaskData: null,
+  goldData: null,
   activeRegion: null,
   regionHistory: history(),
   reviewTraining: false
@@ -174,7 +175,8 @@ const reducer = (state, action) => {
         ...state,
         imageData: action.imageData,
         maskData: action.maskData,
-        backgroundMaskData: action.backgroundMaskData ? action.backgroundMaskData : action.maskData
+        backgroundMaskData: action.backgroundMaskData ? action.backgroundMaskData : action.maskData,
+        goldData: action.goldData
       };
 
     case CLEAR_DATA:
@@ -182,7 +184,8 @@ const reducer = (state, action) => {
         ...state,
         assignment: null,
         imageData: null,
-        maskData: null
+        maskData: null,
+        goldData: null
       };
 
     case SET_ACTIVE_REGION: 

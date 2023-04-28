@@ -2,8 +2,8 @@ import { useContext, useState, useRef, useEffect } from 'react';
 import { UserContext, AnnotateContext } from 'contexts';
 import { useResize } from 'hooks';
 
-export const SliceViewWrapper = ({ sliceView, onEdit, onImageMapperChange, onSliceChange, onSelect, onWidgetMove, onHover, onHighlight, onKeyDown, onKeyUp }) => {
-  const [{ imageData, maskData, backgroundMaskData, assignment, volumes, activeRegion }] = useContext(UserContext);
+export const SliceViewWrapper = ({ sliceView, useGold = false, onEdit, onImageMapperChange, onSliceChange, onSelect, onWidgetMove, onHover, onHighlight, onKeyDown, onKeyUp }) => {
+  const [{ imageData, maskData, backgroundMaskData, goldData, assignment, volumes, activeRegion }] = useContext(UserContext);
   const [{ tool, tools, brushes, paintBrush, eraseBrush, createBrush, showContours }] = useContext(AnnotateContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);
@@ -67,10 +67,10 @@ export const SliceViewWrapper = ({ sliceView, onEdit, onImageMapperChange, onSli
 
   // Data
   useEffect(() => {
-    if (initialized && imageData && maskData && backgroundMaskData) {
-      sliceView.setData(imageData, maskData, backgroundMaskData, sliceRanges.current);
+    if (initialized && imageData && (maskData || (useGold && goldData)) && backgroundMaskData) {
+      sliceView.setData(imageData, useGold ? goldData : maskData, backgroundMaskData, sliceRanges.current);
     }
-  }, [initialized, sliceView, imageData, maskData, backgroundMaskData, volumes]);   
+  }, [initialized, sliceView, imageData, maskData, backgroundMaskData, useGold, goldData, volumes]);   
 
   // Active region
   useEffect(() => {
@@ -79,8 +79,8 @@ export const SliceViewWrapper = ({ sliceView, onEdit, onImageMapperChange, onSli
 
   // Tool
   useEffect(() => {
-    if (initialized) {
-      const toolObject = tools.find(({ value }) => value === tool);
+    if (initialized && !useGold) {
+      const toolObject = tools.find(({ value }) => value === tool); 
 
       if (tool === 'navigate') {
         sliceView.setTool(null, toolObject.cursor);

@@ -2,7 +2,7 @@ import { useContext, useCallback, useState, useEffect, useRef } from 'react';
 import { Grid } from 'semantic-ui-react';
 import { 
   UserContext, PUSH_REGION_HISTORY, SET_ACTIVE_REGION,
-  AnnotateContext, ANNOTATE_SET_TOOL, ANNOTATE_SET_ACTION, ANNOTATE_CHANGE_BRUSH_SIZE
+  AnnotateContext, ANNOTATE_SET_TOOL, ANNOTATE_SET_ACTION, ANNOTATE_CHANGE_BRUSH_SIZE, ANNOTATE_SET_CONTROL
 } from 'contexts';
 import { AssignmentMessage } from 'modules/common/components/assignment-message';
 import { VisualizationLoader, VisualizationSection } from 'modules/common/components/visualization-container';
@@ -14,14 +14,19 @@ import { SliceSlider, SliceLabel } from 'modules/common/components/slice-slider'
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
 import { RegionPopup } from 'modules/region/components/region-popup';
 import { ClaimDialog, RemoveDialog, SplitDialog, MergeDialog, CreateDialog, DeleteDialog } from 'modules/view/components/dialogs';
+import styles from './styles.module.css';
 
 const { Column } = Grid;
 
+// XXX: Temporary standin for trainee user
+const useGold = true;
+
 export const ViewContainer = ({ review = false }) => {
   const [{ imageData }, userDispatch] = useContext(UserContext);
-  const [{ tool, options }, annotateDispatch] = useContext(AnnotateContext);
+  const [{ tool, options, showGoldStandard }, annotateDispatch] = useContext(AnnotateContext);
   const [volumeView, setVolumeView] = useState();
   const [sliceView, setSliceView] = useState();
+  const [goldView, setGoldView] = useState();
   const [loading, setLoading] = useState(true);
   const [slice, setSlice] = useState(0);
   const [canUndo, setCanUndo] = useState(false);
@@ -34,6 +39,8 @@ export const ViewContainer = ({ review = false }) => {
     const sliceView = SliceView();
     setSliceView(sliceView);
     setVolumeView(VolumeView(sliceView.getPainter()));
+
+    if (useGold) setGoldView(SliceView());
   }, []);
 
   useEffect(() => {
@@ -63,10 +70,14 @@ export const ViewContainer = ({ review = false }) => {
   }, [sliceView, userDispatch]);
 
   const onSliceChange = useCallback(slice => {
-    if (!volumeView) return;
+    if (sliceView) sliceView.setSlice(slice);
+    if (goldView) goldView.setSlice(slice);
 
-    volumeView.setSlice(slice);
-    volumeView.render();
+    if (volumeView) {
+      volumeView.setSlice(slice);
+      volumeView.render();
+    }
+
     setSlice(slice);
   }, [volumeView, setSlice]);
 
@@ -149,10 +160,15 @@ export const ViewContainer = ({ review = false }) => {
   // For use in key callbacks to avoid needing tool as an argument to useCallback
   const toolRef = useRef();
   const previousToolRef = useRef();
+  const showGoldRef = useRef();
 
   useEffect(() => {
     toolRef.current = tool;
   }, [tool]);
+
+  useEffect(() => {
+    showGoldRef.current = showGoldStandard;
+  }, [showGoldStandard]);
 
   const onKeyDown = useCallback(key => {
     const clearHighlight = () => { 
@@ -218,8 +234,11 @@ export const ViewContainer = ({ review = false }) => {
         break;
 
       case 'z':
-        console.log("z")
         volumeView.setCamera(sliceView.getCamera());
+        break;
+
+      case 'g':        
+        annotateDispatch({ type: ANNOTATE_SET_CONTROL, name: 'showGoldStandard', value: !showGoldRef.current });
         break;
 
       default:
@@ -267,6 +286,24 @@ export const ViewContainer = ({ review = false }) => {
                   }
                   region={ volumeHoverRegion }
                 />
+                <div 
+                  className={ styles.goldDiv } 
+                  style={{ visibility: showGoldStandard ? 'visible' : 'hidden' }}
+                >
+                  <SliceViewWrapper 
+                    sliceView={ goldView } 
+                    useGold={ true }
+                    onImageMapperChange={ onImageMapperChange }
+                    onEdit={ () => {} }
+                    onSliceChange={ onSliceChange }
+                    onSelect={ () => {} }
+                    onWidgetMove={ onSliceWidgetMove }
+                    onHover={ onSliceHover }
+                    onHighlight={ onHighlight }
+                    onKeyDown={ onKeyDown }
+                    onKeyUp={ onKeyUp }
+                  />  
+                </div>
               </Column>
               <Column>
                 <RegionPopup 

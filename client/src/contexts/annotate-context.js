@@ -99,6 +99,7 @@ const initialState = {
     linkPaintSlice: true
   },
   showBackground: true,
+  showGoldStandard: false,
   showContours: true,
   action: null
 };
