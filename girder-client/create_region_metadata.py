@@ -14,8 +14,9 @@ if __name__ == '__main__':
     parser.add_argument('girder_username', type=str, help='girder user name for authentication')
     parser.add_argument('girder_password', type=str, help='girder user password for authentication')
     parser.add_argument('girder_collection_id', type=str, help="girder data collection id")
-    parser.add_argument('--input_json_file', type=str, help='input json file containing verified info')
-    parser.add_argument('--whole_subvolume_item_id', type=str, help="whole subvolume item_id to set verified info")
+    parser.add_argument('--input_json_file', type=str, default='', help='input json file containing verified info')
+    parser.add_argument('--whole_subvolume_item_id', type=str, default='',
+                        help="whole subvolume item_id to set verified info")
 
     args = parser.parse_args()
     data_dir = args.data_dir
@@ -49,21 +50,16 @@ if __name__ == '__main__':
         file_to_item_id = {}
         for vol_folder in vol_folders:
             sub_vol_folders = gc.listFolder(vol_folder['_id'], parentFolderType='folder')
-            print(vol_folder['_id'])
             for sub_vol_folder in sub_vol_folders:
                 folders = gc.listFolder(sub_vol_folder['_id'], parentFolderType='folder')
                 for folder in folders:
                     items = gc.listItem(folder['_id'], name='_whole')
-                    found = False
                     for item in items:
                         files = gc.listFile(item['_id'])
                         for file in files:
                             if file['name'].endswith('masks.tif'):
-                                file_to_item_id[file['name']] = item['_id']
-                                found = True
-                                break
-                        if found:
-                            break
+                                file_to_item_id[f'{vol_folder["name"]}/{sub_vol_folder["name"]}/{folder["name"]}/' \
+                                                f'{item["name"]}/{file["name"]}'] = item['_id']
         print(file_to_item_id)
 
         for file_name_with_path in file_name_list:
@@ -119,6 +115,13 @@ if __name__ == '__main__':
                     whole_y_max = y_max
                 if x_max > whole_x_max:
                     whole_x_max = x_max
+
+            # find the file_name with path excluding the top folder name sync_data
+            slash_idx = os.path.dirname(file_name_with_path).find('/')
+            if slash_idx == -1:
+                file_name = file_name_with_path
+            else:
+                file_name = file_name_with_path[slash_idx+1:]
             if len(verified_regions) > 0 and str(file_to_item_id[file_name]) == whole_subvolume_item_id:
                 # add verified metadata data
                 for reg_id in verified_regions:
@@ -131,6 +134,5 @@ if __name__ == '__main__':
                 "z_max": int(whole_z_max),
                 "z_min": int(whole_z_min)
             }
-            file_name = os.path.basename(file_name_with_path)
             if file_name in file_to_item_id:
                 gc.addMetadataToItem(file_to_item_id[file_name], meta_dict)

@@ -1,4 +1,3 @@
-import json
 import argparse
 import os
 import numpy as np
@@ -31,7 +30,7 @@ if __name__ == '__main__':
         min_level = min(levels)
         max_level = max(levels)
         meta_dict = {'regions': {},
-                         'max_region_id': int(max_level)}
+                     'max_region_id': int(max_level)}
         for lev in range(min_level, max_level+1):
             level_indices = np.where(imarray == lev)
             z_min = min(level_indices[0])
@@ -52,4 +51,3 @@ if __name__ == '__main__':
             }
             if lev == 850 or lev == 851:
                 print(lev, meta_dict['regions'][str(lev)])
-
