@@ -201,6 +201,29 @@ def _create_region(region_key, whole_item, extent_dict):
         },
         'region_ids': [region_key]
     }
+    training_key = 'training_info'
+    if training_key in whole_item['meta']:
+        for key, val in whole_item['meta'][training_key].items():
+            if key == 'trace' and int(region_key) in val:
+                if training_key not in add_meta:
+                    add_meta[training_key] = {key: None}
+                else:
+                    add_meta[training_key][key] = None
+            elif key == 'split' and int(region_key) in val:
+                if training_key not in add_meta:
+                    add_meta[training_key] = {key: 2}
+                else:
+                    add_meta[training_key][key] = 2
+            elif key == 'merge':
+                for rids in val:
+                    if int(region_key) in rids:
+                        rids.remove(int(region_key))
+                        if training_key not in add_meta:
+                            add_meta[training_key] = {key: rids}
+                        else:
+                            add_meta[training_key][key] = rids
+                        break
+
     Item().setMetadata(region_item, add_meta)
 
     create_region_files(region_item, whole_item)
