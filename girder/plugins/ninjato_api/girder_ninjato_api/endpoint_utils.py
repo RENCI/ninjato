@@ -810,7 +810,9 @@ def get_region_or_assignment_info(item, assign_item_id, region_id):
         if region_item and 'color' in region_item['meta'] else {},
         'status': get_assignment_status(item, assign_item_id) if region_item else 'inactive'
     }
-
+    training_key = 'training_info'
+    if training_key in region_item['meta']:
+        ret_dict[training_key] = region_item['meta'][training_key]
     return ret_dict
 
 
