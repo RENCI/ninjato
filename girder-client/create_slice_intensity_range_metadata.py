@@ -49,6 +49,8 @@ if __name__ == '__main__':
             tif = TIFF.open(file_name_with_path)
             images = []
             for image in tif.iter_images():
+                if tif.isbyteswapped():
+                    image = image.byteswap()
                 images.append(image)
             # imarray should be in order of ZYX
             imarray = np.array(images)
