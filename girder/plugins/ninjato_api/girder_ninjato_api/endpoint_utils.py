@@ -6,9 +6,9 @@ from bson.objectid import ObjectId
 from girder.models.collection import Collection
 from girder.models.folder import Folder
 from girder.exceptions import RestException
-from .utils import TRAINING_COLLECTION_NAME, COLLECTION_NAME, ANNOT_ASSIGN_KEY, \
+from .utils import TRAINING_COLLECTION_NAME, COLLECTION_NAME, ANNOT_ASSIGN_KEY, TRAINING_KEY, \
     ANNOT_COMPLETE_KEY, REVIEW_ASSIGN_KEY, REVIEW_COMPLETE_KEY, REVIEW_DONE_KEY, \
-    REVIEW_APPROVE_KEY, ASSIGN_COUNT_FOR_REVIEW, get_max_region_id, set_max_region_id, \
+    REVIEW_APPROVE_KEY, ASSIGN_COUNT_FOR_REVIEW, flatten, get_max_region_id, set_max_region_id, \
     remove_region_from_active_assignment, merge_region_to_active_assignment, set_assignment_meta, \
     get_history_info, assign_region_to_user, add_meta_to_history, check_subvolume_done, \
     reject_assignment, update_assignment_in_whole_item, get_assignment_status, \
@@ -402,6 +402,13 @@ def get_item_assignment(user, subvolume_id, request_new, training):
     sub_id = filtered_id_list[0]
     whole_item = Item().findOne({'_id': ObjectId(sub_id)})
 
+    # if TRAINING_INFO key is in metadata, make sure the available region to assign is part of
+    # assigned training module regions
+    if TRAINING_KEY in whole_item['meta']:
+        training_region_ids = flatten(list(whole_item['meta'][TRAINING_KEY].values()))
+    else:
+        training_region_ids = []
+
     # no region has been assigned to the user yet, look into the whole partition
     # item to find a region for assignment
     # filter out those regions unavailable for assignment first
@@ -428,8 +435,8 @@ def get_item_assignment(user, subvolume_id, request_new, training):
                     continue
             if get_history_info(whole_item, val['item_id'], ANNOT_ASSIGN_KEY):
                 continue
-
-        avail_region_items[key] = val
+        if not training_region_ids or int(key) in training_region_ids:
+            avail_region_items[key] = val
 
     # randomize available item to assign to users to minimize adjacent region assignment
     if len(avail_region_items) > 0:
@@ -810,9 +817,8 @@ def get_region_or_assignment_info(item, assign_item_id, region_id):
         if region_item and 'color' in region_item['meta'] else {},
         'status': get_assignment_status(item, assign_item_id) if region_item else 'inactive'
     }
-    training_key = 'training_info'
-    if training_key in region_item['meta']:
-        ret_dict[training_key] = region_item['meta'][training_key]
+    if TRAINING_KEY in region_item['meta']:
+        ret_dict[TRAINING_KEY] = region_item['meta'][TRAINING_KEY]
     return ret_dict
 
 
