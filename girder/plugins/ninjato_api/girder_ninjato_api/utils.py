@@ -27,6 +27,15 @@ REVIEW_COMPLETE_KEY = 'review_completed_by'
 REVIEW_DONE_KEY = 'review_done'
 REVIEW_APPROVE_KEY = 'review_approved'
 ASSIGN_COUNT_FOR_REVIEW = 10
+TRAINING_KEY = 'training_info'
+
+
+def flatten(iterable):
+    try:
+        for item in iterable:
+            yield from flatten(item)
+    except TypeError:
+        yield iterable
 
 
 def _get_tif_file_content_and_path(item_file):
@@ -209,27 +218,26 @@ def _create_region(region_key, whole_item, extent_dict):
         },
         'region_ids': [region_key]
     }
-    training_key = 'training_info'
-    if training_key in whole_item['meta']:
-        for key, val in whole_item['meta'][training_key].items():
+    if TRAINING_KEY in whole_item['meta']:
+        for key, val in whole_item['meta'][TRAINING_KEY].items():
             if key == 'trace' and int(region_key) in val:
-                if training_key not in add_meta:
-                    add_meta[training_key] = {key: None}
+                if TRAINING_KEY not in add_meta:
+                    add_meta[TRAINING_KEY] = {key: None}
                 else:
-                    add_meta[training_key][key] = None
+                    add_meta[TRAINING_KEY][key] = None
             elif key == 'split' and int(region_key) in val:
-                if training_key not in add_meta:
-                    add_meta[training_key] = {key: 2}
+                if TRAINING_KEY not in add_meta:
+                    add_meta[TRAINING_KEY] = {key: 2}
                 else:
-                    add_meta[training_key][key] = 2
+                    add_meta[TRAINING_KEY][key] = 2
             elif key == 'merge':
                 for rids in val:
                     if int(region_key) in rids:
                         rids.remove(int(region_key))
-                        if training_key not in add_meta:
-                            add_meta[training_key] = {key: rids}
+                        if TRAINING_KEY not in add_meta:
+                            add_meta[TRAINING_KEY] = {key: rids}
                         else:
-                            add_meta[training_key][key] = rids
+                            add_meta[TRAINING_KEY][key] = rids
                         break
 
     Item().setMetadata(region_item, add_meta)
