@@ -405,7 +405,7 @@ def get_item_assignment(user, subvolume_id, request_new, training):
     # if TRAINING_INFO key is in metadata, make sure the available region to assign is part of
     # assigned training module regions
     if TRAINING_KEY in whole_item['meta']:
-        training_region_ids = flatten(list(whole_item['meta'][TRAINING_KEY].values()))
+        training_region_ids = list(flatten(list(whole_item['meta'][TRAINING_KEY].values())))
     else:
         training_region_ids = []
 
