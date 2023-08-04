@@ -13,6 +13,7 @@ import { SliceControls } from 'modules/refine/components/slice-controls';
 import { SliceSlider, SliceLabel } from 'modules/common/components/slice-slider';
 import { SaveButtons } from 'modules/assignment/components/save-buttons';
 import { RegionPopup } from 'modules/region/components/region-popup';
+import { TrainingInfo } from 'modules/assignment/components/training-info';
 import { ClaimDialog, RemoveDialog, SplitDialog, MergeDialog, CreateDialog, DeleteDialog } from 'modules/view/components/dialogs';
 import styles from './styles.module.css';
 
@@ -266,6 +267,7 @@ export const ViewContainer = ({ review = false }) => {
           <VolumeControls />
         }
         <Column>
+          <TrainingInfo />
           <VisualizationSection>
             <Grid columns='equal' stackable padded reversed='mobile'>
               <Column>

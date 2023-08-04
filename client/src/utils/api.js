@@ -90,8 +90,9 @@ const getAssignment = async (subvolumeId, itemId) => {
       visible: true
     })),
     status: getStatus(info),
-    annotator: info.annotator ? info.annotator : null,
-    reviewer: info.reviewer ? info.reviewer : null
+    annotator: info.annotator ?? null,
+    reviewer: info.reviewer ?? null,
+    trainingInfo: info.training_info ?? null
   };
 };
 
