@@ -355,7 +355,7 @@ export const api = {
   getAssignment: async (subvolumeId, itemId, training) => {
     return await getAssignment(subvolumeId, itemId, training);
   },
-  getNewAssignment: async (userId, subvolumeId, training) => {
+  getNewAssignment: async (userId, subvolumeId) => {
     const response = await axios.get(`/user/${ userId }/assignment`,
       {
         params: {
