@@ -7,6 +7,8 @@ export const TrainingInfo = () => {
 
   const info = assignment.trainingInfo;
 
+  if (!info) return null;
+
   const message = info.merge ? `merge region with ${ info.merge.length } neighboring region ${ info.merge.length > 1 ? 's' : '' }` :
     info.split ? 'split region into two regions' :
     'refine region boundary'; 
