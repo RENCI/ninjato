@@ -38,6 +38,14 @@ def flatten(iterable):
         yield iterable
 
 
+def get_training_info_id_list(info_dict):
+    # need to get id list in order of trace, split, and merge
+    trace_values = info_dict.get("trace", [])
+    split_values = info_dict.get("split", [])
+    merge_values = list(flatten(info_dict.get("merge", [])))
+    return trace_values + split_values + merge_values
+
+
 def _get_tif_file_content_and_path(item_file):
     """
     get tif file content and its associated path in an item file
@@ -233,11 +241,12 @@ def _create_region(region_key, whole_item, extent_dict):
             elif key == 'merge':
                 for rids in val:
                     if int(region_key) in rids:
-                        rids.remove(int(region_key))
+                        new_rids = rids.copy()
+                        new_rids.remove(int(region_key))
                         if TRAINING_KEY not in add_meta:
-                            add_meta[TRAINING_KEY] = {key: rids}
+                            add_meta[TRAINING_KEY] = {key: new_rids}
                         else:
-                            add_meta[TRAINING_KEY][key] = rids
+                            add_meta[TRAINING_KEY][key] = new_rids
                         break
 
     Item().setMetadata(region_item, add_meta)
