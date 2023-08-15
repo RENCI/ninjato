@@ -90,8 +90,9 @@ const getAssignment = async (subvolumeId, itemId) => {
       visible: true
     })),
     status: getStatus(info),
-    annotator: info.annotator ? info.annotator : null,
-    reviewer: info.reviewer ? info.reviewer : null
+    annotator: info.annotator ?? null,
+    reviewer: info.reviewer ?? null,
+    trainingInfo: info.training_info ?? null
   };
 };
 
@@ -354,7 +355,7 @@ export const api = {
   getAssignment: async (subvolumeId, itemId, training) => {
     return await getAssignment(subvolumeId, itemId, training);
   },
-  getNewAssignment: async (userId, subvolumeId, training) => {
+  getNewAssignment: async (userId, subvolumeId) => {
     const response = await axios.get(`/user/${ userId }/assignment`,
       {
         params: {
