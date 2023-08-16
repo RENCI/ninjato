@@ -8,11 +8,11 @@ from girder.models.folder import Folder
 from girder.exceptions import RestException
 from .utils import TRAINING_COLLECTION_NAME, COLLECTION_NAME, ANNOT_ASSIGN_KEY, TRAINING_KEY, \
     ANNOT_COMPLETE_KEY, REVIEW_ASSIGN_KEY, REVIEW_COMPLETE_KEY, REVIEW_DONE_KEY, \
-    REVIEW_APPROVE_KEY, ASSIGN_COUNT_FOR_REVIEW, flatten, get_max_region_id, set_max_region_id, \
-    remove_region_from_active_assignment, merge_region_to_active_assignment, set_assignment_meta, \
-    get_history_info, assign_region_to_user, add_meta_to_history, check_subvolume_done, \
-    reject_assignment, update_assignment_in_whole_item, get_assignment_status, \
-    WHOLE_ITEM_NAME, save_content_data, save_added_and_removed_regions, \
+    REVIEW_APPROVE_KEY, ASSIGN_COUNT_FOR_REVIEW, get_training_info_id_list, get_max_region_id, \
+    set_max_region_id, remove_region_from_active_assignment, merge_region_to_active_assignment, \
+    set_assignment_meta, get_history_info, assign_region_to_user, add_meta_to_history, \
+    check_subvolume_done, reject_assignment, update_assignment_in_whole_item, \
+    get_assignment_status, WHOLE_ITEM_NAME, save_content_data, save_added_and_removed_regions, \
     get_completed_assignment_items, update_all_assignment_masks_async
 
 
@@ -405,7 +405,7 @@ def get_item_assignment(user, subvolume_id, request_new, training):
     # if TRAINING_INFO key is in metadata, make sure the available region to assign is part of
     # assigned training module regions
     if TRAINING_KEY in whole_item['meta']:
-        training_region_ids = list(flatten(list(whole_item['meta'][TRAINING_KEY].values())))
+        training_region_ids = get_training_info_id_list(whole_item['meta'][TRAINING_KEY])
     else:
         training_region_ids = []
 
@@ -440,20 +440,28 @@ def get_item_assignment(user, subvolume_id, request_new, training):
 
     # randomize available item to assign to users to minimize adjacent region assignment
     if len(avail_region_items) > 0:
-        key, val = random.choice(list(avail_region_items.items()))
-        # this region can be assigned to a user
-        region_item = assign_region_to_user(whole_item, user, key)
-        assigned_region_id = region_item['_id']
-        assign_regions = region_item['meta']['region_ids']
-        if assigned_region_id:
-            item_dict = {
-                'type': ANNOT_ASSIGN_KEY,
-                'status': 'active',
-                'item_id': assigned_region_id,
-                'subvolume_id': subvolume_id,
-                'regions': assign_regions
-            }
-            ret_data.append(item_dict)
+        if not training_region_ids:
+            key, _ = random.choice(list(avail_region_items.items()))
+        else:
+            key = ''
+            for tid in training_region_ids:
+                if str(tid) in avail_region_items:
+                    key = str(tid)
+                    break
+        if key:
+            # this region can be assigned to a user
+            region_item = assign_region_to_user(whole_item, user, key)
+            assigned_region_id = region_item['_id']
+            assign_regions = region_item['meta']['region_ids']
+            if assigned_region_id:
+                item_dict = {
+                    'type': ANNOT_ASSIGN_KEY,
+                    'status': 'active',
+                    'item_id': assigned_region_id,
+                    'subvolume_id': subvolume_id,
+                    'regions': assign_regions
+                }
+                ret_data.append(item_dict)
 
     return ret_data
 
