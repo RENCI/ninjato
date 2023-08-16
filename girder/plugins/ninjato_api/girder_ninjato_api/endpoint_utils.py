@@ -443,23 +443,25 @@ def get_item_assignment(user, subvolume_id, request_new, training):
         if not training_region_ids:
             key, _ = random.choice(list(avail_region_items.items()))
         else:
+            key = ''
             for tid in training_region_ids:
                 if str(tid) in avail_region_items:
                     key = str(tid)
                     break
-        # this region can be assigned to a user
-        region_item = assign_region_to_user(whole_item, user, key)
-        assigned_region_id = region_item['_id']
-        assign_regions = region_item['meta']['region_ids']
-        if assigned_region_id:
-            item_dict = {
-                'type': ANNOT_ASSIGN_KEY,
-                'status': 'active',
-                'item_id': assigned_region_id,
-                'subvolume_id': subvolume_id,
-                'regions': assign_regions
-            }
-            ret_data.append(item_dict)
+        if key:
+            # this region can be assigned to a user
+            region_item = assign_region_to_user(whole_item, user, key)
+            assigned_region_id = region_item['_id']
+            assign_regions = region_item['meta']['region_ids']
+            if assigned_region_id:
+                item_dict = {
+                    'type': ANNOT_ASSIGN_KEY,
+                    'status': 'active',
+                    'item_id': assigned_region_id,
+                    'subvolume_id': subvolume_id,
+                    'regions': assign_regions
+                }
+                ret_data.append(item_dict)
 
     return ret_data
 
