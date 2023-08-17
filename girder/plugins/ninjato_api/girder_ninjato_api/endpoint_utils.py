@@ -884,7 +884,7 @@ def get_subvolume_slice_embedding(item, slice_no):
                                'name': EMBEDDING_NAME})
     item_files = File().find({'itemId': emb_item['_id']})
     for item_file in item_files:
-        if item_file['name'].endswith(f'_{slice_no}.bin'):
+        if item_file['name'].endswith(f'_{slice_no}.npy'):
             file = File().load(item_file['_id'], force=True)
             file_path = File().getLocalFilePath(file)
             with open(file_path, 'rb') as fp:
