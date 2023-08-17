@@ -34,10 +34,16 @@ if __name__ == '__main__':
             files = {"image": (im_file_name, open(im_file_name, "rb"), "image/jpeg")}
             response = requests.post(url, headers=headers, files=files)
             if response.status_code == 200:
-                with open(f"{os.path.dirname(data_file_name_with_path)}/embeddings/"
-                          f"{os.path.splitext(data_file_name_with_path)[0].split('/')[-1]}_embedding_{i}.bin",
-                          "wb") as fp:
-                    fp.write(response.content)
+                dtype_header = response.headers.get('x-numpy-dtype')
+                shape_header = response.headers.get('x-numpy-shape')
+                dtype = np.dtype(dtype_header)
+                shape = tuple(map(int, shape_header.strip('[]').split(',')))
+                embed_array = np.frombuffer(response.content, dtype=dtype).reshape(shape)
+                print(dtype, shape, embed_array.shape)
+
+                np.save(f"{os.path.dirname(data_file_name_with_path)}/embeddings/"
+                        f"{os.path.splitext(data_file_name_with_path)[0].split('/')[-1]}_embedding_{i}.npy",
+                        embed_array)
             else:
                 print(f"Request failed: {response}")
                 exit(1)
