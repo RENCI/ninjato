@@ -18,6 +18,7 @@ from girder_jobs.models.job import Job
 COLLECTION_NAME = 'nuclei_image_collection'
 TRAINING_COLLECTION_NAME = 'nuclei_image_training_collection'
 WHOLE_ITEM_NAME = '_whole'
+EMBEDDING_NAME = 'embedding'
 BUFFER_FACTOR = 3
 DATA_PATH = '/girder/data'
 ANNOT_ASSIGN_KEY = 'annotation_assigned_to'
