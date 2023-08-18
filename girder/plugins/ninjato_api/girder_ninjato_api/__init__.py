@@ -233,10 +233,10 @@ def get_subvolume_info(item):
 
 @access.public
 @autoDescribeRoute(
-    Description('Get the embedding byte stream for specified slice of the specified subvolume.')
+    Description('Get file name and file id of the embedding for specified slice of the '
+                'specified subvolume.')
     .modelParam('id', 'The item ID', model='item', level=AccessType.READ)
     .param('slice_no', 'the slice number starting from 0', dataType='integer', required=True)
-    .produces(['application/octet-stream'])
     .errorResponse()
     .errorResponse('Get action was denied on the user.', 403)
     .errorResponse('Failed to get subvolume slice embedding', 500)

@@ -885,9 +885,9 @@ def get_subvolume_slice_embedding(item, slice_no):
     item_files = File().find({'itemId': emb_item['_id']})
     for item_file in item_files:
         if item_file['name'].endswith(f'_{slice_no}.npy'):
-            file = File().load(item_file['_id'], force=True)
-            file_path = File().getLocalFilePath(file)
-            with open(file_path, 'rb') as fp:
-                byte_stream = fp.read()
-                return byte_stream
-    return None
+            return {
+                'file_name': item_file['name'],
+                'file_id': item_file['_id']
+                }
+
+    raise RestException('no slice embedding found for the input volume item', code=400)
