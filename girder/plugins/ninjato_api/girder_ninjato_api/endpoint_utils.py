@@ -651,7 +651,14 @@ def get_subvolume_item_info(item):
     """
     item_id = item['_id']
     region_dict = item['meta']['regions']
-    total_regions = len(region_dict)
+
+    if TRAINING_KEY in item['meta']:
+        training_region_ids = get_training_info_id_list(item['meta'][TRAINING_KEY])
+        total_regions = len(training_region_ids)
+    else:
+        training_region_ids = []
+        total_regions = len(region_dict)
+
     ret_dict = {
         'id': item_id,
         'name': Folder().findOne({'_id': item['folderId']})['name'],
@@ -702,7 +709,8 @@ def get_subvolume_item_info(item):
             if REVIEW_APPROVE_KEY in val and val[REVIEW_APPROVE_KEY] == 'true':
                 total_regions_review_approved += 1
                 total_regions_done += 1
-            total_regions_available += 1
+            if not training_region_ids or int(key) in training_region_ids:
+                total_regions_available += 1
             continue
 
         if assign_status == 'completed':
