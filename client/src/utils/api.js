@@ -66,6 +66,29 @@ const getComments = async (subvolumeId, regions) => {
   return comments;
 };
 
+const getEmbeddings = async (subvolumeId, zMin, zMax) => {
+  try {
+    const slicePromises = [];
+    for (let z = zMin; z <= zMax; z++) {
+      slicePromises.push(axios.get(`/item/${ subvolumeId }/subvolume_slice_embedding`, {
+        params: { slice_no: z }
+      }));
+    }
+
+    const sliceResponses = await Promise.all(slicePromises);
+
+    const fileResponses = await Promise.all(sliceResponses.map(({ data }) => 
+      axios.get(fileUrl(data.file_id), { responseType: 'arraybuffer '})
+    ));
+
+    console.log(fileResponses);
+  }
+  catch (err) {
+    console.log('Error loading embeddings');
+    return null;
+  }
+};
+
 const getAssignment = async (subvolumeId, itemId) => {
   // Get assignment info
   const infoResponse = await axios.get(`/item/${ subvolumeId }/subvolume_assignment_info`, {
@@ -468,10 +491,21 @@ export const api = {
       regions.forEach(region => region.comments = comments[region.label])
     };
 
+    const addEmbeddings = async assignment => {
+      const embeddings = await getEmbeddings(
+        assignment.subvolumeId, 
+        assignment.location.z_min, 
+        assignment.location.z_max
+      );
+
+      assignment.embeddings = embeddings;
+    };
+
     // Get file names and region comments
     const responses = await Promise.all([
       getFiles(assignment),
-      addComments(assignment)
+      addComments(assignment),
+      addEmbeddings(assignment)
     ]);
 
     return responses[0];     
