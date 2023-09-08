@@ -1,6 +1,8 @@
 import axios from 'axios';
+import npyjs from 'npyjs';
 import { decodeTIFF } from 'utils/data-conversion';
 import { computeDiceScore, getUniqueLabels } from './data';
+const ort = require('onnxruntime-web');
 
 // API helper functions
 
@@ -77,11 +79,12 @@ const getEmbeddings = async (subvolumeId, zMin, zMax) => {
 
     const sliceResponses = await Promise.all(slicePromises);
 
-    const fileResponses = await Promise.all(sliceResponses.map(({ data }) => 
-      axios.get(fileUrl(data.file_id), { responseType: 'arraybuffer '})
-    ));
+    const npArrays = await Promise.all(sliceResponses.map(({ data }) => {
+      const npLoader = new npyjs();
+      return npLoader.load(fileUrl(data.file_id));
+    }));
 
-    console.log(fileResponses);
+    console.log(npArrays);
   }
   catch (err) {
     console.log('Error loading embeddings');
