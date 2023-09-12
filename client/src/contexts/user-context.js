@@ -38,7 +38,8 @@ const initialState = {
   goldData: null,
   activeRegion: null,
   regionHistory: history(),
-  reviewTraining: false
+  reviewTraining: false,
+  embeddings: null
 };
 
 const createRegion = (regions, label) => {
@@ -176,7 +177,8 @@ const reducer = (state, action) => {
         imageData: action.imageData,
         maskData: action.maskData,
         backgroundMaskData: action.backgroundMaskData ? action.backgroundMaskData : action.maskData,
-        goldData: action.goldData
+        goldData: action.goldData,
+        embeddings: action.embeddings
       };
 
     case CLEAR_DATA:
@@ -185,7 +187,8 @@ const reducer = (state, action) => {
         assignment: null,
         imageData: null,
         maskData: null,
-        goldData: null
+        goldData: null,
+        embeddings: null
       };
 
     case SET_ACTIVE_REGION: 

@@ -90,7 +90,9 @@ const getEmbeddings = async (subvolumeId, zMin, zMax) => {
 
     const npArrays = await Promise.all(promises.map(promise => promise()));
 
-    console.log(npArrays);
+    const tensors = npArrays.map(array => new ort.Tensor(array.dtype, array.data, array.shape));
+
+    return tensors;
   }
   catch (err) {
     console.log(err);
@@ -484,12 +486,18 @@ export const api = {
       // Get files
       const fileResponses = await Promise.all([
         axios.get(fileUrl(imageInfo._id), { responseType: 'arraybuffer' }), 
-        axios.get(fileUrl(maskInfo._id), { responseType: 'arraybuffer' })      
+        axios.get(fileUrl(maskInfo._id), { responseType: 'arraybuffer' }),
+        getEmbeddings(
+          assignment.subvolumeId, 
+          assignment.location.z_min, 
+          assignment.location.z_max
+        )      
       ]);
 
       return {
         imageBuffer: fileResponses[0].data,
-        maskBuffer: fileResponses[1].data
+        maskBuffer: fileResponses[1].data,
+        embeddings: fileResponses[2]
       }; 
     };
 
@@ -498,24 +506,13 @@ export const api = {
     const addComments = async ({ subvolumeId, regions }) => {
       const comments = await getComments(subvolumeId, regions);
 
-      regions.forEach(region => region.comments = comments[region.label])
+      regions.forEach(region => region.comments = comments[region.label]);
     };
 
-    const addEmbeddings = async assignment => {
-      const embeddings = await getEmbeddings(
-        assignment.subvolumeId, 
-        assignment.location.z_min, 
-        assignment.location.z_max
-      );
-
-      assignment.embeddings = embeddings;
-    };
-
-    // Get file names and region comments
+    // Get files and region comments
     const responses = await Promise.all([
       getFiles(assignment),
-      addComments(assignment),
-      addEmbeddings(assignment)
+      addComments(assignment)
     ]);
 
     return responses[0];     

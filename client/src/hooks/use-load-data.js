@@ -73,7 +73,8 @@ export const useLoadData = ()  => {
         imageData: newImageData,
         backgroundMaskData: mergeMasks ? copyImage(newMaskData) : newMaskData,
         maskData: mergeMasks ? combineMasks(newMaskData, assignment.location, maskData, assignmentToUpdate.location) : newMaskData,
-        goldData: goldData
+        goldData: goldData,
+        embeddings: data.embeddings
       });
 
       userDispatch({ 
