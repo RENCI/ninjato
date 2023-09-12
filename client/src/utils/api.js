@@ -70,23 +70,30 @@ const getComments = async (subvolumeId, regions) => {
 
 const getEmbeddings = async (subvolumeId, zMin, zMax) => {
   try {
-    const slicePromises = [];
+    const promises = [];
     for (let z = zMin; z <= zMax; z++) {
-      slicePromises.push(axios.get(`/item/${ subvolumeId }/subvolume_slice_embedding`, {
-        params: { slice_no: z }
-      }));
+      promises.push(async () => {
+        const sliceInfoResponse  = await axios.get(`/item/${ subvolumeId }/subvolume_slice_embedding`, {
+          params: { slice_no: z }
+        });
+
+        const fileResponse = await axios.get(fileUrl(sliceInfoResponse.data.file_id), { responseType: 'blob' });
+
+        const url = URL.createObjectURL(fileResponse.data);
+
+        const npLoader = new npyjs();
+        const array = await npLoader.load(url);
+
+        return array;
+      });
     }
 
-    const sliceResponses = await Promise.all(slicePromises);
-
-    const npArrays = await Promise.all(sliceResponses.map(({ data }) => {
-      const npLoader = new npyjs();
-      return npLoader.load(fileUrl(data.file_id));
-    }));
+    const npArrays = await Promise.all(promises.map(promise => promise()));
 
     console.log(npArrays);
   }
   catch (err) {
+    console.log(err);
     console.log('Error loading embeddings');
     return null;
   }
