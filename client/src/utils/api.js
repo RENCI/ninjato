@@ -97,12 +97,19 @@ const getAssignment = async (subvolumeId, itemId) => {
 };
 
 const getVolumeMask = async volume => {
-  const volumeFiles = await axios.get(`/item/${ volume.id }/files`);
-  const maskFile = volumeFiles.data.find(({ name }) => name.includes('_masks.tif'));
+  try {
+    const volumeFiles = await axios.get(`/item/${ volume.id }/files`);
+    const maskFile = volumeFiles.data.find(({ name }) => name.includes('_masks.tif'));
 
-  const response = await axios.get(fileUrl(maskFile._id), { responseType: 'arraybuffer' });
+    const response = await axios.get(fileUrl(maskFile._id), { responseType: 'arraybuffer' });
 
-  return decodeTIFF(response.data);
+    return decodeTIFF(response.data);
+  }
+  catch (error) {
+    console.log(error);
+
+    return null;
+  }
 };
 
 const getGoldStandard = async volume => {
@@ -128,8 +135,8 @@ const getTrainingInfo = async volume => {
 
   return {
     goldStandard: goldData,
-    diceScore: computeDiceScore(goldData, maskData),
-    regionDifference: getUniqueLabels(maskData).length - getUniqueLabels(goldData).length
+    diceScore: maskData ? computeDiceScore(goldData, maskData) : null,
+    regionDifference: maskData ? getUniqueLabels(maskData).length - getUniqueLabels(goldData).length : null
   };
 };
 

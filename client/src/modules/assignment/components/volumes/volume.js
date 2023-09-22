@@ -145,12 +145,12 @@ export const Volume = ({ volume, availableReviews, enabled }) => {
                     <Header.Subheader>
                       <div className={ styles.trainingInfo }>
                         Dice score: <span>
-                          { trainingInfo.diceScore.toFixed(4) }
+                          { trainingInfo.diceScore !== null ? trainingInfo.diceScore.toFixed(4) : 'N/A' }
                         </span>
                       </div>
                       <div className={ styles.trainingInfo }>
                         Region count difference: <span>
-                          { (trainingInfo.regionDifference > 0 ? '+' : '') + trainingInfo.regionDifference }
+                          { trainingInfo.regionDifference !== null ? ((trainingInfo.regionDifference > 0 ? '+' : '') + trainingInfo.regionDifference) : 'N/A' }
                         </span>
                       </div>
                     </Header.Subheader>
