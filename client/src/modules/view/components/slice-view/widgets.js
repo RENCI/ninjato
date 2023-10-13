@@ -1,6 +1,7 @@
 import vtkWidgetManager from '@kitware/vtk.js/Widgets/Core/WidgetManager';
 import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
+import vtkSamWidget from 'vtk/widgets/sam-widget';
 import vtkBrushWidget from 'vtk/widgets/brush-widget';
 import vtkCropWidget from 'vtk/widgets/crop-widget';
 import vtkRegionSelectWidget from 'vtk/widgets/region-select-widget';
@@ -36,6 +37,7 @@ export function Widgets(painter) {
 
   const widgets = {
     cursor: createWidget(vtkBrushWidget),
+    sam: createWidget(vtkSamWidget),
     paint: createWidget(vtkBrushWidget),
     erase: createWidget(vtkBrushWidget),
     crop: createWidget(vtkCropWidget),
@@ -102,7 +104,7 @@ export function Widgets(painter) {
       manager.grabFocus(activeWidget);
 
       // Start
-      [handles.paint, handles.erase, handles.crop].forEach(handle => {
+      [handles.sam, handles.paint, handles.erase, handles.crop].forEach(handle => {
         handle.onStartInteractionEvent(() => painter.startStroke());
       });
 
@@ -202,6 +204,12 @@ export function Widgets(painter) {
       });
 
       // End
+      /*
+      handles.sam.onEndInteractionEvent(async () => {
+        console.log('sam end event')
+      });
+      */
+
       handles.paint.onEndInteractionEvent(async () => {
         painter.paintFloodFill(
           handles.paint.getPoints(), 
@@ -353,6 +361,7 @@ export function Widgets(painter) {
       activeRegion = region;
 
       const color = region ? region.colors.contourActive : '#fff';
+      setColor(handles.sam, color);
       setColor(handles.paint, color);
       setColor(handles.erase, color);
       setColor(handles.crop, color);

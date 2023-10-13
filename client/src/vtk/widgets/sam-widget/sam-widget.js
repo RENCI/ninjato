@@ -4,7 +4,6 @@ import vtkPlaneManipulator from '@kitware/vtk.js/Widgets/Manipulators/PlaneManip
 import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
 import vtkCropRepresentation from 'vtk/widgets/crop-representation';
-
 import widgetBehavior from './behavior';
 import stateGenerator from './state';
 
@@ -12,7 +11,7 @@ import stateGenerator from './state';
 // Factory
 // ----------------------------------------------------------------------------
 
-function vtkCropWidget(publicAPI, model) {
+function vtkSamWidget(publicAPI, model) {
   model.classHierarchy.push('vtkCropWidget');
 
   const superClass = { ...publicAPI };
@@ -101,7 +100,7 @@ function vtkCropWidget(publicAPI, model) {
 
 const defaultValues = (initialValues) => ({
   // manipulator: null,
-  cropping: false,
+  segmenting: false,
   imageData: null,
   label: null,
   behavior: widgetBehavior,
@@ -116,15 +115,15 @@ export function extend(publicAPI, model, initialValues = {}) {
 
   vtkAbstractWidgetFactory.extend(publicAPI, model, initialValues);
 
-  macro.get(publicAPI, model, ['cropping']);
+  macro.get(publicAPI, model, ['segmenting']);
   macro.setGet(publicAPI, model, ['manipulator', 'imageData', 'label']);
 
-  vtkCropWidget(publicAPI, model);
+  vtkSamWidget(publicAPI, model);
 }
 
 // ----------------------------------------------------------------------------
 
-export const newInstance = macro.newInstance(extend, 'vtkCropWidget');
+export const newInstance = macro.newInstance(extend, 'vtkSamWidget');
 
 // ----------------------------------------------------------------------------
 

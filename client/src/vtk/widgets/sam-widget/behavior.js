@@ -10,7 +10,7 @@ export default function widgetBehavior(publicAPI, model) {
       return macro.VOID;
     }
 
-    model.cropping = true;
+    model.segmenting = true;
 
     publicAPI.invokeStartInteractionEvent();
     return macro.EVENT_ABORT;
@@ -19,10 +19,10 @@ export default function widgetBehavior(publicAPI, model) {
   publicAPI.handleMouseMove = (callData) => publicAPI.handleEvent(callData);
 
   publicAPI.handleLeftButtonRelease = () => {
-    if (model.cropping) {
+    if (model.segmenting) {
       publicAPI.invokeEndInteractionEvent();
     }
-    model.cropping = false;
+    model.segmenting = false;
     return model.hasFocus ? macro.EVENT_ABORT : macro.VOID;
   };
 
@@ -57,7 +57,7 @@ export default function widgetBehavior(publicAPI, model) {
           const dx = spacing[0] / 2;
           const dy = spacing[1] / 2;
 
-          if (!model.cropping) {
+          if (!model.segmenting) {
             model.handle.setOrigin(
               worldCoords[0] - dx,
               worldCoords[1] - dy,
