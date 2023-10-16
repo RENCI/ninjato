@@ -13,11 +13,13 @@ export const useResize = (ref, initialWidth = null, initialHeight = null)  => {
 
     if (window.ResizeObserver) {
       resize.current = new ResizeObserver(entries => {
-        entries.forEach(entry => {
-          if (entry.contentRect) {
-            setWidth(entry.contentRect.width);
-            setHeight(entry.contentRect.height);
-          }
+        window.requestAnimationFrame(() => {
+          entries.forEach(entry => {
+            if (entry.contentRect) {
+              setWidth(entry.contentRect.width);
+              setHeight(entry.contentRect.height);
+            }
+          });
         });
       });
 
