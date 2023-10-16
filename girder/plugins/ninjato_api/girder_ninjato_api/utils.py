@@ -302,10 +302,6 @@ def update_assignment_in_whole_item(whole_item, assign_item_id, mask_file_name=N
             assetstore_id = item_file['assetstoreId']
             # remove the original file and create new file using updated TIFF mask
             File().remove(item_file)
-            # for some reason, the file on disk is not really removed, so double check to make
-            # sure it is deleted
-            if os.path.exists(whole_path):
-                os.remove(whole_path)
             save_file(assetstore_id, whole_item, output_path, User().getAdmins()[0], file_name)
             return
 
