@@ -89,24 +89,6 @@ export default function widgetBehavior(publicAPI, model) {
       model.activeState = model.widgetState.getHandle();
       model.activeState.activate();
       model._interactor.requestAnimation(publicAPI);
-
-      const canvas = model._apiSpecificRenderWindow.getCanvas();
-      canvas.onmouseenter = () => {
-        if (
-          model.hasFocus &&
-          model.activeState === model.widgetState.getHandle()
-        ) {
-          model.activeState.setVisible(true);
-        }
-      };
-      canvas.onmouseleave = () => {
-        if (
-          model.hasFocus &&
-          model.activeState === model.widgetState.getHandle()
-        ) {
-          model.activeState.setVisible(false);
-        }
-      };
     }
     model.hasFocus = true;
   };
