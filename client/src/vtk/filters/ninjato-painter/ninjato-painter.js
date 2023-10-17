@@ -6,8 +6,13 @@ import WebworkerPromise from 'webworker-promise';
 import macro from '@kitware/vtk.js/macros';
 import vtkImageData from '@kitware/vtk.js/Common/DataModel/ImageData';
 import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
+import { InferenceSession } from 'onnxruntime-web';
 
 const { vtkErrorMacro } = macro;
+
+// XXX: This should probably be a parameter
+const SAM_MODEL_PATH = `${ process.env.PUBLIC_URL }/onnx/sam_onnx_quantized_example.onnx`;
+//const SAM_MODEL_PATH = `${ process.env.PUBLIC_URL }/onnx/sam_onnx_example.onnx`;
 
 // ----------------------------------------------------------------------------
 // vtkNinjatoPainter methods
@@ -21,6 +26,13 @@ function vtkNinjatoPainter(publicAPI, model) {
   let workerPromise = null;
   let initialData = null;
   const history = {};
+
+  // Segment anything
+  let samModel = null
+  const createSamModel = async () => samModel = await InferenceSession.create(SAM_MODEL_PATH);
+  createSamModel();
+
+  console.log(samModel);
 
   // --------------------------------------------------------------------------
 
@@ -158,6 +170,28 @@ function vtkNinjatoPainter(publicAPI, model) {
   publicAPI.canUndo = () => history.index > -1;
 
   // --------------------------------------------------------------------------
+
+  publicAPI.runSam = (p1, p2) => {
+    if (workerPromise) {
+      const ijk1 = [0, 0, 0];
+      vec3.transformMat4(ijk1, p1, model.maskWorldToIndex);
+      const ijk2 = [0, 0, 0];
+      vec3.transformMat4(ijk2, p2, model.maskWorldToIndex);
+
+      ijk1[0] = Math.ceil(ijk1[0]);
+      ijk1[1] = Math.ceil(ijk1[1]);
+      ijk1[2] = Math.ceil(ijk1[2]);
+
+      ijk2[0] = Math.floor(ijk2[0]);
+      ijk2[1] = Math.floor(ijk2[1]);
+      ijk2[2] = Math.floor(ijk2[2]);
+
+      workerPromise.exec('runSam', {
+        p1: ijk1,
+        p2: ijk2
+      });
+    }
+  };
 
   publicAPI.paint = (pointList, brush) => {
     if (workerPromise && pointList.length > 0) {
@@ -414,6 +448,7 @@ function vtkNinjatoPainter(publicAPI, model) {
 const DEFAULT_VALUES = {
   backgroundImage: null,
   labelMap: null,
+  embeddings: null,
   maskWorldToIndex: null,
   voxelFunc: null,
   radius: 1,

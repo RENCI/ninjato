@@ -111,6 +111,13 @@ function floodFillScanlineStack({ buffer, w, h, seed }) {
 } 
 
 // XXX: Currently assuming z slice
+function handleRunSam({ p1, p2 }) {
+  console.log(p1, p2)
+
+  
+}
+
+// XXX: Currently assuming z slice
 function handlePaint({ pointList, brush }) {
   if (pointList.length === 0) return;
 
@@ -251,6 +258,7 @@ registerWebworker()
       globals.slicingMode = slicingMode;
     }
   })
+  .operation('runSam', handleRunSam)
   .operation('paint', handlePaint)
   .operation('paintFloodFill', handlePaintFloodFill)
   .operation('crop', handleCrop)

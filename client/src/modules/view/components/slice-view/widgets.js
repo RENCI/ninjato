@@ -203,6 +203,29 @@ export function Widgets(painter) {
         }
       });
 
+      handles.sam.onInteractionEvent(() => {
+        const handle = handles.sam.getWidgetState().getState().handle;
+        const x = [handle.origin[0], handle.corner[0]].sort((a, b) => a - b);
+        const y = [handle.origin[1], handle.corner[1]].sort((a, b) => a - b);
+        const z = handle.origin[2];
+
+        painter.runSam(
+          [x[0], y[0], z],
+          [x[1], y[1], z]
+        );
+        
+/*
+        painter.crop(
+          [x[0], y[0], z],
+          [x[1], y[1], z]
+        );
+
+        await painter.endStroke(true);
+
+        onEdit(activeRegion);
+*/        
+      });
+
       // End
       /*
       handles.sam.onEndInteractionEvent(async () => {
