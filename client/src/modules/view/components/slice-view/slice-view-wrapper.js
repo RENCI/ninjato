@@ -9,9 +9,6 @@ export const SliceViewWrapper = ({ sliceView, useGold = false, onEdit, onImageMa
   const div = useRef(null);
   const sliceRanges = useRef();
   const { width } = useResize(div);
-
-
-  console.log(embeddings);
   
   // Initialize
   useEffect(() => {
@@ -70,10 +67,10 @@ export const SliceViewWrapper = ({ sliceView, useGold = false, onEdit, onImageMa
 
   // Data
   useEffect(() => {
-    if (initialized && imageData && (maskData || (useGold && goldData)) && backgroundMaskData) {
-      sliceView.setData(imageData, useGold ? goldData : maskData, backgroundMaskData, sliceRanges.current);
+    if (initialized && imageData && (maskData || (useGold && goldData)) && backgroundMaskData && embeddings) {
+      sliceView.setData(imageData, useGold ? goldData : maskData, backgroundMaskData, embeddings, sliceRanges.current);
     }
-  }, [initialized, sliceView, imageData, maskData, backgroundMaskData, useGold, goldData, volumes]);   
+  }, [initialized, sliceView, imageData, maskData, backgroundMaskData, embeddings, useGold, goldData, volumes]);   
 
   // Active region
   useEffect(() => {

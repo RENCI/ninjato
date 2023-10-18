@@ -32,8 +32,6 @@ function vtkNinjatoPainter(publicAPI, model) {
   const createSamModel = async () => samModel = await InferenceSession.create(SAM_MODEL_PATH);
   createSamModel();
 
-  console.log(samModel);
-
   // --------------------------------------------------------------------------
 
   function resetHistory() {
@@ -188,7 +186,9 @@ function vtkNinjatoPainter(publicAPI, model) {
 
       workerPromise.exec('runSam', {
         p1: ijk1,
-        p2: ijk2
+        p2: ijk2,
+        embedding: model.embeddings[ijk1[2]],
+        samModel: samModel
       });
     }
   };
@@ -470,6 +470,7 @@ export function extend(publicAPI, model, initialValues = {}) {
 
   macro.setGet(publicAPI, model, [
     'labelMap',
+    'embeddings',
     'maskWorldToIndex',
     'voxelFunc',
     'label',

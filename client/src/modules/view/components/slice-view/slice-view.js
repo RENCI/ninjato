@@ -54,9 +54,9 @@ export function SliceView() {
           widgets.setCallback(type, callback);
       }
     },
-    setData: (imageData, maskData, backgroundMaskData, sliceRanges) => {
+    setData: (imageData, maskData, backgroundMaskData, embeddings, sliceRanges) => {
       image.setInputData(imageData);    
-      mask.setInputData(maskData, backgroundMaskData);
+      mask.setInputData(maskData, backgroundMaskData, embeddings);
 
       const renderer = renderWindow.getRenderer();
       renderer.addViewProp(image.getActor());

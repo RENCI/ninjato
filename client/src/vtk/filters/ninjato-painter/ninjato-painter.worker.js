@@ -111,10 +111,10 @@ function floodFillScanlineStack({ buffer, w, h, seed }) {
 } 
 
 // XXX: Currently assuming z slice
-function handleRunSam({ p1, p2 }) {
-  console.log(p1, p2)
+function handleRunSam({ p1, p2, embedding, samModel }) {
+  console.log(p1, p2, embedding, samModel)
 
-  
+
 }
 
 // XXX: Currently assuming z slice
