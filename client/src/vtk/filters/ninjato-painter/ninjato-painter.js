@@ -8,6 +8,8 @@ import vtkImageData from '@kitware/vtk.js/Common/DataModel/ImageData';
 import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
 import { InferenceSession } from 'onnxruntime-web';
 
+import { handleImageScale, getImages } from 'utils/sam-utils';
+
 const { vtkErrorMacro } = macro;
 
 // XXX: This should probably be a parameter
@@ -29,7 +31,11 @@ function vtkNinjatoPainter(publicAPI, model) {
 
   // Segment anything
   let samModel = null
-  const createSamModel = async () => samModel = await InferenceSession.create(SAM_MODEL_PATH);
+  const createSamModel = async () => {
+    samModel = await InferenceSession.create(SAM_MODEL_PATH);
+
+    console.log(samModel);
+  }
   createSamModel();
 
   // --------------------------------------------------------------------------
@@ -176,19 +182,23 @@ function vtkNinjatoPainter(publicAPI, model) {
       const ijk2 = [0, 0, 0];
       vec3.transformMat4(ijk2, p2, model.maskWorldToIndex);
 
+      const z = Math.ceil(ijk1[2]);
+
       ijk1[0] = Math.ceil(ijk1[0]);
       ijk1[1] = Math.ceil(ijk1[1]);
-      ijk1[2] = Math.ceil(ijk1[2]);
+      ijk1[2] = z;
 
       ijk2[0] = Math.floor(ijk2[0]);
       ijk2[1] = Math.floor(ijk2[1]);
-      ijk2[2] = Math.floor(ijk2[2]);
+      ijk2[2] = z;
+
+      console.log(samModel);
 
       workerPromise.exec('runSam', {
         p1: ijk1,
         p2: ijk2,
         embedding: model.embeddings[ijk1[2]],
-        samModel: samModel
+        samModel
       });
     }
   };
@@ -254,13 +264,15 @@ function vtkNinjatoPainter(publicAPI, model) {
     const ijk2 = [0, 0, 0];
     vec3.transformMat4(ijk2, p2, model.maskWorldToIndex);
 
+    const z = Math.ceil(ijk1[2]);
+
     ijk1[0] = Math.ceil(ijk1[0]);
     ijk1[1] = Math.ceil(ijk1[1]);
-    ijk1[2] = Math.ceil(ijk1[2]);
+    ijk1[2] = z;
 
     ijk2[0] = Math.floor(ijk2[0]);
     ijk2[1] = Math.floor(ijk2[1]);
-    ijk2[2] = Math.floor(ijk2[2]);
+    ijk2[2] = z;
 
     workerPromise.exec('crop', {
       p1: ijk1,
@@ -448,13 +460,16 @@ function vtkNinjatoPainter(publicAPI, model) {
 const DEFAULT_VALUES = {
   backgroundImage: null,
   labelMap: null,
-  embeddings: null,
   maskWorldToIndex: null,
   voxelFunc: null,
   radius: 1,
   label: 0,
   labelConstraint: null,
-  slicingMode: null
+  slicingMode: null,
+  
+  // For segment anything
+  embeddings: null,
+  samScale: null
 };
 
 // ----------------------------------------------------------------------------
