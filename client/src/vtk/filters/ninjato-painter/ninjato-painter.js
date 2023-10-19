@@ -8,6 +8,8 @@ import vtkImageData from '@kitware/vtk.js/Common/DataModel/ImageData';
 import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
 import { InferenceSession } from 'onnxruntime-web';
 
+import { modelData } from 'utils/onnx-model-api';
+
 import { handleImageScale, getImages } from 'utils/sam-utils';
 
 const { vtkErrorMacro } = macro;
@@ -175,8 +177,9 @@ function vtkNinjatoPainter(publicAPI, model) {
 
   // --------------------------------------------------------------------------
 
-  publicAPI.runSam = (p1, p2) => {
-    if (workerPromise) {
+  publicAPI.runSam = async (p1, p2) => {
+    // Check for sam model, can't run onnx from webworker
+    if (samModel) {
       const ijk1 = [0, 0, 0];
       vec3.transformMat4(ijk1, p1, model.maskWorldToIndex);
       const ijk2 = [0, 0, 0];
@@ -186,20 +189,42 @@ function vtkNinjatoPainter(publicAPI, model) {
 
       ijk1[0] = Math.ceil(ijk1[0]);
       ijk1[1] = Math.ceil(ijk1[1]);
-      ijk1[2] = z;
 
       ijk2[0] = Math.floor(ijk2[0]);
       ijk2[1] = Math.floor(ijk2[1]);
-      ijk2[2] = z;
 
-      console.log(samModel);
+      // XXX: NEED OFFSETS IN X AND Y
 
-      workerPromise.exec('runSam', {
-        p1: ijk1,
-        p2: ijk2,
-        embedding: model.embeddings[ijk1[2]],
-        samModel
+      // Store bounding box in correct format
+      const clicks = [
+        { x: ijk1[0], y: ijk1[1], clickType: 2 },
+        { x: ijk2[0], y: ijk2[1], clickType: 3 }
+      ];
+
+      // XXX: SHOULD BE CALCULATING/PASSING THIS IN
+      const modelScale = {
+        height: 512,
+        width: 512,
+        samScale: 1024 / 512
+      };
+
+      // Prepare the model input in the correct format for SAM. 
+      const feeds = modelData({
+        clicks,
+        tensor: model.embeddings[z],
+        modelScale
       });
+
+      if (feeds === undefined) {
+        console.log('Undefined feeds for SAM');
+        return;
+      };
+
+      // Run the SAM ONNX model with the feeds returned from modelData()
+      const results = await samModel.run(feeds);
+      const output = results[samModel.outputNames[0]];
+
+      console.log(output);    
     }
   };
 

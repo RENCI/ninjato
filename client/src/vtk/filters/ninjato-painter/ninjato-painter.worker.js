@@ -1,11 +1,5 @@
 import registerWebworker from 'webworker-promise/lib/register';
 
-import { modelData } from 'utils/onnx-model-api';
-
-
-import { InferenceSession } from 'onnxruntime-web';
-const SAM_MODEL_PATH = `${ process.env.PUBLIC_URL }/onnx/sam_onnx_quantized_example.onnx`;
-
 const globals = {
   // single-component labelmap
   buffer: null,
@@ -115,47 +109,6 @@ function floodFillScanlineStack({ buffer, w, h, seed }) {
     }
   }
 } 
-
-// XXX: Currently assuming z slice
-async function handleRunSam({ p1, p2, embedding, samModel }) {
-
-  // XXX: NEED TO PASS IN OFFSETS IN X AND Y
-
-
-  samModel = await InferenceSession.create(SAM_MODEL_PATH);
-  console.log(samModel)
-
-  // Store bounding box in correct format
-  const clicks = [
-    { x: p1[0], y: p1[1], clickType: 2 },
-    { x: p2[0], y: p2[1], clickType: 3 }
-  ];
-
-  // XXX: SHOULD BE PASSING THIS IN
-  const modelScale = {
-    height: 512,
-    width: 512,
-    samScale: 1024 / 512
-  };
-
-  // Prepare the model input in the correct format for SAM. 
-  const feeds = modelData({
-    clicks,
-    tensor: embedding,
-    modelScale
-  });
-
-  if (feeds === undefined) {
-    console.log('Undefined feeds for SAM');
-    return;
-  };
-
-  // Run the SAM ONNX model with the feeds returned from modelData()
-  const results = await samModel.run(feeds);
-  const output = results[samModel.outputNames[0]];
-
-  console.log(output);
-}
 
 // XXX: Currently assuming z slice
 function handlePaint({ pointList, brush }) {
@@ -298,7 +251,6 @@ registerWebworker()
       globals.slicingMode = slicingMode;
     }
   })
-  .operation('runSam', handleRunSam)
   .operation('paint', handlePaint)
   .operation('paintFloodFill', handlePaintFloodFill)
   .operation('crop', handleCrop)
