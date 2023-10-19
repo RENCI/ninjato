@@ -9,8 +9,7 @@ import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
 import { InferenceSession } from 'onnxruntime-web';
 
 import { modelData } from 'utils/onnx-model-api';
-
-import { handleImageScale, getImages } from 'utils/sam-utils';
+import { thresholdOnnxMask } from 'utils/sam-utils';
 
 const { vtkErrorMacro } = macro;
 
@@ -33,11 +32,7 @@ function vtkNinjatoPainter(publicAPI, model) {
 
   // Segment anything
   let samModel = null
-  const createSamModel = async () => {
-    samModel = await InferenceSession.create(SAM_MODEL_PATH);
-
-    console.log(samModel);
-  }
+  const createSamModel = async () => samModel = await InferenceSession.create(SAM_MODEL_PATH);
   createSamModel();
 
   // --------------------------------------------------------------------------
@@ -223,8 +218,7 @@ function vtkNinjatoPainter(publicAPI, model) {
       // Run the SAM ONNX model with the feeds returned from modelData()
       const results = await samModel.run(feeds);
       const output = results[samModel.outputNames[0]];
-
-      console.log(output);    
+      const mask = thresholdOnnxMask(output.data, 0.5);
     }
   };
 
