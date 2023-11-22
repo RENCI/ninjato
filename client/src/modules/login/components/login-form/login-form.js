@@ -55,7 +55,7 @@ export const LoginForm = ({ trigger,  }) => {
     catch (error) {
       console.log(error);      
 
-      setErrorMessage(error.response.data.message);
+      setErrorMessage(error.response?.data?.message ?? 'Unknown error');
     }
   };
 
