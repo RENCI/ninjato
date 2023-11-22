@@ -1,5 +1,5 @@
 import { useContext, useState, useMemo } from 'react';
-import { Table } from 'semantic-ui-react';
+import { Table, Icon } from 'semantic-ui-react';
 import { scaleLinear } from 'd3-scale';
 import * as chromatic from 'd3-scale-chromatic';
 import { ProgressContext } from 'contexts';
@@ -12,7 +12,10 @@ const columns = [
     header: 'User',
     value: 'user',
     type: 'text',
-    cellValue: d => d.user.login
+
+    // XXX: Need to add reviewer info to these users
+
+    cellValue: d => <span>{ d.user.reviewer ? <Icon name='user plus' /> : null } { d.user.login } </span>
   }
 ];
 
