@@ -8,6 +8,7 @@ import {
 } from 'contexts';
 import { api } from 'utils/api';
 import { decodeTIFF } from 'utils/data-conversion';
+import { cropImage } from 'utils/data';
 import { getUniqueLabels, copyImage, combineMasks } from 'utils/data';
 
 const getBackgroundRegions = async (subvolumeId, mask, regions) => {
@@ -30,7 +31,7 @@ const getBackgroundRegions = async (subvolumeId, mask, regions) => {
 };
 
 export const useLoadData = ()  => {
-  const [{ maskData }, userDispatch] = useContext(UserContext);
+  const [{ user, volumes, maskData }, userDispatch] = useContext(UserContext);
   const [, annotateDispatch] = useContext(AnnotateContext);
   const [, loadingDispatch] = useContext(LoadingContext);
   const [, errorDispatch] = useContext(ErrorContext);
@@ -38,7 +39,7 @@ export const useLoadData = ()  => {
 
   return async (assignment, assignmentToUpdate = null, mergeMasks = false) => {
     try {
-      const { subvolumeId, } = assignment;
+      const { subvolumeId } = assignment;
       const regions = assignmentToUpdate ? assignmentToUpdate.regions : assignment.regions;
 
       loadingDispatch({ type: SET_LOADING });
@@ -61,13 +62,18 @@ export const useLoadData = ()  => {
         throw new Error(`Returned volume dimensions are (${ iDims }).\nAll dimensions must be greater than 1.\nPlease contact the site administrator`);
       }
 
+      // Gold standard for trainees
+      const goldData = user.trainee ? cropImage(volumes.find(({ id }) => id === assignment.subvolumeId).trainingInfo.goldStandard, assignment.location) : null;
+
+      // Background regions
       const backgroundRegions = await getBackgroundRegions(subvolumeId, newMaskData, regions);
       
       userDispatch({
         type: SET_DATA,
         imageData: newImageData,
         backgroundMaskData: mergeMasks ? copyImage(newMaskData) : newMaskData,
-        maskData: mergeMasks ? combineMasks(newMaskData, assignment.location, maskData, assignmentToUpdate.location) : newMaskData
+        maskData: mergeMasks ? combineMasks(newMaskData, assignment.location, maskData, assignmentToUpdate.location) : newMaskData,
+        goldData: goldData
       });
 
       userDispatch({ 

@@ -6,13 +6,13 @@ from bson.objectid import ObjectId
 from girder.models.collection import Collection
 from girder.models.folder import Folder
 from girder.exceptions import RestException
-from .utils import TRAINING_COLLECTION_NAME, COLLECTION_NAME, ANNOT_ASSIGN_KEY, \
+from .utils import TRAINING_COLLECTION_NAME, COLLECTION_NAME, ANNOT_ASSIGN_KEY, TRAINING_KEY, \
     ANNOT_COMPLETE_KEY, REVIEW_ASSIGN_KEY, REVIEW_COMPLETE_KEY, REVIEW_DONE_KEY, \
-    REVIEW_APPROVE_KEY, ASSIGN_COUNT_FOR_REVIEW, get_max_region_id, set_max_region_id, \
-    remove_region_from_active_assignment, merge_region_to_active_assignment, set_assignment_meta, \
-    get_history_info, assign_region_to_user, add_meta_to_history, check_subvolume_done, \
-    reject_assignment, update_assignment_in_whole_item, get_assignment_status, \
-    WHOLE_ITEM_NAME, save_content_data, save_added_and_removed_regions, \
+    REVIEW_APPROVE_KEY, ASSIGN_COUNT_FOR_REVIEW, get_training_info_id_list, get_max_region_id, \
+    set_max_region_id, remove_region_from_active_assignment, merge_region_to_active_assignment, \
+    set_assignment_meta, get_history_info, assign_region_to_user, add_meta_to_history, \
+    check_subvolume_done, reject_assignment, update_assignment_in_whole_item, \
+    get_assignment_status, WHOLE_ITEM_NAME, save_content_data, save_added_and_removed_regions, \
     get_completed_assignment_items, update_all_assignment_masks_async
 
 
@@ -402,6 +402,13 @@ def get_item_assignment(user, subvolume_id, request_new, training):
     sub_id = filtered_id_list[0]
     whole_item = Item().findOne({'_id': ObjectId(sub_id)})
 
+    # if TRAINING_INFO key is in metadata, make sure the available region to assign is part of
+    # assigned training module regions
+    if TRAINING_KEY in whole_item['meta']:
+        training_region_ids = get_training_info_id_list(whole_item['meta'][TRAINING_KEY])
+    else:
+        training_region_ids = []
+
     # no region has been assigned to the user yet, look into the whole partition
     # item to find a region for assignment
     # filter out those regions unavailable for assignment first
@@ -428,25 +435,33 @@ def get_item_assignment(user, subvolume_id, request_new, training):
                     continue
             if get_history_info(whole_item, val['item_id'], ANNOT_ASSIGN_KEY):
                 continue
-
-        avail_region_items[key] = val
+        if not training_region_ids or int(key) in training_region_ids:
+            avail_region_items[key] = val
 
     # randomize available item to assign to users to minimize adjacent region assignment
     if len(avail_region_items) > 0:
-        key, val = random.choice(list(avail_region_items.items()))
-        # this region can be assigned to a user
-        region_item = assign_region_to_user(whole_item, user, key)
-        assigned_region_id = region_item['_id']
-        assign_regions = region_item['meta']['region_ids']
-        if assigned_region_id:
-            item_dict = {
-                'type': ANNOT_ASSIGN_KEY,
-                'status': 'active',
-                'item_id': assigned_region_id,
-                'subvolume_id': subvolume_id,
-                'regions': assign_regions
-            }
-            ret_data.append(item_dict)
+        if not training_region_ids:
+            key, _ = random.choice(list(avail_region_items.items()))
+        else:
+            key = ''
+            for tid in training_region_ids:
+                if str(tid) in avail_region_items:
+                    key = str(tid)
+                    break
+        if key:
+            # this region can be assigned to a user
+            region_item = assign_region_to_user(whole_item, user, key)
+            assigned_region_id = region_item['_id']
+            assign_regions = region_item['meta']['region_ids']
+            if assigned_region_id:
+                item_dict = {
+                    'type': ANNOT_ASSIGN_KEY,
+                    'status': 'active',
+                    'item_id': assigned_region_id,
+                    'subvolume_id': subvolume_id,
+                    'regions': assign_regions
+                }
+                ret_data.append(item_dict)
 
     return ret_data
 
@@ -636,7 +651,14 @@ def get_subvolume_item_info(item):
     """
     item_id = item['_id']
     region_dict = item['meta']['regions']
-    total_regions = len(region_dict)
+
+    if TRAINING_KEY in item['meta']:
+        training_region_ids = get_training_info_id_list(item['meta'][TRAINING_KEY])
+        total_regions = len(training_region_ids)
+    else:
+        training_region_ids = []
+        total_regions = len(region_dict)
+
     ret_dict = {
         'id': item_id,
         'name': Folder().findOne({'_id': item['folderId']})['name'],
@@ -687,7 +709,8 @@ def get_subvolume_item_info(item):
             if REVIEW_APPROVE_KEY in val and val[REVIEW_APPROVE_KEY] == 'true':
                 total_regions_review_approved += 1
                 total_regions_done += 1
-            total_regions_available += 1
+            if not training_region_ids or int(key) in training_region_ids:
+                total_regions_available += 1
             continue
 
         if assign_status == 'completed':
@@ -731,6 +754,20 @@ def get_subvolume_item_info(item):
     ret_dict['total_review_available_regions'] = total_regions - total_reviewed_regions_done - \
         total_reviewed_regions_at_work
     return ret_dict
+
+
+def get_subvolume_all_assignment_status(item):
+    """
+    get all assignment status in a subvolume
+    :param item: subvolume item id
+    :return: all assignment dict in the form of key value pair as "assignment item id": "status"
+    """
+    region_dict = item['meta']['regions']
+    assign_status_dict = {}
+    for key, val in region_dict.items():
+        if 'item_id' in val:
+            assign_status_dict[val['item_id']] = get_assignment_status(item, val['item_id'])
+    return assign_status_dict
 
 
 def get_region_or_assignment_info(item, assign_item_id, region_id):
@@ -810,7 +847,8 @@ def get_region_or_assignment_info(item, assign_item_id, region_id):
         if region_item and 'color' in region_item['meta'] else {},
         'status': get_assignment_status(item, assign_item_id) if region_item else 'inactive'
     }
-
+    if TRAINING_KEY in region_item['meta']:
+        ret_dict[TRAINING_KEY] = region_item['meta'][TRAINING_KEY]
     return ret_dict
 
 

@@ -35,6 +35,7 @@ export function Widgets(painter) {
   const manager = vtkWidgetManager.newInstance();
 
   const widgets = {
+    cursor: createWidget(vtkBrushWidget),
     paint: createWidget(vtkBrushWidget),
     erase: createWidget(vtkBrushWidget),
     crop: createWidget(vtkCropWidget),
@@ -97,7 +98,7 @@ export function Widgets(painter) {
         return handles;
       }, {});
     
-      activeWidget = widgets.paint;
+      activeWidget = widgets.cursor;
       manager.grabFocus(activeWidget);
 
       // Start
@@ -305,7 +306,7 @@ export function Widgets(painter) {
 
       Object.values(widgets).forEach(widget => widget.getManipulator().setWidgetOrigin(position));
 
-      [widgets.paint, widgets.erase, widgets.create].forEach(widget => widget.setRadius(radius));
+      [widgets.cursor, widgets.paint, widgets.erase, widgets.create].forEach(widget => widget.setRadius(radius));
 
       Object.values(handles).forEach(handle => handle.updateRepresentationForRender());
     },

@@ -90,12 +90,22 @@ const getAssignment = async (subvolumeId, itemId) => {
       visible: true
     })),
     status: getStatus(info),
-    annotator: info.annotator ? info.annotator : null,
-    reviewer: info.reviewer ? info.reviewer : null
+    annotator: info.annotator ?? null,
+    reviewer: info.reviewer ?? null,
+    trainingInfo: info.training_info ?? null
   };
 };
 
-const getTrainingInfo = async volume => {
+const getVolumeMask = async volume => {
+  const volumeFiles = await axios.get(`/item/${ volume.id }/files`);
+  const maskFile = volumeFiles.data.find(({ name }) => name.includes('_masks.tif'));
+
+  const response = await axios.get(fileUrl(maskFile._id), { responseType: 'arraybuffer' });
+
+  return decodeTIFF(response.data);
+};
+
+const getGoldStandard = async volume => {
   const goldId = volume.gold_standard_mask_item_id;
 
   if (!goldId) return null;
@@ -103,19 +113,21 @@ const getTrainingInfo = async volume => {
   const goldFiles =  await axios.get(`/item/${ goldId }/files`);
   const goldFile = goldFiles.data[0];
 
-  const volumeFiles = await axios.get(`/item/${ volume.id }/files`);
-  const maskFile = volumeFiles.data.find(({ name }) => name.includes('_masks.tif'));
+  const response = await axios.get(fileUrl(goldFile._id), { responseType: 'arraybuffer' });
 
-  // Get files
-  const fileResponses = await Promise.all([
-    axios.get(fileUrl(goldFile._id), { responseType: 'arraybuffer' }), 
-    axios.get(fileUrl(maskFile._id), { responseType: 'arraybuffer' })      
+  return decodeTIFF(response.data);
+};
+
+const getTrainingInfo = async volume => {
+  const [maskData, goldData] = await Promise.all([
+    getVolumeMask(volume),
+    getGoldStandard(volume)
   ]);
 
-  const goldData = decodeTIFF(fileResponses[0].data);
-  const maskData = decodeTIFF(fileResponses[1].data);
+  if (!goldData) return null;
 
   return {
+    goldStandard: goldData,
     diceScore: computeDiceScore(goldData, maskData),
     regionDifference: getUniqueLabels(maskData).length - getUniqueLabels(goldData).length
   };
@@ -248,7 +260,7 @@ export const api = {
           sliceRanges: data.intensity_ranges.map(({ min, max }) => [min, max]),
           history: data.history,
           trainingUser: data.training_user ? data.training_user : null,
-          trainingInfo: trainingInfo
+          trainingInfo: trainingInfo,
         });      
       }      
       catch (error) {
@@ -343,7 +355,7 @@ export const api = {
   getAssignment: async (subvolumeId, itemId, training) => {
     return await getAssignment(subvolumeId, itemId, training);
   },
-  getNewAssignment: async (userId, subvolumeId, training) => {
+  getNewAssignment: async (userId, subvolumeId) => {
     const response = await axios.get(`/user/${ userId }/assignment`,
       {
         params: {
@@ -464,6 +476,7 @@ export const api = {
 
     return responses[0];     
   },
+  getGoldStandard: getGoldStandard,
   getPracticeData: async () => {
     const responses = await Promise.all([
       axios.get('test-data.tiff', { baseURL: '/data/', responseType: 'arraybuffer' }),  

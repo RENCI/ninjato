@@ -24,6 +24,7 @@ export const REDO_REGION_HISTORY = 'user/REDO_REGION_HISTORY';
 export const SAVE_REGION_HISTORY = 'user/SAVE_REGION_HISTORY';
 export const SET_REGION_COMMENT = 'user/SET_REGION_COMMENT';
 export const SET_COMMENTS = 'user/SET_COMMENTS';
+export const SET_REVIEW_TRAINING = 'user/SET_REVIEW_TRAINING';
  
 const initialState = {
   user: null,
@@ -34,8 +35,10 @@ const initialState = {
   imageData: null,
   maskData: null,
   backgroundMaskData: null,
+  goldData: null,
   activeRegion: null,
-  regionHistory: history()
+  regionHistory: history(),
+  reviewTraining: false
 };
 
 const createRegion = (regions, label) => {
@@ -172,7 +175,8 @@ const reducer = (state, action) => {
         ...state,
         imageData: action.imageData,
         maskData: action.maskData,
-        backgroundMaskData: action.backgroundMaskData ? action.backgroundMaskData : action.maskData
+        backgroundMaskData: action.backgroundMaskData ? action.backgroundMaskData : action.maskData,
+        goldData: action.goldData
       };
 
     case CLEAR_DATA:
@@ -180,7 +184,8 @@ const reducer = (state, action) => {
         ...state,
         assignment: null,
         imageData: null,
-        maskData: null
+        maskData: null,
+        goldData: null
       };
 
     case SET_ACTIVE_REGION: 
@@ -336,8 +341,14 @@ const reducer = (state, action) => {
           ...state.assignment,
           regions: regions
         }
-      }
+      };
     }
+
+    case SET_REVIEW_TRAINING:
+      return {
+        ...state,
+        reviewTraining: action.reviewTraining
+      };
 
     default: 
       throw new Error(`Invalid user context action: ${ action.type }`);

@@ -24,6 +24,63 @@ export const copyImage = image => {
   return copy;
 };
 
+export const cropImage = (image, extent) => {
+  const currentExtent = image.getExtent();
+
+  if (extent.x_min < currentExtent[0] ||
+      extent.x_max > currentExtent[1] ||
+      extent.y_min < currentExtent[2] ||
+      extent.y_max > currentExtent[3] ||
+      extent.z_min < currentExtent[4] ||
+      extent.z_max > currentExtent[5] ) {
+    console.warn('cropImage: New extent does not fit inside old extent');
+    return image;
+  }
+
+  const crop = vtkImageData.newInstance({
+    origin: [0, 0, 0],
+    spacing: image.getSpacing(),
+    extent: [extent.x_min, extent.x_max, extent.y_min, extent.y_max, extent.z_min, extent.z_max]
+  });
+
+  const [x1, y1] = image.getDimensions();
+  const [x2, y2, z2] = crop.getDimensions();
+
+  const offset = [extent.x_min, extent.y_min, extent.z_min];
+
+  const values = new Float32Array(x2 * y2 * z2);
+
+  const jStride1 = x1;
+  const kStride1 = x1 * y1;
+
+  const jStride2 = x2;
+  const kStride2 = x2 * y2;
+  
+  const s = image.getPointData().getScalars().getData();
+
+  for (let i = 0; i < x2; i++) {
+    for (let j = 0; j < y2; j++) {
+      for (let k = 0; k < z2; k++) {
+        const index1 = (i + offset[0]) + (j + offset[1]) * jStride1 + (k + offset[2]) * kStride1;
+        const index2 = i + j * jStride2 + k * kStride2;
+        values[index2] = s[index1];
+      }
+    }
+  }
+  
+  const pd = image.getPointData().getArrayByIndex(0);
+
+  const data = vtkDataArray.newInstance({
+    name: pd.getName(),
+    numberOfComponents: pd.getNumberOfComponents(),
+    values: values
+  });
+
+  crop.getPointData().setScalars(data);
+
+  return crop;
+};
+
 export const combineMasks = (newMask, newExtent, oldMask, oldExtent) => {
   // Keep any edits from old mask
   

@@ -27,6 +27,23 @@ REVIEW_COMPLETE_KEY = 'review_completed_by'
 REVIEW_DONE_KEY = 'review_done'
 REVIEW_APPROVE_KEY = 'review_approved'
 ASSIGN_COUNT_FOR_REVIEW = 10
+TRAINING_KEY = 'training_info'
+
+
+def flatten(iterable):
+    try:
+        for item in iterable:
+            yield from flatten(item)
+    except TypeError:
+        yield iterable
+
+
+def get_training_info_id_list(info_dict):
+    # need to get id list in order of trace, split, and merge
+    trace_values = info_dict.get("trace", [])
+    split_values = info_dict.get("split", [])
+    merge_values = list(flatten(info_dict.get("merge", [])))
+    return trace_values + split_values + merge_values
 
 
 def _get_tif_file_content_and_path(item_file):
@@ -118,6 +135,15 @@ def _get_buffered_extent(minx, maxx, miny, maxy, minz, maxz, xrange, yrange, zra
     return int(minx), int(maxx), int(miny), int(maxy), int(minz), int(maxz)
 
 
+def _get_tif_image_array(tif_input):
+    images = []
+    for image in tif_input.iter_images():
+        if tif_input.isbyteswapped():
+            image = image.byteswap()
+        images.append(image)
+    return images
+
+
 def create_region_files(region_item, whole_item):
     """
     extract region files from the whole subvolume item based on bounding box extent and
@@ -151,14 +177,13 @@ def create_region_files(region_item, whole_item):
         if not os.path.isdir(out_dir_path):
             os.makedirs(out_dir_path)
         output_tif = TIFF.open(out_path, mode="w")
-        counter = 0
-        for image in tif.iter_images():
+        images = _get_tif_image_array(tif)
+        for counter, image in enumerate(images):
             if min_z <= counter <= max_z:
                 img = np.copy(image[min_y:max_y + 1, min_x:max_x + 1])
                 output_tif.write_image(img)
             if counter > max_z:
                 break
-            counter += 1
         assetstore_id = item_file['assetstoreId']
         save_file(assetstore_id, region_item, out_path, admin_user, output_file_name)
     return
@@ -201,6 +226,29 @@ def _create_region(region_key, whole_item, extent_dict):
         },
         'region_ids': [region_key]
     }
+    if TRAINING_KEY in whole_item['meta']:
+        for key, val in whole_item['meta'][TRAINING_KEY].items():
+            if key == 'trace' and int(region_key) in val:
+                if TRAINING_KEY not in add_meta:
+                    add_meta[TRAINING_KEY] = {key: None}
+                else:
+                    add_meta[TRAINING_KEY][key] = None
+            elif key == 'split' and int(region_key) in val:
+                if TRAINING_KEY not in add_meta:
+                    add_meta[TRAINING_KEY] = {key: 2}
+                else:
+                    add_meta[TRAINING_KEY][key] = 2
+            elif key == 'merge':
+                for rids in val:
+                    if int(region_key) in rids:
+                        new_rids = rids.copy()
+                        new_rids.remove(int(region_key))
+                        if TRAINING_KEY not in add_meta:
+                            add_meta[TRAINING_KEY] = {key: new_rids}
+                        else:
+                            add_meta[TRAINING_KEY][key] = new_rids
+                        break
+
     Item().setMetadata(region_item, add_meta)
 
     create_region_files(region_item, whole_item)
@@ -229,9 +277,7 @@ def update_assignment_in_whole_item(whole_item, assign_item_id, mask_file_name=N
         if mask_file_name and assign_item_file['name'] != mask_file_name:
             continue
         assign_item_tif, _ = _get_tif_file_content_and_path(assign_item_file)
-        assign_item_images = []
-        for assign_image in assign_item_tif.iter_images():
-            assign_item_images.append(assign_image)
+        assign_item_images = _get_tif_image_array(assign_item_tif)
 
         item_files = File().find({'itemId': whole_item['_id']})
         for item_file in item_files:
@@ -243,23 +289,18 @@ def update_assignment_in_whole_item(whole_item, assign_item_id, mask_file_name=N
             out_dir_path = os.path.dirname(whole_path)
             output_path = os.path.join(out_dir_path, f'{uuid.uuid4()}_{file_name}')
             whole_out_tif = TIFF.open(output_path, mode='w')
-            counter = 0
+            whole_images = _get_tif_image_array(whole_tif)
             # region_imarray should be in order of ZYX
-            for image in whole_tif.iter_images():
+            for counter, image in enumerate(whole_images):
                 if assign_item_coords['z_min'] <= counter <= assign_item_coords['z_max']:
                     image[assign_item_coords['y_min']: assign_item_coords['y_max']+1,
                           assign_item_coords['x_min']: assign_item_coords['x_max']+1] = \
                         assign_item_images[counter-assign_item_coords['z_min']]
                 whole_out_tif.write_image(np.copy(image))
-                counter += 1
 
             assetstore_id = item_file['assetstoreId']
             # remove the original file and create new file using updated TIFF mask
             File().remove(item_file)
-            # for some reason, the file on disk is not really removed, so double check to make
-            # sure it is deleted
-            if os.path.exists(whole_path):
-                os.remove(whole_path)
             save_file(assetstore_id, whole_item, output_path, User().getAdmins()[0], file_name)
             return
 
@@ -295,9 +336,7 @@ def get_region_extent(item, region_id, user_extent=True):
         if substr_to_check not in item_file['name']:
             continue
         tif, _ = _get_tif_file_content_and_path(item_file)
-        images = []
-        for image in tif.iter_images():
-            images.append(image)
+        images = _get_tif_image_array(tif)
         imarray = np.array(images)
         level_indices = np.where(imarray == int(region_id))
         z_min = min(level_indices[0])
@@ -596,7 +635,6 @@ def _update_user_mask(item_id, old_content, old_extent, new_extent=None):
         }
     item_files = File().find({'itemId': ObjectId(item_id)})
     item_user_mask = _reshape_content_bytes_to_array(old_content, old_extent)
-    item_mask = []
     user_mask_file_name = ''
     mask_file_name = ''
     assetstore_id = ''
@@ -613,8 +651,8 @@ def _update_user_mask(item_id, old_content, old_extent, new_extent=None):
         assetstore_id = item_file['assetstoreId']
         item_tif, _ = _get_tif_file_content_and_path(item_file)
         # initial mask
-        for mask in item_tif.iter_images():
-            item_mask.append(mask)
+        item_mask = _get_tif_image_array(item_tif)
+        break
     # check user mask and initial mask to combine the extent to update user mask
     z = new_extent['min_z']
     for mask in item_mask:
@@ -723,9 +761,7 @@ def remove_region_from_active_assignment(whole_item, assign_item_id, region_id,
         if '_masks' not in item_file['name']:
             continue
         tif, _ = _get_tif_file_content_and_path(item_file)
-        images = []
-        for image in tif.iter_images():
-            images.append(image)
+        images = _get_tif_image_array(tif)
         imarray = np.array(images)
         levels = imarray[np.nonzero(imarray)]
         min_level = min(levels)

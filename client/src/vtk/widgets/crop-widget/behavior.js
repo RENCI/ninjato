@@ -38,7 +38,7 @@ export default function widgetBehavior(publicAPI, model) {
       model.activeState.setRight(...right);
       model.activeState.setDirection(...normal);
 
-      const worldCoords = manipulator.handleEvent(
+      const { worldCoords } = manipulator.handleEvent(
         callData,
         model._apiSpecificRenderWindow
       );
@@ -90,6 +90,8 @@ export default function widgetBehavior(publicAPI, model) {
       model.activeState.activate();
       model._interactor.requestAnimation(publicAPI);
 
+      // XXX: onmouseleave is firing when starting to click and drag for some reason, so commenting this out
+      /*
       const canvas = model._apiSpecificRenderWindow.getCanvas();
       canvas.onmouseenter = () => {
         if (
@@ -107,6 +109,7 @@ export default function widgetBehavior(publicAPI, model) {
           model.activeState.setVisible(false);
         }
       };
+      */
     }
     model.hasFocus = true;
   };
