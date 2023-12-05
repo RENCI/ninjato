@@ -18,6 +18,9 @@ const sanitizeHistory = volume => {
         i === 0 && 
         action.type !== 'annotation_assigned_to'
       ) {
+        console.warn('Fixing history: annotation_assigned_to');
+        console.log(assignment);
+
         assignment.unshift({
           ...action,
           type: 'annotation_assigned_to'
@@ -28,13 +31,22 @@ const sanitizeHistory = volume => {
         i < assignment.length - 1 && 
         assignment[i + 1].type !== 'annotation_assigned_to'
       ) {
+        console.warn('Fixing history: annotation_rejected_by');
+        console.log(assignment);
+
         assignment.splice(i + 1, 0, {
           ...assignment[i + 1],
           type: 'annotation_assigned_to'
         });
       }
-      else if (action.type === 'review_completed_by' && i === assignment.length - 1) {
-        action.type = 'review_verified_by';
+      else if (
+        action.type === 'review_completed_by' && 
+        i === assignment.length - 1
+      ) {
+        console.warn('review_completed_by');
+        console.log(assignment);
+
+        //action.type = 'review_verified_by';
       }
     }
   });
@@ -165,6 +177,8 @@ export const VolumeProgress = ({ volume, users, reviewer }) => {
   const [{ chartType, reportingDay }] = useContext(ProgressContext);
   const [volumeTimeline, setVolumeTimeline] = useState();
   const [userTimelines, setUserTimelines] = useState([]);
+
+  console.log(volume)
 
   useEffect(() => {
     if (volume && users) {      
