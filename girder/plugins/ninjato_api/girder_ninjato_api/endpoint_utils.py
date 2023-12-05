@@ -756,6 +756,20 @@ def get_subvolume_item_info(item):
     return ret_dict
 
 
+def get_subvolume_all_assignment_status(item):
+    """
+    get all assignment status in a subvolume
+    :param item: subvolume item id
+    :return: all assignment dict in the form of key value pair as "assignment item id": "status"
+    """
+    region_dict = item['meta']['regions']
+    assign_status_dict = {}
+    for key, val in region_dict.items():
+        if 'item_id' in val:
+            assign_status_dict[val['item_id']] = get_assignment_status(item, val['item_id'])
+    return assign_status_dict
+
+
 def get_region_or_assignment_info(item, assign_item_id, region_id):
     """
     get region info or assignment info if the region is part of the assignment
