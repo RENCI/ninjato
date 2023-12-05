@@ -1,9 +1,13 @@
 import { useContext, useEffect, useState, useMemo } from 'react';
-import { ProgressContext } from 'contexts';
+import { 
+  ProgressContext, 
+  ErrorContext, SET_ERROR 
+} from 'contexts';
 import { VolumeControls } from './volume-controls';
 import { VegaWrapper } from 'modules/vega/components/vega-wrapper';
 import { UserTable } from 'modules/progress/components/user-table';
 import { lineChart, stackedArea } from 'vega-specs';
+import { api } from 'utils/api';
 
 // XXX: Necessary to fix issues in assignment history. 
 // Can probably be removed after first volume (purple_box) is completed.
@@ -175,18 +179,32 @@ const getUserTimelines = (volume, users) => {
 
 export const VolumeProgress = ({ volume, users, reviewer }) => {
   const [{ chartType, reportingDay }] = useContext(ProgressContext);
+  const [errorDispatch] = useContext(ErrorContext);
   const [volumeTimeline, setVolumeTimeline] = useState();
   const [userTimelines, setUserTimelines] = useState([]);
 
-  console.log(volume)
-
   useEffect(() => {
-    if (volume && users) {      
-      sanitizeHistory(volume);    
-      setVolumeTimeline(getVolumeTimeline(volume));
-      setUserTimelines(getUserTimelines(volume, users));
+    if (volume && users) { 
+      const getData = async () => {
+        try {
+          const regionsStatus = await api.getAllRegionsStatus(volume.id);
+
+          console.log(regionsStatus);
+
+          sanitizeHistory(volume);    
+          setVolumeTimeline(getVolumeTimeline(volume));
+          setUserTimelines(getUserTimelines(volume, users));
+        }
+        catch (error) {
+          console.log(error);
+
+          errorDispatch({ type: SET_ERROR, error: error });
+        }
+      };
+
+      getData();  
     }
-  }, [volume, users, reviewer, reportingDay]);
+  }, [volume, users]);
 
   const keys = ['declined', 'reviewDeclined', 'completed', 'review', 'active'];
   const keyIndex = keys.reduce((keyIndex, key, i) => {

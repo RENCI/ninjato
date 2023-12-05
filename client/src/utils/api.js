@@ -502,6 +502,11 @@ export const api = {
       return { status: 'unknown' };
     }
   },
+  getAllRegionsStatus: async subvolumeId => {    
+    const response = await axios.get(`/item/${ subvolumeId }/subvolume_all_assignment_status`);
+
+    return response.data;
+  },
   saveAnnotations: async (userId, itemId, buffer, regions, done = false) => {
     const blob = new Blob([buffer], { type: 'application/octet' });
 
