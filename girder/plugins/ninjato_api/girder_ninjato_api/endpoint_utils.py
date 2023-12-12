@@ -551,6 +551,10 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
             # the assignment is already reviewed and sent back from reviewers for reannotation
             selected_for_review = True
 
+    if 'training_user' in whole_item['meta']:
+        # training volume, need to store training user's intermediate work for computing dice score
+        update_assignment_in_whole_item(whole_item, item_id, mask_file_name=annot_file_name,
+                                        intermediate=True)
     return {
         'annotation_file_name': annot_file_name,
         'selected_for_review': selected_for_review,

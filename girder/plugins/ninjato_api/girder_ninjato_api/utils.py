@@ -28,6 +28,7 @@ REVIEW_DONE_KEY = 'review_done'
 REVIEW_APPROVE_KEY = 'review_approved'
 ASSIGN_COUNT_FOR_REVIEW = 10
 TRAINING_KEY = 'training_info'
+INTERMEDIATE_SUFFIX = '_user_intermediate.tif'
 
 
 def flatten(iterable):
@@ -256,13 +257,16 @@ def _create_region(region_key, whole_item, extent_dict):
     return region_item
 
 
-def update_assignment_in_whole_item(whole_item, assign_item_id, mask_file_name=None):
+def update_assignment_in_whole_item(whole_item, assign_item_id, mask_file_name=None,
+                                    intermediate=False):
     """
     update subvolume whole item mask with updated verified assignment mask
     :param whole_item: subvolume whole item to update
     :param assign_item_id: assignment item id to update whole subvolume mask with
     :param mask_file_name: annotation mask file name to update assignment. If it is None,
     annotation mask file name is checked automatically
+    :param intermediate: whether to store updated assignment mask in whole item as an annotation
+    mask file with suffix _user_intermediate.tif for training user dice score computation
     :return: True if update action succeeds; otherwise, return False
     """
     assign_item = Item().findOne({'_id': ObjectId(assign_item_id)})
@@ -283,6 +287,8 @@ def update_assignment_in_whole_item(whole_item, assign_item_id, mask_file_name=N
         for item_file in item_files:
             if '_masks' not in item_file['name']:
                 continue
+            if not intermediate and item_file['name'].endswith(INTERMEDIATE_SUFFIX):
+                continue
             file_res_path = path_util.getResourcePath('file', item_file, force=True)
             file_name = os.path.basename(file_res_path)
             whole_tif, whole_path = _get_tif_file_content_and_path(item_file)
@@ -299,8 +305,13 @@ def update_assignment_in_whole_item(whole_item, assign_item_id, mask_file_name=N
                 whole_out_tif.write_image(np.copy(image))
 
             assetstore_id = item_file['assetstoreId']
-            # remove the original file and create new file using updated TIFF mask
-            File().remove(item_file)
+            if intermediate and not item_file['name'].endswith(INTERMEDIATE_SUFFIX):
+                # intermediate user file does not exist yet, set the file name to be stored with
+                # intermediate file suffix pattern
+                file_name = f'{os.path.splitext(file_name)[0]}{INTERMEDIATE_SUFFIX}'
+            else:
+                # remove the original file and create new file using updated TIFF mask
+                File().remove(item_file)
             save_file(assetstore_id, whole_item, output_path, User().getAdmins()[0], file_name)
             return
 
@@ -639,7 +650,7 @@ def _update_user_mask(item_id, old_content, old_extent, new_extent=None):
     mask_file_name = ''
     assetstore_id = ''
     for item_file in item_files:
-        if '_masks' not in item_file['name']:
+        if '_masks' not in item_file['name'] or item_file['name'].endswith(INTERMEDIATE_SUFFIX):
             continue
         if item_file['name'].endswith('_user.tif'):
             # remove the user mask before writing a new mask to it
@@ -758,7 +769,7 @@ def remove_region_from_active_assignment(whole_item, assign_item_id, region_id,
     item_files = File().find({'itemId': whole_item['_id']})
     # compute updated range after removing the region from the user's assignment
     for item_file in item_files:
-        if '_masks' not in item_file['name']:
+        if '_masks' not in item_file['name'] or item_file['name'].endswith(INTERMEDIATE_SUFFIX):
             continue
         tif, _ = _get_tif_file_content_and_path(item_file)
         images = _get_tif_image_array(tif)
@@ -1006,7 +1017,7 @@ def save_content_data(user, item_id, content_data, review=False):
                 annot_file_name = file['name']
                 assetstore_id = file['assetstoreId']
                 break
-        elif '_masks' in file['name']:
+        elif '_masks' in file['name'] and not file['name'].endswith(INTERMEDIATE_SUFFIX):
             mask_file_name = file['name']
             if mask_file_name.endswith('_user.tif'):
                 annot_file_name = mask_file_name
