@@ -210,6 +210,22 @@ export const ViewContainer = ({ review = false }) => {
         annotateDispatch({ type: ANNOTATE_CHANGE_BRUSH_SIZE, direction: 'up' });
         break;
 
+      case ' ':
+        // Space bar to toggle paint/navigate
+        if (toolRef.current === 'paint') {
+          annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'navigate'});
+          clearHighlight();
+          previousToolRef.current = toolRef.current;
+          toolRef.current = 'navigate';
+        }
+        else {
+          annotateDispatch({ type: ANNOTATE_SET_TOOL, tool: 'paint'});
+          clearHighlight();
+          previousToolRef.current = toolRef.current;
+          toolRef.current = 'paint';
+        }
+        break;
+
       default:
     }
   }, [annotateDispatch, sliceView, volumeView]);
