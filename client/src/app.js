@@ -13,7 +13,7 @@ import { Home, Select, Assignment } from 'pages';
 export const App = () => { 
   // Prevent space bar from scrolling page
   window.addEventListener('keydown', function(evt) {
-    if(evt.code === 'Space' && evt.target === document.body) {
+    if ((evt.code === 'Space' || evt.code === 'ArrowUp' || evt.code === 'ArrowDown') && evt.target === document.body) {
       evt.preventDefault();
     }
   });
