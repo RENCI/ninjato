@@ -15,7 +15,7 @@ services:
       dockerfile: Dockerfile
       args:
         GIRDER_CFG_FILE: girder.dev.cfg
-        ASSET_STORE_DATA_DIR: data
+        ASSET_STORE_DATA_DIR: dev_data
     container_name: girder
     ports:
       - "8080:8080"
