@@ -5,6 +5,7 @@ import { useModal } from 'hooks';
 import styles from './styles.module.css';
 
 const groupDescription = {
+  general: 'General tools',
   edit: 'Standard editing tools',
   region: 'Whole-region editing tools',
   claim: 'Claim / remove region tools'
@@ -58,7 +59,7 @@ export const ControlsInfo = ({ tools }) => {
       }
     >
       <Modal.Header>
-        Tool Information
+        Tools and Options
         <span style={{ float: 'right '}}>
           <Button 
             basic
@@ -71,6 +72,7 @@ export const ControlsInfo = ({ tools }) => {
       </Modal.Header>
       <Modal.Content>
         <div ref={ controlsRef }>
+          <Header as ='h3'>Tools</Header>
           { groups.map((group, i, a) => (
             <div key={ i }>
               <Header as='h4'>{ groupDescription[group] }</Header>
@@ -109,14 +111,43 @@ export const ControlsInfo = ({ tools }) => {
               <List.Item />
               <List.Item>
                 <List.Header>Arrow <Icon name='arrow up' /><Icon name='arrow down' /></List.Header> 
-                <List.Content>Move slice up and down</List.Content>
+                <List.Content>Move slice up and down.</List.Content>
               </List.Item>
               <List.Item>
                 <List.Header>Arrow <Icon name='arrow left' /><Icon name='arrow right' /></List.Header> 
-                <List.Content>Change brush size</List.Content>
+                <List.Content>Change brush size.</List.Content>
               </List.Item>
             </List>
           </div>
+          <Divider section={ true } content /> 
+          <Header as='h3'>Options</Header>
+          <Header as='h4'>2D</Header>
+          <List relaxed>
+            <List.Item>
+              <List.Icon name={ 'circle outline' } />
+              <List.Content>
+                <List.Header>Show contours</List.Header> 
+                <List.Description>Show or hide contours for regions.</List.Description>
+              </List.Content>
+            </List.Item>
+          </List>
+          <Header as='h4'>3D</Header>
+          <List relaxed>
+            <List.Item>
+              <List.Icon name={ 'cubes' } />
+              <List.Content>
+                <List.Header>Show background regions</List.Header> 
+                <List.Description>Show or hide translucent surfaces for background regions.</List.Description>
+              </List.Content>
+            </List.Item>
+            <List.Item>
+              <List.Icon name={ 'certificate' } />
+              <List.Content>
+                <List.Header>Show gold standard (training only)</List.Header> 
+                <List.Description>Show gold standard image for training.</List.Description>
+              </List.Content>
+            </List.Item>
+          </List>
         </div>
       </Modal.Content>
     </Modal> 
