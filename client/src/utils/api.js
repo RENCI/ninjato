@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { decodeTIFF } from 'utils/data-conversion';
-import { computeDiceScore, getUniqueLabels } from './data';
+import { computeDiceScore, computeMultilabelSimilarity, getUniqueLabels } from './data';
 
 // API helper functions
 
@@ -130,6 +130,7 @@ const getTrainingInfo = async volume => {
   return {
     goldStandard: goldData,
     diceScore: computeDiceScore(goldData, maskData),
+    similarity: computeMultilabelSimilarity(goldData, maskData),
     regionDifference: getUniqueLabels(maskData).length - getUniqueLabels(goldData).length
   };
 };
