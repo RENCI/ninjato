@@ -25,3 +25,6 @@ yarn-error.log*
 girder-client/.env
 girder-client/sync_data/*
 girder/data
+
+# data
+dump_data*.gz
