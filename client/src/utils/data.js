@@ -166,7 +166,51 @@ export const computeMultilabelSimilarity = (image1, image2) => {
   const labels2 = getUniqueLabels(image2);
 
   // Initialize 
-  const scoreMatrix = labels1.map(label => labels2.map(() => 0));
+  const scoreMatrix = labels1.map(() => labels2.map(() => 0));
 
-  console.log(scoreMatrix)
+  // Fill in score matrix for each label pair
+  labels1.forEach((label1, i) => {
+    const bw1 = s1.map(v => v === label1);
+
+    labels2.forEach((label2, j) => {
+      const bw2 = s2.map(v => v === label2);
+
+      const ix = bw1.reduce((ix, v1, i) => ix + (v1 && bw2[i] ? 1 : 0), 0);
+
+      scoreMatrix[i][j] = ix;
+    });
+  });
+
+  // Initialize scores for each label in image1
+  const scores = labels1.map(() => 0);
+
+  // Greedy algorithm to pick best scores
+  labels1.forEach(() => {
+    let maxValue = 0;
+    let maxi = 0;
+    let maxj = 0;
+
+    scoreMatrix.forEach((row, i) => {
+      row.forEach((score, j) => {
+        if (score > maxValue) {
+            maxValue = score;
+            maxi = i;
+            maxj = j;
+        }
+      });
+    });
+
+    if (maxValue > 0) {
+      scores[maxi] = scoreMatrix[maxi][maxj];
+
+      labels1.forEach((_, i) => scoreMatrix[i][maxj] = 0);
+      labels2.forEach((_, j) => scoreMatrix[maxi][j] = 0);
+    }
+  });
+
+  const sizeScores = scores.reduce((sum, v) => sum + v, 0);
+  const size1 = s1.reduce((sum, v) => sum + (v > 0 ? 1 : 0), 0);
+  const size2 = s2.reduce((sum, v) => sum + (v > 0 ? 1 : 0), 0);
+
+  return 2 * sizeScores / (size1 + size2);
 }
