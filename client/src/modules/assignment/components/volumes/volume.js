@@ -144,6 +144,12 @@ export const Volume = ({ volume, availableReviews, enabled }) => {
                     Training progress
                     <Header.Subheader>
                       <div className={ styles.trainingInfo }>
+                        Similarity score: <span>
+                          { trainingInfo.similarity.toFixed(4) }
+                        </span>
+                      </div>
+                      {/*
+                      <div className={ styles.trainingInfo }>
                         Dice score: <span>
                           { trainingInfo.diceScore.toFixed(4) }
                         </span>
@@ -153,6 +159,7 @@ export const Volume = ({ volume, availableReviews, enabled }) => {
                           { (trainingInfo.regionDifference > 0 ? '+' : '') + trainingInfo.regionDifference }
                         </span>
                       </div>
+                      */}
                     </Header.Subheader>
                   </Header>
                 </div>
