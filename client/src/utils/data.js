@@ -128,14 +128,21 @@ export const getMissingRegions = (maskData, regions) => {
   }, []);
 };
 
-export const computeDiceScore = (image1, image2) => {  
+const checkDimensions = (image1, image2) => {
   const d1 = image1.getDimensions();
   const d2 = image2.getDimensions();
 
   if (d1[0] !== d2[0] || d1[1] !== d2[1] || d1[2] !== d2[2]) {
     console.warn(`Images have different dimensions: [${ d1 }], [${ d2 }]`);
-    return null;
+    return false;
   }
+  else {
+    return true;
+  }
+};
+
+export const computeDiceScore = (image1, image2) => {  
+  if (!checkDimensions(image1, image2)) return null;
 
   const s1 = image1.getPointData().getScalars().getData();
   const s2 = image2.getPointData().getScalars().getData();
@@ -147,3 +154,19 @@ export const computeDiceScore = (image1, image2) => {
 
   return 2 * ix / (count(s1) + count(s2)); 
 };
+
+export const computeMultilabelSimilarity = (image1, image2) => {
+  if (!checkDimensions(image1, image2)) return null;
+
+  const s1 = image1.getPointData().getScalars().getData();
+  const s2 = image2.getPointData().getScalars().getData();
+
+  // Get unique labels for each image
+  const labels1 = getUniqueLabels(image1);
+  const labels2 = getUniqueLabels(image2);
+
+  // Initialize 
+  const scoreMatrix = labels1.map(label => labels2.map(() => 0));
+
+  console.log(scoreMatrix)
+}
