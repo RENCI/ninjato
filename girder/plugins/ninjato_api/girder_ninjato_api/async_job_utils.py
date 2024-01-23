@@ -1,6 +1,6 @@
 from girder.models.item import Item
 from bson.objectid import ObjectId
-from .utils import create_region_files
+from .utils import create_region_files, REVIEW_APPROVE_KEY
 
 
 def update_all_assignment_masks(job):
@@ -21,8 +21,9 @@ def update_all_assignment_masks(job):
         if not assign_item['meta']['region_ids']:
             # the assignment does not have any regions, so nothing to update
             continue
-        if 'annotation_done' in assign_item['meta'] and assign_item['meta']['annotation_done'] == 'true':
-            # if annotation is done, does not update
+        if REVIEW_APPROVE_KEY in assign_item['meta'] and \
+            assign_item['meta'][REVIEW_APPROVE_KEY] == 'true':
+            # if annotation is already review approved, does not update
             continue
         create_region_files(assign_item, whole_item)
         updated_assign_item_ids.append(val['item_id'])
