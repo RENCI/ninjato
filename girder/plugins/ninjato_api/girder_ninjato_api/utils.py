@@ -154,7 +154,8 @@ def create_region_files(region_item, whole_item):
     :return:
     """
     files = File().find({'itemId': region_item['_id']})
-    # if the region already has files, existing files need to be removed before adding new ones.
+    # if the region already has files, existing files need to be removed except for
+    # the user edited file before adding new ones.
     for file in files:
         if not file['name'].endswith('_user.tif'):
             File().remove(file)
@@ -257,6 +258,43 @@ def _create_region(region_key, whole_item, extent_dict):
     return region_item
 
 
+def reset_mask_label(mask_data, label_no, y_min, y_max, x_min, x_max):
+    """
+    reset mask data slice with certain label to zero
+    :param mask_data: mask data slice 2D numpy array
+    :param label_no: integer label
+    :param y_min: extent (y_min, y_max, x_min, x_max)
+    :param y_max: extent (y_min, y_max, x_min, x_max)
+    :param x_min: extent (y_min, y_max, x_min, x_max)
+    :param x_max: extent (y_min, y_max, x_min, x_max)
+    :return: updated mask data slice
+    """
+    rows, cols = np.indices(mask_data.shape)
+    mask_data[(mask_data == label_no) & (rows >= y_min) & (rows <= y_max)
+              & (cols >= x_min) & (cols <= x_max)] = 0
+    return mask_data
+
+
+def set_mask_label(mask_data, label_no, sub_mask_data, y_min, x_min):
+    """
+    set mask data slice 2D numpy array based on babels in its sub mask slice for a specific label
+    :param mask_data: original mask data slice 2D numpy array
+    :param label_no: integer label to check and set data with
+    :param sub_mask_data: sub mask slice to check label against in order to set original mask data
+    :param y_min: minimum extent y of sub_mask_data in mask_data
+    :param x_min: minimum extent x of sub_mask_data in mask_data
+    :return: updated mask slice data
+    """
+    sub_indices = np.argwhere(sub_mask_data == label_no)
+    mask_data[y_min + sub_indices[:, 0], x_min + sub_indices[:, 1]] = label_no
+    return mask_data
+
+
+def get_label_ids(input_item):
+    input_region_ids = input_item['meta']['region_ids']
+    return [rid for rid in input_region_ids] if input_region_ids else [int(input_item['name'][-4:])]
+
+
 def update_assignment_in_whole_item(whole_item, assign_item_id, mask_file_name=None,
                                     intermediate=False):
     """
@@ -282,6 +320,7 @@ def update_assignment_in_whole_item(whole_item, assign_item_id, mask_file_name=N
             continue
         assign_item_tif, _ = _get_tif_file_content_and_path(assign_item_file)
         assign_item_images = _get_tif_image_array(assign_item_tif)
+        assign_item_region_ids = assign_item['meta']['region_ids']
 
         item_files = File().find({'itemId': whole_item['_id']})
         for item_file in item_files:
@@ -297,12 +336,24 @@ def update_assignment_in_whole_item(whole_item, assign_item_id, mask_file_name=N
             whole_out_tif = TIFF.open(output_path, mode='w')
             whole_images = _get_tif_image_array(whole_tif)
             # region_imarray should be in order of ZYX
-            for counter, image in enumerate(whole_images):
-                if assign_item_coords['z_min'] <= counter <= assign_item_coords['z_max']:
-                    image[assign_item_coords['y_min']: assign_item_coords['y_max']+1,
-                          assign_item_coords['x_min']: assign_item_coords['x_max']+1] = \
-                        assign_item_images[counter-assign_item_coords['z_min']]
-                whole_out_tif.write_image(np.copy(image))
+            # if assign_item_region_ids is empty, i.e., assign item does not have region_ids,
+            # it means the initial region id is deleted, so need to find the original region id
+            # from assign_item name and reset/delete the label from the whole volume
+            label_ids = get_label_ids(assign_item)
+            for rid in label_ids:
+                for counter, img in enumerate(whole_images):
+                    if assign_item_coords['z_min'] <= counter <= assign_item_coords['z_max']:
+                        img = reset_mask_label(img, rid, assign_item_coords['y_min'],
+                                               assign_item_coords['y_max'],
+                                               assign_item_coords['x_min'],
+                                               assign_item_coords['x_max']
+                                               )
+                        if assign_item_region_ids:
+                            img = set_mask_label(
+                                img, rid,
+                                assign_item_images[counter-assign_item_coords['z_min']],
+                                assign_item_coords['y_min'], assign_item_coords['x_min'])
+                    whole_out_tif.write_image(np.copy(img))
 
             assetstore_id = item_file['assetstoreId']
             if intermediate and not item_file['name'].endswith(INTERMEDIATE_SUFFIX):
@@ -313,7 +364,7 @@ def update_assignment_in_whole_item(whole_item, assign_item_id, mask_file_name=N
                 # remove the original file and create new file using updated TIFF mask
                 File().remove(item_file)
             save_file(assetstore_id, whole_item, output_path, User().getAdmins()[0], file_name)
-            return
+        return
 
     raise RestException('Failed to update assignment annotation mask in the whole subvolume mask',
                         code=500)
@@ -632,6 +683,46 @@ def check_subvolume_done(whole_item, task='annotation'):
     return vol_done
 
 
+def update_user_mask_from_updated_mask(user_mask_id, lbl_ids):
+    """
+    update user mask file from its updated mask updated from the updated whole volume from other
+    user's edits in the overlapping extent so that other users' edits will be reflected in the
+    user's mask file.
+    :param user_mask_id: user mask item id
+    :param lbl_ids: label ids in whole item used to update user mask file
+    :return: True if user mask is updated successfully, False otherwise
+    """
+    files = File().find({'itemId': user_mask_id})
+    item_images = user_images = []
+    for file in files:
+        if file['name'].endswith('_masks_regions.tif'):
+            item_tif, _ = _get_tif_file_content_and_path(file)
+            item_images = _get_tif_image_array(item_tif)
+        elif file['name'].endswith('_user.tif'):
+            user_item_tif, user_file_path = _get_tif_file_content_and_path(file)
+            file_res_path = path_util.getResourcePath('file', file, force=True)
+            user_file_name = os.path.basename(file_res_path)
+            user_images = _get_tif_image_array(user_item_tif)
+            output_path = os.path.join(os.path.dirname(user_file_path),
+                                       f'{uuid.uuid4()}_{user_file_name}')
+            user_out_tif = TIFF.open(output_path, mode='w')
+
+    if not item_images or not user_images or len(item_images) != len(user_images):
+        # no user image to update or user image cannot be updated
+        return False
+
+    for counter, img in enumerate(user_images):
+        for rid in lbl_ids:
+            # reset rid in user image to 0 before setting the label with updated mask
+            img[img == rid] = 0
+            sub_indices = np.argwhere(item_images[counter] == rid)
+            if sub_indices.shape[0] > 0:
+                img[sub_indices[:, 0], sub_indices[:, 1]] = rid
+
+        user_out_tif.write_image(np.copy(img))
+    return True
+
+
 def _update_user_mask(item_id, old_content, old_extent, new_extent=None):
     item = Item().findOne({'_id': ObjectId(item_id)})
     if not new_extent:
@@ -824,7 +915,7 @@ def remove_region_from_active_assignment(whole_item, assign_item_id, region_id,
         if min_z_ary:
             create_region_files(assign_item, whole_item)
             if active_content_data:
-                # merge active_content_data with updated assign item extent with claimed region included
+                # merge active_content_data with updated assign item with claimed region included
                 _update_user_mask(assign_item_id, active_content_data.file.read(), old_extent,
                                   new_extent={
                                       'min_x': min_x,
@@ -908,14 +999,15 @@ def merge_region_to_active_assignment(whole_item, active_assign_id, region_id,
     create_region_files(assign_item, whole_item)
     if active_content_data:
         # merge active_content_data with updated assign item extent with claimed region included
-        _update_user_mask(active_assign_id, active_content_data.file.read(), old_extent, new_extent={
-            'min_x': min_x,
-            'max_x': max_x,
-            'min_y': min_y,
-            'max_y': max_y,
-            'min_z': min_z,
-            'max_z': max_z
-        })
+        _update_user_mask(active_assign_id, active_content_data.file.read(), old_extent,
+                          new_extent={
+                              'min_x': min_x,
+                              'max_x': max_x,
+                              'min_y': min_y,
+                              'max_y': max_y,
+                              'min_z': min_z,
+                              'max_z': max_z
+                              })
         if active_region_ids:
             # make sure claimed region_id is part of updated region ids to check for
             # added and removed regions
