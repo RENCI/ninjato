@@ -286,13 +286,16 @@ def set_mask_label(mask_data, label_no, sub_mask_data, y_min, x_min):
     :return: updated mask slice data
     """
     sub_indices = np.argwhere(sub_mask_data == label_no)
-    mask_data[y_min + sub_indices[:, 0], x_min + sub_indices[:, 1]] = label_no
+    print(f'in set_mask_label: sub_indices: {sub_indices}', flush=True)
+    if sub_indices.shape[0] > 0:
+        mask_data[y_min + sub_indices[:, 0], x_min + sub_indices[:, 1]] = label_no
     return mask_data
 
 
 def get_label_ids(input_item):
     input_region_ids = input_item['meta']['region_ids']
-    return [rid for rid in input_region_ids] if input_region_ids else [int(input_item['name'][-4:])]
+    return [int(rid) for rid in input_region_ids] if input_region_ids else \
+        [int(input_item['name'][-4:])]
 
 
 def update_assignment_in_whole_item(whole_item, assign_item_id, mask_file_name=None,
