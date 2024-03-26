@@ -9,10 +9,11 @@ import { UserTable } from 'modules/progress/components/user-table';
 import { lineChart, stackedArea } from 'vega-specs';
 import { api } from 'utils/api';
 
-// XXX: Necessary to fix issues in assignment history. 
-// Can probably be removed after first volume (purple_box) is completed.
-const sanitizeHistory = volume => {
-  Object.values(volume.history).forEach(assignment => {
+// Necessary to fix issues in assignment history. 
+const sanitizeHistory = (volume, regionsStatus) => {
+  Object.entries(volume.history).forEach(([id, assignment]) => {
+    const status = regionsStatus[id];
+
     for (let i = 0; i < assignment.length; i++) {
       const action = assignment[i];
 
@@ -45,12 +46,21 @@ const sanitizeHistory = volume => {
       }
       else if (
         action.type === 'review_completed_by' && 
-        i === assignment.length - 1
+        i === assignment.length -1 &&
+        status === 'completed'
       ) {
-        console.warn('review_completed_by');
-        console.log(assignment);
-
-        //action.type = 'review_verified_by';
+        action.type = 'review_verified_by';
+      }
+      else if (
+        action.type === 'annotation_completed_by' && 
+        i === assignment.length - 1 &&
+        status === 'completed'
+      ) {
+        assignment.push({
+          time: action.time,
+          type: 'review_skipped',
+          user: 'none'
+        });
       }
     }
   });
@@ -78,6 +88,7 @@ const processTimeline = timeline => {
       case 'review_completed_by': count.review--; count.active++; break;
       case 'review_verified_by': count.review--; count.completed++; break;
       case 'review_rejected_by': count.review--; count.reviewDeclined++; break;
+      case 'review_skipped': count.review--; count.completed++; break;
       default: 
         console.warn(`Unknown action type ${ action.type }`);
     }
@@ -189,9 +200,7 @@ export const VolumeProgress = ({ volume, users, reviewer }) => {
         try {
           const regionsStatus = await api.getAllRegionsStatus(volume.id);
 
-          console.log(regionsStatus);
-
-          sanitizeHistory(volume);    
+          sanitizeHistory(volume, regionsStatus);    
           setVolumeTimeline(getVolumeTimeline(volume));
           setUserTimelines(getUserTimelines(volume, users));
         }
