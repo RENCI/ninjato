@@ -277,7 +277,7 @@ def reset_mask_label(mask_data, label_no, y_min, y_max, x_min, x_max):
 
 def set_mask_label(mask_data, label_no, sub_mask_data, y_min, x_min):
     """
-    set mask data slice 2D numpy array based on babels in its sub mask slice for a specific label
+    set mask data slice 2D numpy array based on labels in its sub mask slice for a specific label
     :param mask_data: original mask data slice 2D numpy array
     :param label_no: integer label to check and set data with
     :param sub_mask_data: sub mask slice to check label against in order to set original mask data
@@ -687,7 +687,7 @@ def check_subvolume_done(whole_item, task='annotation'):
 
 def update_user_mask_from_updated_mask(user_mask_id, lbl_ids):
     """
-    update user mask file from its updated mask updated from the updated whole volume from other
+    update user mask file from its updated mask updated from the updated whole volume including other
     user's edits in the overlapping extent so that other users' edits will be reflected in the
     user's mask file.
     :param user_mask_id: user mask item id
