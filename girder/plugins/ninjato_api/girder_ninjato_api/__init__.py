@@ -7,7 +7,8 @@ from .endpoint_utils import get_item_assignment, save_user_annotation_as_item, \
     get_subvolume_item_ids, get_subvolume_item_info, get_region_or_assignment_info, \
     get_available_region_ids, claim_assignment, request_assignment, \
     get_all_avail_items_for_review, get_region_comment_info, save_user_review_result_as_item, \
-    remove_region_from_item_assignment, get_subvolume_slice_embedding
+    remove_region_from_item_assignment, get_subvolume_all_assignment_status, \
+    get_subvolume_slice_embedding
 
 
 @access.public
@@ -204,7 +205,6 @@ def get_avail_items_for_review(item):
     return get_all_avail_items_for_review(item)
 
 
-
 @access.public
 @autoDescribeRoute(
     Description('Get subvolume item ids.')
@@ -243,6 +243,17 @@ def get_subvolume_info(item):
 )
 def get_slice_embedding(item, slice_no):
     return get_subvolume_slice_embedding(item, slice_no)
+
+@access.public
+@autoDescribeRoute(
+    Description('Get status of all assignments in the specified subvolume.')
+    .modelParam('id', 'The item ID', model='item', level=AccessType.READ)
+    .errorResponse()
+    .errorResponse('Get action was denied on the user.', 403)
+    .errorResponse('Failed to get subvolume all assignment status', 500)
+)
+def get_subvolume_all_assign_status(item):
+    return get_subvolume_all_assignment_status(item)
 
 
 @access.public
@@ -328,6 +339,8 @@ class NinjatoPlugin(GirderPlugin):
         info['apiRoot'].system.route('GET', ('subvolume_ids',), get_subvolume_ids)
         info['apiRoot'].item.route('GET', (':id', 'subvolume_info'), get_subvolume_info)
         info['apiRoot'].item.route('GET', (':id', 'subvolume_slice_embedding'), get_slice_embedding)
+        info['apiRoot'].item.route('GET', (':id', 'subvolume_all_assignment_status'),
+                                   get_subvolume_all_assign_status)
         info['apiRoot'].item.route('GET', (':id', 'new_region_ids'), get_new_region_ids)
         info['apiRoot'].item.route('GET', (':id', 'subvolume_assignment_info'), get_region_info)
         info['apiRoot'].item.route('GET', (':id', 'region_comments'), get_region_comments)

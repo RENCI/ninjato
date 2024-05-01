@@ -1,7 +1,7 @@
 import axios from 'axios';
 import npyjs from 'npyjs';
 import { decodeTIFF } from 'utils/data-conversion';
-import { computeDiceScore, getUniqueLabels } from './data';
+import { computeDiceScore, computeMultilabelSimilarity, getUniqueLabels } from './data';
 const ort = require('onnxruntime-web');
 
 // API helper functions
@@ -131,9 +131,10 @@ const getAssignment = async (subvolumeId, itemId) => {
   };
 };
 
-const getVolumeMask = async volume => {
+const getIntermediateVolumeMask = async volume => {
   const volumeFiles = await axios.get(`/item/${ volume.id }/files`);
-  const maskFile = volumeFiles.data.find(({ name }) => name.includes('_masks.tif'));
+  const maskFile = volumeFiles.data.find(({ name }) => name.includes('_masks_user_intermediate.tif')) ??
+    volumeFiles.data.find(({ name }) => name.includes('_masks.tif')); 
 
   const response = await axios.get(fileUrl(maskFile._id), { responseType: 'arraybuffer' });
 
@@ -155,7 +156,7 @@ const getGoldStandard = async volume => {
 
 const getTrainingInfo = async volume => {
   const [maskData, goldData] = await Promise.all([
-    getVolumeMask(volume),
+    getIntermediateVolumeMask(volume),
     getGoldStandard(volume)
   ]);
 
@@ -164,6 +165,7 @@ const getTrainingInfo = async volume => {
   return {
     goldStandard: goldData,
     diceScore: computeDiceScore(goldData, maskData),
+    similarity: computeMultilabelSimilarity(goldData, maskData),
     regionDifference: getUniqueLabels(maskData).length - getUniqueLabels(goldData).length
   };
 };

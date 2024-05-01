@@ -553,6 +553,10 @@ def save_user_annotation_as_item(user, item_id, done, reject, comment, color, cu
             # the assignment is already reviewed and sent back from reviewers for reannotation
             selected_for_review = True
 
+    if 'training_user' in whole_item['meta']:
+        # training volume, need to store training user's intermediate work for computing dice score
+        update_assignment_in_whole_item(whole_item, item_id, mask_file_name=annot_file_name,
+                                        intermediate=True)
     return {
         'annotation_file_name': annot_file_name,
         'selected_for_review': selected_for_review,
@@ -756,6 +760,20 @@ def get_subvolume_item_info(item):
     ret_dict['total_review_available_regions'] = total_regions - total_reviewed_regions_done - \
         total_reviewed_regions_at_work
     return ret_dict
+
+
+def get_subvolume_all_assignment_status(item):
+    """
+    get all assignment status in a subvolume
+    :param item: subvolume item id
+    :return: all assignment dict in the form of key value pair as "assignment item id": "status"
+    """
+    region_dict = item['meta']['regions']
+    assign_status_dict = {}
+    for key, val in region_dict.items():
+        if 'item_id' in val:
+            assign_status_dict[val['item_id']] = get_assignment_status(item, val['item_id'])
+    return assign_status_dict
 
 
 def get_region_or_assignment_info(item, assign_item_id, region_id):

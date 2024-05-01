@@ -143,7 +143,6 @@ function vtkInteractorStyleNinjatoSlice(publicAPI, model) {
 
   //----------------------------------------------------------------------------
   publicAPI.handleStartMouseWheel = (callData) => {
-    publicAPI.handleMouseWheel(callData);
   };
 
   //--------------------------------------------------------------------------
