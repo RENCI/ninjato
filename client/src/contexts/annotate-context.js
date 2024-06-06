@@ -27,7 +27,7 @@ const tools = [
     info: 'Click on a region to toggle visibility in the 3D view.' 
   },
 
-  { group: 'edit', value: 'sam', icon: 'magic', cursor: getCursor('paint-brush.png', 11, 23), tooltip: 'segment', disabled: disabled('no active'), volume: false,
+  { group: 'edit', value: 'sam', icon: 'magic', cursor: getCursor('magic.png', 23, 12), tooltip: 'segment', disabled: disabled('no active'), volume: false,
     info: 'Click and drag a bounding box to segment voxels with the active region label using the segment anything model.'  
   },
   { group: 'edit', value: 'paint', icon: 'paint brush', cursor: getCursor('paint-brush.png', 11, 23), tooltip: 'paint', disabled: disabled('no active'), volume: true,
