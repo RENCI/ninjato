@@ -182,13 +182,17 @@ function vtkNinjatoPainter(publicAPI, model) {
 
       const z = Math.ceil(ijk1[2]);
 
-      ijk1[0] = Math.ceil(ijk1[0]);
-      ijk1[1] = Math.ceil(ijk1[1]);
+      console.log(ijk1);
+      console.log(ijk2);
 
-      ijk2[0] = Math.floor(ijk2[0]);
-      ijk2[1] = Math.floor(ijk2[1]);
+      ijk1[0] = Math.ceil(ijk1[0]) + model.location.x_min;
+      ijk1[1] = Math.ceil(ijk1[1]) + model.location.y_min;
 
-      // XXX: NEED OFFSETS IN X AND Y
+      ijk2[0] = Math.floor(ijk2[0]) + model.location.x_min;
+      ijk2[1] = Math.floor(ijk2[1]) + model.location.y_min;
+
+      console.log(ijk1);
+      console.log(ijk2);
 
       // Store bounding box in correct format
       const clicks = [
@@ -219,6 +223,16 @@ function vtkNinjatoPainter(publicAPI, model) {
       const results = await samModel.run(feeds);
       const output = results[samModel.outputNames[0]];
       const mask = thresholdOnnxMask(output.data, 0.5);
+
+      if (workerPromise) {
+        workerPromise.exec('applyMask', {
+          mask: mask,
+          volumeWidth: modelScale.width,
+          volumeHeight: modelScale.height,
+          location: model.location,
+          point: ijk1
+        });
+      }
     }
   };
 
@@ -488,6 +502,7 @@ const DEFAULT_VALUES = {
   
   // For segment anything
   embeddings: null,
+  location: null,
   samScale: null
 };
 
@@ -505,6 +520,7 @@ export function extend(publicAPI, model, initialValues = {}) {
   macro.setGet(publicAPI, model, [
     'labelMap',
     'embeddings',
+    'location',
     'maskWorldToIndex',
     'voxelFunc',
     'label',

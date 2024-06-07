@@ -203,7 +203,7 @@ export function Widgets(painter) {
         }
       });
 
-      handles.sam.onInteractionEvent(() => {
+      handles.sam.onInteractionEvent(async () => {
         const handle = handles.sam.getWidgetState().getState().handle;
         const x = [handle.origin[0], handle.corner[0]].sort((a, b) => a - b);
         const y = [handle.origin[1], handle.corner[1]].sort((a, b) => a - b);
@@ -226,12 +226,12 @@ export function Widgets(painter) {
 */        
       });
 
-      // End
-      /*
+      // End      
       handles.sam.onEndInteractionEvent(async () => {
-        console.log('sam end event')
-      });
-      */
+        await painter.endStroke();
+  
+        onEdit(activeRegion);
+      });      
 
       handles.paint.onEndInteractionEvent(async () => {
         painter.paintFloodFill(

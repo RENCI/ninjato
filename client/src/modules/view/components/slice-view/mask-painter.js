@@ -66,10 +66,11 @@ export function MaskPainter() {
     getPainter: () => painter,
     getActor: () => actor,
     getMapper: () => mapper,
-    setInputData: (maskData, backgroundData, embeddings) => {
+    setInputData: (maskData, backgroundData, embeddings, location) => {
       painter.setBackgroundImage(backgroundData, regions.map(({ label }) => label));
       painter.setLabelMap(maskData);
       painter.setEmbeddings(embeddings);
+      painter.setLocation(location);
 
       const [w, h] = maskData.getDimensions();
       contour.setWidth(Math.max(w, h) / 200);

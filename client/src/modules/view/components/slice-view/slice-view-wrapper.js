@@ -7,6 +7,7 @@ export const SliceViewWrapper = ({ sliceView, useGold = false, onEdit, onImageMa
   const [{ tool, tools, brushes, paintBrush, eraseBrush, createBrush, showContours }] = useContext(AnnotateContext);
   const [initialized, setInitialized] = useState(false);
   const div = useRef(null);
+  const location = useRef();
   const sliceRanges = useRef();
   const { width } = useResize(div);
   
@@ -59,6 +60,7 @@ export const SliceViewWrapper = ({ sliceView, useGold = false, onEdit, onImageMa
   useEffect(() => {
     if (initialized) {
       const volume = volumes.find(({ id }) => id === assignment.subvolumeId);
+      location.current = assignment.location;
       sliceRanges.current = volume.sliceRanges.slice(assignment.location.z_min, assignment.location.z_max + 1);
 
       sliceView.setRegions(assignment.regions, assignment.backgroundRegions);
@@ -68,7 +70,7 @@ export const SliceViewWrapper = ({ sliceView, useGold = false, onEdit, onImageMa
   // Data
   useEffect(() => {
     if (initialized && imageData && (maskData || (useGold && goldData)) && backgroundMaskData && embeddings) {
-      sliceView.setData(imageData, useGold ? goldData : maskData, backgroundMaskData, embeddings, sliceRanges.current);
+      sliceView.setData(imageData, useGold ? goldData : maskData, backgroundMaskData, embeddings, location.current, sliceRanges.current);
     }
   }, [initialized, sliceView, imageData, maskData, backgroundMaskData, embeddings, useGold, goldData, volumes]);   
 
