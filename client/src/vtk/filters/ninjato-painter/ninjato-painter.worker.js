@@ -111,22 +111,18 @@ function floodFillScanlineStack({ buffer, w, h, seed }) {
 } 
 
 // XXX: Currently assuming z slice
-function handleApplyMask({ mask, volumeWidth, volumeHeight, location, point }) {
+function handleApplyMask({ mask, volumeWidth, location, slice }) {
   const w = globals.dimensions[0];
   const h = globals.dimensions[1];
-  const z = point[2];
+  const z = slice;
 
   const yStride = w;
   const zStride = w * h;
 
-  console.log(mask)
-  console.log(mask.filter(d => d == 0))
-  console.log(mask.filter(d => d != 0))
-
-  for (let i = 0; i <= w; i++) {
-    for (let j = 0; j <= h; j++) {
-      const index = i + j * yStride + z * zStride;
-      const index2 = i + location.x_min + (j + location.y_min) * volumeWidth; 
+  for (let x = 0; x < w; x++) {
+    for (let y = 0; y < h; y++) {
+      const index = x + yStride * y + zStride * z;
+      const index2 = x + location.x_min + volumeWidth * (y + location.y_min); 
       globals.buffer[index] = mask[index2];
     }
   }

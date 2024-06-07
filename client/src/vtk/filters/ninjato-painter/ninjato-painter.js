@@ -175,6 +175,7 @@ function vtkNinjatoPainter(publicAPI, model) {
   publicAPI.runSam = async (p1, p2) => {
     // Check for sam model, can't run onnx from webworker
     if (samModel) {
+      // Transform to voxel coordinates
       const ijk1 = [0, 0, 0];
       vec3.transformMat4(ijk1, p1, model.maskWorldToIndex);
       const ijk2 = [0, 0, 0];
@@ -182,17 +183,12 @@ function vtkNinjatoPainter(publicAPI, model) {
 
       const z = Math.ceil(ijk1[2]);
 
-      console.log(ijk1);
-      console.log(ijk2);
-
+      // Add offset for full slice
       ijk1[0] = Math.ceil(ijk1[0]) + model.location.x_min;
       ijk1[1] = Math.ceil(ijk1[1]) + model.location.y_min;
 
       ijk2[0] = Math.floor(ijk2[0]) + model.location.x_min;
       ijk2[1] = Math.floor(ijk2[1]) + model.location.y_min;
-
-      console.log(ijk1);
-      console.log(ijk2);
 
       // Store bounding box in correct format
       const clicks = [
@@ -202,9 +198,9 @@ function vtkNinjatoPainter(publicAPI, model) {
 
       // XXX: SHOULD BE CALCULATING/PASSING THIS IN
       const modelScale = {
-        height: 512,
-        width: 512,
-        samScale: 1024 / 512
+        height: 128,
+        width: 128,
+        samScale: 1024 / 128
       };
 
       // Prepare the model input in the correct format for SAM. 
@@ -228,9 +224,8 @@ function vtkNinjatoPainter(publicAPI, model) {
         workerPromise.exec('applyMask', {
           mask: mask,
           volumeWidth: modelScale.width,
-          volumeHeight: modelScale.height,
           location: model.location,
-          point: ijk1
+          slice: z
         });
       }
     }
