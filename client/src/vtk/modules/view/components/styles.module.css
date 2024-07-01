@@ -1,0 +1,12 @@
+.trainingMessage {
+  width: 100%;
+  text-align: center;
+}
+
+.goldDiv {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: 100%;
+}

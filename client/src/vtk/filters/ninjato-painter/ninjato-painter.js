@@ -6,8 +6,16 @@ import WebworkerPromise from 'webworker-promise';
 import macro from '@kitware/vtk.js/macros';
 import vtkImageData from '@kitware/vtk.js/Common/DataModel/ImageData';
 import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
+import { InferenceSession } from 'onnxruntime-web';
+
+import { modelData } from 'utils/onnx-model-api';
+import { thresholdOnnxMask } from 'utils/sam-utils';
 
 const { vtkErrorMacro } = macro;
+
+// XXX: This should probably be a parameter
+const SAM_MODEL_PATH = `${ process.env.PUBLIC_URL }/onnx/sam_onnx_quantized_example.onnx`;
+//const SAM_MODEL_PATH = `${ process.env.PUBLIC_URL }/onnx/sam_onnx_example.onnx`;
 
 // ----------------------------------------------------------------------------
 // vtkNinjatoPainter methods
@@ -21,6 +29,11 @@ function vtkNinjatoPainter(publicAPI, model) {
   let workerPromise = null;
   let initialData = null;
   const history = {};
+
+  // Segment anything
+  let samModel = null
+  const createSamModel = async () => samModel = await InferenceSession.create(SAM_MODEL_PATH);
+  createSamModel();
 
   // --------------------------------------------------------------------------
 
@@ -159,6 +172,65 @@ function vtkNinjatoPainter(publicAPI, model) {
 
   // --------------------------------------------------------------------------
 
+  publicAPI.runSam = async (p1, p2) => {
+    // Check for sam model, can't run onnx from webworker
+    if (samModel) {
+      // Transform to voxel coordinates
+      const ijk1 = [0, 0, 0];
+      vec3.transformMat4(ijk1, p1, model.maskWorldToIndex);
+      const ijk2 = [0, 0, 0];
+      vec3.transformMat4(ijk2, p2, model.maskWorldToIndex);
+
+      const z = Math.ceil(ijk1[2]);
+
+      // Add offset for full slice
+      ijk1[0] = Math.ceil(ijk1[0]) + model.location.x_min;
+      ijk1[1] = Math.ceil(ijk1[1]) + model.location.y_min;
+
+      ijk2[0] = Math.floor(ijk2[0]) + model.location.x_min;
+      ijk2[1] = Math.floor(ijk2[1]) + model.location.y_min;
+
+      // Store bounding box in correct format
+      const clicks = [
+        { x: ijk1[0], y: ijk1[1], clickType: 2 },
+        { x: ijk2[0], y: ijk2[1], clickType: 3 }
+      ];
+
+      // XXX: SHOULD BE CALCULATING/PASSING THIS IN
+      const modelScale = {
+        height: 128,
+        width: 128,
+        samScale: 1024 / 128
+      };
+
+      // Prepare the model input in the correct format for SAM. 
+      const feeds = modelData({
+        clicks,
+        tensor: model.embeddings[z],
+        modelScale
+      });
+
+      if (feeds === undefined) {
+        console.log('Undefined feeds for SAM');
+        return;
+      };
+
+      // Run the SAM ONNX model with the feeds returned from modelData()
+      const results = await samModel.run(feeds);
+      const output = results[samModel.outputNames[0]];
+      const mask = thresholdOnnxMask(output.data, 0.5);
+
+      if (workerPromise) {
+        workerPromise.exec('applyMask', {
+          mask: mask,
+          volumeWidth: modelScale.width,
+          location: model.location,
+          slice: z
+        });
+      }
+    }
+  };
+
   publicAPI.paint = (pointList, brush) => {
     if (workerPromise && pointList.length > 0) {
       const points = [];
@@ -220,13 +292,15 @@ function vtkNinjatoPainter(publicAPI, model) {
     const ijk2 = [0, 0, 0];
     vec3.transformMat4(ijk2, p2, model.maskWorldToIndex);
 
+    const z = Math.ceil(ijk1[2]);
+
     ijk1[0] = Math.ceil(ijk1[0]);
     ijk1[1] = Math.ceil(ijk1[1]);
-    ijk1[2] = Math.ceil(ijk1[2]);
+    ijk1[2] = z;
 
     ijk2[0] = Math.floor(ijk2[0]);
     ijk2[1] = Math.floor(ijk2[1]);
-    ijk2[2] = Math.floor(ijk2[2]);
+    ijk2[2] = z;
 
     workerPromise.exec('crop', {
       p1: ijk1,
@@ -419,7 +493,12 @@ const DEFAULT_VALUES = {
   radius: 1,
   label: 0,
   labelConstraint: null,
-  slicingMode: null
+  slicingMode: null,
+  
+  // For segment anything
+  embeddings: null,
+  location: null,
+  samScale: null
 };
 
 // ----------------------------------------------------------------------------
@@ -435,6 +514,8 @@ export function extend(publicAPI, model, initialValues = {}) {
 
   macro.setGet(publicAPI, model, [
     'labelMap',
+    'embeddings',
+    'location',
     'maskWorldToIndex',
     'voxelFunc',
     'label',

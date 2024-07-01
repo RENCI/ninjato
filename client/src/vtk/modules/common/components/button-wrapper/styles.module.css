@@ -1,0 +1,24 @@
+.wrapper {
+  cursor: pointer;
+}
+
+.wrapper:hover {
+  filter: brightness(96%);
+}
+
+.wrapper:active {
+  filter: brightness(92%);
+}
+
+.wrapper:active > *:active {
+  box-shadow: none;
+}
+
+.wrapper.disabled {
+  cursor: default;
+  filter: opacity(80%)
+}
+
+.wrapper.disabled > * {
+  box-shadow: none !important;
+}

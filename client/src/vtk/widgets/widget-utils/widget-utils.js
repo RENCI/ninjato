@@ -1,6 +1,6 @@
 export const toPixelCenter = (v, spacing, max) => {
   if (v < -spacing / 2) v = -spacing / 2;
-  else if (v > max - spacing * 1.5) v = max - spacing * 1.5
+  else if (v > max - spacing * 1.5) v = max - spacing * 1.5;
   
   return Math.floor((v - spacing / 2) / spacing) * spacing + spacing;
 };

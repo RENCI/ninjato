@@ -3,11 +3,12 @@ from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.constants import AccessType
 from .utils import update_assignment_in_whole_item
-from .endpoint_utils import get_item_assignment, save_user_annotation_as_item, get_subvolume_item_ids, \
-    get_subvolume_item_info, get_region_or_assignment_info, get_available_region_ids, \
-    claim_assignment, request_assignment, get_all_avail_items_for_review, \
-    get_region_comment_info, save_user_review_result_as_item, remove_region_from_item_assignment, \
-    get_subvolume_all_assignment_status
+from .endpoint_utils import get_item_assignment, save_user_annotation_as_item, \
+    get_subvolume_item_ids, get_subvolume_item_info, get_region_or_assignment_info, \
+    get_available_region_ids, claim_assignment, request_assignment, \
+    get_all_avail_items_for_review, get_region_comment_info, save_user_review_result_as_item, \
+    remove_region_from_item_assignment, get_subvolume_all_assignment_status, \
+    get_subvolume_slice_embedding
 
 
 @access.public
@@ -232,6 +233,19 @@ def get_subvolume_info(item):
 
 @access.public
 @autoDescribeRoute(
+    Description('Get file name and file id of the embedding for specified slice of the '
+                'specified subvolume.')
+    .modelParam('id', 'The item ID', model='item', level=AccessType.READ)
+    .param('slice_no', 'the slice number starting from 0', dataType='integer', required=True)
+    .errorResponse()
+    .errorResponse('Get action was denied on the user.', 403)
+    .errorResponse('Failed to get subvolume slice embedding', 500)
+)
+def get_slice_embedding(item, slice_no):
+    return get_subvolume_slice_embedding(item, slice_no)
+
+@access.public
+@autoDescribeRoute(
     Description('Get status of all assignments in the specified subvolume.')
     .modelParam('id', 'The item ID', model='item', level=AccessType.READ)
     .errorResponse()
@@ -277,7 +291,7 @@ def get_region_comments(item, region_label):
                 'enough region ids for use by split regions. Note this opeation has to be atomic '
                 'due to potential multiple split region requests at the same time')
     .modelParam('id', 'The item ID', model='item', level=AccessType.READ)
-    .param('split_region_count', 'number of regions to split into',dataType='integer', default=0,
+    .param('split_region_count', 'number of regions to split into', dataType='integer', default=0,
            required=False)
     .errorResponse()
     .errorResponse('Get action was denied on the user.', 403)
@@ -324,6 +338,7 @@ class NinjatoPlugin(GirderPlugin):
                                    request_region_assignment)
         info['apiRoot'].system.route('GET', ('subvolume_ids',), get_subvolume_ids)
         info['apiRoot'].item.route('GET', (':id', 'subvolume_info'), get_subvolume_info)
+        info['apiRoot'].item.route('GET', (':id', 'subvolume_slice_embedding'), get_slice_embedding)
         info['apiRoot'].item.route('GET', (':id', 'subvolume_all_assignment_status'),
                                    get_subvolume_all_assign_status)
         info['apiRoot'].item.route('GET', (':id', 'new_region_ids'), get_new_region_ids)

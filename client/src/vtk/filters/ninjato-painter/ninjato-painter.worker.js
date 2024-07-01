@@ -111,6 +111,24 @@ function floodFillScanlineStack({ buffer, w, h, seed }) {
 } 
 
 // XXX: Currently assuming z slice
+function handleApplyMask({ mask, volumeWidth, location, slice }) {
+  const w = globals.dimensions[0];
+  const h = globals.dimensions[1];
+  const z = slice;
+
+  const yStride = w;
+  const zStride = w * h;
+
+  for (let x = 0; x < w; x++) {
+    for (let y = 0; y < h; y++) {
+      const index = x + yStride * y + zStride * z;
+      const index2 = x + location.x_min + volumeWidth * (y + location.y_min); 
+      globals.buffer[index] = mask[index2];
+    }
+  }
+}
+
+// XXX: Currently assuming z slice
 function handlePaint({ pointList, brush }) {
   if (pointList.length === 0) return;
 
@@ -251,6 +269,7 @@ registerWebworker()
       globals.slicingMode = slicingMode;
     }
   })
+  .operation('applyMask', handleApplyMask)
   .operation('paint', handlePaint)
   .operation('paintFloodFill', handlePaintFloodFill)
   .operation('crop', handleCrop)

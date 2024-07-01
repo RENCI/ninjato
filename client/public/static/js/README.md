@@ -1,0 +1,1 @@
+This is a hack to get around not being able to bundle wasm files from onnxruntime-web during build/run.

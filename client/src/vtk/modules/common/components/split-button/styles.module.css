@@ -1,0 +1,18 @@
+.splitButton {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1 1 auto !important;
+}
+
+.iconDiv {
+  margin-right: .5rem;
+  margin-left: .5rem;
+  flex: 1 0 auto;
+}
+
+@media screen and (max-width: 767px) {
+  .iconDiv {
+    padding-left: 25px;
+  }
+}

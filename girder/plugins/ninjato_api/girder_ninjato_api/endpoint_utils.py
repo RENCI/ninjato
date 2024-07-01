@@ -5,6 +5,7 @@ from girder.models.user import User
 from bson.objectid import ObjectId
 from girder.models.collection import Collection
 from girder.models.folder import Folder
+from girder.models.file import File
 from girder.exceptions import RestException
 from .utils import TRAINING_COLLECTION_NAME, COLLECTION_NAME, ANNOT_ASSIGN_KEY, TRAINING_KEY, \
     ANNOT_COMPLETE_KEY, REVIEW_ASSIGN_KEY, REVIEW_COMPLETE_KEY, REVIEW_DONE_KEY, \
@@ -12,8 +13,9 @@ from .utils import TRAINING_COLLECTION_NAME, COLLECTION_NAME, ANNOT_ASSIGN_KEY, 
     set_max_region_id, remove_region_from_active_assignment, merge_region_to_active_assignment, \
     set_assignment_meta, get_history_info, assign_region_to_user, add_meta_to_history, \
     check_subvolume_done, reject_assignment, update_assignment_in_whole_item, \
-    get_assignment_status, WHOLE_ITEM_NAME, save_content_data, save_added_and_removed_regions, \
-    get_completed_assignment_items, update_all_assignment_masks_async
+    get_assignment_status, WHOLE_ITEM_NAME, EMBEDDING_NAME, save_content_data, \
+    save_added_and_removed_regions, get_completed_assignment_items, \
+    update_all_assignment_masks_async
 
 
 def get_available_region_ids(whole_item, count=1):
@@ -894,3 +896,24 @@ def get_all_avail_items_for_review(item):
                 avail_item_list.append(add_metadata)
 
     return avail_item_list
+
+
+def get_subvolume_slice_embedding(item, slice_no):
+    max_z = item['meta']['coordinates']['z_max']
+    min_z = item['meta']['coordinates']['z_min']
+    total_slices = max_z - min_z
+    if slice_no < 0 or slice_no > total_slices:
+        raise RestException('input slice_no is out of range of the volume', code=400)
+
+    folder_id = item['folderId']
+    emb_item = Item().findOne({'folderId': ObjectId(folder_id),
+                               'name': EMBEDDING_NAME})
+    item_files = File().find({'itemId': emb_item['_id']})
+    for item_file in item_files:
+        if item_file['name'].endswith(f'_{slice_no}.bin'):
+            return {
+                'file_name': item_file['name'],
+                'file_id': item_file['_id']
+                }
+
+    raise RestException('no slice embedding found for the input volume item', code=400)

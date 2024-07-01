@@ -1,0 +1,36 @@
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: stretch;
+  gap: 2em;
+  margin-left: 1em;
+  margin-right: 1em;
+}
+
+.assignment {
+  height: 100%;
+  width: var(--assignment-width);
+  position: relative;
+}
+
+.assignment > div:first-child {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  row-gap: .5em;
+}
+
+.assignment > div > div:first-child {
+  flex: 1 0 auto;
+}
+
+.assignment > .selected {
+  --radius: .2em;
+  font-weight: bold;
+  position: absolute;
+  top: -.85em;
+  left: 0;
+  right: 0;
+  text-shadow: calc(var(--radius) * -1) 0px var(--radius) #fff, var(--radius) 0px var(--radius) #fff;
+}

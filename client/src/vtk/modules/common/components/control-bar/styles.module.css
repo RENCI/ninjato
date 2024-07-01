@@ -1,0 +1,51 @@
+.controlBar {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+}
+
+@media only screen and (max-width: 767px) {
+  .controlBar:last-child {
+    margin-top: 1rem;
+  }
+
+  .controlBar:first-child {
+    margin-bottom: 1rem;
+  }
+}
+
+@media only screen and (min-width: 768px) {
+  .controlBar:last-child {
+    padding-left: 0 !important;
+  }
+
+  .controlBar:first-child {
+    padding-right: 0 !important;
+  }
+}
+
+.controlBar > div:not(:last-child) {
+  margin-bottom: .5rem;
+}
+
+.controlLabel {
+  text-align: center;
+  color: #999;
+}
+
+.controlsInfoButton {
+  margin-top: 1em;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.controlsInfoShortCut {
+  display: flex;
+  flex-direction: row;
+  text-transform: capitalize;
+}
+
+.controlsInfoShortCut > div:first-child {
+  margin-right: 1em;
+}

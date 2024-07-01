@@ -1,0 +1,16 @@
+@media only screen and (min-width: 768px) {
+  .sliceSlider {
+    flex: 0 0 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    position: relative;
+  }
+}
+
+.label {
+  width: 100%;
+  text-align: right;
+  margin-top: .5em;
+  margin-bottom: -.5em;
+  color: #999;
+}
