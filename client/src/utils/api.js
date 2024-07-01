@@ -1,5 +1,4 @@
 import axios from 'axios';
-import npyjs from 'npyjs';
 import { decodeTIFF } from 'utils/data-conversion';
 import { computeDiceScore, computeMultilabelSimilarity, getUniqueLabels } from './data';
 const ort = require('onnxruntime-web');
@@ -76,11 +75,7 @@ const getEmbeddings = async (subvolumeId, zMin, zMax) => {
         const sliceInfoResponse  = await axios.get(`/item/${ subvolumeId }/subvolume_slice_embedding`, {
           params: { slice_no: z }
         });
-        console.log('sliceInfoResponse.data.file_id: ' + sliceInfoResponse.data.file_id);
         const fileResponse = await axios.get(fileUrl(sliceInfoResponse.data.file_id), { responseType: 'blob' });
-        console.log('fileResponse: ' + fileResponse);
-        console.log('fileResponse.data: ' + fileResponse.data);
-        console.log('fileResponse.data.arrayBuffer: ' + fileResponse.data.arrayBuffer);
         return fileResponse.data.arrayBuffer();
       });
     }
